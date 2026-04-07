@@ -24,7 +24,7 @@ Before starting any task with more than 1 step:
 ---
 
 ### TASK 1: Deploy Landing Page
-**Status:** Not started
+**Status:** In Progress — code complete, deployment pending
 **Approved:** Pending
 **What this delivers:** visaforte.com is live and accessible to the world.
 
@@ -34,29 +34,78 @@ Before starting any task with more than 1 step:
 - [x] Build landing page using Stakes → Difference → Evidence → Objections → Offer → CTA structure
 - [x] Apply brand system per `/mnt/skills/user/visa-forte-brand/SKILL.md`
 - [x] Set up ESLint, directory structure per tech.md §3, constants.ts, .env.example
-- [ ] Deploy to Render (connect GitHub repo — Render auto-deploys on push to `main`)
-- [ ] Configure custom domain `visaforte.com` in Render dashboard
+- [x] Create `render.yaml` Blueprint (web service + managed PostgreSQL defined in code)
+- [ ] Connect GitHub repo on Render dashboard (one-time manual step — see deploy guide below)
+- [ ] Configure custom domain `visaforte.com` in Render dashboard (after first deploy succeeds)
 
-**Prashant Proof:** Open visaforte.com in your browser. Confirm the tagline "Engineered for Passage." is visible, the page loads in under 3 seconds, and the colours match the Visa Forte brand.
+**Render Deploy Guide (one-time, 5 minutes):**
+1. Go to [render.com](https://render.com) → sign in with GitHub
+2. Click **New → Blueprint** → select the `visaforte` GitHub repo
+3. Render reads `render.yaml` and creates: `visaforte-web` (Next.js) + `visaforte-db` (PostgreSQL) — click **Apply**
+4. First build takes ~3 minutes. Watch the build log — confirm it ends with `✓ Ready`
+5. Render gives you a URL like `visaforte-web.onrender.com` — use this to test before pointing the real domain
+
+**Prashant Proof:** Open the Render-provided URL in your browser. Confirm the tagline "Engineered for Passage." is visible, the page loads, and the colours match the Visa Forte brand.
 
 ---
 
 ### TASK 2: User Authentication (Login / Signup)
-**Status:** Not started
+**Status:** Code built locally — uncommitted. Needs commit + Render DB setup before it is live.
 **Approved:** Pending
 **What this delivers:** Prash can log in to an admin dashboard. Clients can create accounts.
 
 **Plan:**
-- [ ] Set up PostgreSQL on Render (managed database — no server management required)
-- [ ] Create initial database schema: `users` table (id, email, role, status, created_at, consent_given_at)
-- [ ] Generate and apply first Drizzle migration: `npx drizzle-kit generate` then `npx drizzle-kit migrate`
-- [ ] Install Better Auth and configure in `apps/web/lib/auth.ts`
-- [ ] Create login page at `/app/login/page.tsx`
-- [ ] Create Next.js Middleware with session check, suspended account invalidation, and rate limiting
-- [ ] Create protected admin dashboard at `/app/admin/page.tsx` (blank page — just confirms auth works)
-- [ ] Add `DATABASE_URL` and `BETTER_AUTH_SECRET` to Render environment variables
+- [x] Commit all auth work to `main`
+- [x] Create full database schema: `users`, `session`, `account`, `verification` tables (Better Auth compatible)
+- [x] Regenerate Drizzle migration from final schema
+- [x] Install Better Auth, configure with all 4 tables in drizzle adapter
+- [x] Create login page at `/login`
+- [x] Create signup page at `/signup`
+- [x] Create lightweight Edge-safe middleware (cookie check only — no DB calls)
+- [x] Create protected admin dashboard at `/admin`
+- [x] Add `zod` to dependencies (was missing — login/signup would not build)
+- [ ] Provision Neon PostgreSQL database (see DB Setup Guide below)
+- [ ] Add `DATABASE_URL` and `BETTER_AUTH_SECRET` to Vercel environment variables
+- [ ] Run `npx drizzle-kit migrate` to apply schema to live DB
+- [ ] Sign up at /signup, then promote account to admin role in Neon console
+
+**DB Setup Guide (one-time, ~10 minutes):**
+
+**Step 1 — Create the database on Neon:**
+1. Go to [neon.tech](https://neon.tech) → sign up / log in with GitHub
+2. Click **New Project** → name it `visaforte` → select region closest to you → **Create**
+3. On the dashboard, copy the **Connection string** — looks like `postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require`
+
+**Step 2 — Connect Neon to Vercel:**
+1. In Vercel → your project → **Settings → Environment Variables**
+2. Add `DATABASE_URL` = the connection string from Step 1
+3. Add `BETTER_AUTH_SECRET` = run `openssl rand -hex 32` in your terminal and paste the output
+4. Set `NEXT_PUBLIC_SITE_URL` = `https://visaforte.com` (or your current Vercel URL if domain not connected yet)
+5. Click **Save** — then go to **Deployments** and **Redeploy** the latest deployment
+
+**Step 3 — Run the migration (creates all DB tables):**
+```bash
+# In apps/web/ — run this once with the real DATABASE_URL
+cd apps/web
+DATABASE_URL="postgresql://..." npx drizzle-kit migrate
+```
+
+**Step 4 — Create your admin account:**
+1. Go to your Vercel URL → `/signup` → create your account with your email
+2. In the Neon console → **SQL Editor** → run:
+   ```sql
+   UPDATE users SET role = 'admin' WHERE email = 'prashant@visaforte.com';
+   ```
 
 **Prashant Proof:** Go to visaforte.com/login. Log in with your admin email. Confirm you land on the admin dashboard. Log out. Try accessing /admin directly — confirm you are redirected to the login page.
+
+**Review:**
+- Auth routes are now served at `/api/auth` using Better Auth.
+- Login and signup screens are implemented.
+- Admin dashboard protects `/admin` using server-side session validation.
+- A dedicated logout route now exists at `/logout`, and the admin sign-out button uses it.
+- `BETTER_AUTH_SECRET` is documented in `apps/web/.env.example`.
+- The codebase is auth-ready; deployment still requires setting `DATABASE_URL` and `BETTER_AUTH_SECRET` in the hosting environment.
 
 ---
 

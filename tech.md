@@ -25,16 +25,20 @@
 
 ## 2. Hosting Decision Framework
 
-**Default to Render.** It deploys both Next.js and Python (FastAPI) from the same dashboard, manages the PostgreSQL database visually, and auto-deploys on every push to `main` — no server configuration required. For a solo non-coder, zero-ops always outweighs cost optimisation at the start.
+**Long-term default: Render.** It deploys both Next.js and Python (FastAPI) from the same dashboard, manages the PostgreSQL database visually, and auto-deploys on every push to `main` — no server configuration required. For a solo non-coder, zero-ops always outweighs cost optimisation at the start.
 
 | Platform | Use When | Trade-off |
 |---|---|---|
-| **Render** ✅ Recommended | Default choice — unified stack, managed DB, zero ops | Slightly higher cost than VPS at scale |
+| **Render** ✅ Long-term default | Full stack (Next.js + FastAPI + PostgreSQL) — unified dashboard, managed DB, zero ops | Slightly higher cost than VPS at scale |
+| **Vercel** ✅ Phase 1 only | Next.js-only phases before the FastAPI backend exists | Cannot host Python servers — forces a second platform the moment FastAPI is needed |
 | **DigitalOcean App Platform** | If Render has availability issues in your region | Less mature Next.js support |
 | **VPS + Coolify** | Only when monthly cost becomes a constraint (Phase 2+) | Requires basic server management comfort |
-| **Vercel** | Never — cannot host FastAPI alongside Next.js | Splits the stack into two separate deployments |
 
-**Decision rule:** Start on Render. Migrate to VPS + Coolify only if hosting cost exceeds budget in Phase 2. Document the hosting choice in this file when made.
+**Current hosting (April 2026):** Vercel — Next.js only, no FastAPI yet. `render.yaml` is written and ready.
+
+**Migration trigger (non-negotiable):** Before any work begins on Task 3 (CanVisa Pro / FastAPI backend), migrate from Vercel to Render. Do not write a line of Python backend code while still on Vercel. The `render.yaml` at the repo root makes this a single dashboard action.
+
+**Decision rule:** Stay on Vercel until FastAPI is needed. Switch to Render at that point — never run a split stack (Vercel + Render simultaneously). Migrate to VPS + Coolify only if hosting cost becomes a constraint in Phase 2.
 
 ---
 
