@@ -34,7 +34,9 @@
 | **DigitalOcean App Platform** | If Render has availability issues in your region | Less mature Next.js support |
 | **VPS + Coolify** | Only when monthly cost becomes a constraint (Phase 2+) | Requires basic server management comfort |
 
-**Current hosting (April 2026):** Vercel — Next.js only, no FastAPI yet. `render.yaml` is written and ready.
+**Current hosting (April 2026):** Vercel (web) + Neon (PostgreSQL). `render.yaml` is written and ready for Phase 2 migration.
+
+**Database decision:** Neon is the permanent database host regardless of which platform runs the web server. Render's free PostgreSQL expires after 90 days — Neon's free tier does not. When hosting migrates to Render at Task 3, set `DATABASE_URL` in the Render dashboard to the existing Neon connection string. No data migration needed.
 
 **Migration trigger (non-negotiable):** Before any work begins on Task 3 (CanVisa Pro / FastAPI backend), migrate from Vercel to Render. Do not write a line of Python backend code while still on Vercel. The `render.yaml` at the repo root makes this a single dashboard action.
 

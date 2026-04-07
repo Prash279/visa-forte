@@ -1,5 +1,6 @@
 # render.yaml — Visa Forte Infrastructure Blueprint
-# Render reads this file to provision all services from one deploy.
+# Render reads this file to provision the web service on Phase 2+ migration.
+# Database lives on Neon (persistent free tier) — set DATABASE_URL manually in Render dashboard.
 # Docs: https://render.com/docs/blueprint-spec
 
 services:
@@ -18,24 +19,12 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "20"
-      # Injected automatically from the Render-managed database below
+      # DATABASE_URL must be set manually in the Render dashboard.
+      # Copy it from your Neon project dashboard (Settings → Connection string).
       - key: DATABASE_URL
-        fromDatabase:
-          name: visaforte-db
-          property: connectionString
-      # Render generates a cryptographically random value on first deploy
+        sync: false
+      # Render generates a cryptographically random value on first deploy.
       - key: BETTER_AUTH_SECRET
         generateValue: true
-      # The public site URL — used by Better Auth as its base URL
       - key: NEXT_PUBLIC_SITE_URL
         value: https://visaforte.com
-      # Better Auth baseURL fallback (same value as above — both kept for clarity)
-      - key: NEXTAUTH_URL
-        value: https://visaforte.com
-
-# ── PostgreSQL Database ───────────────────────────────────────────────────────
-databases:
-  - name: visaforte-db
-    plan: free
-    databaseName: visaforte
-    user: visaforte_user
