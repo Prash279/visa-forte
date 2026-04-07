@@ -30,10 +30,10 @@ Before starting any task with more than 1 step:
 
 **Plan:**
 - [x] Initialise Next.js 15 App Router project with TypeScript strict mode
-- [ ] Configure Tailwind CSS and brand tokens (Prussian `#0C2340`, Saffron `#C97B1E`, Pearl `#F8F4EE`)
-- [ ] Build landing page using Stakes → Difference → Evidence → Objections → Offer → CTA structure
-- [ ] Apply brand system per `/mnt/skills/user/visa-forte-brand/SKILL.md`
-- [ ] Set up ESLint, directory structure per `tech.md §3`, `constants.ts`, `.env.example`
+- [x] Configure Tailwind CSS and brand tokens (Prussian `#0C2340`, Saffron `#C97B1E`, Pearl `#F8F4EE`)
+- [x] Build landing page using Stakes → Difference → Evidence → Objections → Offer → CTA structure
+- [x] Apply brand system per `/mnt/skills/user/visa-forte-brand/SKILL.md`
+- [x] Set up ESLint, directory structure per tech.md §3, constants.ts, .env.example
 - [ ] Deploy to Render (connect GitHub repo — Render auto-deploys on push to `main`)
 - [ ] Configure custom domain `visaforte.com` in Render dashboard
 
