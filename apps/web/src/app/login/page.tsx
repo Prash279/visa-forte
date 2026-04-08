@@ -4,7 +4,9 @@ import { useState } from "react";
 import { z } from "zod";
 import { createAuthClient } from "better-auth/client";
 
-const authClient = createAuthClient();
+const authClient = createAuthClient({
+  baseURL: typeof window !== "undefined" ? window.location.origin : "https://visaforte.com",
+});
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -17,7 +19,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
