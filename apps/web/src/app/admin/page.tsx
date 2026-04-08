@@ -15,7 +15,7 @@ export default async function AdminPage() {
         <div className="mb-8 flex flex-col gap-4">
           <h1 className="text-4xl font-semibold">Admin dashboard</h1>
           <p className="text-slate-600">
-            Signed in as <span className="font-medium text-slate-900">{authSession.user?.email ?? authSession.session?.user?.email}</span>
+            Signed in as <span className="font-medium text-slate-900">{authSession.user?.email}</span>
           </p>
         </div>
 

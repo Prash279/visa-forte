@@ -23,10 +23,6 @@ export const auth = betterAuth({
     requireEmailVerification: false,
     autoSignIn: true,
   },
-  session: {
-    preserveSessionInDatabase: true,
-    storeSessionInDatabase: true,
-  },
   rateLimit: {
     enabled: true,
     max: 8,
