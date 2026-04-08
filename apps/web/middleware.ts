@@ -6,11 +6,16 @@ import type { NextRequest } from "next/server";
 // Full session validity + account status are validated in server components (admin/page.tsx)
 // which run in the Node.js runtime and have full DB access.
 
+// In production (HTTPS), Better Auth prefixes session cookies with __Secure-
+// We must check both names because NODE_ENV=production on Vercel.
 const SESSION_COOKIE = "better-auth.session_token";
+const SESSION_COOKIE_SECURE = "__Secure-better-auth.session_token";
 
 export function middleware(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
-  const hasSession = request.cookies.has(SESSION_COOKIE);
+  const hasSession =
+    request.cookies.has(SESSION_COOKIE) ||
+    request.cookies.has(SESSION_COOKIE_SECURE);
 
   // Redirect unauthenticated users away from protected routes.
   if (pathname.startsWith("/admin") && !hasSession) {
