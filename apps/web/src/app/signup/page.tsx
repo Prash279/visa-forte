@@ -2,11 +2,6 @@
 
 import { useState } from "react";
 import { z } from "zod";
-import { createAuthClient } from "better-auth/client";
-
-const authClient = createAuthClient({
-  baseURL: typeof window !== "undefined" ? window.location.origin : "https://visaforte.com",
-});
 
 const signupSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -17,13 +12,11 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
-    setSuccess("");
 
     const parsed = signupSchema.safeParse({ email, password });
     if (!parsed.success) {
@@ -33,15 +26,26 @@ export default function SignupPage() {
 
     try {
       setLoading(true);
-      await authClient.signUp.email({
-        email,
-        password,
-        name: email.split("@")[0] ?? email,
+      const res = await fetch("/api/auth/sign-up/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          name: email.split("@")[0] ?? email,
+        }),
+        credentials: "include",
       });
-      setSuccess("Account created. Redirecting to dashboard...");
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError((data as { message?: string }).message ?? "Signup failed. Try again.");
+        return;
+      }
+
       window.location.href = "/admin";
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Signup failed. Try again.");
+    } catch {
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -52,7 +56,6 @@ export default function SignupPage() {
       <form onSubmit={handleSubmit} className="w-full max-w-md rounded-3xl bg-white p-8 shadow-lg">
         <h1 className="text-3xl font-semibold mb-6">Create an account</h1>
         {error && <p className="text-red-600 mb-4">{error}</p>}
-        {success && <p className="text-green-600 mb-4">{success}</p>}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-2">Email</label>
           <input

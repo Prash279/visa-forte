@@ -2,11 +2,6 @@
 
 import { useState } from "react";
 import { z } from "zod";
-import { createAuthClient } from "better-auth/client";
-
-const authClient = createAuthClient({
-  baseURL: typeof window !== "undefined" ? window.location.origin : "https://visaforte.com",
-});
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -31,10 +26,22 @@ export default function LoginPage() {
 
     try {
       setLoading(true);
-      await authClient.signIn.email({ email, password });
+      const res = await fetch("/api/auth/sign-in/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError((data as { message?: string }).message ?? "Invalid email or password.");
+        return;
+      }
+
       window.location.href = "/admin";
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed. Please check your credentials.");
+    } catch {
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -73,7 +80,7 @@ export default function LoginPage() {
           {loading ? "Signing in..." : "Login"}
         </button>
         <p className="mt-4 text-sm text-slate-600">
-          Don’t have an account? <a className="font-semibold text-slate-900" href="/signup">Sign up</a>
+          Don&apos;t have an account? <a className="font-semibold text-slate-900" href="/signup">Sign up</a>
         </p>
       </form>
     </div>
