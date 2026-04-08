@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 export default function SignOutButton() {
-  const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
     setIsSigningOut(true);
-    router.push("/logout");
+    // Full page navigation so the browser applies the set-cookie response
+    // from the /logout route handler before rendering /login.
+    window.location.href = "/logout";
   };
 
   return (
