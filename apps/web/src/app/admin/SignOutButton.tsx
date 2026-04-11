@@ -7,8 +7,6 @@ export default function SignOutButton() {
 
   const handleSignOut = () => {
     setIsSigningOut(true);
-    // Full page navigation so the browser applies the set-cookie response
-    // from the /logout route handler before rendering /login.
     window.location.href = "/logout";
   };
 
@@ -17,9 +15,9 @@ export default function SignOutButton() {
       type="button"
       disabled={isSigningOut}
       onClick={handleSignOut}
-      className="rounded-xl bg-rose-600 px-4 py-3 text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+      className="font-sans text-[11px] tracking-[0.18em] uppercase text-pearl/60 hover:text-pearl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
     >
-      {isSigningOut ? "Signing out..." : "Sign out"}
+      {isSigningOut ? "Signing out…" : "Sign Out"}
     </button>
   );
 }
