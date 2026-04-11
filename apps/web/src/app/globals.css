@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+/* Critical CSS variables — defined here (render-blocking <head> stylesheet)
+   so they resolve before any page content is painted.
+   page.tsx also defines these in its inline <style> tag, but that tag is
+   at the bottom of the JSX and is processed after content is already rendered. */
+:root {
+  --prussian: #0C2340;
+  --saffron: #C97B1E;
+  --pearl: #F8F4EE;
+  --teal: #1A5C72;
+  --ink: #1A2B3C;
+  --sand: #E2DBD1;
+  --amber: #EDD9B0;
+}
+
 @theme inline {
   --color-prussian: #0C2340;
   --color-saffron: #C97B1E;
