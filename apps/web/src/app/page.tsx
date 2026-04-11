@@ -60,7 +60,18 @@ export default function Home() {
           <span className="nav-wordmark">Visa Forte</span>
           <span className="nav-tagline">Engineered for Passage.</span>
         </div>
-        <a href="#triage" className="nav-cta">
+        <a
+          href="#triage"
+          className="nav-cta"
+          onClick={(e) => {
+            e.preventDefault();
+            const subject = encodeURIComponent("Document Triage Assessment — [Your Name]");
+            const body = encodeURIComponent(
+              "Dear Prashant,\n\nI am writing to request a Document Triage Assessment for my Express Entry application. I want to ensure my documentation is in order before I proceed.\n\nMy details:\n\nFull name:\nCurrent location (city, country):\nExpress Entry program: CEC / FSWP / FSTP\nCurrent CRS score:\nITA received: Yes / No\nPrimary documentation concern:\n\nI am ready to proceed and look forward to hearing from you.\n\n[Full name]\n[WhatsApp / Phone]"
+            );
+            window.location.href = `mailto:prashant@visaforte.com?subject=${subject}&body=${body}`;
+          }}
+        >
           Request Triage
         </a>
       </nav>
@@ -79,7 +90,18 @@ export default function Home() {
             Your CRS score qualified you. Your ITA arrived. Now <strong>the documentation phase determines everything</strong> — and it is precisely where 90% of otherwise eligible applications fail. Visa Forte exists at exactly that boundary.
           </p>
           <div className="hero-actions">
-            <a href="#triage" className="btn-primary">
+            <a
+              href="#triage"
+              className="btn-primary"
+              onClick={(e) => {
+                e.preventDefault();
+                const subject = encodeURIComponent("Document Triage Assessment — [Your Name]");
+                const body = encodeURIComponent(
+                  "Dear Prashant,\n\nI am writing to request a Document Triage Assessment for my Express Entry application. I want to ensure my documentation is in order before I proceed.\n\nMy details:\n\nFull name:\nCurrent location (city, country):\nExpress Entry program: CEC / FSWP / FSTP\nCurrent CRS score:\nITA received: Yes / No\nPrimary documentation concern:\n\nI am ready to proceed and look forward to hearing from you.\n\n[Full name]\n[WhatsApp / Phone]"
+                );
+                window.location.href = `mailto:prashant@visaforte.com?subject=${subject}&body=${body}`;
+              }}
+            >
               Request Document Triage →
             </a>
             <a href="#evidence" className="link-ghost">
@@ -465,14 +487,14 @@ export default function Home() {
               const body = encodeURIComponent(
                 "Dear Prashant,\n\nI am writing to request a Document Triage Assessment for my Express Entry application. I want to ensure my documentation is in order before I proceed.\n\nMy details:\n\nFull name:\nCurrent location (city, country):\nExpress Entry program: CEC / FSWP / FSTP\nCurrent CRS score:\nITA received: Yes / No\nPrimary documentation concern:\n\nI am ready to proceed and look forward to hearing from you.\n\n[Full name]\n[WhatsApp / Phone]"
               );
-              window.location.href = `mailto:hello@visaforte.com?subject=${subject}&body=${body}`;
+              window.location.href = `mailto:prashant@visaforte.com?subject=${subject}&body=${body}`;
             }}
             className="btn-primary r d3"
           >
             Request Triage Assessment →
           </a>
           <p className="final-contact r d4">
-            <a href="mailto:hello@visaforte.com">hello@visaforte.com</a>
+            <a href="mailto:prashant@visaforte.com">prashant@visaforte.com</a>
             &nbsp;·&nbsp;
             <a href="https://visaforte.com" target="_blank" rel="noreferrer">
               visaforte.com
@@ -488,7 +510,7 @@ export default function Home() {
           <span className="footer-wordmark">Visa Forte</span>
           <span className="footer-tagline">Engineered for Passage.</span>
           <span className="footer-contact">
-            <a href="mailto:hello@visaforte.com">hello@visaforte.com</a>
+            <a href="mailto:prashant@visaforte.com">prashant@visaforte.com</a>
             &nbsp;·&nbsp;
             <a href="https://visaforte.com" target="_blank" rel="noreferrer">
               visaforte.com
