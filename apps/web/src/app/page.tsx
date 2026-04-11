@@ -1522,6 +1522,11 @@ export default function Home() {
           .hero {
             padding: 8rem 1.25rem 5rem;
           }
+          /* Hide the decorative vertical line on mobile — at 1.25rem side padding
+             the line at left:2.5rem falls inside the text content area. */
+          .hero::after {
+            display: none;
+          }
           .hero-stats {
             gap: 2.5rem;
           }
