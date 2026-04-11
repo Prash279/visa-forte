@@ -54,6 +54,11 @@ export default async function AdminPage() {
   }
 
   const userEmail = authSession.user?.email ?? "";
+
+  // Restrict admin access to the owner account only.
+  if (userEmail !== "prashant@visaforte.com") {
+    redirect("/login");
+  }
   const userName = userEmail.split("@")[0] ?? "there";
 
   // Determine greeting based on server time (UTC+5:30 for IST)
