@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# apps/web — Visa Forte Next.js Application
 
-## Getting Started
+The main web application for visaforte.com. Built with Next.js 15 App Router, TypeScript strict mode, Tailwind CSS v4, and Better Auth.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Directory Structure
+
+```
+src/
+├── app/
+│   ├── layout.tsx          Root layout — fonts, global CSS
+│   ├── globals.css         Brand tokens (:root vars), body background, Tailwind import
+│   ├── page.tsx            Landing page ("use client" — scroll animations)
+│   ├── home.css            All landing page CSS (imported by page.tsx — render-blocking)
+│   ├── login/              Login page
+│   ├── signup/             Signup page
+│   ├── admin/              Admin dashboard (server component — restricted to prashant@visaforte.com)
+│   ├── logout/             Sign-out route
+│   └── api/auth/           Better Auth API routes
+├── lib/
+│   ├── auth.ts             Better Auth server config
+│   ├── auth-client.ts      Better Auth client config
+│   └── db.ts               Drizzle ORM client
+└── db/
+    ├── schema.ts           Database schema (users, session, account, verification)
+    └── migrations/         Drizzle migration files
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Key Architecture Decisions
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**CSS loading:** All landing page CSS lives in `home.css` and is imported at the top of `page.tsx`. This makes it render-blocking (loaded before first paint). CSS must never be placed in a `<style jsx global>` block inside a `"use client"` component — that causes a Flash of Unstyled Content (FOUC) because styled-jsx in client components is injected via JavaScript, not SSR.
 
-## Learn More
+**Brand CSS variables:** Defined in both `globals.css` (for render-blocking availability) and `home.css` (for page-level use). Never define only in a component's scoped styles.
 
-To learn more about Next.js, take a look at the following resources:
+**Admin restriction:** The `/admin` server component checks `session.user.email` after session validation. Only `prashant@visaforte.com` is allowed through. All other valid sessions are redirected to `/login`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Mailto CTAs:** All "Request Triage" buttons use an `onClick` handler that builds the mailto URL via `encodeURIComponent` and sets `window.location.href`. Long mailto URLs must never be hardcoded in `href` — browsers silently drop them.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Environment Variables
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```env
+DATABASE_URL=postgresql://...          # Neon PostgreSQL connection string
+BETTER_AUTH_SECRET=...                 # 32-byte hex secret (openssl rand -hex 32)
+NEXT_PUBLIC_SITE_URL=https://visaforte.com
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Dev Commands
+
+```bash
+npm run dev          # Start dev server at localhost:3000
+npm run build        # Production build
+npm run lint         # ESLint
+npx drizzle-kit migrate   # Apply DB migrations (run once with real DATABASE_URL)
+```
+
+---
+
+## Deployment
+
+Auto-deploys to Vercel on push to `main`. No manual steps needed. Environment variables are set in the Vercel project dashboard.
