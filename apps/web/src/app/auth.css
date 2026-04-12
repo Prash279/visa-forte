@@ -1,0 +1,215 @@
+/* auth.css — shared layout for /login and /signup
+   Mobile-first. Desktop layout applied at 768px+.
+   Do NOT use flex centering on the form panel for mobile — it creates dead space. */
+
+/* ── PAGE SHELL ───────────────────────────────────────────── */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--pearl);
+}
+
+/* ── BRAND PANEL ──────────────────────────────────────────── */
+.auth-brand {
+  background: var(--prussian);
+  padding: 1.5rem 1.5rem 1.25rem;
+  flex-shrink: 0;
+}
+
+/* Mobile: only wordmark + rule visible — set in page JSX via .auth-brand-full */
+.auth-brand-full { display: none; }
+
+.auth-brand-wordmark {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  color: var(--pearl);
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.auth-brand-rule {
+  width: 2rem;
+  height: 2px;
+  background: var(--saffron);
+}
+
+/* Desktop-only brand content */
+.auth-brand-headline {
+  font-family: var(--font-display);
+  font-size: 3.2rem;
+  font-weight: 400;
+  line-height: 1.15;
+  font-style: italic;
+  color: var(--pearl);
+  margin-top: 2.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.auth-brand-body {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 300;
+  line-height: 1.75;
+  color: rgba(248, 244, 238, 0.55);
+  max-width: 260px;
+}
+
+.auth-brand-footer {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: rgba(248, 244, 238, 0.3);
+}
+
+/* ── FORM PANEL ───────────────────────────────────────────── */
+.auth-form-panel {
+  flex: 1;
+  background: var(--pearl);
+  padding: 2.5rem 1.5rem 3rem;
+}
+
+.auth-form-inner {
+  width: 100%;
+  max-width: 380px;
+}
+
+/* ── FORM ELEMENTS ────────────────────────────────────────── */
+.auth-heading {
+  font-family: var(--font-display);
+  font-size: 2.6rem;
+  font-weight: 400;
+  line-height: 1.12;
+  color: var(--prussian);
+  margin-bottom: 0.5rem;
+}
+
+.auth-rule {
+  width: 2rem;
+  height: 2px;
+  background: var(--saffron);
+  margin-bottom: 2.5rem;
+}
+
+.auth-error {
+  border-left: 2px solid var(--saffron);
+  background: var(--amber);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  color: var(--ink);
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.auth-field-last { margin-bottom: 2.5rem; }
+
+.auth-label {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.6;
+}
+
+.auth-label-note {
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  opacity: 0.5;
+  font-size: 0.65rem;
+}
+
+.auth-input {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 300;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--sand);
+  padding: 0.8rem 1rem;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.22s ease;
+  appearance: none;
+}
+
+.auth-input:focus { border-color: var(--prussian); }
+
+.auth-submit {
+  width: 100%;
+  background: var(--prussian);
+  color: var(--pearl);
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.22s ease;
+}
+
+.auth-submit:hover:not(:disabled) { background: var(--ink); }
+.auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.auth-footer-note {
+  margin-top: 2rem;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  color: var(--ink);
+  opacity: 0.55;
+}
+
+.auth-footer-note a {
+  color: var(--teal);
+  font-weight: 500;
+}
+
+.auth-footer-note a:hover { text-decoration: underline; }
+
+/* ── DESKTOP (768px+) ─────────────────────────────────────── */
+@media (min-width: 768px) {
+  .auth-page {
+    flex-direction: row;
+  }
+
+  /* Brand panel becomes full-height sticky left column */
+  .auth-brand {
+    width: 41.666%;
+    min-height: 100vh;
+    position: sticky;
+    top: 0;
+    padding: 3rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .auth-brand-rule { margin-bottom: 0; }
+
+  /* Show full brand content on desktop */
+  .auth-brand-full { display: block; }
+
+  /* Form panel: vertically and horizontally centred on desktop */
+  .auth-form-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+  }
+
+  .auth-form-inner { max-width: 384px; }
+}

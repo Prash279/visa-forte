@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { z } from "zod";
+import "../auth.css";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -48,104 +49,83 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="auth-page">
 
       {/* ── Brand panel ─────────────────────────────────────────
-          Mobile : compact strip — wordmark + tagline only
-          Desktop: full left column, sticky, full height        */}
-      <div className="bg-prussian flex flex-col justify-between
-                      px-6 py-6
-                      md:px-10 md:py-12 md:w-5/12 md:sticky md:top-0 md:h-screen md:min-h-screen">
+          Mobile : compact strip — wordmark + saffron rule only
+          Desktop: full-height sticky column with headline + footer */}
+      <div className="auth-brand">
 
-        {/* Always-visible top block */}
+        {/* Always visible: wordmark + rule */}
         <div>
-          <p className="font-sans text-[11px] tracking-[0.3em] text-pearl uppercase mb-3">
-            Visa Forte
-          </p>
-          <div className="w-8 h-[2px] bg-saffron mb-5 md:mb-10" />
+          <p className="auth-brand-wordmark">Visa Forte</p>
+          <div className="auth-brand-rule" />
+        </div>
 
-          {/* Headline — hidden on mobile to keep the strip compact */}
-          <h1 className="hidden md:block font-display text-pearl text-5xl leading-[1.15] italic mb-6">
+        {/* Desktop only: headline + body copy */}
+        <div className="auth-brand-full">
+          <h1 className="auth-brand-headline">
             Engineered<br />for Passage.
           </h1>
-
-          {/* Supporting copy — desktop only */}
-          <p className="hidden md:block font-sans text-sm leading-relaxed max-w-[260px]"
-            style={{ color: "rgba(248,244,238,0.55)" }}>
+          <p className="auth-brand-body">
             Expert immigration documentation, prepared with precision.
             Every file personally reviewed.
           </p>
         </div>
 
-        {/* Footer — desktop only */}
-        <p className="hidden md:block font-sans text-[11px] tracking-wide"
-          style={{ color: "rgba(248,244,238,0.3)" }}>
+        {/* Desktop only: footer */}
+        <p className="auth-brand-footer auth-brand-full">
           visaforte.com · Secunderabad, India
         </p>
+
       </div>
 
       {/* ── Form panel ──────────────────────────────────────────
-          Mobile : top-aligned, sensible padding, no flex centering
-          Desktop: vertically and horizontally centred           */}
-      <div className="flex-1 bg-pearl
-                      px-6 py-10
-                      md:flex md:items-center md:justify-center md:px-8 md:py-16">
-        <div className="w-full max-w-sm">
+          Mobile : top-aligned, simple block layout
+          Desktop: flex centred horizontally and vertically     */}
+      <div className="auth-form-panel">
+        <div className="auth-form-inner">
 
-          <h2 className="font-display text-prussian text-4xl leading-tight mb-2">
-            Welcome back.
-          </h2>
-          <div className="w-8 h-[2px] bg-saffron mb-10" />
+          <h2 className="auth-heading">Welcome back.</h2>
+          <div className="auth-rule" />
 
           <form onSubmit={handleSubmit}>
-            {error && (
-              <div className="border-l-2 border-saffron bg-amber px-4 py-3 mb-6 font-sans text-sm text-ink">
-                {error}
-              </div>
-            )}
+            {error && <div className="auth-error">{error}</div>}
 
-            <div className="mb-5">
-              <label className="block font-sans text-[11px] tracking-[0.18em] uppercase text-ink mb-2"
-                style={{ opacity: 0.6 }}>
-                Email Address
-              </label>
+            <div className="auth-field">
+              <label className="auth-label" htmlFor="email">Email Address</label>
               <input
+                id="email"
                 type="email"
+                className="auth-input"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-transparent border border-sand px-4 py-3 font-sans text-sm text-ink focus:border-prussian focus:outline-none transition-colors"
                 required
+                autoComplete="email"
               />
             </div>
 
-            <div className="mb-10">
-              <label className="block font-sans text-[11px] tracking-[0.18em] uppercase text-ink mb-2"
-                style={{ opacity: 0.6 }}>
-                Password
-              </label>
+            <div className="auth-field auth-field-last">
+              <label className="auth-label" htmlFor="password">Password</label>
               <input
+                id="password"
                 type="password"
+                className="auth-input"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-transparent border border-sand px-4 py-3 font-sans text-sm text-ink focus:border-prussian focus:outline-none transition-colors"
                 required
+                autoComplete="current-password"
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-prussian text-pearl font-sans text-[11px] tracking-[0.2em] uppercase py-4 transition-colors hover:bg-ink disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button type="submit" className="auth-submit" disabled={loading}>
               {loading ? "Signing in…" : "Sign In"}
             </button>
           </form>
 
-          <p className="mt-8 font-sans text-sm text-ink" style={{ opacity: 0.55 }}>
+          <p className="auth-footer-note">
             No account?{" "}
-            <a href="/signup" className="text-teal font-medium hover:underline">
-              Create one
-            </a>
+            <a href="/signup">Create one</a>
           </p>
 
         </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { z } from "zod";
+import "../auth.css";
 
 const signupSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -9,10 +10,10 @@ const signupSchema = z.object({
 });
 
 export default function SignupPage() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [error, setError]       = useState("");
+  const [loading, setLoading]   = useState(false);
 
   const handleSubmit = async (event: { preventDefault: () => void }) => {
     event.preventDefault();
@@ -52,95 +53,86 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="auth-page">
 
-      {/* ── Left panel — Brand identity ── */}
-      <div className="bg-prussian flex flex-col justify-between px-10 py-12 md:w-5/12 md:sticky md:top-0 md:h-screen">
+      {/* ── Brand panel ─────────────────────────────────────────
+          Mobile : compact strip — wordmark + saffron rule only
+          Desktop: full-height sticky column with headline + footer */}
+      <div className="auth-brand">
+
+        {/* Always visible: wordmark + rule */}
         <div>
-          {/* Wordmark */}
-          <p className="font-sans text-[11px] tracking-[0.3em] text-pearl uppercase mb-4">
-            Visa Forte
-          </p>
-          {/* Saffron rule */}
-          <div className="w-10 h-[2px] bg-saffron mb-10" />
-          {/* Display heading */}
-          <h1 className="font-display text-pearl text-5xl leading-[1.15] italic mb-6">
+          <p className="auth-brand-wordmark">Visa Forte</p>
+          <div className="auth-brand-rule" />
+        </div>
+
+        {/* Desktop only: headline + body copy */}
+        <div className="auth-brand-full">
+          <h1 className="auth-brand-headline">
             Engineered<br />for Passage.
           </h1>
-          {/* Supporting copy */}
-          <p className="font-sans text-sm leading-relaxed max-w-[260px]" style={{ color: "rgba(248,244,238,0.55)" }}>
-            Expert immigration documentation, prepared with precision. Every file personally reviewed.
+          <p className="auth-brand-body">
+            Expert immigration documentation, prepared with precision.
+            Every file personally reviewed.
           </p>
         </div>
 
-        {/* Footer */}
-        <p className="font-sans text-[11px] tracking-wide" style={{ color: "rgba(248,244,238,0.3)" }}>
+        {/* Desktop only: footer */}
+        <p className="auth-brand-footer auth-brand-full">
           visaforte.com · Secunderabad, India
         </p>
+
       </div>
 
-      {/* ── Right panel — Form ── */}
-      <div className="flex-1 bg-pearl flex items-center justify-center px-8 py-16">
-        <div className="w-full max-w-sm">
+      {/* ── Form panel ──────────────────────────────────────────
+          Mobile : top-aligned, simple block layout
+          Desktop: flex centred horizontally and vertically     */}
+      <div className="auth-form-panel">
+        <div className="auth-form-inner">
 
-          {/* Form header */}
-          <h2 className="font-display text-prussian text-4xl leading-tight mb-2">
-            Create your account.
-          </h2>
-          <div className="w-8 h-[2px] bg-saffron mb-10" />
+          <h2 className="auth-heading">Create your account.</h2>
+          <div className="auth-rule" />
 
           <form onSubmit={handleSubmit}>
-            {error && (
-              <div className="border-l-2 border-saffron bg-amber px-4 py-3 mb-6 font-sans text-sm text-ink">
-                {error}
-              </div>
-            )}
+            {error && <div className="auth-error">{error}</div>}
 
-            <div className="mb-5">
-              <label className="block font-sans text-[11px] tracking-[0.18em] uppercase text-ink mb-2"
-                style={{ opacity: 0.6 }}>
-                Email address
-              </label>
+            <div className="auth-field">
+              <label className="auth-label" htmlFor="email">Email Address</label>
               <input
+                id="email"
                 type="email"
+                className="auth-input"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-transparent border border-sand px-4 py-3 font-sans text-sm text-ink focus:border-prussian focus:outline-none transition-colors"
                 required
+                autoComplete="email"
               />
             </div>
 
-            <div className="mb-10">
-              <label className="block font-sans text-[11px] tracking-[0.18em] uppercase text-ink mb-2"
-                style={{ opacity: 0.6 }}>
+            <div className="auth-field auth-field-last">
+              <label className="auth-label" htmlFor="password">
                 Password
-                <span className="ml-2 normal-case tracking-normal" style={{ opacity: 0.5 }}>
-                  (min. 8 characters)
-                </span>
+                <span className="auth-label-note"> — min. 8 characters</span>
               </label>
               <input
+                id="password"
                 type="password"
+                className="auth-input"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-transparent border border-sand px-4 py-3 font-sans text-sm text-ink focus:border-prussian focus:outline-none transition-colors"
                 required
+                autoComplete="new-password"
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-prussian text-pearl font-sans text-[11px] tracking-[0.2em] uppercase py-4 transition-colors hover:bg-ink disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button type="submit" className="auth-submit" disabled={loading}>
               {loading ? "Creating account…" : "Create Account"}
             </button>
           </form>
 
-          <p className="mt-8 font-sans text-sm text-ink" style={{ opacity: 0.55 }}>
+          <p className="auth-footer-note">
             Already have an account?{" "}
-            <a href="/login" className="text-teal font-medium hover:underline">
-              Sign in
-            </a>
+            <a href="/login">Sign in</a>
           </p>
 
         </div>
