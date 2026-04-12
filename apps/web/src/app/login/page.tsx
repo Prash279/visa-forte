@@ -51,7 +51,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col md:flex-row">
 
       {/* ── Left panel — Brand identity ── */}
-      <div className="bg-prussian flex flex-col justify-between px-10 py-12 md:w-5/12 md:sticky md:top-0 md:h-screen">
+      <div className="bg-prussian flex flex-col justify-start gap-6 md:justify-between px-8 py-8 md:px-10 md:py-12 md:w-5/12 md:sticky md:top-0 md:h-screen">
         <div>
           {/* Wordmark */}
           <p className="font-sans text-[11px] tracking-[0.3em] text-pearl uppercase mb-4">
@@ -76,7 +76,7 @@ export default function LoginPage() {
       </div>
 
       {/* ── Right panel — Form ── */}
-      <div className="flex-1 bg-pearl flex items-center justify-center px-8 py-16">
+      <div className="flex-1 bg-pearl flex items-center justify-center px-8 py-10 md:py-16">
         <div className="w-full max-w-sm">
 
           {/* Form header */}
