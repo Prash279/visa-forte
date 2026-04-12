@@ -22,11 +22,6 @@ export function middleware(request: NextRequest): NextResponse {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Redirect already-authenticated users away from auth pages.
-  if ((pathname === "/login" || pathname === "/signup") && hasSession) {
-    return NextResponse.redirect(new URL("/admin", request.url));
-  }
-
   return NextResponse.next();
 }
 
