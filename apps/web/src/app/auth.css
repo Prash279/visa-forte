@@ -17,8 +17,10 @@
   flex-shrink: 0;
 }
 
-/* Mobile: only wordmark + rule visible — set in page JSX via .auth-brand-full */
-.auth-brand-full { display: none; }
+/* Headline, body copy, and footer are hidden on mobile */
+.auth-brand-headline,
+.auth-brand-body,
+.auth-brand-footer { display: none; }
 
 .auth-brand-wordmark {
   font-family: var(--font-body);
@@ -200,8 +202,10 @@
 
   .auth-brand-rule { margin-bottom: 0; }
 
-  /* Show full brand content on desktop */
-  .auth-brand-full { display: block; }
+  /* Show headline, body, and footer on desktop */
+  .auth-brand-headline,
+  .auth-brand-body,
+  .auth-brand-footer { display: block; }
 
   /* Form panel: vertically and horizontally centred on desktop */
   .auth-form-panel {

@@ -56,14 +56,13 @@ export default function LoginPage() {
           Desktop: full-height sticky column with headline + footer */}
       <div className="auth-brand">
 
-        {/* Always visible: wordmark + rule */}
+        {/* Top group — flex child 1.
+            Mobile : wordmark + rule only (headline/body hidden via CSS).
+            Desktop: wordmark + rule + headline + body all in one group,
+                     pinned to the top by justify-content: space-between. */}
         <div>
           <p className="auth-brand-wordmark">Visa Forte</p>
           <div className="auth-brand-rule" />
-        </div>
-
-        {/* Desktop only: headline + body copy */}
-        <div className="auth-brand-full">
           <h1 className="auth-brand-headline">
             Engineered<br />for Passage.
           </h1>
@@ -73,8 +72,9 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Desktop only: footer */}
-        <p className="auth-brand-footer auth-brand-full">
+        {/* Footer — flex child 2, pushed to bottom on desktop.
+            Hidden on mobile via CSS. */}
+        <p className="auth-brand-footer">
           visaforte.com · Secunderabad, India
         </p>
 
