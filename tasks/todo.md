@@ -1,7 +1,7 @@
 # tasks/todo.md — Active Task List
 > Written by Claude Code before implementation begins.
 > Approved by Prash before any code is written.
-> Last updated: April 2026 (session: landing page FOUC fix, admin restriction, CTA mailto wiring)
+> Last updated: April 2026 (session: Phase 1 completion plan — Option A architecture confirmed)
 
 ---
 
@@ -17,158 +17,249 @@ Before starting any task with more than 1 step:
 
 ---
 
-## Current Phase: Phase 1 — Foundation (MVP First)
+## Current Phase: Phase 1 — Foundation (Complete)
 
-**Rule:** Build what Prash can see and test in his browser first. Infrastructure is built when a feature requires it — not as standalone tasks before features. Every task ends with a Prashant Proof.
+**Architecture decision (confirmed April 2026):** Option A — single Next.js app, everything under visaforte.com.
+The current landing page stays intact as the homepage at `/`. All new pages are additional routes.
+No subdomains. No split deployments.
+
+**Phase 1 completion sequence:**
+1. Task A: Public website pages (About, Services, Contact) — pure Next.js
+2. Task 3: CanVisa Pro integration (single-file HTML, no backend required)
+3. Task 3A: Client intake form (Next.js server action + Drizzle → Neon)
+4. Task 3B: Booking engine MVP v1 (Next.js server action + Resend + Drizzle)
+5. Task 4: Paddle payment integration (Next.js API route)
+6. Task 5: Cloudflare R2 document storage (aws-sdk/client-s3 from Next.js)
+7. Task 8: CI/CD and observability (Phase 1 closer)
+
+**Hosting decision confirmed:** Stay on Vercel for all of Phase 1. FastAPI is not needed — all
+backend work uses Next.js server actions and API routes. Render migration deferred to Phase 2
+when Python background jobs (data retention cron, pipeline automation) are needed.
 
 ---
 
 ### TASK 1: Deploy Landing Page
 **Status:** ✅ COMPLETE
-**What this delivers:** visaforte.com is live and accessible to the world.
-
-**Plan:**
-- [x] Initialise Next.js 15 App Router project with TypeScript strict mode
-- [x] Configure Tailwind CSS and brand tokens (Prussian `#0C2340`, Saffron `#C97B1E`, Pearl `#F8F4EE`)
-- [x] Build landing page using Stakes → Difference → Evidence → Objections → Offer → CTA structure
-- [x] Apply brand system per visa-forte-brand skill
-- [x] Deploy to Vercel — live at visaforte.com
-- [x] Fix FOUC (Flash of Unstyled Content) — moved all CSS to `home.css`, imported as CSS file not styled-jsx
-- [x] Fix font flash — `display: "optional"` on Cormorant Garamond and DM Sans
-- [x] Fix mobile hero vertical line cutting through headline text
-- [x] Wire all 3 CTA buttons to mailto handler with professional email template
-- [x] Update default email to prashant@visaforte.com across all CTAs and footer links
 
 **Review:**
-Landing page is live at visaforte.com. All CTAs open Gmail with a professional 6-field triage assessment template addressed to prashant@visaforte.com. No flash on load. Mobile layout correct. Auto-deploys from main branch via Vercel.
+Landing page is live at visaforte.com. All CTAs open Gmail with a professional 6-field triage assessment
+template addressed to prashant@visaforte.com. No flash on load. Mobile layout correct.
+Auto-deploys from main branch via Vercel.
 
 ---
 
 ### TASK 2: User Authentication (Login / Signup)
 **Status:** ✅ COMPLETE
-**What this delivers:** Prash can log in to the admin dashboard. Admin access is locked to prashant@visaforte.com only.
-
-**Plan:**
-- [x] Commit all auth work to `main`
-- [x] Create full database schema: `users`, `session`, `account`, `verification` tables (Better Auth compatible)
-- [x] Regenerate Drizzle migration from final schema
-- [x] Install Better Auth v1.6.0, configure with Drizzle adapter
-- [x] Create login page at `/login` with Visa Forte brand
-- [x] Create signup page at `/signup` with Visa Forte brand
-- [x] Create lightweight Edge-safe middleware (cookie check only — no DB calls)
-- [x] Create protected admin dashboard at `/admin`
-- [x] Restrict admin access to prashant@visaforte.com via server-side email check
-- [x] Fix sign-out to use Better Auth v1.x server API directly
 
 **Review:**
-- Auth live on Vercel. Login at visaforte.com/login, admin at visaforte.com/admin.
-- Admin dashboard restricted to prashant@visaforte.com — any other valid session is redirected to /login.
-- Better Auth v1.6.0 with Neon PostgreSQL. Sign-out uses server API route.
-- `DATABASE_URL` and `BETTER_AUTH_SECRET` set in Vercel environment variables.
+Auth live on Vercel. Login at visaforte.com/login, admin at visaforte.com/admin.
+Admin dashboard restricted to prashant@visaforte.com — any other valid session is redirected to /login.
+Better Auth v1.6.0 with Neon PostgreSQL. Sign-out uses server API route.
+`DATABASE_URL` and `BETTER_AUTH_SECRET` set in Vercel environment variables.
+
+---
+
+### TASK A: Public Website Pages
+**Status:** ✅ COMPLETE
+**What this delivers:** visaforte.com becomes a full immigration consulting website — not just a landing page.
+Three new public pages plus a site-wide navigation bar linking them all.
+
+**Pages to build:**
+
+**A1 — Navigation Bar (site-wide)**
+- Logo (left) + nav links: Home · About · Services · Contact (right)
+- "Log In" button linking to /login (top right, secondary style)
+- Mobile-responsive hamburger menu
+- Applied to all public pages — landing page included
+
+**A2 — About Page (`/about`)**
+- Prash's background: 20+ years in Canadian immigration documentation
+- Practice positioning: documentation education and eligibility guidance (not RCIC-regulated advice)
+- Why Visa Forte exists: clients deserve certainty, not guesswork
+- Photo placeholder (Prash adds real photo later)
+- Standard legal disclaimer at the bottom
+
+**A3 — Services Page (`/services`)**
+- All 8 service tiers from `spec.md §2` with name, description, and what the client receives
+- Clear visual hierarchy — premium positioning, not a commodity price list
+- CTA on each tier: "Book a Consultation" linking to /booking (built in Task 3B)
+
+**A4 — Contact Page (`/contact`)**
+- Simple contact form: name, email, phone (optional), message
+- Email sends to prashant@visaforte.com via server action
+- Response time commitment shown clearly: "We respond within 24 hours"
+- Physical location: Secunderabad, India
+- Standard legal disclaimer
+
+**Plan:**
+- [ ] Read `/mnt/skills/user/visa-forte-brand/SKILL.md` before writing any UI
+- [ ] Build site-wide nav component at `apps/web/src/components/NavBar.tsx`
+- [ ] Add NavBar to `apps/web/src/app/layout.tsx` (applies to all pages)
+- [ ] Confirm landing page still looks correct with nav added
+- [ ] Build `/app/about/page.tsx`
+- [ ] Build `/app/services/page.tsx`
+- [ ] Build `/app/contact/page.tsx` with server action `POST /app/api/contact/route.ts`
+- [ ] All pages: Visa Forte brand colours, Cormorant Garamond display, DM Sans body
+- [ ] All pages: standard legal disclaimer in footer
+
+**Review:**
+Nav bar with About / Services / Contact / Log In / Request Triage on all public pages.
+Mobile hamburger menu. Scroll compaction. Active link state. SiteFooter with legal disclaimer
+on all public pages. PageEffects scroll-reveal observer runs site-wide. Homepage nav/footer
+moved to shared components. TypeScript clean. Build passes — all three pages render as static.
+
+**Prashant Proof:** Go to visaforte.com. Confirm the nav bar appears. Click each nav link — About, Services,
+Contact — confirm all three pages load and look correct. On the contact page, submit a test message
+and confirm it arrives at prashant@visaforte.com.
 
 ---
 
 ### TASK 3: CanVisa Pro Integration
 **Status:** Not started
 **Approved:** Pending
-**What this delivers:** The PR assessment tool is accessible to clients on the platform.
+**What this delivers:** The PR assessment tool is accessible to clients at visaforte.com/assessment.
 
 **Plan:**
-- [ ] Review `/mnt/skills/user/canvisa-pro/SKILL.md` in full before starting
-- [ ] Embed CanVisa Pro in the platform at `/app/assessment/page.tsx`
-- [ ] Ensure single-file constraint is maintained
-- [ ] Confirm: Only `api.anthropic.com` and `canada.ca` are called externally
+- [ ] Read `/mnt/skills/user/canvisa-pro/SKILL.md` in full before writing a line
+- [ ] Stand up `apps/api/` FastAPI skeleton: `main.py`, `config.py`, `requirements.txt`
+- [ ] Add FastAPI service to `render.yaml`
+- [ ] Embed CanVisa Pro at `/app/assessment/page.tsx`
+- [ ] Confirm: only `api.anthropic.com` and `canada.ca` are called externally
 - [ ] Confirm: Claude API key entered at runtime — never stored anywhere
-- [ ] Confirm: Every generated report includes the Standard Legal Disclaimer
+- [ ] Confirm: every generated report includes the Standard Legal Disclaimer
 
-**Prashant Proof:** Go to visaforte.com/assessment. Enter a test profile. Confirm a report is generated. Scroll to the bottom of the report and confirm the legal disclaimer is present.
+**Prashant Proof:** Go to visaforte.com/assessment. Enter a test profile. Confirm a report generates.
+Scroll to the bottom — confirm the legal disclaimer is present.
+
+---
+
+### TASK 3A: Client Intake Form
+**Status:** Not started
+**Approved:** Pending
+**What this delivers:** A structured form at `/intake` where new prospects submit their profile.
+Stored in PostgreSQL. Prash sees all submissions in the admin dashboard.
+
+**Plan:**
+- [ ] Add `leads` table to `drizzle/schema.ts`: `id, name, email, phone, service_interest, notes, created_at`
+- [ ] Generate and apply Drizzle migration
+- [ ] Build `/app/intake/page.tsx` — branded form with Zod validation
+- [ ] Create `POST /app/api/intake/route.ts` server action: validates input, stores to DB
+- [ ] Add "New Leads" table to `/admin` showing all intake submissions
+- [ ] Update Services page CTAs to link to /intake
+
+**Prashant Proof:** Go to visaforte.com/intake. Fill and submit the form. Go to visaforte.com/admin —
+confirm the submission appears in the leads table.
+
+---
+
+### TASK 3B: Booking Engine MVP v1
+**Status:** Not started
+**Approved:** Pending
+**What this delivers:** Prash marks available dates. Clients pick a date, choose a service tier,
+submit their name + email. Prash gets an email notification. Booking stored in PostgreSQL.
+
+**Email provider: Resend** — free tier (3,000 emails/month), no server to manage, developer-friendly.
+Confirmed by Prash before starting this task.
+
+**Plan:**
+- [ ] Install Resend SDK: `npm install resend`
+- [ ] Add `RESEND_API_KEY` to Render environment variables
+- [ ] Add `availability` table to schema: `id, date, is_available, created_at`
+- [ ] Add `bookings` table: `id, name, email, service_tier, booking_date, status, created_at`
+- [ ] Generate and apply Drizzle migration
+- [ ] Build admin availability page at `/admin/availability` — Prash toggles dates on/off (calendar UI)
+- [ ] Build client booking page at `/booking` — date picker + service tier dropdown + name + email
+- [ ] Server action: creates booking record + sends email notification to prashant@visaforte.com
+- [ ] Add booking list table to `/admin`
+- [ ] Link "Book a Consultation" CTAs (Services page + landing page) to /booking
+
+**Prashant Proof:** Log in to admin. Go to /admin/availability — mark tomorrow as available.
+Open a private/incognito window, go to /booking — confirm tomorrow appears as selectable.
+Submit a booking. Check prashant@visaforte.com inbox — confirm the notification email arrived.
 
 ---
 
 ### TASK 4: Paddle Payment Integration
 **Status:** Not started
 **Approved:** Pending
-**What this delivers:** Clients can pay for services online.
+**What this delivers:** Clients can pay for services online. Webhook handler is production-ready.
 
 **Plan:**
-- [ ] Create Paddle webhook handler at `/app/api/webhooks/paddle/route.ts`
-- [ ] Implement HMAC-SHA256 verification per `security.md §2` using Node.js built-in `crypto` module
-- [ ] Read raw body as text before parsing (critical — prevents signature verification failure)
+- [ ] Create `POST /app/api/webhooks/paddle/route.ts`
+- [ ] Implement HMAC-SHA256 signature verification using Node.js built-in `crypto` (no extra package)
+- [ ] Read raw body as text before JSON parsing — prevents signature verification failure
 - [ ] Handle event types: `subscription.created`, `payment.completed`
-- [ ] Return HTTP 400 for unverified signatures
+- [ ] Return HTTP 400 for unverified signatures; HTTP 200 for verified
 - [ ] Add `PADDLE_SECRET_KEY` and `PADDLE_WEBHOOK_SECRET` to Render environment variables
+- [ ] Write a Vitest unit test: valid signature → 200, tampered payload → 400
 
-**Prashant Proof:** In Paddle sandbox dashboard, trigger a test payment. Confirm the webhook is received (check Paddle's webhook log — it should show a 200 response).
+**Prashant Proof:** In Paddle sandbox dashboard, trigger a test payment webhook.
+Confirm Paddle's webhook log shows a 200 response.
 
 ---
 
 ### TASK 5: Cloudflare R2 Document Storage
 **Status:** Not started
 **Approved:** Pending
-**What this delivers:** Client documents can be securely uploaded and stored.
+**What this delivers:** The infrastructure to securely store and retrieve client documents.
 
 **Plan:**
-- [ ] Create R2 bucket in Cloudflare dashboard
-- [ ] Create storage utility in `apps/api/services/storage.ts` with: `uploadFile`, `deleteFile`, `generateSignedUrl`
-- [ ] Implement transcript download flow per `security.md §5`
-- [ ] Add R2 credentials to Render environment variables
+- [ ] Create R2 bucket in the Cloudflare dashboard (Prash action — 5 minutes)
+- [ ] Build `apps/web/src/lib/storage.ts` with three functions:
+  - `uploadFile(key, buffer, contentType)` — stores a file in R2
+  - `deleteFile(key)` — removes a file
+  - `generateSignedUrl(key)` — returns a 15-minute expiry download URL
+- [ ] Add to Render environment: `CLOUDFLARE_R2_ACCESS_KEY`, `CLOUDFLARE_R2_SECRET_KEY`, `CLOUDFLARE_R2_BUCKET`, `CLOUDFLARE_R2_ENDPOINT`
+- [ ] Write Vitest unit tests for the storage utility functions
 
-**Prashant Proof:** Upload a test PDF through the admin dashboard. Confirm it appears in the Cloudflare R2 dashboard. Generate a signed download link — confirm it opens the file and expires after 15 minutes.
+**Prashant Proof:** Upload a test PDF through the admin dashboard. Confirm it appears in the
+Cloudflare R2 dashboard. Generate a signed download link — confirm it opens the file and
+expires after 15 minutes.
 
 ---
 
-### TASK 6: DPDP Compliance Automations
-**Status:** Not started
-**Approved:** Pending
-**What this delivers:** Platform meets India's data protection requirements from day one.
-
-**Plan:**
-- [ ] Build `ConsentCheckbox` component per `security.md §8.1` — renders before any data collection
-- [ ] Store consent with timestamp in `users` table
-- [ ] Build data deletion request page in client portal (`/portal/privacy`)
-- [ ] Write deletion cron job (`apps/api/jobs/data_retention.py`) per `security.md §8.3`
-- [ ] Schedule cron job at 02:00 IST daily via Render's cron job feature
-
-**Prashant Proof:** Create a test account. Go through signup — confirm the consent checkbox appears before you can proceed. Go to /portal/privacy — confirm you can see what data is stored and submit a deletion request.
-
----
-
-### TASK 7: MVP CRM (Simple Client Table)
-**Status:** Not started
-**Approved:** Pending
-**What this delivers:** Prash can see all clients, their status, and add notes — in one simple table.
-
-**Plan:**
-- [ ] Add `clients` table to database schema (id, user_id, service_tier, status, notes, created_at)
-- [ ] Generate and apply Drizzle migration
-- [ ] Build admin CRM page at `/app/admin/clients/page.tsx` — a table showing all clients
-- [ ] Add ability to: update client status (dropdown), add a private note, view uploaded documents
-- [ ] No automated triggers, no email sends, no pipeline animations in v1
-
-**Prashant Proof:** Log in to admin dashboard. Go to /admin/clients. Add a test client manually. Change their status. Add a note. Confirm everything saves and displays correctly on page refresh.
-
----
-
-### TASK 8: CI/CD and Observability Setup
+### TASK 8: CI/CD and Observability (Phase 1 closer)
 **Status:** Not started
 **Approved:** Pending
 **What this delivers:** Broken code cannot reach production. Prash gets alerted if the site goes down.
 
 **Plan:**
-- [ ] Create `.github/workflows/ci.yml` per `tech.md §11` — Claude Code owns and maintains this file
-- [ ] Install Sentry: `@sentry/nextjs` + configure PII scrubbing per `tech.md §12`
-- [ ] Create `apps/web/lib/logger.ts` and `apps/api/config/logger.py` per `tech.md §12`
-- [ ] Create `/app/api/health/route.ts` health check endpoint
-- [ ] Set up UptimeRobot monitoring on `/api/health` and `/` [VERIFY free tier limits]
-- [ ] Confirm Render auto-deploy is working: push a small change to `main`, confirm it deploys automatically
+- [ ] Create `.github/workflows/ci.yml` — typecheck, lint, Vitest, PyTest per `tech.md §11`
+- [ ] Create `apps/web/src/lib/logger.ts` — structured JSON logger per `tech.md §12`
+- [ ] Create `apps/api/config/logger.py` — Python structured logger
+- [ ] Create `GET /app/api/health/route.ts` — checks DB connectivity, returns 200 or 503
+- [ ] Install `@sentry/nextjs` + configure PII scrubbing (email, name, document content never logged)
+- [ ] Install `sentry-sdk[fastapi]`
+- [ ] Set up UptimeRobot monitors: `/api/health` and `/`
 
-**Prashant Proof:** Go to your UptimeRobot dashboard — confirm the health monitor shows "Up." Make a deliberate typo in a test file, push to a feature branch — confirm GitHub Actions fails and blocks the merge.
+**Prashant Proof:** Go to UptimeRobot dashboard — confirm the health monitor shows "Up."
+On a feature branch, introduce a deliberate TypeScript type error and push it — confirm GitHub Actions
+fails and the branch is blocked from merging to main.
+
+---
+
+## Deferred — Phase 2
+
+### TASK 7: MVP CRM (Simple Client Table)
+**Status:** Deferred to Phase 2
+Per `spec.md §8`, CRM pipeline is Phase 2 scope. Do not build during Phase 1.
+
+---
+
+## Deferred — Phase 3
+
+### TASK 6: DPDP Compliance Automations
+**Status:** Deferred to Phase 3
+Per `spec.md §8`, DPDP consent interface and automated deletion cron are Phase 3 scope.
 
 ---
 
 ## Completed Tasks
 
-Tasks 1 and 2 are complete. Their full records are in the active section above marked ✅ COMPLETE.
+| Task | Description | Completed |
+|---|---|---|
+| Task 1 | Landing page — live at visaforte.com | April 2026 |
+| Task 2 | Authentication — Better Auth + Neon PostgreSQL | April 2026 |
 
 ---
 

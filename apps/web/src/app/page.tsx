@@ -1,34 +1,15 @@
 "use client";
 
+// Homepage — visaforte.com/
+// Nav, footer, and scroll-reveal observer are provided by layout.tsx.
+// This component only owns: accordion interaction.
+
 import { useEffect } from "react";
 import "./home.css";
 
 export default function Home() {
   useEffect(() => {
-    const revealEls = document.querySelectorAll<HTMLElement>(".r");
-    const revealObs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("vis");
-            revealObs.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.08 }
-    );
-
-    revealEls.forEach((el) => revealObs.observe(el));
-
-    const nav = document.getElementById("nav");
-    const onScroll = () => {
-      if (nav) {
-        nav.classList.toggle("scrolled", window.scrollY > 60);
-      }
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-
+    // Accordion for the FAQ/objections section
     document.querySelectorAll<HTMLButtonElement>(".accord-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const item = btn.closest(".accord-item");
@@ -46,40 +27,12 @@ export default function Home() {
         }
       });
     });
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      revealObs.disconnect();
-    };
   }, []);
 
   return (
     <main>
-      <nav id="nav">
-        <div className="nav-brand">
-          <span className="nav-wordmark">Visa Forte</span>
-          <span className="nav-tagline">Engineered for Passage.</span>
-        </div>
-        <a
-          href="#triage"
-          className="nav-cta"
-          onClick={(e) => {
-            e.preventDefault();
-            const subject = encodeURIComponent("Document Triage Assessment — [Your Name]");
-            const body = encodeURIComponent(
-              "Dear Prashant,\n\nI am writing to request a Document Triage Assessment for my Express Entry application. I want to ensure my documentation is in order before I proceed.\n\nMy details:\n\nFull name:\nCurrent location (city, country):\nExpress Entry program: CEC / FSWP / FSTP\nCurrent CRS score:\nITA received: Yes / No\nPrimary documentation concern:\n\nI am ready to proceed and look forward to hearing from you.\n\n[Full name]\n[WhatsApp / Phone]"
-            );
-            window.location.href = `mailto:prashant@visaforte.com?subject=${subject}&body=${body}`;
-          }}
-        >
-          Request Triage
-        </a>
-      </nav>
-
       <section className="hero">
-        <span className="hero-watermark" aria-hidden="true">
-          20
-        </span>
+        <span className="hero-watermark" aria-hidden="true">20</span>
         <div className="hero-inner">
           <p className="hero-eyebrow">Express Entry · Federal Skilled Worker · Provincial Nominee Programs</p>
           <h1 className="hero-headline">
@@ -104,15 +57,11 @@ export default function Home() {
             >
               Request Document Triage →
             </a>
-            <a href="#evidence" className="link-ghost">
-              See client outcomes
-            </a>
+            <a href="#evidence" className="link-ghost">See client outcomes</a>
           </div>
           <div className="hero-stats">
             <div className="stat">
-              <span className="stat-n">
-                20<sup>+</sup>
-              </span>
+              <span className="stat-n">20<sup>+</sup></span>
               <span className="stat-label">Years Documentation Practice</span>
             </div>
             <div className="stat">
@@ -276,7 +225,7 @@ export default function Home() {
               <div>
                 <h3 className="case-title">18-Month Processing Timeline. Three IRCC Information Requests. Every One Answered the Same Day.</h3>
                 <p className="case-detail">
-                  A professional couple on a joint Express Entry application faced an 18-month processing timeline with three separate IRCC information requests issued at irregular intervals. Each request arrived without advance notice and carried a response deadline. A structured milestone communication plan was implemented from the point of ITA acceptance: documented file status at each processing stage, pre-prepared response templates for all anticipated IRCC correspondence types, and a direct-access contact structure for any query that arose between milestones. All three information requests were answered the same business day they were received, with fully prepared and accurate supporting documentation already on file. The waiting period was not experienced as uncertainty. It was managed as a defined phase with clear checkpoints throughout.
+                  A professional couple on a joint Express Entry application faced an 18-month processing timeline with three separate IRCC information requests issued at irregular intervals. Each request arrived without advance notice and carried a response deadline. A structured milestone communication plan was implemented from the point of ITA acceptance: documented file status at each processing stage, pre-prepared response templates for all anticipated IRCC correspondence types, and a direct-access contact structure for any query that arose between milestones. All three information requests were answered the same business day they were received, with fully prepared and accurate supporting documentation already on file.
                 </p>
                 <div className="case-result">
                   <span className="case-result-label">Outcome</span>
@@ -355,116 +304,30 @@ export default function Home() {
             </div>
             <div className="kit">
               <p className="kit-header">What Is Included</p>
-              <div className="kit-item">
-                <div className="kit-check">
-                  <svg viewBox="0 0 10 10">
-                    <polyline points="1.5,5 4,7.5 8.5,2.5" />
-                  </svg>
+              {[
+                ["Offline CRS Eligibility Assessment", "Personal, manual profile review — not an automated calculator output"],
+                ["Program-Specific Document Checklist", "FSW, CEC, or targeted PNP stream — no generic templates applied"],
+                ["Forensic Document Triage", "Every supporting document reviewed against current IRCC criteria, personally"],
+                ["Employment Letter Compliance Review", "NOC / TEER alignment verified for every employer and every jurisdiction"],
+                ["Financial Proof Analysis", "Consistency, completeness, and CAD conversion compliance checked"],
+                ["Gap & Anomaly Documentation", "Explanations drafted and structured for every employment or financial gap"],
+                ["Step-by-Step Application Guide", "Submission sequence specific to your program stream and current IRCC portal"],
+                ["GC Key Account Creation Guide", "Step-by-step IRCC portal setup and account management"],
+                ["Milestone Communication Plan", "Structured updates and IRCC correspondence templates through the processing period"],
+                ["Priority Direct Access", "Direct contact for any IRCC correspondence during your active file period"],
+              ].map(([name, desc]) => (
+                <div className="kit-item" key={name}>
+                  <div className="kit-check">
+                    <svg viewBox="0 0 10 10">
+                      <polyline points="1.5,5 4,7.5 8.5,2.5" />
+                    </svg>
+                  </div>
+                  <div className="kit-text">
+                    <span className="kit-name">{name}</span>
+                    <span className="kit-desc">{desc}</span>
+                  </div>
                 </div>
-                <div className="kit-text">
-                  <span className="kit-name">Offline CRS Eligibility Assessment</span>
-                  <span className="kit-desc">Personal, manual profile review — not an automated calculator output</span>
-                </div>
-              </div>
-              <div className="kit-item">
-                <div className="kit-check">
-                  <svg viewBox="0 0 10 10">
-                    <polyline points="1.5,5 4,7.5 8.5,2.5" />
-                  </svg>
-                </div>
-                <div className="kit-text">
-                  <span className="kit-name">Program-Specific Document Checklist</span>
-                  <span className="kit-desc">FSW, CEC, or targeted PNP stream — no generic templates applied</span>
-                </div>
-              </div>
-              <div className="kit-item">
-                <div className="kit-check">
-                  <svg viewBox="0 0 10 10">
-                    <polyline points="1.5,5 4,7.5 8.5,2.5" />
-                  </svg>
-                </div>
-                <div className="kit-text">
-                  <span className="kit-name">Forensic Document Triage</span>
-                  <span className="kit-desc">Every supporting document reviewed against current IRCC criteria, personally</span>
-                </div>
-              </div>
-              <div className="kit-item">
-                <div className="kit-check">
-                  <svg viewBox="0 0 10 10">
-                    <polyline points="1.5,5 4,7.5 8.5,2.5" />
-                  </svg>
-                </div>
-                <div className="kit-text">
-                  <span className="kit-name">Employment Letter Compliance Review</span>
-                  <span className="kit-desc">NOC / TEER alignment verified for every employer and every jurisdiction</span>
-                </div>
-              </div>
-              <div className="kit-item">
-                <div className="kit-check">
-                  <svg viewBox="0 0 10 10">
-                    <polyline points="1.5,5 4,7.5 8.5,2.5" />
-                  </svg>
-                </div>
-                <div className="kit-text">
-                  <span className="kit-name">Financial Proof Analysis</span>
-                  <span className="kit-desc">Consistency, completeness, and CAD conversion compliance checked</span>
-                </div>
-              </div>
-              <div className="kit-item">
-                <div className="kit-check">
-                  <svg viewBox="0 0 10 10">
-                    <polyline points="1.5,5 4,7.5 8.5,2.5" />
-                  </svg>
-                </div>
-                <div className="kit-text">
-                  <span className="kit-name">Gap &amp; Anomaly Documentation</span>
-                  <span className="kit-desc">Explanations drafted and structured for every employment or financial gap</span>
-                </div>
-              </div>
-              <div className="kit-item">
-                <div className="kit-check">
-                  <svg viewBox="0 0 10 10">
-                    <polyline points="1.5,5 4,7.5 8.5,2.5" />
-                  </svg>
-                </div>
-                <div className="kit-text">
-                  <span className="kit-name">Step-by-Step Application Guide</span>
-                  <span className="kit-desc">Submission sequence specific to your program stream and current IRCC portal</span>
-                </div>
-              </div>
-              <div className="kit-item">
-                <div className="kit-check">
-                  <svg viewBox="0 0 10 10">
-                    <polyline points="1.5,5 4,7.5 8.5,2.5" />
-                  </svg>
-                </div>
-                <div className="kit-text">
-                  <span className="kit-name">GC Key Account Creation Guide</span>
-                  <span className="kit-desc">Step-by-step IRCC portal setup and account management</span>
-                </div>
-              </div>
-              <div className="kit-item">
-                <div className="kit-check">
-                  <svg viewBox="0 0 10 10">
-                    <polyline points="1.5,5 4,7.5 8.5,2.5" />
-                  </svg>
-                </div>
-                <div className="kit-text">
-                  <span className="kit-name">Milestone Communication Plan</span>
-                  <span className="kit-desc">Structured updates and IRCC correspondence templates through the processing period</span>
-                </div>
-              </div>
-              <div className="kit-item">
-                <div className="kit-check">
-                  <svg viewBox="0 0 10 10">
-                    <polyline points="1.5,5 4,7.5 8.5,2.5" />
-                  </svg>
-                </div>
-                <div className="kit-text">
-                  <span className="kit-name">Priority Direct Access</span>
-                  <span className="kit-desc">Direct contact for any IRCC correspondence during your active file period</span>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -496,31 +359,11 @@ export default function Home() {
           <p className="final-contact r d4">
             <a href="mailto:prashant@visaforte.com">prashant@visaforte.com</a>
             &nbsp;·&nbsp;
-            <a href="https://visaforte.com" target="_blank" rel="noreferrer">
-              visaforte.com
-            </a>
-            &nbsp;·&nbsp;
-            Secunderabad, India
+            <a href="https://visaforte.com" target="_blank" rel="noreferrer">visaforte.com</a>
+            &nbsp;·&nbsp;Secunderabad, India
           </p>
         </div>
       </section>
-
-      <footer>
-        <div className="footer-brand">
-          <span className="footer-wordmark">Visa Forte</span>
-          <span className="footer-tagline">Engineered for Passage.</span>
-          <span className="footer-contact">
-            <a href="mailto:prashant@visaforte.com">prashant@visaforte.com</a>
-            &nbsp;·&nbsp;
-            <a href="https://visaforte.com" target="_blank" rel="noreferrer">
-              visaforte.com
-            </a>
-          </span>
-        </div>
-        <p className="footer-disclaimer">
-          Visa Forte provides immigration documentation consulting services. Prashant Thirthingoth is not a Regulated Canadian Immigration Consultant (RCIC) and does not provide legal advice or immigration representation. All services constitute documentation preparation and review only. For legal representation or regulated advice, consult a licensed RCIC or immigration lawyer authorised to practise in Canada.
-        </p>
-      </footer>
     </main>
   );
 }

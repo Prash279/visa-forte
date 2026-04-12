@@ -38,7 +38,7 @@
 
 **Database decision:** Neon is the permanent database host regardless of which platform runs the web server. Render's free PostgreSQL expires after 90 days — Neon's free tier does not. When hosting migrates to Render at Task 3, set `DATABASE_URL` in the Render dashboard to the existing Neon connection string. No data migration needed.
 
-**Migration trigger (non-negotiable):** Before any work begins on Task 3 (CanVisa Pro / FastAPI backend), migrate from Vercel to Render. Do not write a line of Python backend code while still on Vercel. The `render.yaml` at the repo root makes this a single dashboard action.
+**Migration trigger:** Phase 1 is entirely Next.js — server actions, API routes, and Drizzle ORM cover all backend needs. No FastAPI is required in Phase 1. Migrate to Render at the start of Phase 2 when Python background jobs (data retention cron, pipeline automation) require a persistent process that Vercel cannot host.
 
 **Decision rule:** Stay on Vercel until FastAPI is needed. Switch to Render at that point — never run a split stack (Vercel + Render simultaneously). Migrate to VPS + Coolify only if hosting cost becomes a constraint in Phase 2.
 

@@ -1,0 +1,311 @@
+/* services.css — styles for /services only */
+
+/* ── HERO ─────────────────────────────────────────────────── */
+.services-hero {
+  background: var(--prussian);
+  padding: 11rem 2.5rem 7rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.services-hero::after {
+  content: '';
+  position: absolute;
+  right: 2.5rem;
+  top: 0; bottom: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent 10%, rgba(201,123,30,0.3) 35%, rgba(201,123,30,0.3) 65%, transparent 90%);
+}
+
+.services-hero-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.services-hero-headline {
+  font-family: var(--font-display);
+  font-size: clamp(3.2rem, 6.5vw, 6rem);
+  font-weight: 400;
+  line-height: 1.04;
+  color: var(--pearl);
+  letter-spacing: -0.015em;
+  margin-bottom: 0;
+}
+
+.services-hero-lead {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 300;
+  line-height: 1.82;
+  color: rgba(248, 244, 238, 0.58);
+  max-width: 580px;
+}
+
+/* ── SERVICE LIST ─────────────────────────────────────────── */
+.services-list { background: var(--pearl); }
+
+.services-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--sand);
+  border: 1px solid var(--sand);
+}
+
+.service-card {
+  background: var(--pearl);
+  padding: 3rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto auto;
+  gap: 0 4rem;
+  transition: background 0.25s ease;
+}
+
+.service-card:hover { background: #f4f0ea; }
+
+/* Header spans full width */
+.service-card-header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.service-card-n {
+  font-family: var(--font-display);
+  font-size: 3.5rem;
+  font-weight: 300;
+  color: var(--sand);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.service-card-tag {
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  padding: 0.25rem 0.75rem;
+  border: 1px solid rgba(201, 123, 30, 0.35);
+}
+
+/* Name spans full width */
+.service-card-name {
+  grid-column: 1 / -1;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 2.5vw, 2.2rem);
+  font-weight: 500;
+  color: var(--prussian);
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.5rem;
+}
+
+/* Description — left column */
+.service-card-desc {
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 300;
+  line-height: 1.85;
+  color: var(--ink);
+  grid-column: 1;
+  align-self: start;
+}
+
+/* Delivers — right column */
+.service-card-delivers {
+  grid-column: 2;
+  grid-row: 3;
+  align-self: start;
+}
+
+.service-delivers-label {
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  margin-bottom: 0.85rem;
+}
+
+.service-delivers-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.service-delivers-list li {
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  font-weight: 300;
+  line-height: 1.6;
+  color: var(--ink);
+  padding-left: 1.1rem;
+  position: relative;
+}
+
+.service-delivers-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 5px;
+  height: 1px;
+  background: var(--saffron);
+}
+
+/* CTA — spans full width, sits at bottom */
+.service-card-cta {
+  grid-column: 1 / -1;
+  display: inline-block;
+  margin-top: 2rem;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal);
+  border-bottom: 1px solid rgba(26, 92, 114, 0.3);
+  padding-bottom: 2px;
+  width: fit-content;
+  transition: color 0.22s ease, border-color 0.22s ease;
+}
+
+.service-card-cta:hover {
+  color: var(--prussian);
+  border-color: var(--prussian);
+}
+
+/* ── PROCESS ──────────────────────────────────────────────── */
+.services-process { background: var(--prussian); }
+
+.services-process-headline { color: var(--pearl); max-width: 680px; }
+
+.process-steps {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.process-step {
+  flex: 1;
+  min-width: 200px;
+}
+
+.process-step-arrow {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: rgba(201, 123, 30, 0.4);
+  align-self: center;
+  flex-shrink: 0;
+  margin-top: 1.5rem;
+}
+
+.process-step-n {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 300;
+  color: rgba(248, 244, 238, 0.07);
+  line-height: 1;
+  margin-bottom: 0.75rem;
+}
+
+.process-step-title {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  margin-bottom: 0.75rem;
+}
+
+.process-step-body {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 300;
+  line-height: 1.78;
+  color: rgba(248, 244, 238, 0.5);
+}
+
+/* ── CTA ──────────────────────────────────────────────────── */
+.services-cta-section {
+  background: var(--pearl);
+  padding: 9rem 2.5rem;
+  position: relative;
+}
+
+.services-cta-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 2.5rem;
+  right: 2.5rem;
+  height: 1px;
+  background: var(--sand);
+}
+
+.services-cta-inner {
+  max-width: 720px;
+}
+
+.services-cta-headline {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-weight: 400;
+  color: var(--prussian);
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.25rem;
+}
+
+.services-cta-body {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.78;
+  color: var(--ink);
+  max-width: 560px;
+  margin-bottom: 2.5rem;
+  opacity: 0.7;
+}
+
+.services-cta-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .service-card {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .service-card-desc    { grid-column: 1; margin-bottom: 1.5rem; }
+  .service-card-delivers { grid-column: 1; grid-row: auto; }
+
+  .process-step-arrow { display: none; }
+  .process-steps      { flex-direction: column; gap: 2.5rem; }
+}
+
+@media (max-width: 640px) {
+  .services-hero  { padding: 9rem 1.25rem 5rem; }
+  .services-hero::after { display: none; }
+  .service-card   { padding: 2rem 1.5rem; }
+  .services-cta-section { padding: 6rem 1.25rem; }
+
+  .services-cta-actions { flex-direction: column; align-items: flex-start; }
+}
