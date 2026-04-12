@@ -113,6 +113,9 @@ export default function SiteNav() {
         <Link href="/login" className="nav-mobile-link">
           Log In
         </Link>
+        <button className="nav-mobile-link nav-mobile-triage" onClick={handleTriage}>
+          Request Triage →
+        </button>
       </div>
     </>
   );
