@@ -153,9 +153,6 @@
   color: rgba(26, 43, 60, 0.5);
 }
 
-/* Bio column */
-.profile-bio-col { }
-
 .profile-headline {
   color: var(--prussian);
   font-size: clamp(1.8rem, 3vw, 2.6rem);
