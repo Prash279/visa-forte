@@ -9,10 +9,10 @@ const loginSchema = z.object({
 });
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [error, setError]       = useState("");
+  const [loading, setLoading]   = useState(false);
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
@@ -50,36 +50,48 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
 
-      {/* ── Left panel — Brand identity ── */}
-      <div className="bg-prussian flex flex-col justify-start gap-6 md:justify-between px-8 py-8 md:px-10 md:py-12 md:w-5/12 md:sticky md:top-0 md:h-screen">
+      {/* ── Brand panel ─────────────────────────────────────────
+          Mobile : compact strip — wordmark + tagline only
+          Desktop: full left column, sticky, full height        */}
+      <div className="bg-prussian flex flex-col justify-between
+                      px-6 py-6
+                      md:px-10 md:py-12 md:w-5/12 md:sticky md:top-0 md:h-screen md:min-h-screen">
+
+        {/* Always-visible top block */}
         <div>
-          {/* Wordmark */}
-          <p className="font-sans text-[11px] tracking-[0.3em] text-pearl uppercase mb-4">
+          <p className="font-sans text-[11px] tracking-[0.3em] text-pearl uppercase mb-3">
             Visa Forte
           </p>
-          {/* Saffron rule */}
-          <div className="w-10 h-[2px] bg-saffron mb-10" />
-          {/* Display heading */}
-          <h1 className="font-display text-pearl text-5xl leading-[1.15] italic mb-6">
+          <div className="w-8 h-[2px] bg-saffron mb-5 md:mb-10" />
+
+          {/* Headline — hidden on mobile to keep the strip compact */}
+          <h1 className="hidden md:block font-display text-pearl text-5xl leading-[1.15] italic mb-6">
             Engineered<br />for Passage.
           </h1>
-          {/* Supporting copy */}
-          <p className="font-sans text-sm leading-relaxed max-w-[260px]" style={{ color: "rgba(248,244,238,0.55)" }}>
-            Expert immigration documentation, prepared with precision. Every file personally reviewed.
+
+          {/* Supporting copy — desktop only */}
+          <p className="hidden md:block font-sans text-sm leading-relaxed max-w-[260px]"
+            style={{ color: "rgba(248,244,238,0.55)" }}>
+            Expert immigration documentation, prepared with precision.
+            Every file personally reviewed.
           </p>
         </div>
 
-        {/* Footer */}
-        <p className="font-sans text-[11px] tracking-wide" style={{ color: "rgba(248,244,238,0.3)" }}>
+        {/* Footer — desktop only */}
+        <p className="hidden md:block font-sans text-[11px] tracking-wide"
+          style={{ color: "rgba(248,244,238,0.3)" }}>
           visaforte.com · Secunderabad, India
         </p>
       </div>
 
-      {/* ── Right panel — Form ── */}
-      <div className="flex-1 bg-pearl flex items-center justify-center px-8 py-10 md:py-16">
+      {/* ── Form panel ──────────────────────────────────────────
+          Mobile : top-aligned, sensible padding, no flex centering
+          Desktop: vertically and horizontally centred           */}
+      <div className="flex-1 bg-pearl
+                      px-6 py-10
+                      md:flex md:items-center md:justify-center md:px-8 md:py-16">
         <div className="w-full max-w-sm">
 
-          {/* Form header */}
           <h2 className="font-display text-prussian text-4xl leading-tight mb-2">
             Welcome back.
           </h2>
@@ -95,7 +107,7 @@ export default function LoginPage() {
             <div className="mb-5">
               <label className="block font-sans text-[11px] tracking-[0.18em] uppercase text-ink mb-2"
                 style={{ opacity: 0.6 }}>
-                Email address
+                Email Address
               </label>
               <input
                 type="email"
