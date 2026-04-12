@@ -56,8 +56,11 @@ export default async function AdminPage() {
   const userEmail = authSession.user?.email ?? "";
 
   // Restrict admin access to the owner account only.
+  // Redirect to "/" not "/login" — redirecting to /login creates an infinite
+  // loop: middleware sees a valid session and redirects back to /admin, which
+  // redirects to /login again, forever.
   if (userEmail !== "prashant@visaforte.com") {
-    redirect("/login");
+    redirect("/");
   }
   const userName = userEmail.split("@")[0] ?? "there";
 
