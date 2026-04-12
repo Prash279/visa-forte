@@ -134,18 +134,16 @@ Scroll to the bottom — confirm the legal disclaimer is present.
 ---
 
 ### TASK 3A: Client Intake Form
-**Status:** Not started
-**Approved:** Pending
+**Status:** ✅ COMPLETE
 **What this delivers:** A structured form at `/intake` where new prospects submit their profile.
 Stored in PostgreSQL. Prash sees all submissions in the admin dashboard.
 
-**Plan:**
-- [ ] Add `leads` table to `drizzle/schema.ts`: `id, name, email, phone, service_interest, notes, created_at`
-- [ ] Generate and apply Drizzle migration
-- [ ] Build `/app/intake/page.tsx` — branded form with Zod validation
-- [ ] Create `POST /app/api/intake/route.ts` server action: validates input, stores to DB
-- [ ] Add "New Leads" table to `/admin` showing all intake submissions
-- [ ] Update Services page CTAs to link to /intake
+**Review:**
+`leads` table in Neon (uuid PK, name, email, phone, service_interest, notes, status, created_at).
+Migration generated and applied. `/intake` page with 8-tier dropdown, success state, legal disclaimer,
+Visa Forte brand. `POST /api/intake` validates with Zod (named field errors on failure) → DB insert.
+Admin page queries leads on render, shows count in stat card, full table with email link and status badge.
+Services page CTAs updated to `/intake`. TypeScript clean. Local `.env.local` created with DATABASE_URL.
 
 **Prashant Proof:** Go to visaforte.com/intake. Fill and submit the form. Go to visaforte.com/admin —
 confirm the submission appears in the leads table.
@@ -260,6 +258,7 @@ Per `spec.md §8`, DPDP consent interface and automated deletion cron are Phase 
 |---|---|---|
 | Task 1 | Landing page — live at visaforte.com | April 2026 |
 | Task 2 | Authentication — Better Auth + Neon PostgreSQL | April 2026 |
+| Task 3A | Client Intake Form — leads table + /intake + admin dashboard | April 2026 |
 
 ---
 

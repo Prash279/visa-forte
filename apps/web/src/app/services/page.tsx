@@ -165,7 +165,7 @@ export default function ServicesPage() {
                   </ul>
                 </div>
                 <Link
-                  href="/contact"
+                  href="/intake"
                   className="service-card-cta"
                 >
                   Request this Service →
@@ -227,7 +227,7 @@ export default function ServicesPage() {
             before any commitment is made — on either side.
           </p>
           <div className="services-cta-actions r d3">
-            <Link href="/contact" className="btn-primary">
+            <Link href="/intake" className="btn-primary">
               Request Triage Assessment →
             </Link>
             <Link href="/about" className="btn-outline">

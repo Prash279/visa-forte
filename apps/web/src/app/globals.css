@@ -461,7 +461,10 @@ footer.site-footer {
   border-color: rgba(248, 244, 238, 0.5);
 }
 
-/* ── 9. RESPONSIVE — SHARED ELEMENTS ─────────────────────── */
+/* ── 9. ADMIN DASHBOARD ───────────────────────────────────── */
+.leads-row:hover { background: rgba(248, 244, 238, 0.55); }
+
+/* ── 9b. RESPONSIVE — SHARED ELEMENTS ─────────────────────── */
 @media (max-width: 1024px) {
   .nav-links a { padding: 0.45rem 0.55rem; font-size: 0.65rem; }
 }

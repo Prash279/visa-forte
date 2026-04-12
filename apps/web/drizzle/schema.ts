@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, uuid } from 'drizzle-orm/pg-core';
 
 // Better Auth requires these exact fields on the user table.
 // The 'id' column uses text (not uuid) because Better Auth generates its own random string IDs.
@@ -56,3 +56,18 @@ export const verifications = pgTable('verification', {
 });
 
 export type User = typeof users.$inferSelect;
+
+// Prospect leads submitted via the /intake form.
+// Each row is a potential client who has expressed interest in a service tier.
+export const leads = pgTable('leads', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  phone: text('phone'),                                       // optional
+  serviceInterest: text('service_interest').notNull(),        // one of the 8 service tier names
+  notes: text('notes'),                                       // optional free-text from the prospect
+  status: text('status').notNull().default('new'),            // 'new' | 'contacted' | 'converted'
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type Lead = typeof leads.$inferSelect;
