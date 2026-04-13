@@ -179,22 +179,138 @@ Submit a booking. Go to /admin — confirm the booking appears in the table and 
 
 ---
 
-### TASK 4: Paddle Payment Integration
+### TASK 4: Razorpay Payment Integration
 **Status:** Not started
-**Approved:** Pending
-**What this delivers:** Clients can pay for services online. Webhook handler is production-ready.
+**Approved:** ✅ Approved April 2026
+**What this delivers:** All 7 consultation bookings require payment upfront. Clients pay before the
+booking is saved. Razorpay handles INR (Indian clients) and USD (international clients). Prices
+vary by service tier. Payment is verified server-side before any booking record is created.
+
+**Provider decision:** Razorpay (replaces original Paddle plan). Razorpay chosen because:
+- Native INR settlement to Indian bank account (Secunderabad)
+- Accepts international cards for USD-denominated orders
+- UPI, Net Banking, wallets supported out of the box
+- 2% transaction fee, no monthly cost
+
+---
+
+**Approved Prices:**
+
+| # | Service Tier | USD | INR |
+|---|---|---|---|
+| 1 | Pre-Application Eligibility Assessment | $99 | ₹4,999 |
+| 2 | PNP Stream Matching | $149 | ₹7,499 |
+| 3 | Document Review & Compliance Audit | $199 | ₹9,999 |
+| 4 | Refusal Analysis & Reapplication Strategy | $299 | ₹14,999 |
+| 5 | ITA Response Preparation | $349 | ₹17,499 |
+| 6 | Full Application File Management | $999 | ₹49,999 |
+| 7 | Post-Submission Monitoring | $149 | ₹7,499 |
+
+Tier 8 (Retainer-Based Ongoing Support) removed from all pages and deferred to a future phase.
+
+---
+
+**Payment flow:**
+1. Client fills booking form (date, service tier, name, email, query)
+2. Price for selected tier shown immediately — INR by default, USD toggle available
+3. Client clicks "Proceed to Payment →"
+4. Client-side calls `POST /api/payment/create-order` → server creates Razorpay order, returns
+   `{ orderId, amount, currency, keyId }`
+5. Razorpay checkout modal opens in-page (no redirect)
+6. On payment success, Razorpay returns `{ razorpayPaymentId, razorpayOrderId, razorpaySignature }`
+7. Client-side sends all booking data + payment tokens to `POST /api/payment/verify`
+8. Server verifies HMAC-SHA256 signature — if invalid, returns 400, booking is NOT saved
+9. On valid signature: insert booking to DB (with payment fields), send Resend email to Prash
+10. Client sees success state
+
+**Currency logic:**
+- Default currency: INR if `navigator.language === 'en-IN'`, else USD
+- Manual toggle on booking page (INR ↔ USD pill switcher)
+- Razorpay order created in the displayed currency
+- INR amounts sent to Razorpay in paise (×100); USD in cents (×100)
+- Enabling international payments on Razorpay dashboard is a Prash action (required for USD orders)
+
+---
 
 **Plan:**
-- [ ] Create `POST /app/api/webhooks/paddle/route.ts`
-- [ ] Implement HMAC-SHA256 signature verification using Node.js built-in `crypto` (no extra package)
-- [ ] Read raw body as text before JSON parsing — prevents signature verification failure
-- [ ] Handle event types: `subscription.created`, `payment.completed`
-- [ ] Return HTTP 400 for unverified signatures; HTTP 200 for verified
-- [ ] Add `PADDLE_SECRET_KEY` and `PADDLE_WEBHOOK_SECRET` to Render environment variables
-- [ ] Write a Vitest unit test: valid signature → 200, tampered payload → 400
 
-**Prashant Proof:** In Paddle sandbox dashboard, trigger a test payment webhook.
-Confirm Paddle's webhook log shows a 200 response.
+**Step 1 — Prash actions before code (required):**
+- [ ] Create Razorpay account at razorpay.com
+- [ ] Complete KYC (PAN + bank account details for Secunderabad account)
+- [ ] In Razorpay dashboard → Settings → International Payments → Enable
+- [ ] Generate API keys (Test mode first): copy `Key ID` and `Key Secret`
+- [ ] Add to Vercel environment variables: `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET`
+- [ ] Add to local `.env.local`: same two variables
+
+**Step 2 — Install Razorpay SDK:**
+- [ ] `npm install razorpay` in `apps/web`
+- [ ] Add `@types/razorpay` if available, or declare module types inline
+
+**Step 3 — Pricing constants:**
+- [ ] Create `apps/web/src/lib/pricing.ts`
+  - Export `PRICING` map: `serviceTier → { usd: number, inr: number }`
+  - All 7 tiers at approved prices
+  - Export helper `getPrice(tier, currency)` → amount in smallest unit (paise/cents)
+
+**Step 4 — DB schema update:**
+- [ ] Add payment fields to `bookings` table in `schema.ts`:
+  - `razorpayOrderId text NOT NULL DEFAULT ''`
+  - `razorpayPaymentId text NOT NULL DEFAULT ''`
+  - `currency text NOT NULL DEFAULT 'INR'`
+  - `amountPaid integer NOT NULL DEFAULT 0` (in smallest unit — paise or cents)
+  - `paymentStatus text NOT NULL DEFAULT 'pending'` — 'pending' | 'paid' | 'failed'
+- [ ] Run `drizzle-kit generate` → apply migration to Neon
+
+**Step 5 — API: Create Order:**
+- [ ] Build `POST /api/payment/create-order/route.ts`
+  - Input: `{ serviceTier: string, currency: 'INR' | 'USD' }`
+  - Validate tier exists in PRICING map; validate currency is INR or USD
+  - Create Razorpay order: `razorpay.orders.create({ amount, currency, receipt })`
+  - Return: `{ orderId, amount, currency, keyId }` — never expose key secret
+
+**Step 6 — API: Verify Payment:**
+- [ ] Build `POST /api/payment/verify/route.ts`
+  - Input: booking fields (name, email, serviceTier, bookingDate, query, currency) +
+    `{ razorpayPaymentId, razorpayOrderId, razorpaySignature }`
+  - Verify HMAC-SHA256: `hmac(razorpayOrderId + '|' + razorpayPaymentId, KEY_SECRET)`
+  - If signature mismatch → return 400, do NOT save booking
+  - If valid: insert booking row with all payment fields + status = 'paid'
+  - Send Resend notification email to Prash (include payment ID and amount)
+  - Return `{ success: true }`
+  - Old `/api/booking/route.ts` retained as-is but no longer called from the client
+
+**Step 7 — BookingForm.tsx update:**
+- [ ] Add currency state: `'INR' | 'USD'`, default from `navigator.language`
+- [ ] Add INR ↔ USD pill toggle (visible above the price display)
+- [ ] Show selected tier price dynamically as user picks service tier
+- [ ] On submit: call `/api/payment/create-order` → open Razorpay modal via script tag
+  - Load `https://checkout.razorpay.com/v1/checkout.js` once on mount
+  - Instantiate `new window.Razorpay({ key, amount, currency, order_id, ... })`
+  - `handler` callback on success → call `/api/payment/verify` → show success state
+  - `modal.ondismiss` → re-enable form, show "Payment cancelled" message
+
+**Step 8 — booking.css update:**
+- [ ] Price display block: tier name + price in large type, currency toggle pill
+
+**Step 9 — Admin page update:**
+- [ ] Add `Currency`, `Amount Paid`, `Payment Status` columns to bookings table
+- [ ] `paymentStatus` shown as a badge (green = paid, grey = pending)
+
+**Step 10 — TypeScript check + deploy:**
+- [ ] `npx tsc --noEmit` — zero errors
+- [ ] Commit and push → Vercel auto-deploys
+
+---
+
+**Prashant Proof:**
+1. Go to `/booking` in an incognito window
+2. Select a date and service tier — confirm the correct price appears (INR default)
+3. Toggle to USD — confirm the USD price appears
+4. Fill name, email, query → click "Proceed to Payment →"
+5. Razorpay modal opens — use Razorpay test card `4111 1111 1111 1111`, expiry any future date, CVV 123
+6. Complete payment — confirm success state appears on `/booking`
+7. Go to `/admin` — confirm the booking appears with `paymentStatus: paid` and the correct amount
+8. Check `prashant@visaforte.com` — confirm notification email arrived with payment ID and amount
 
 ---
 
