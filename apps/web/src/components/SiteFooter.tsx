@@ -24,6 +24,8 @@ export default function SiteFooter() {
           <Link href="/services">Services</Link>
           <Link href="/contact">Contact</Link>
           <Link href="/login">Client Login</Link>
+          <Link href="/refund-policy">Refund Policy</Link>
+          <Link href="/privacy-policy">Privacy Policy</Link>
         </nav>
       </div>
 

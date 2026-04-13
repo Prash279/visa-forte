@@ -1,0 +1,50 @@
+# ci.yml — Visa Forte continuous integration pipeline.
+# Runs on every push to main and on every pull request targeting main.
+# Broken code is blocked here — it never reaches Vercel.
+#
+# Python/FastAPI job is omitted — apps/api/ is Phase 2 scope.
+# It will be added to this file when the FastAPI backend is built.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  web:
+    name: Next.js — Typecheck, Lint, Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: apps/web
+
+      - name: Type check
+        run: npm run typecheck
+        working-directory: apps/web
+
+      - name: Lint
+        run: npm run lint
+        working-directory: apps/web
+
+      - name: Run tests
+        run: npm run test
+        working-directory: apps/web
+        env:
+          # Tests run without a real DB — only pure utility tests (logger, pricing)
+          # are executed in CI. Routes that need DB are not unit-tested here.
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder

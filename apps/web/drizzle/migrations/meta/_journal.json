@@ -22,6 +22,20 @@
       "when": 1776058634873,
       "tag": "0002_moaning_killer_shrike",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1776070805036,
+      "tag": "0003_mute_roughhouse",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1776084090853,
+      "tag": "0004_modern_daimon_hellstrom",
+      "breakpoints": true
     }
   ]
 }
