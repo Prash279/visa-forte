@@ -4,6 +4,10 @@ import { availability } from '../../../drizzle/schema';
 import BookingForm from './BookingForm';
 import './booking.css';
 
+// Force server-side rendering on every request so available dates are always live.
+// Without this, Next.js statically caches the page at build time (when no slots exist).
+export const dynamic = 'force-dynamic';
+
 // Fetch all dates that are marked open by Prash, from today onwards.
 async function getAvailableDates(): Promise<string[]> {
   // Compute today's date in IST (UTC+5:30) so the list is accurate for Prash's timezone.
