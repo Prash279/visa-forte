@@ -1,0 +1,367 @@
+/* ============================================================
+   ADMIN DASHBOARD — Visa Forte
+   Explicit CSS — no Tailwind utilities for admin-specific styles.
+   Tailwind custom token resolution is unreliable for admin pages;
+   explicit rules guarantee correct rendering in all environments.
+============================================================ */
+
+/* ── Layout ─────────────────────────────────────────────── */
+.admin-wrap {
+  min-height: 100vh;
+  background: var(--pearl);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.admin-header {
+  background: var(--prussian);
+  height: 4rem;
+  padding: 0 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.admin-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.admin-header-wordmark {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: 0.12em;
+  color: var(--pearl);
+}
+
+.admin-header-divider {
+  width: 1px;
+  height: 1.25rem;
+  background: var(--saffron);
+  opacity: 0.5;
+}
+
+.admin-header-label {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--pearl);
+  opacity: 0.38;
+}
+
+.admin-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.admin-header-email {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  color: var(--pearl);
+  opacity: 0.35;
+}
+
+/* ── Saffron accent rule ─────────────────────────────────── */
+.admin-accent {
+  height: 2px;
+  background: var(--saffron);
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
+/* ── Main content ────────────────────────────────────────── */
+.admin-main {
+  flex: 1;
+  padding: 2.5rem;
+  max-width: 64rem;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ── Welcome block ───────────────────────────────────────── */
+.admin-welcome {
+  margin-bottom: 3rem;
+}
+
+.admin-welcome-eyebrow {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.35;
+  margin-bottom: 0.75rem;
+}
+
+.admin-welcome-heading {
+  font-family: var(--font-display);
+  font-size: 3.5rem;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--prussian);
+  margin-bottom: 1rem;
+}
+
+.admin-welcome-sub {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--ink);
+  opacity: 0.48;
+  line-height: 1.65;
+  max-width: 36rem;
+}
+
+/* ── Metric cards ────────────────────────────────────────── */
+.admin-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 3.5rem;
+}
+
+.admin-stat {
+  background: white;
+  padding: 2rem;
+  border-top: 3px solid var(--saffron);
+}
+
+.admin-stat-label {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.38;
+  margin-bottom: 1.25rem;
+}
+
+.admin-stat-value {
+  font-family: var(--font-display);
+  font-size: 4.5rem;
+  line-height: 1;
+  color: var(--prussian);
+  margin-bottom: 0.75rem;
+}
+
+.admin-stat-note {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  color: var(--ink);
+  opacity: 0.35;
+}
+
+/* ── Section header (rule + label pattern) ───────────────── */
+.admin-section-header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-section-title {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.35;
+  white-space: nowrap;
+}
+
+.admin-section-count {
+  color: var(--saffron);
+  opacity: 1;
+  margin-left: 0.4rem;
+}
+
+.admin-section-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--sand);
+}
+
+.admin-section-link {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--teal);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.admin-section-link:hover { text-decoration: underline; }
+
+/* ── Leads table ─────────────────────────────────────────── */
+.admin-table-wrap {
+  background: white;
+  margin-bottom: 3.5rem;
+  overflow-x: auto;
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.admin-table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+}
+
+.admin-table thead tr {
+  border-bottom: 1px solid var(--sand);
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1;
+}
+
+.admin-table th {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.38;
+  padding: 1rem 1.5rem;
+  font-weight: 600;
+  background: white;
+}
+
+.admin-table tbody tr {
+  border-bottom: 1px solid var(--sand);
+  transition: background 0.15s ease;
+}
+
+.admin-table tbody tr:last-child { border-bottom: none; }
+.admin-table tbody tr:hover { background: rgba(248, 244, 238, 0.6); }
+
+.admin-table td { padding: 1.25rem 1.5rem; }
+
+.admin-td-name {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--prussian);
+  white-space: nowrap;
+}
+
+.admin-td-email {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 300;
+  color: var(--teal);
+  text-decoration: none;
+}
+
+.admin-td-email:hover { text-decoration: underline; }
+
+.admin-td-service {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 300;
+  color: var(--ink);
+  opacity: 0.75;
+  max-width: 14rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.admin-td-date {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--ink);
+  opacity: 0.4;
+  white-space: nowrap;
+}
+
+.admin-badge {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  display: inline-block;
+}
+
+.admin-badge-new {
+  background: rgba(201, 123, 30, 0.12);
+  color: var(--saffron);
+}
+
+.admin-badge-other {
+  background: rgba(12, 35, 64, 0.07);
+  color: var(--ink);
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.admin-empty {
+  background: white;
+  padding: 3rem 2rem;
+  text-align: center;
+  margin-bottom: 3.5rem;
+  border-top: 2px solid var(--sand);
+}
+
+.admin-empty-text {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--ink);
+  opacity: 0.38;
+  margin-bottom: 0.5rem;
+}
+
+.admin-empty-link {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--teal);
+  text-decoration: none;
+}
+
+.admin-empty-link:hover { text-decoration: underline; }
+
+/* ── Page footer strip ───────────────────────────────────── */
+.admin-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--sand);
+  margin-top: auto;
+}
+
+.admin-footer-text {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+  opacity: 0.28;
+}
+
+.admin-footer-link {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--teal);
+  text-decoration: none;
+}
+
+.admin-footer-link:hover { text-decoration: underline; }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .admin-metrics { grid-template-columns: repeat(2, 1fr); }
+  .admin-main { padding: 1.5rem; }
+  .admin-stat-value { font-size: 3.25rem; }
+  .admin-welcome-heading { font-size: 2.5rem; }
+  .admin-header-email { display: none; }
+}
