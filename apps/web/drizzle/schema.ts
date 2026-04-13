@@ -90,6 +90,7 @@ export const bookings = pgTable('bookings', {
   email: text('email').notNull(),
   serviceTier: text('service_tier').notNull(),
   bookingDate: text('booking_date').notNull(),     // ISO date string, e.g. "2026-04-20"
+  query: text('query').notNull(),                  // Client's question / consultation topic
   status: text('status').notNull().default('pending'), // 'pending' | 'confirmed' | 'cancelled'
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });

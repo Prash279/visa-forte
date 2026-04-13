@@ -143,10 +143,12 @@
   -webkit-appearance: none;
 }
 
-.booking-input::placeholder { color: rgba(26, 43, 60, 0.3); }
+.booking-input::placeholder,
+.booking-textarea::placeholder { color: rgba(26, 43, 60, 0.3); }
 
 .booking-input:focus,
-.booking-select:focus {
+.booking-select:focus,
+.booking-textarea:focus {
   border-color: var(--prussian);
   box-shadow: 0 0 0 2px rgba(12, 35, 64, 0.07);
 }
@@ -159,8 +161,34 @@
   cursor: pointer;
 }
 
+.booking-textarea {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 300;
+  color: var(--ink);
+  background: white;
+  border: 1px solid var(--sand);
+  padding: 0.9rem 1rem;
+  outline: none;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease;
+  width: 100%;
+  resize: vertical;
+  line-height: 1.7;
+  min-height: 140px;
+}
+
+.booking-field-hint {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 300;
+  line-height: 1.65;
+  color: rgba(26, 43, 60, 0.5);
+  margin-bottom: 0.1rem;
+}
+
 .booking-input:disabled,
-.booking-select:disabled {
+.booking-select:disabled,
+.booking-textarea:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }

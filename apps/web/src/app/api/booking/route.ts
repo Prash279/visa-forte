@@ -12,6 +12,7 @@ const BookingSchema = z.object({
   email: z.string().email('A valid email address is required'),
   serviceTier: z.string().min(1, 'Please select a service'),
   bookingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
+  query: z.string().min(10, 'Please describe your question or issue in detail (minimum 10 characters)').max(2000),
 });
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
   }
 
-  const { name, email, serviceTier, bookingDate } = result.data;
+  const { name, email, serviceTier, bookingDate, query } = result.data;
 
   // Guard: the requested date must be marked available by Prash.
   const slots = await db
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   // Save the booking first — email is non-fatal.
   try {
-    await db.insert(bookings).values({ name, email, serviceTier, bookingDate });
+    await db.insert(bookings).values({ name, email, serviceTier, bookingDate, query });
   } catch (err) {
     console.error('Booking insert failed:', err);
     return NextResponse.json(
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             <tr><td style="padding:8px 0;color:#666;">Email</td><td style="padding:8px 0;"><a href="mailto:${email}">${email}</a></td></tr>
             <tr><td style="padding:8px 0;color:#666;">Service</td><td style="padding:8px 0;">${serviceTier}</td></tr>
             <tr><td style="padding:8px 0;color:#666;">Date</td><td style="padding:8px 0;font-weight:600;">${bookingDate}</td></tr>
+            <tr><td style="padding:8px 0;color:#666;vertical-align:top;">Query</td><td style="padding:8px 0;line-height:1.6;white-space:pre-wrap;">${query}</td></tr>
           </table>
           <p style="margin-top:24px;">
             <a href="https://visaforte.com/admin" style="color:#c97b1e;">View all bookings in your dashboard →</a>

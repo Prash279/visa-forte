@@ -58,6 +58,7 @@ export default function BookingForm({ availableDates }: Props) {
       email: (form.elements.namedItem('email') as HTMLInputElement).value.trim(),
       serviceTier: (form.elements.namedItem('serviceTier') as HTMLSelectElement).value,
       bookingDate: (form.elements.namedItem('bookingDate') as HTMLSelectElement).value,
+      query: (form.elements.namedItem('query') as HTMLTextAreaElement).value.trim(),
     };
 
     try {
@@ -168,6 +169,27 @@ export default function BookingForm({ availableDates }: Props) {
           autoComplete="email"
           required
           placeholder="you@example.com"
+          disabled={formState === 'submitting'}
+        />
+      </div>
+
+      {/* Query / consultation topic */}
+      <div className="booking-field">
+        <label className="booking-label" htmlFor="query">
+          Your Question or Issue <span className="booking-required">*</span>
+        </label>
+        <p className="booking-field-hint">
+          Please describe your immigration situation or question in as much detail as possible.
+          The more context you provide, the more focused and productive your consultation will be.
+        </p>
+        <textarea
+          className="booking-textarea"
+          id="query"
+          name="query"
+          required
+          minLength={10}
+          rows={6}
+          placeholder="e.g. I received an ITA for Express Entry on 10 April 2026. My spouse holds a valid Canadian work permit. I need help reviewing my educational credential documents before I submit my application…"
           disabled={formState === 'submitting'}
         />
       </div>
