@@ -103,6 +103,84 @@
 
 .booking-unavailable-link:hover { text-decoration: underline; }
 
+/* ── CURRENCY TOGGLE ───────────────────────────────────────── */
+.booking-currency-toggle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.booking-currency-label {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--prussian);
+  opacity: 0.5;
+}
+
+.booking-currency-pills {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--sand);
+  overflow: hidden;
+}
+
+.booking-currency-pill {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 0.45rem 1rem;
+  border: none;
+  background: white;
+  color: rgba(26, 43, 60, 0.4);
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.booking-currency-pill--active {
+  background: var(--prussian);
+  color: var(--pearl);
+}
+
+/* ── PRICE BLOCK ───────────────────────────────────────────── */
+.booking-price-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: white;
+  border: 1px solid var(--sand);
+  border-left: 3px solid var(--saffron);
+  padding: 1.1rem 1.25rem;
+}
+
+.booking-price-label {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(26, 43, 60, 0.4);
+}
+
+.booking-price-amount {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 400;
+  color: var(--prussian);
+  line-height: 1.1;
+}
+
+.booking-price-note {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 300;
+  color: rgba(26, 43, 60, 0.45);
+  margin-top: 0.1rem;
+}
+
 /* ── FORM ──────────────────────────────────────────────────── */
 .booking-form {
   display: flex;
@@ -236,6 +314,12 @@
   color: rgba(26, 43, 60, 0.38);
   margin-top: -0.5rem;
 }
+
+.booking-policy-link {
+  color: var(--teal);
+  text-decoration: underline;
+}
+.booking-policy-link:hover { color: var(--prussian); }
 
 /* ── SUCCESS STATE ─────────────────────────────────────────── */
 .booking-success {

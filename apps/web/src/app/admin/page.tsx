@@ -197,35 +197,49 @@ export default async function AdminPage() {
             <table className="admin-table">
               <thead>
                 <tr>
-                  {["Name", "Email", "Service", "Date", "Status"].map((h) => (
+                  {["Name", "Email", "Service", "Date", "Amount", "Payment", "Status"].map((h) => (
                     <th key={h}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {allBookings.map((booking) => (
-                  <tr key={booking.id}>
-                    <td><span className="admin-td-name">{booking.name}</span></td>
-                    <td>
-                      <a href={`mailto:${booking.email}`} className="admin-td-email">
-                        {booking.email}
-                      </a>
-                    </td>
-                    <td>
-                      <span className="admin-td-service" title={booking.serviceTier}>
-                        {booking.serviceTier}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="admin-td-date">{booking.bookingDate}</span>
-                    </td>
-                    <td>
-                      <span className={`admin-badge ${booking.status === "pending" ? "admin-badge-new" : "admin-badge-other"}`}>
-                        {booking.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {allBookings.map((booking) => {
+                  // Format amount from smallest unit back to display value.
+                  const amount = booking.currency === 'INR'
+                    ? `₹${(booking.amountPaid / 100).toLocaleString('en-IN')}`
+                    : `$${(booking.amountPaid / 100)}`;
+                  return (
+                    <tr key={booking.id}>
+                      <td><span className="admin-td-name">{booking.name}</span></td>
+                      <td>
+                        <a href={`mailto:${booking.email}`} className="admin-td-email">
+                          {booking.email}
+                        </a>
+                      </td>
+                      <td>
+                        <span className="admin-td-service" title={booking.serviceTier}>
+                          {booking.serviceTier}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="admin-td-date">{booking.bookingDate}</span>
+                      </td>
+                      <td>
+                        <span className="admin-td-date">{booking.amountPaid > 0 ? amount : '—'}</span>
+                      </td>
+                      <td>
+                        <span className={`admin-badge ${booking.paymentStatus === 'paid' ? 'admin-badge-paid' : 'admin-badge-new'}`}>
+                          {booking.paymentStatus}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`admin-badge ${booking.status === "pending" ? "admin-badge-new" : "admin-badge-other"}`}>
+                          {booking.status}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

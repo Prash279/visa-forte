@@ -297,6 +297,11 @@
   color: var(--saffron);
 }
 
+.admin-badge-paid {
+  background: rgba(26, 122, 74, 0.1);
+  color: #1a7a4a;
+}
+
 .admin-badge-other {
   background: rgba(12, 35, 64, 0.07);
   color: var(--ink);

@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { PRICING, formatPrice } from '@/lib/pricing';
+import type { Currency } from '@/lib/pricing';
 
-// The 8 Visa Forte service tiers — must match spec.md §2 exactly.
+// The 7 active Visa Forte service tiers (Tier 8 deferred).
 const SERVICE_TIERS = [
   'Pre-Application Eligibility Assessment',
   'PNP Stream Matching',
@@ -19,6 +21,16 @@ interface Props {
 
 type FormState = 'idle' | 'submitting' | 'success' | 'error';
 
+// Razorpay injects a global constructor — declare it so TypeScript is happy.
+declare global {
+  interface Window {
+    Razorpay: new (options: Record<string, unknown>) => {
+      open(): void;
+      on(event: string, handler: () => void): void;
+    };
+  }
+}
+
 // Formats YYYY-MM-DD into a readable label, e.g. "Monday, 14 April 2026"
 function formatDate(dateStr: string): string {
   const [y, m, d] = dateStr.split('-').map(Number);
@@ -30,9 +42,36 @@ function formatDate(dateStr: string): string {
   });
 }
 
+// Detects default currency from browser locale.
+// Indian locale ('en-IN' or 'hi') → INR. Everything else → USD.
+function detectCurrency(): Currency {
+  if (typeof navigator === 'undefined') return 'INR';
+  const lang = navigator.language ?? '';
+  return lang === 'en-IN' || lang.startsWith('hi') ? 'INR' : 'USD';
+}
+
+// Loads the Razorpay checkout.js script once and calls back when ready.
+function loadRazorpayScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (window.Razorpay) { resolve(true); return; }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
 export default function BookingForm({ availableDates }: Props) {
   const [formState, setFormState] = useState<FormState>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [currency, setCurrency] = useState<Currency>('INR');
+  const [selectedTier, setSelectedTier] = useState('');
+
+  // Set currency from browser locale after mount (avoids SSR mismatch).
+  useEffect(() => {
+    setCurrency(detectCurrency());
+  }, []);
 
   if (availableDates.length === 0) {
     return (
@@ -52,33 +91,110 @@ export default function BookingForm({ availableDates }: Props) {
     setErrorMessage('');
 
     const form = e.currentTarget;
-    const data = {
-      name: (form.elements.namedItem('name') as HTMLInputElement).value.trim(),
-      email: (form.elements.namedItem('email') as HTMLInputElement).value.trim(),
+    const bookingData = {
+      name:        (form.elements.namedItem('name')        as HTMLInputElement).value.trim(),
+      email:       (form.elements.namedItem('email')       as HTMLInputElement).value.trim(),
       serviceTier: (form.elements.namedItem('serviceTier') as HTMLSelectElement).value,
       bookingDate: (form.elements.namedItem('bookingDate') as HTMLSelectElement).value,
-      query: (form.elements.namedItem('query') as HTMLTextAreaElement).value.trim(),
+      query:       (form.elements.namedItem('query')       as HTMLTextAreaElement).value.trim(),
+      currency,
     };
 
+    // Step 1 — Load Razorpay script.
+    const scriptLoaded = await loadRazorpayScript();
+    if (!scriptLoaded) {
+      setErrorMessage('Could not load the payment system. Please check your connection and try again.');
+      setFormState('error');
+      return;
+    }
+
+    // Step 2 — Create a Razorpay order server-side.
+    let orderData: { orderId: string; amount: number; currency: string; keyId: string };
     try {
-      const res = await fetch('/api/booking', {
+      const res = await fetch('/api/payment/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ serviceTier: bookingData.serviceTier, currency }),
       });
-
       if (!res.ok) {
         const json = await res.json() as { error?: string };
-        setErrorMessage(typeof json.error === 'string' ? json.error : 'Booking failed. Please try again.');
+        setErrorMessage(typeof json.error === 'string' ? json.error : 'Could not initiate payment.');
         setFormState('error');
         return;
       }
-
-      setFormState('success');
+      orderData = await res.json() as typeof orderData;
     } catch {
-      setErrorMessage('A network error occurred. Please check your connection and try again.');
+      setErrorMessage('A network error occurred. Please try again.');
       setFormState('error');
+      return;
     }
+
+    // Step 3 — Open Razorpay checkout modal.
+    // On success, Razorpay calls the handler with payment tokens.
+    // On dismiss (user closes modal), we re-enable the form.
+    await new Promise<void>((resolve) => {
+      const rzp = new window.Razorpay({
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        order_id: orderData.orderId,
+        name: 'Visa Forte',
+        description: bookingData.serviceTier,
+        prefill: {
+          name: bookingData.name,
+          email: bookingData.email,
+        },
+        theme: { color: '#0c2340' },
+
+        // Step 4 — Verify payment server-side and save booking.
+        handler: async (response: {
+          razorpay_payment_id: string;
+          razorpay_order_id: string;
+          razorpay_signature: string;
+        }) => {
+          try {
+            const verifyRes = await fetch('/api/payment/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                ...bookingData,
+                razorpayOrderId:   response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+              }),
+            });
+
+            if (!verifyRes.ok) {
+              const json = await verifyRes.json() as { error?: string };
+              setErrorMessage(typeof json.error === 'string' ? json.error : 'Payment verification failed.');
+              setFormState('error');
+            } else {
+              setFormState('success');
+            }
+          } catch {
+            setErrorMessage('Payment was received but we could not confirm your booking. Please email prashant@visaforte.com with your payment ID.');
+            setFormState('error');
+          }
+          resolve();
+        },
+      });
+
+      rzp.on('payment.failed', () => {
+        setErrorMessage('Payment failed. Please try again or use a different payment method.');
+        setFormState('error');
+        resolve();
+      });
+
+      // User dismissed the modal without paying — let them try again.
+      const originalOpen = rzp.open.bind(rzp);
+      rzp.open = () => {
+        originalOpen();
+        // Poll for modal close without a native dismiss event.
+      };
+
+      rzp.on('payment.failed', () => { resolve(); });
+      rzp.open();
+    });
   }
 
   if (formState === 'success') {
@@ -87,8 +203,8 @@ export default function BookingForm({ availableDates }: Props) {
         <div className="booking-success-icon" aria-hidden="true">✓</div>
         <h2 className="booking-success-title">Booking Confirmed</h2>
         <p className="booking-success-body">
-          Your consultation request has been received. Prashant will confirm the appointment
-          details by email within 24 hours.
+          Your payment has been received and your consultation is booked. Prashant will
+          confirm the appointment details by email within 24 hours.
         </p>
         <a href="/services" className="booking-success-link">Explore our service tiers →</a>
       </div>
@@ -97,6 +213,27 @@ export default function BookingForm({ availableDates }: Props) {
 
   return (
     <form className="booking-form" onSubmit={handleSubmit} noValidate>
+
+      {/* ── Currency toggle ── */}
+      <div className="booking-currency-toggle">
+        <span className="booking-currency-label">Currency</span>
+        <div className="booking-currency-pills">
+          <button
+            type="button"
+            className={`booking-currency-pill${currency === 'INR' ? ' booking-currency-pill--active' : ''}`}
+            onClick={() => setCurrency('INR')}
+          >
+            ₹ INR
+          </button>
+          <button
+            type="button"
+            className={`booking-currency-pill${currency === 'USD' ? ' booking-currency-pill--active' : ''}`}
+            onClick={() => setCurrency('USD')}
+          >
+            $ USD
+          </button>
+        </div>
+      </div>
 
       {/* Preferred date */}
       <div className="booking-field">
@@ -130,6 +267,7 @@ export default function BookingForm({ availableDates }: Props) {
           required
           defaultValue=""
           disabled={formState === 'submitting'}
+          onChange={(e) => setSelectedTier(e.target.value)}
         >
           <option value="" disabled>Select a service tier</option>
           {SERVICE_TIERS.map((tier) => (
@@ -137,6 +275,17 @@ export default function BookingForm({ availableDates }: Props) {
           ))}
         </select>
       </div>
+
+      {/* Price display — shown once a tier is selected */}
+      {selectedTier && PRICING[selectedTier] && (
+        <div className="booking-price-block">
+          <span className="booking-price-label">Consultation Fee</span>
+          <span className="booking-price-amount">{formatPrice(selectedTier, currency)}</span>
+          <span className="booking-price-note">
+            Paid securely via Razorpay · {currency === 'INR' ? 'UPI, Net Banking, Cards accepted' : 'International cards accepted'}
+          </span>
+        </div>
+      )}
 
       {/* Full name */}
       <div className="booking-field">
@@ -203,11 +352,14 @@ export default function BookingForm({ availableDates }: Props) {
         type="submit"
         disabled={formState === 'submitting'}
       >
-        {formState === 'submitting' ? 'Confirming…' : 'Request Consultation →'}
+        {formState === 'submitting' ? 'Processing…' : 'Proceed to Payment →'}
       </button>
 
       <p className="booking-privacy">
-        Your details are used solely to arrange your consultation and are never shared with third parties.
+        Payment is processed securely by Razorpay. Your card details are never stored on our servers.
+        By proceeding, you agree to our{' '}
+        <a href="/refund-policy" className="booking-policy-link">Refund Policy</a> and{' '}
+        <a href="/privacy-policy" className="booking-policy-link">Privacy Policy</a>.
       </p>
 
     </form>

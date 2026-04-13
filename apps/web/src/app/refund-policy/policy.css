@@ -1,0 +1,111 @@
+/* policy.css — shared styles for /refund-policy and /privacy-policy */
+
+.policy-page {
+  background: var(--pearl);
+  min-height: 100vh;
+}
+
+/* ── HEADER ─────────────────────────────────────────────────── */
+.policy-header {
+  background: var(--prussian);
+  padding: 9rem 2.5rem 5rem;
+  text-align: center;
+}
+
+.policy-eyebrow {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  margin-bottom: 1.25rem;
+}
+
+.policy-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 4vw, 3.6rem);
+  font-weight: 400;
+  color: var(--pearl);
+  line-height: 1.1;
+  margin-bottom: 1rem;
+}
+
+.policy-meta {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 300;
+  color: rgba(248, 244, 238, 0.4);
+}
+
+/* ── BODY ───────────────────────────────────────────────────── */
+.policy-body {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 5rem 2.5rem 6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+/* ── SECTIONS ───────────────────────────────────────────────── */
+.policy-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.policy-h2 {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 400;
+  color: var(--prussian);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--sand);
+}
+
+.policy-section p {
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 300;
+  line-height: 1.85;
+  color: var(--ink);
+}
+
+.policy-list {
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 300;
+  line-height: 1.85;
+  color: var(--ink);
+  padding-left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.policy-link {
+  color: var(--teal);
+  text-decoration: underline;
+}
+.policy-link:hover { color: var(--prussian); }
+
+/* ── DISCLAIMER ─────────────────────────────────────────────── */
+.policy-disclaimer {
+  border-top: 1px solid var(--sand);
+  padding-top: 2rem;
+}
+
+.policy-disclaimer p {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 300;
+  line-height: 1.75;
+  color: rgba(26, 43, 60, 0.42);
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .policy-header { padding: 8rem 1.25rem 4rem; }
+  .policy-body   { padding: 3rem 1.25rem 4rem; }
+}

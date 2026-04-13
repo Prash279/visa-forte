@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, uuid, integer } from 'drizzle-orm/pg-core';
 
 // Better Auth requires these exact fields on the user table.
 // The 'id' column uses text (not uuid) because Better Auth generates its own random string IDs.
@@ -84,14 +84,21 @@ export const availability = pgTable('availability', {
 export type Availability = typeof availability.$inferSelect;
 
 // Bookings submitted by clients via the /booking page.
+// A booking is only inserted AFTER Razorpay payment is verified server-side.
 export const bookings = pgTable('bookings', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull(),
   serviceTier: text('service_tier').notNull(),
-  bookingDate: text('booking_date').notNull(),     // ISO date string, e.g. "2026-04-20"
-  query: text('query').notNull(),                  // Client's question / consultation topic
-  status: text('status').notNull().default('pending'), // 'pending' | 'confirmed' | 'cancelled'
+  bookingDate: text('booking_date').notNull(),          // ISO date string, e.g. "2026-04-20"
+  query: text('query').notNull(),                       // Client's question / consultation topic
+  // Payment fields — populated after Razorpay verification
+  razorpayOrderId: text('razorpay_order_id').notNull().default(''),
+  razorpayPaymentId: text('razorpay_payment_id').notNull().default(''),
+  currency: text('currency').notNull().default('INR'),  // 'INR' | 'USD'
+  amountPaid: integer('amount_paid').notNull().default(0), // in smallest unit: paise (INR) or cents (USD)
+  paymentStatus: text('payment_status').notNull().default('pending'), // 'pending' | 'paid'
+  status: text('status').notNull().default('pending'),  // 'pending' | 'confirmed' | 'cancelled'
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
