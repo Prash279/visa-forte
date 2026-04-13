@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import './intake.css';
 
-// The 8 Visa Forte service tiers — matches spec.md §2 exactly.
+// The 7 Visa Forte service tiers.
 const SERVICE_TIERS = [
   'Pre-Application Eligibility Assessment',
   'PNP Stream Matching',
@@ -13,7 +13,6 @@ const SERVICE_TIERS = [
   'ITA Response Preparation',
   'Full Application File Management',
   'Post-Submission Monitoring',
-  'Retainer-Based Ongoing Support',
 ];
 
 type FormState = 'idle' | 'submitting' | 'success' | 'error';

@@ -17,7 +17,6 @@ const SERVICES = [
   "ITA Response Preparation",
   "Full Application File Management",
   "Post-Submission Monitoring",
-  "Retainer-Based Ongoing Support",
   "General Inquiry",
 ];
 

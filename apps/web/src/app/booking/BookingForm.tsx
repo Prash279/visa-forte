@@ -11,7 +11,6 @@ const SERVICE_TIERS = [
   'ITA Response Preparation',
   'Full Application File Management',
   'Post-Submission Monitoring',
-  'Retainer-Based Ongoing Support',
 ];
 
 interface Props {

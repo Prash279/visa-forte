@@ -109,20 +109,6 @@ const SERVICES = [
       "Processing timeline guidance and expectation management",
     ],
   },
-  {
-    n: "08",
-    name: "Retainer-Based Ongoing Support",
-    tag: "Continuous",
-    description:
-      "Monthly retainer for continuous documentation advisory and file maintenance. Designed for applicants in complex, multi-stage processes — or those who require ongoing access to a practitioner throughout a multi-year immigration timeline.",
-    delivers: [
-      "Unlimited document review and advisory throughout the retainer period",
-      "Priority access — no queue, no wait for responses",
-      "Regulatory change monitoring: proactive notification of criteria changes affecting your file",
-      "Annual file review against updated IRCC standards",
-      "Continuity across all program stages from PR to Citizenship",
-    ],
-  },
 ] as const;
 
 export default function ServicesPage() {
@@ -134,7 +120,7 @@ export default function ServicesPage() {
         <div className="services-hero-inner">
           <p className="eyebrow r">What We Do</p>
           <h1 className="services-hero-headline r d1">
-            Eight Mandates.<br />One Standard.
+            Seven Mandates.<br />One Standard.
           </h1>
           <div className="rule r d2" />
           <p className="services-hero-lead r d2">
