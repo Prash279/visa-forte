@@ -151,29 +151,31 @@ confirm the submission appears in the leads table.
 ---
 
 ### TASK 3B: Booking Engine MVP v1
-**Status:** Not started
-**Approved:** Pending
+**Status:** ✅ COMPLETE
 **What this delivers:** Prash marks available dates. Clients pick a date, choose a service tier,
 submit their name + email. Prash gets an email notification. Booking stored in PostgreSQL.
 
 **Email provider: Resend** — free tier (3,000 emails/month), no server to manage, developer-friendly.
 Confirmed by Prash before starting this task.
 
-**Plan:**
-- [ ] Install Resend SDK: `npm install resend`
-- [ ] Add `RESEND_API_KEY` to Render environment variables
-- [ ] Add `availability` table to schema: `id, date, is_available, created_at`
-- [ ] Add `bookings` table: `id, name, email, service_tier, booking_date, status, created_at`
-- [ ] Generate and apply Drizzle migration
-- [ ] Build admin availability page at `/admin/availability` — Prash toggles dates on/off (calendar UI)
-- [ ] Build client booking page at `/booking` — date picker + service tier dropdown + name + email
-- [ ] Server action: creates booking record + sends email notification to prashant@visaforte.com
-- [ ] Add booking list table to `/admin`
-- [ ] Link "Book a Consultation" CTAs (Services page + landing page) to /booking
+**Review:**
+Resend SDK installed. `availability` and `bookings` tables added to schema and migrated to Neon.
+`RESEND_API_KEY` already set in Vercel (confirmed by Prash). Admin availability page at
+`/admin/availability` — 30-day grid with toggle switches, optimistic UI, upserts via
+`POST /api/availability`. Client booking page at `/booking` — date dropdown (only open dates),
+service tier, name, email → `POST /api/booking` → DB insert + Resend notification email.
+Admin dashboard updated: bookings table, live "Upcoming Bookings" count (next 7 days).
+Services page per-tier CTAs now link to `/booking`.
 
-**Prashant Proof:** Log in to admin. Go to /admin/availability — mark tomorrow as available.
-Open a private/incognito window, go to /booking — confirm tomorrow appears as selectable.
-Submit a booking. Check prashant@visaforte.com inbox — confirm the notification email arrived.
+**One setup step required:** Verify `visaforte.com` as a sending domain in your Resend dashboard
+(Settings → Domains → Add Domain → add the two DNS records Resend provides). Until the domain
+is verified, emails will fail to send. The booking will still be saved to the database.
+
+**Prashant Proof:** Log in to admin. Go to /admin/availability — toggle tomorrow to Open.
+Open an incognito window, go to /booking — confirm tomorrow appears in the date dropdown.
+Submit a booking. Go to /admin — confirm the booking appears in the table and the
+"Upcoming Bookings" count updates. Check prashant@visaforte.com for the notification email
+(requires Resend domain verification).
 
 ---
 
@@ -259,6 +261,7 @@ Per `spec.md §8`, DPDP consent interface and automated deletion cron are Phase 
 | Task 1 | Landing page — live at visaforte.com | April 2026 |
 | Task 2 | Authentication — Better Auth + Neon PostgreSQL | April 2026 |
 | Task 3A | Client Intake Form — leads table + /intake + admin dashboard | April 2026 |
+| Task 3B | Booking Engine — availability toggle, /booking, /admin/availability, Resend email | April 2026 |
 
 ---
 

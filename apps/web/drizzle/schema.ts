@@ -71,3 +71,27 @@ export const leads = pgTable('leads', {
 });
 
 export type Lead = typeof leads.$inferSelect;
+
+// Dates that Prash has marked as available for client bookings.
+// Stored as ISO date strings (YYYY-MM-DD) to avoid timezone drift.
+export const availability = pgTable('availability', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  date: text('date').notNull().unique(),           // e.g. "2026-04-20"
+  isAvailable: boolean('is_available').notNull().default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type Availability = typeof availability.$inferSelect;
+
+// Bookings submitted by clients via the /booking page.
+export const bookings = pgTable('bookings', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  serviceTier: text('service_tier').notNull(),
+  bookingDate: text('booking_date').notNull(),     // ISO date string, e.g. "2026-04-20"
+  status: text('status').notNull().default('pending'), // 'pending' | 'confirmed' | 'cancelled'
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type Booking = typeof bookings.$inferSelect;

@@ -165,10 +165,10 @@ export default function ServicesPage() {
                   </ul>
                 </div>
                 <Link
-                  href="/intake"
+                  href="/booking"
                   className="service-card-cta"
                 >
-                  Request this Service →
+                  Book a Consultation →
                 </Link>
               </div>
             ))}

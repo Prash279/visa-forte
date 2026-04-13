@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
+import { and, gte, lte } from "drizzle-orm";
 import { getCurrentAuthSession } from "@/lib/auth-server";
 import SignOutButton from "./SignOutButton";
 import { db } from "@/lib/db";
-import { leads } from "../../../drizzle/schema";
+import { leads, bookings } from "../../../drizzle/schema";
 import { desc } from "drizzle-orm";
 import "./admin.css";
 
@@ -16,9 +17,6 @@ export default async function AdminPage() {
   const userEmail = authSession.user?.email ?? "";
 
   // Restrict admin access to the owner account only.
-  // Redirect to "/" not "/login" — redirecting to /login creates an infinite
-  // loop: middleware sees a valid session and redirects back to /admin, which
-  // redirects to /login again, forever.
   if (userEmail !== "prashant@visaforte.com") {
     redirect("/");
   }
@@ -28,10 +26,35 @@ export default async function AdminPage() {
   // Fetch all intake leads, most recent first.
   const allLeads = await db.select().from(leads).orderBy(desc(leads.createdAt));
 
-  // IST-aware greeting (UTC+5:30)
-  const hour = new Date(
+  // Fetch all bookings, most recent first.
+  const allBookings = await db.select().from(bookings).orderBy(desc(bookings.createdAt));
+
+  // Count bookings in the next 7 days (IST-aware).
+  const todayIST = new Date(
     new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
-  ).getHours();
+  );
+  const in7Days = new Date(todayIST);
+  in7Days.setDate(todayIST.getDate() + 7);
+
+  const fmt = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+
+  const upcomingBookings = await db
+    .select()
+    .from(bookings)
+    .where(
+      and(
+        gte(bookings.bookingDate, fmt(todayIST)),
+        lte(bookings.bookingDate, fmt(in7Days))
+      )
+    );
+
+  // IST-aware greeting
+  const hour = todayIST.getHours();
   const greeting =
     hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
@@ -74,9 +97,9 @@ export default async function AdminPage() {
             <p className="admin-stat-note">Intake submissions</p>
           </div>
           <div className="admin-stat">
-            <p className="admin-stat-label">Open Cases</p>
-            <p className="admin-stat-value">—</p>
-            <p className="admin-stat-note">In progress</p>
+            <p className="admin-stat-label">Total Bookings</p>
+            <p className="admin-stat-value">{allBookings.length}</p>
+            <p className="admin-stat-note">All time</p>
           </div>
           <div className="admin-stat">
             <p className="admin-stat-label">Reports Sent</p>
@@ -85,12 +108,12 @@ export default async function AdminPage() {
           </div>
           <div className="admin-stat">
             <p className="admin-stat-label">Upcoming Bookings</p>
-            <p className="admin-stat-value">—</p>
+            <p className="admin-stat-value">{upcomingBookings.length}</p>
             <p className="admin-stat-note">Next 7 days</p>
           </div>
         </div>
 
-        {/* New Leads section */}
+        {/* ── New Leads section ── */}
         <div className="admin-section-header">
           <span className="admin-section-title">
             New Leads
@@ -108,7 +131,6 @@ export default async function AdminPage() {
             <a href="/intake" className="admin-empty-link">Share the intake form →</a>
           </div>
         ) : (
-          // Table scrolls internally once it exceeds 520px — header stays pinned.
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
@@ -144,6 +166,62 @@ export default async function AdminPage() {
                     <td>
                       <span className={`admin-badge ${lead.status === "new" ? "admin-badge-new" : "admin-badge-other"}`}>
                         {lead.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ── Bookings section ── */}
+        <div className="admin-section-header">
+          <span className="admin-section-title">
+            Bookings
+            {allBookings.length > 0 && (
+              <span className="admin-section-count">({allBookings.length})</span>
+            )}
+          </span>
+          <span className="admin-section-rule" />
+          <a href="/admin/availability" className="admin-section-link">Manage Availability →</a>
+        </div>
+
+        {allBookings.length === 0 ? (
+          <div className="admin-empty">
+            <p className="admin-empty-text">No bookings yet.</p>
+            <a href="/admin/availability" className="admin-empty-link">Open availability slots →</a>
+          </div>
+        ) : (
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  {["Name", "Email", "Service", "Date", "Status"].map((h) => (
+                    <th key={h}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {allBookings.map((booking) => (
+                  <tr key={booking.id}>
+                    <td><span className="admin-td-name">{booking.name}</span></td>
+                    <td>
+                      <a href={`mailto:${booking.email}`} className="admin-td-email">
+                        {booking.email}
+                      </a>
+                    </td>
+                    <td>
+                      <span className="admin-td-service" title={booking.serviceTier}>
+                        {booking.serviceTier}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="admin-td-date">{booking.bookingDate}</span>
+                    </td>
+                    <td>
+                      <span className={`admin-badge ${booking.status === "pending" ? "admin-badge-new" : "admin-badge-other"}`}>
+                        {booking.status}
                       </span>
                     </td>
                   </tr>

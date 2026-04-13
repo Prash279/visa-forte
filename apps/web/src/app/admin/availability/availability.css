@@ -1,0 +1,190 @@
+/* ============================================================
+   ADMIN AVAILABILITY — Visa Forte
+   Reuses admin header/accent tokens; adds calendar grid styles.
+   Explicit CSS — no Tailwind utilities.
+============================================================ */
+
+/* ── Inherit admin header classes from admin.css ──────────── */
+/* admin-header, admin-header-left, admin-header-right, etc.   */
+/* are defined globally via admin.css and reused here.         */
+
+.avail-wrap {
+  min-height: 100vh;
+  background: var(--pearl);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Back link in header ─────────────────────────────────── */
+.avail-back-link {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  color: var(--pearl);
+  opacity: 0.55;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.avail-back-link:hover { opacity: 1; }
+
+/* ── Main content ────────────────────────────────────────── */
+.avail-main {
+  flex: 1;
+  padding: 2.5rem;
+  max-width: 64rem;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ── Heading block ───────────────────────────────────────── */
+.avail-heading-block {
+  margin-bottom: 2.5rem;
+}
+
+.avail-eyebrow {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.35;
+  margin-bottom: 0.75rem;
+}
+
+.avail-heading {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--prussian);
+  margin-bottom: 0.875rem;
+}
+
+.avail-sub {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--ink);
+  opacity: 0.48;
+  line-height: 1.65;
+  max-width: 36rem;
+}
+
+/* ── 30-day grid ─────────────────────────────────────────── */
+.avail-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
+}
+
+/* ── Individual day card ─────────────────────────────────── */
+.avail-day {
+  background: white;
+  border-top: 3px solid var(--sand);
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  transition: border-color 0.2s ease;
+}
+
+.avail-day--on {
+  border-top-color: var(--saffron);
+}
+
+.avail-day-label {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--prussian);
+  letter-spacing: 0.02em;
+}
+
+/* ── Toggle switch ───────────────────────────────────────── */
+.avail-toggle {
+  position: relative;
+  width: 2.5rem;
+  height: 1.375rem;
+  background: var(--sand);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.avail-toggle--on {
+  background: var(--saffron);
+}
+
+.avail-toggle:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.avail-toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 1rem;
+  height: 1rem;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  display: block;
+}
+
+.avail-toggle--on .avail-toggle-knob {
+  transform: translateX(1.125rem);
+}
+
+.avail-day-status {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.38;
+}
+
+.avail-day--on .avail-day-status {
+  color: var(--saffron);
+  opacity: 1;
+}
+
+/* ── Footer strip ────────────────────────────────────────── */
+.avail-footer {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--sand);
+}
+
+.avail-footer-link {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--teal);
+  text-decoration: none;
+}
+
+.avail-footer-link:hover { text-decoration: underline; }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .avail-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .avail-grid { grid-template-columns: repeat(3, 1fr); }
+  .avail-main { padding: 1.5rem; }
+  .avail-heading { font-size: 2.25rem; }
+}
+
+@media (max-width: 420px) {
+  .avail-grid { grid-template-columns: repeat(2, 1fr); }
+}
