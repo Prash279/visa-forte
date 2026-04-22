@@ -362,8 +362,55 @@
 
 .admin-footer-link:hover { text-decoration: underline; }
 
+/* ── Tools grid ─────────────────────────────────────────── */
+.admin-tools {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 3.5rem;
+}
+
+.admin-tool-card {
+  background: white;
+  border-top: 3px solid var(--prussian);
+  padding: 1.75rem 2rem;
+  text-decoration: none;
+  display: block;
+  transition: border-top-color 0.15s ease;
+}
+
+.admin-tool-card:hover {
+  border-top-color: var(--saffron);
+}
+
+.admin-tool-name {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--prussian);
+  margin-bottom: 0.625rem;
+}
+
+.admin-tool-desc {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: var(--ink);
+  opacity: 0.55;
+  line-height: 1.65;
+  margin-bottom: 1rem;
+}
+
+.admin-tool-cta {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {
+  .admin-tools { grid-template-columns: 1fr; }
   .admin-metrics { grid-template-columns: repeat(2, 1fr); }
   .admin-main { padding: 1.5rem; }
   .admin-stat-value { font-size: 3.25rem; }

@@ -245,6 +245,24 @@ export default async function AdminPage() {
           </div>
         )}
 
+        {/* ── Tools section ── */}
+        <div className="admin-section-header">
+          <span className="admin-section-title">Tools</span>
+          <span className="admin-section-rule" />
+        </div>
+        <div className="admin-tools">
+          <a href="/admin/canvisa-pro" className="admin-tool-card">
+            <p className="admin-tool-name">CanVisa Pro</p>
+            <p className="admin-tool-desc">Generate a full PR eligibility assessment report for any applicant. Includes CRS calculation, FSW grid, pathway ranking, and gap analysis.</p>
+            <span className="admin-tool-cta">Open Tool →</span>
+          </a>
+          <a href="/admin/availability" className="admin-tool-card">
+            <p className="admin-tool-name">Availability Manager</p>
+            <p className="admin-tool-desc">Set available and unavailable dates for client bookings across all service tiers.</p>
+            <span className="admin-tool-cta">Manage →</span>
+          </a>
+        </div>
+
         {/* Footer */}
         <div className="admin-footer">
           <p className="admin-footer-text">Visa Forte · Engineered for Passage.</p>
