@@ -3,12 +3,6 @@ import { z } from 'zod';
 import Razorpay from 'razorpay';
 import { PRICING, getAmountInSmallestUnit } from '@/lib/pricing';
 
-// Razorpay client — initialised with env vars (placeholders until real keys are added).
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID ?? '',
-  key_secret: process.env.RAZORPAY_KEY_SECRET ?? '',
-});
-
 const Schema = z.object({
   serviceTier: z.string().min(1),
   currency: z.enum(['INR', 'USD']),
@@ -45,6 +39,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       { status: 503 }
     );
   }
+
+  const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  });
 
   try {
     const order = await razorpay.orders.create({
