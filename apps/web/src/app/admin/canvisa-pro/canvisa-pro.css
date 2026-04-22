@@ -259,6 +259,22 @@
   background: var(--cvp-teal);
 }
 
+.cvp-marp-btn {
+  background: transparent;
+  border: 1px solid var(--cvp-teal);
+  color: var(--cvp-teal);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  padding: 0.5rem 1.25rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.cvp-marp-btn:hover {
+  background: var(--cvp-teal);
+  color: #020617;
+}
+
 /* ── Report header (gradient) ─────────────────────────────── */
 .cvp-rpt-header {
   background: linear-gradient(135deg, #0D1B2A 0%, #0f3460 50%, #00A896 100%);

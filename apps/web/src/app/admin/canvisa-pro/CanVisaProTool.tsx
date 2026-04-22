@@ -96,6 +96,393 @@ const INITIAL: ApplicantProfile = {
   fundsSource: '',
 }
 
+// ── MARP Report Builder ───────────────────────────────────────────────────────
+
+function pill(label: string, type: 'eligible' | 'not-eligible' | 'borderline' | 'likely'): string {
+  const styles: Record<string, string> = {
+    'eligible':     'background:rgba(134,239,172,0.15);color:#86EFAC;',
+    'likely':       'background:rgba(45,212,191,0.15);color:#2DD4BF;',
+    'borderline':   'background:rgba(253,224,71,0.15);color:#FDE047;',
+    'not-eligible': 'background:rgba(252,165,165,0.15);color:#FCA5A5;',
+  }
+  return `<span style="${styles[type]}padding:3px 10px;font-size:0.65em;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;">${label}</span>`
+}
+
+function metricCard(label: string, value: string | number, note: string, accent = '#2DD4BF'): string {
+  return `<div style="background:#1E293B;border-top:3px solid ${accent};padding:18px 20px;text-align:center;">
+  <div style="color:#94A3B8;font-size:0.58em;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:8px;">${label}</div>
+  <div style="color:${accent};font-size:2.4em;line-height:1;font-weight:700;margin-bottom:6px;">${value}</div>
+  <div style="color:#64748B;font-size:0.62em;">${note}</div>
+</div>`
+}
+
+function gapCard(level: 'critical' | 'high' | 'medium', title: string, desc: string): string {
+  const colours: Record<string, string> = { critical: '#FCA5A5', high: '#FDE047', medium: '#2DD4BF' }
+  const c = colours[level]
+  return `<div style="background:#1E293B;border-left:4px solid ${c};padding:14px 18px;margin:8px 0;">
+  <div style="color:${c};font-size:0.6em;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:4px;">${level}</div>
+  <div style="color:#F1F5F9;font-size:0.88em;font-weight:600;">${title}</div>
+  <div style="color:#94A3B8;font-size:0.78em;margin-top:4px;">${desc}</div>
+</div>`
+}
+
+function buildMarpMarkdown(p: ApplicantProfile, r: CrsResult): string {
+  const { breakdown, fswGrid, eligibility, scenarios } = r
+  const total = breakdown.total
+  const fwYrs = p.foreignWorkExperienceYears
+  const rId = reportId(p.name, p.reportDate)
+
+  const THEME = `
+:root {
+  --bg:#020617;--card:#0D1B2A;--surface:#1E293B;--border:#334155;
+  --teal:#2DD4BF;--amber:#FDE047;--red:#FCA5A5;--green:#86EFAC;
+  --text:#F1F5F9;--muted:#94A3B8;
+}
+section { background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:18px;padding:48px 56px; }
+h1 { color:var(--teal);font-size:2.1em;margin-bottom:0.3em; }
+h2 { color:var(--text);font-size:1.5em;margin-bottom:0.5em; }
+h3 { color:var(--muted);font-size:0.85em;text-transform:uppercase;letter-spacing:0.14em; }
+strong { color:var(--amber); }
+em { color:var(--teal);font-style:normal; }
+header { color:var(--muted);font-size:0.6em;letter-spacing:0.15em;text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:6px; }
+footer { color:var(--muted);font-size:0.58em; }
+section.lead { justify-content:center;text-align:center; }
+section.lead h1 { font-size:2.8em;color:#F1F5F9; }
+table { width:100%;border-collapse:collapse;font-size:0.82em; }
+th { background:var(--surface);color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-size:0.72em;padding:9px 13px;border-bottom:1px solid var(--border); }
+td { padding:9px 13px;border-bottom:1px solid var(--border); }
+code { background:var(--surface);color:var(--teal);padding:2px 7px;border-radius:3px; }
+header strong { color:var(--teal); }`
+
+  const circumference = 502.65
+  const crsOffset = circumference * (1 - Math.min(total / 1200, 1))
+  const cutoffOffset = circumference * (1 - Math.min(500 / 1200, 1))
+
+  const poolEligible = eligibility.expressEntryPool.eligible
+  const streamsRows: [string, string, string][] = [
+    ['Federal Skilled Worker (FSW)', eligibility.fsw.eligible ? 'eligible' : 'not-eligible', fswGrid.total >= 67 ? `${fswGrid.total}/67 pts — threshold met` : `${fswGrid.total}/67 pts — below threshold`],
+    ['Canadian Experience Class (CEC)', eligibility.cec.eligible ? 'eligible' : 'not-eligible', p.canadianWorkExperienceYears >= 1 ? `${p.canadianWorkExperienceYears} yr CWE — meets 1-yr minimum` : 'Insufficient Canadian work experience'],
+    ['Federal Skilled Trades (FST)', eligibility.fst.eligible ? 'eligible' : 'not-eligible', 'Trades NOC + language threshold assessment'],
+    ['Express Entry Pool', poolEligible ? 'eligible' : 'not-eligible', poolEligible ? 'Meets at least one stream threshold' : 'No qualifying stream — not pool-eligible'],
+  ]
+
+  const scenarioRows = scenarios.map(s => {
+    const sign = s.delta >= 0 ? '+' : ''
+    return `| ${s.name} | ${sign}${s.delta} | **${s.projectedCrs}** | ${s.change} |`
+  }).join('\n')
+
+  const gapCards: string[] = []
+  if (!r.proofOfFundsSufficient) gapCards.push(gapCard('critical', 'Insufficient Proof of Funds', `CAD $${p.settlementFunds.toLocaleString()} available — minimum required: CAD $${r.proofOfFundsRequired.toLocaleString()} for family size ${p.familySize}.`))
+  if (!poolEligible) gapCards.push(gapCard('critical', 'No Stream Eligibility — Not Pool-Eligible', 'Must qualify for at least one stream (FSW/CEC/FST) to enter the Express Entry pool.'))
+  if (fwYrs < 1) gapCards.push(gapCard('high', 'Foreign Work Experience Below 1 Year', 'Minimum 1 year in NOC TEER 0/1/2/3 required for FSW. Current experience does not meet threshold.'))
+  if (r.firstLanguageBands.listening < 7 || r.firstLanguageBands.reading < 7 || r.firstLanguageBands.writing < 7 || r.firstLanguageBands.speaking < 7) gapCards.push(gapCard('high', 'Language Score Below CLB 7', 'CLB 7 minimum required across all four abilities for FSW eligibility.'))
+  if (!p.hasEca && p.education !== 'secondary' && p.education !== 'less_than_secondary') gapCards.push(gapCard('medium', 'ECA Not Confirmed', 'Educational Credential Assessment required for foreign education to be recognized in CRS scoring.'))
+  if (gapCards.length === 0) gapCards.push(gapCard('medium', 'No Critical Gaps Identified', 'Profile meets primary eligibility thresholds. Focus on CRS score maximization.'))
+
+  return `---
+marp: true
+theme: uncover
+size: 16:9
+paginate: true
+style: |${THEME}
+---
+
+<!-- _class: lead -->
+<!-- _paginate: false -->
+
+<div style="background:linear-gradient(135deg,#0D1B2A 0%,#020617 60%,#0D2A1B 100%);padding:48px 56px;min-height:100%;">
+
+<div style="color:#94A3B8;font-size:0.7em;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:12px;">CanVisa Pro · Precision Assessment</div>
+
+# ${p.name || 'Applicant'}
+
+<div style="color:#94A3B8;font-size:1em;margin:12px 0;">
+${p.strategyTitle || 'Canada PR Eligibility Assessment'}
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:32px 0;">
+<div style="background:#1E293B;border-top:3px solid #2DD4BF;padding:16px;text-align:center;">
+  <div style="color:#94A3B8;font-size:0.6em;letter-spacing:0.15em;text-transform:uppercase;">CRS Score</div>
+  <div style="color:#2DD4BF;font-size:2.2em;font-weight:700;">${total}</div>
+</div>
+<div style="background:#1E293B;border-top:3px solid ${poolEligible ? '#86EFAC' : '#FCA5A5'};padding:16px;text-align:center;">
+  <div style="color:#94A3B8;font-size:0.6em;letter-spacing:0.15em;text-transform:uppercase;">Pool Status</div>
+  <div style="color:${poolEligible ? '#86EFAC' : '#FCA5A5'};font-size:1.1em;font-weight:700;">${poolEligible ? 'ELIGIBLE' : 'NOT ELIGIBLE'}</div>
+</div>
+<div style="background:#1E293B;border-top:3px solid #FDE047;padding:16px;text-align:center;">
+  <div style="color:#94A3B8;font-size:0.6em;letter-spacing:0.15em;text-transform:uppercase;">Report Date</div>
+  <div style="color:#FDE047;font-size:0.95em;font-weight:700;">${p.reportDate}</div>
+</div>
+</div>
+
+<div style="color:#64748B;font-size:0.62em;margin-top:16px;">
+${rId} · All data sourced from canada.ca · For guidance purposes only
+</div>
+
+</div>
+
+---
+
+<!-- header: "Profile · **Eligibility** · Gaps · Strategy · Risk" -->
+
+## Executive Summary
+
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px;">
+${metricCard('CRS Score', total, 'out of 1200')}
+${metricCard('FSW Grid', `${fswGrid.total}/67`, fswGrid.eligible ? 'Threshold Met' : 'Below Threshold', fswGrid.eligible ? '#86EFAC' : '#FCA5A5')}
+${metricCard('Foreign WE', `${fwYrs}y`, fwYrs >= 1 ? 'FSW Eligible' : 'Below 1-yr Min', fwYrs >= 1 ? '#86EFAC' : '#FCA5A5')}
+${metricCard('Pool', poolEligible ? 'YES' : 'NO', poolEligible ? 'Pool Eligible' : 'Not Eligible', poolEligible ? '#86EFAC' : '#FCA5A5')}
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+<div>
+
+**CRS Breakdown at a Glance**
+- Core / Human Capital: **${breakdown.coreTotal}**
+- Transferability: **${breakdown.transferTotal}**
+- Additional (PNP/etc): **${breakdown.additionalTotal}**
+${breakdown.spousePoints > 0 ? `- Spouse factors: **${breakdown.spousePoints}**` : ''}
+
+</div>
+<div>
+
+**Pathway Status**
+${streamsRows.map(([name, status]) => `- ${name}: ${pill(status, status as 'eligible' | 'not-eligible')}`).join('\n')}
+
+</div>
+</div>
+
+---
+
+<!-- header: "**Profile** · Eligibility · Gaps · Strategy · Risk" -->
+
+## Applicant Data Profile
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
+<div>
+
+### Personal & Work
+
+| Field | Value |
+|-------|-------|
+| Age | ${p.age} years |
+| NOC Code | ${p.nocCode || '—'} (TEER ${p.nocTeer}) |
+| Occupation | ${p.occupationTitle || '—'} |
+| Citizenship | ${p.countryOfCitizenship || '—'} |
+| Foreign WE | ${fwYrs} years |
+| Canadian WE | ${p.canadianWorkExperienceYears} years |
+| Funds | CAD $${p.settlementFunds.toLocaleString()} |
+
+</div>
+<div>
+
+### Education & Language
+
+| Field | Value |
+|-------|-------|
+| Education | ${EDU_LABELS[p.education]} |
+| ECA | ${p.hasEca ? 'Confirmed' : 'Not Confirmed'} |
+| 1st Language | ${p.firstLanguageScores.testType} |
+| CLB Bands | L:${r.firstLanguageBands.listening} R:${r.firstLanguageBands.reading} W:${r.firstLanguageBands.writing} S:${r.firstLanguageBands.speaking} |
+| Spouse | ${p.hasSpouse ? 'Yes' : 'No'} |
+| Family Size | ${p.familySize} |
+| PNP | ${p.hasProvincialNomination ? 'Yes (+600)' : 'No'} |
+
+</div>
+</div>
+
+---
+
+<!-- header: "Profile · **CRS Score** · Gaps · Strategy · Risk" -->
+
+## CRS Score Breakdown
+
+<div style="display:grid;grid-template-columns:220px 1fr;gap:40px;align-items:start;">
+
+<div style="text-align:center;">
+<svg viewBox="0 0 200 120" width="200" height="120">
+  <circle cx="100" cy="100" r="80" fill="none" stroke="#1E293B" stroke-width="18" stroke-dasharray="${circumference}" stroke-dashoffset="${circumference * 0.5}" stroke-linecap="round" transform="rotate(-180 100 100)"/>
+  <circle cx="100" cy="100" r="80" fill="none" stroke="#2DD4BF" stroke-width="18" stroke-dasharray="${circumference}" stroke-dashoffset="${(circumference * 0.5 + crsOffset * 0.5).toFixed(1)}" stroke-linecap="round" transform="rotate(-180 100 100)"/>
+  <text x="100" y="88" text-anchor="middle" fill="#F1F5F9" font-size="28" font-weight="700">${total}</text>
+  <text x="100" y="106" text-anchor="middle" fill="#94A3B8" font-size="10">CRS / 1200</text>
+</svg>
+
+<div style="color:#FDE047;font-size:0.72em;margin-top:8px;">General cutoff ~500 pts</div>
+<div style="color:#64748B;font-size:0.6em;">Verify at canada.ca</div>
+</div>
+
+<div>
+
+| Factor | Points |
+|--------|--------|
+| Age | ${breakdown.agePoints} |
+| Education | ${breakdown.educationPoints} |
+| First Language | ${breakdown.firstLanguagePoints} |
+${breakdown.secondLanguagePoints > 0 ? `| Second Language | ${breakdown.secondLanguagePoints} |` : ''}
+| Canadian Work Exp | ${breakdown.canadianExpPoints} |
+${breakdown.spousePoints > 0 ? `| Spouse Factors | ${breakdown.spousePoints} |` : ''}
+| Transferability | ${breakdown.transferTotal} |
+${breakdown.additionalTotal > 0 ? `| Additional (PNP/etc) | ${breakdown.additionalTotal} |` : ''}
+| **Total CRS** | **${total}** |
+
+<div style="background:#1E293B;padding:12px 16px;margin-top:12px;border-left:3px solid #2DD4BF;font-size:0.8em;color:#94A3B8;">
+⚠ Job offer points removed from CRS post-March 2025 (IRCC policy change)
+</div>
+
+</div>
+</div>
+
+---
+
+<!-- header: "Profile · **Eligibility** · Gaps · Strategy · Risk" -->
+
+## Stream Eligibility Matrix
+
+<table>
+<thead><tr><th>PR Pathway</th><th>Status</th><th>Requirement Analysis</th></tr></thead>
+<tbody>
+${streamsRows.map(([name, status, note]) => `<tr><td><strong>${name}</strong></td><td>${pill(status, status as 'eligible' | 'not-eligible')}</td><td style="color:#94A3B8;font-size:0.85em;">${note}</td></tr>`).join('\n')}
+</tbody>
+</table>
+
+---
+
+<!-- header: "Profile · **Eligibility** · Gaps · Strategy · Risk" -->
+
+## FSW 67-Point Grid
+
+<div style="display:grid;grid-template-columns:1fr auto;gap:24px;align-items:start;">
+<div>
+
+| Selection Factor | Score | Max |
+|-----------------|-------|-----|
+| Language Ability | ${fswGrid.language} | 28 |
+| Education | ${fswGrid.education} | 25 |
+| Work Experience | ${fswGrid.workExperience} | 15 |
+| Age | ${fswGrid.age} | 12 |
+| Adaptability | ${fswGrid.adaptability} | 10 |
+| **Total** | **${fswGrid.total}** | **90** |
+
+</div>
+<div style="text-align:center;padding:24px;">
+<div style="font-size:4em;font-weight:700;color:${fswGrid.eligible ? '#86EFAC' : '#FCA5A5'};">${fswGrid.total}</div>
+<div style="color:#94A3B8;font-size:0.75em;margin-top:4px;">out of 90</div>
+<div style="margin-top:12px;">${pill(fswGrid.eligible ? 'eligible' : 'not-eligible', fswGrid.eligible ? 'eligible' : 'not-eligible')}</div>
+<div style="color:#64748B;font-size:0.65em;margin-top:8px;">Threshold: 67 points</div>
+</div>
+</div>
+
+<div style="background:#1E293B;padding:10px 14px;margin-top:8px;border-left:3px solid #FDE047;font-size:0.75em;color:#94A3B8;">
+Arranged Employment factor removed post-March 2025 (IRCC policy change) — verify at canada.ca
+</div>
+
+---
+
+<!-- header: "Profile · Eligibility · **Gaps** · Strategy · Risk" -->
+
+## Profile Deficit Map
+
+Critical and high-priority gaps that must be resolved for pathway eligibility.
+
+${gapCards.join('\n')}
+
+---
+
+<!-- header: "Profile · Eligibility · **Gaps** · Strategy · Risk" -->
+
+## Scenario Projections
+
+What CRS score improvements are achievable — and how.
+
+| Scenario | CRS Delta | Projected Total | Timeline |
+|----------|-----------|-----------------|----------|
+${scenarioRows}
+
+<div style="background:#1E293B;padding:12px 16px;margin-top:16px;border-left:3px solid #2DD4BF;font-size:0.78em;color:#94A3B8;">
+All projections are estimates based on current IRCC scoring rules. Verify draw cutoffs at canada.ca before acting.
+</div>
+
+---
+
+<!-- header: "Profile · Eligibility · Gaps · **Strategy** · Risk" -->
+
+## Strategic Recommendation
+
+<div style="background:#1E293B;border:1px solid #334155;padding:28px 32px;margin-bottom:20px;">
+<div style="color:#94A3B8;font-size:0.62em;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:12px;">AI Narrative — Pending API Key</div>
+<div style="color:#475569;font-size:0.88em;line-height:1.7;">
+Add <code>ANTHROPIC_API_KEY</code> to your environment to unlock personalized strategic recommendations, market intelligence, and execution planning for this applicant's profile.
+</div>
+</div>
+
+**Immediate Actions**
+1. Verify all supporting documents against IRCC checklist
+2. Address critical gaps identified in the Deficit Map
+3. Monitor Express Entry draw history at canada.ca
+4. Target next category-based or general draw within projected score window
+
+---
+
+<!-- header: "Profile · Eligibility · Gaps · Strategy · **Risk**" -->
+
+## Risk Assessment
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px;">
+
+<div style="background:#1E293B;border-top:3px solid #86EFAC;padding:20px;">
+<div style="color:#86EFAC;font-size:0.65em;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;">Financial</div>
+<div style="font-size:0.9em;font-weight:600;">Settlement Funds</div>
+<div style="color:#94A3B8;font-size:0.78em;margin-top:8px;">
+CAD $${p.settlementFunds.toLocaleString()} declared<br/>
+Required: CAD $${r.proofOfFundsRequired.toLocaleString()}<br/>
+Status: ${r.proofOfFundsSufficient ? pill('Sufficient', 'eligible') : pill('Insufficient', 'not-eligible')}
+</div>
+</div>
+
+<div style="background:#1E293B;border-top:3px solid ${p.hasCriminalRecord ? '#FCA5A5' : '#86EFAC'};padding:20px;">
+<div style="color:${p.hasCriminalRecord ? '#FCA5A5' : '#86EFAC'};font-size:0.65em;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;">Admissibility</div>
+<div style="font-size:0.9em;font-weight:600;">Criminal Record</div>
+<div style="color:#94A3B8;font-size:0.78em;margin-top:8px;">
+${p.hasCriminalRecord ? 'Criminal history declared. Legal review required before application.' : 'No criminal history declared. Standard admissibility applies.'}
+</div>
+</div>
+
+<div style="background:#1E293B;border-top:3px solid ${p.hasPriorRefusal ? '#FDE047' : '#86EFAC'};padding:20px;">
+<div style="color:${p.hasPriorRefusal ? '#FDE047' : '#86EFAC'};font-size:0.65em;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;">Prior History</div>
+<div style="font-size:0.9em;font-weight:600;">Prior Refusals</div>
+<div style="color:#94A3B8;font-size:0.78em;margin-top:8px;">
+${p.hasPriorRefusal ? `Prior refusal declared: ${p.refusalDetails || 'Details not provided.'}` : 'No prior refusals declared.'}
+</div>
+</div>
+
+</div>
+
+---
+
+<!-- _class: lead -->
+<!-- _paginate: false -->
+
+<div style="background:#0D1B2A;padding:48px 56px;min-height:100%;text-align:left;">
+
+<h2 style="color:#2DD4BF;font-size:1.3em;margin-bottom:16px;">Legal Disclaimer & Data Sources</h2>
+
+<p style="color:#94A3B8;font-size:0.72em;line-height:1.8;max-width:800px;">
+The information provided in this report is for informational and guidance purposes only, based on publicly available Immigration, Refugees and Citizenship Canada (IRCC) regulations and policies. This does not constitute legal advice, and no solicitor-client or consultant-client relationship is created. Immigration regulations, program requirements, processing times, and CRS cutoff scores are subject to frequent change without notice. You are responsible for verifying all information with official IRCC sources (www.canada.ca/immigration).
+</p>
+
+<p style="color:#94A3B8;font-size:0.72em;line-height:1.8;max-width:800px;margin-top:12px;">
+Visa Forte provides documentation consulting services only. Prashant Thirthingoth is not a Registered Canadian Immigration Consultant (RCIC) and does not provide legal immigration representation.
+</p>
+
+<div style="margin-top:24px;padding-top:16px;border-top:1px solid #334155;color:#475569;font-size:0.62em;">
+${rId} · Generated ${p.reportDate} · All CRS calculations sourced from canada.ca<br/>
+To convert this file to PPTX: <code>npx @marp-team/marp-cli report.md --pptx --allow-local-files -o report.pptx</code>
+</div>
+
+</div>
+`
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function CanVisaProTool() {
@@ -134,6 +521,18 @@ export default function CanVisaProTool() {
     setResult(r)
     setView('report')
     setTimeout(() => window.scrollTo({ top: 0 }), 50)
+  }
+
+  function downloadMarp() {
+    if (!result) return
+    const md = buildMarpMarkdown(profile, result)
+    const blob = new Blob([md], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `CanVisa-Pro-${profile.name.replace(/\s+/g, '-') || 'Report'}-${profile.reportDate}.md`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   // ── FORM ──────────────────────────────────────────────────────────────────
@@ -468,6 +867,9 @@ export default function CanVisaProTool() {
         </button>
         <button className="cvp-print-btn" onClick={() => window.print()}>
           Print / Save PDF
+        </button>
+        <button className="cvp-marp-btn" onClick={downloadMarp}>
+          ↓ Download PPTX Source (.md)
         </button>
       </div>
 
