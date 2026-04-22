@@ -131,353 +131,498 @@ function buildMarpMarkdown(p: ApplicantProfile, r: CrsResult): string {
   const total = breakdown.total
   const fwYrs = p.foreignWorkExperienceYears
   const rId = reportId(p.name, p.reportDate)
-
-  const THEME = `
-:root {
-  --bg:#020617;--card:#0D1B2A;--surface:#1E293B;--border:#334155;
-  --teal:#2DD4BF;--amber:#FDE047;--red:#FCA5A5;--green:#86EFAC;
-  --text:#F1F5F9;--muted:#94A3B8;
-}
-section { background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:18px;padding:48px 56px; }
-h1 { color:var(--teal);font-size:2.1em;margin-bottom:0.3em; }
-h2 { color:var(--text);font-size:1.5em;margin-bottom:0.5em; }
-h3 { color:var(--muted);font-size:0.85em;text-transform:uppercase;letter-spacing:0.14em; }
-strong { color:var(--amber); }
-em { color:var(--teal);font-style:normal; }
-header { color:var(--muted);font-size:0.6em;letter-spacing:0.15em;text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:6px; }
-footer { color:var(--muted);font-size:0.58em; }
-section.lead { justify-content:center;text-align:center; }
-section.lead h1 { font-size:2.8em;color:#F1F5F9; }
-table { width:100%;border-collapse:collapse;font-size:0.82em; }
-th { background:var(--surface);color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-size:0.72em;padding:9px 13px;border-bottom:1px solid var(--border); }
-td { padding:9px 13px;border-bottom:1px solid var(--border); }
-code { background:var(--surface);color:var(--teal);padding:2px 7px;border-radius:3px; }
-header strong { color:var(--teal); }`
-
-  const circumference = 502.65
-  const crsOffset = circumference * (1 - Math.min(total / 1200, 1))
-  const cutoffOffset = circumference * (1 - Math.min(500 / 1200, 1))
-
   const poolEligible = eligibility.expressEntryPool.eligible
-  const streamsRows: [string, string, string][] = [
-    ['Federal Skilled Worker (FSW)', eligibility.fsw.eligible ? 'eligible' : 'not-eligible', fswGrid.total >= 67 ? `${fswGrid.total}/67 pts — threshold met` : `${fswGrid.total}/67 pts — below threshold`],
-    ['Canadian Experience Class (CEC)', eligibility.cec.eligible ? 'eligible' : 'not-eligible', p.canadianWorkExperienceYears >= 1 ? `${p.canadianWorkExperienceYears} yr CWE — meets 1-yr minimum` : 'Insufficient Canadian work experience'],
-    ['Federal Skilled Trades (FST)', eligibility.fst.eligible ? 'eligible' : 'not-eligible', 'Trades NOC + language threshold assessment'],
-    ['Express Entry Pool', poolEligible ? 'eligible' : 'not-eligible', poolEligible ? 'Meets at least one stream threshold' : 'No qualifying stream — not pool-eligible'],
-  ]
 
-  const scenarioRows = scenarios.map(s => {
-    const sign = s.delta >= 0 ? '+' : ''
-    return `| ${s.name} | ${sign}${s.delta} | **${s.projectedCrs}** | ${s.change} |`
-  }).join('\n')
+  // ── Shared style constants ─────────────────────────────────────────────────
+  const BG      = '#020617'
+  const NAVY    = '#0D1B2A'
+  const CARD    = '#1E293B'
+  const BORDER  = '#334155'
+  const TEAL    = '#2DD4BF'
+  const AMBER   = '#FDE047'
+  const RED     = '#FCA5A5'
+  const GREEN   = '#86EFAC'
+  const TEXT    = '#F1F5F9'
+  const MUTED   = '#94A3B8'
+  const DIM     = '#64748B'
 
-  const gapCards: string[] = []
-  if (!r.proofOfFundsSufficient) gapCards.push(gapCard('critical', 'Insufficient Proof of Funds', `CAD $${p.settlementFunds.toLocaleString()} available — minimum required: CAD $${r.proofOfFundsRequired.toLocaleString()} for family size ${p.familySize}.`))
-  if (!poolEligible) gapCards.push(gapCard('critical', 'No Stream Eligibility — Not Pool-Eligible', 'Must qualify for at least one stream (FSW/CEC/FST) to enter the Express Entry pool.'))
-  if (fwYrs < 1) gapCards.push(gapCard('high', 'Foreign Work Experience Below 1 Year', 'Minimum 1 year in NOC TEER 0/1/2/3 required for FSW. Current experience does not meet threshold.'))
-  if (r.firstLanguageBands.listening < 7 || r.firstLanguageBands.reading < 7 || r.firstLanguageBands.writing < 7 || r.firstLanguageBands.speaking < 7) gapCards.push(gapCard('high', 'Language Score Below CLB 7', 'CLB 7 minimum required across all four abilities for FSW eligibility.'))
-  if (!p.hasEca && p.education !== 'secondary' && p.education !== 'less_than_secondary') gapCards.push(gapCard('medium', 'ECA Not Confirmed', 'Educational Credential Assessment required for foreign education to be recognized in CRS scoring.'))
-  if (gapCards.length === 0) gapCards.push(gapCard('medium', 'No Critical Gaps Identified', 'Profile meets primary eligibility thresholds. Focus on CRS score maximization.'))
+  // ── Helper: status badge ───────────────────────────────────────────────────
+  const badge = (eligible: boolean, yesLabel = 'ELIGIBLE', noLabel = 'NOT ELIGIBLE') =>
+    eligible
+      ? `<span style="background:rgba(134,239,172,0.15);color:${GREEN};padding:4px 12px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;font-family:system-ui">${yesLabel}</span>`
+      : `<span style="background:rgba(252,165,165,0.15);color:${RED};padding:4px 12px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;font-family:system-ui">${noLabel}</span>`
 
+  // ── Helper: data row ───────────────────────────────────────────────────────
+  const row = (label: string, value: string, highlight = false) =>
+    `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid ${BORDER};">
+      <span style="color:${MUTED};font-size:12px;letter-spacing:0.5px;">${label}</span>
+      <span style="color:${highlight ? TEAL : TEXT};font-size:13px;font-weight:600;text-align:right;max-width:55%;">${value}</span>
+    </div>`
+
+  // ── Helper: section header bar ─────────────────────────────────────────────
+  const sectionBar = (label: string) =>
+    `<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <div style="width:3px;height:18px;background:${TEAL};flex-shrink:0;"></div>
+      <span style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui">${label}</span>
+      <div style="flex:1;height:1px;background:${BORDER};"></div>
+    </div>`
+
+  // ── Helper: metric card ────────────────────────────────────────────────────
+  const mc = (label: string, value: string | number, note: string, color: string) =>
+    `<div style="background:${CARD};border-top:3px solid ${color};padding:16px 18px;flex:1;">
+      <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:10px;">${label}</div>
+      <div style="color:${color};font-size:36px;line-height:1;font-weight:700;margin-bottom:6px;">${value}</div>
+      <div style="color:${DIM};font-size:11px;">${note}</div>
+    </div>`
+
+  // ── Helper: gap card ───────────────────────────────────────────────────────
+  const gc = (level: 'CRITICAL' | 'HIGH' | 'MEDIUM', title: string, desc: string) => {
+    const c = level === 'CRITICAL' ? RED : level === 'HIGH' ? AMBER : TEAL
+    return `<div style="background:${CARD};border-left:4px solid ${c};padding:14px 18px;margin-bottom:10px;">
+      <div style="color:${c};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:5px;">${level}</div>
+      <div style="color:${TEXT};font-size:14px;font-weight:600;margin-bottom:4px;">${title}</div>
+      <div style="color:${MUTED};font-size:12px;line-height:1.5;">${desc}</div>
+    </div>`
+  }
+
+  // ── Gap cards data ─────────────────────────────────────────────────────────
+  const gapItems: string[] = []
+  if (!r.proofOfFundsSufficient) gapItems.push(gc('CRITICAL', 'Insufficient Proof of Funds', `CAD $${p.settlementFunds.toLocaleString()} declared — minimum required: CAD $${r.proofOfFundsRequired.toLocaleString()} for family of ${p.familySize}.`))
+  if (!poolEligible) gapItems.push(gc('CRITICAL', 'Not Pool-Eligible', 'Must qualify for FSW, CEC, or FST to enter the Express Entry pool.'))
+  if (fwYrs < 1) gapItems.push(gc('HIGH', 'Foreign Work Experience Below 1 Year', 'Minimum 1 year in NOC TEER 0/1/2/3 required for FSW eligibility.'))
+  if (r.firstLanguageBands.listening < 7 || r.firstLanguageBands.reading < 7 || r.firstLanguageBands.writing < 7 || r.firstLanguageBands.speaking < 7) gapItems.push(gc('HIGH', 'Language Score Below CLB 7', 'CLB 7 minimum required across all four abilities for FSW.'))
+  if (!p.hasEca && p.education !== 'secondary' && p.education !== 'less_than_secondary') gapItems.push(gc('MEDIUM', 'ECA Not Confirmed', 'Educational Credential Assessment required for foreign credentials to count in CRS scoring.'))
+  if (gapItems.length === 0) gapItems.push(gc('MEDIUM', 'No Critical Gaps Identified', 'Profile meets primary thresholds. Focus on CRS score maximization.'))
+
+  // ── CRS gauge SVG (half-donut) ─────────────────────────────────────────────
+  // Half-circle arc: radius 85, center 100,100, sweep from 180° to 0° (left to right)
+  const r85 = 85
+  const pct = Math.min(total / 1200, 1)
+  const angleRad = Math.PI * (1 - pct)
+  const arcX = (100 + r85 * Math.cos(Math.PI - angleRad)).toFixed(1)
+  const arcY = (100 - r85 * Math.sin(Math.PI - angleRad)).toFixed(1)
+  const gaugeArc = pct > 0
+    ? `<path d="M ${(100 - r85).toFixed(1)},100 A ${r85},${r85} 0 ${pct > 0.5 ? 1 : 0} 1 ${arcX},${arcY}" fill="none" stroke="${TEAL}" stroke-width="16" stroke-linecap="round"/>`
+    : ''
+
+  // ── MARP slides ────────────────────────────────────────────────────────────
   return `---
 marp: true
-theme: uncover
+theme: default
 size: 16:9
 paginate: true
-style: |${THEME}
+style: |
+  section {
+    background: ${BG};
+    color: ${TEXT};
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 16px;
+    padding: 0;
+    display: block;
+  }
+  section::after { color: ${DIM}; font-size: 12px; }
+  header { display: none; }
+
 ---
 
-<!-- _class: lead -->
 <!-- _paginate: false -->
 
-<div style="background:linear-gradient(135deg,#0D1B2A 0%,#020617 60%,#0D2A1B 100%);padding:48px 56px;min-height:100%;">
+<div style="background:linear-gradient(135deg,${NAVY} 0%,${BG} 55%,#0D2018 100%);height:100%;padding:52px 60px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;">
 
-<div style="color:#94A3B8;font-size:0.7em;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:12px;">CanVisa Pro · Precision Assessment</div>
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:36px;">
+      <div style="color:${TEAL};font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;font-family:system-ui;">CanVisa Pro</div>
+      <div style="width:1px;height:14px;background:${BORDER};"></div>
+      <div style="color:${MUTED};font-size:11px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;">Precision Assessment · Confidential</div>
+    </div>
 
-# ${p.name || 'Applicant'}
+    <div style="color:${MUTED};font-size:12px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:12px;">Assessment Report</div>
+    <div style="color:${TEXT};font-size:48px;font-weight:700;line-height:1.1;margin-bottom:8px;">${p.name || 'Applicant'}</div>
+    <div style="color:${TEAL};font-size:16px;margin-bottom:32px;">${p.strategyTitle || 'Canada PR Eligibility Assessment'}</div>
+  </div>
 
-<div style="color:#94A3B8;font-size:1em;margin:12px 0;">
-${p.strategyTitle || 'Canada PR Eligibility Assessment'}
-</div>
+  <div>
+    <div style="display:flex;gap:12px;margin-bottom:28px;">
+      <div style="background:${CARD};border-top:3px solid ${TEAL};padding:18px 22px;flex:1;">
+        <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:8px;">CRS Score</div>
+        <div style="color:${TEAL};font-size:40px;font-weight:700;line-height:1;">${total}</div>
+        <div style="color:${DIM};font-size:11px;margin-top:4px;">out of 1200</div>
+      </div>
+      <div style="background:${CARD};border-top:3px solid ${poolEligible ? GREEN : RED};padding:18px 22px;flex:1;">
+        <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:8px;">Pool Status</div>
+        <div style="color:${poolEligible ? GREEN : RED};font-size:20px;font-weight:700;line-height:1;margin-top:8px;">${poolEligible ? 'ELIGIBLE' : 'NOT ELIGIBLE'}</div>
+        <div style="color:${DIM};font-size:11px;margin-top:4px;">Express Entry pool</div>
+      </div>
+      <div style="background:${CARD};border-top:3px solid ${AMBER};padding:18px 22px;flex:1;">
+        <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:8px;">Report Date</div>
+        <div style="color:${AMBER};font-size:18px;font-weight:700;line-height:1;margin-top:8px;">${p.reportDate}</div>
+        <div style="color:${DIM};font-size:11px;margin-top:4px;">NOC ${p.nocCode || '—'} · TEER ${p.nocTeer}</div>
+      </div>
+      <div style="background:${CARD};border-top:3px solid ${fwYrs >= 1 ? GREEN : RED};padding:18px 22px;flex:1;">
+        <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:8px;">Foreign WE</div>
+        <div style="color:${fwYrs >= 1 ? GREEN : RED};font-size:40px;font-weight:700;line-height:1;">${fwYrs}y</div>
+        <div style="color:${DIM};font-size:11px;margin-top:4px;">${fwYrs >= 1 ? 'FSW eligible' : 'Below 1-yr min'}</div>
+      </div>
+    </div>
 
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:32px 0;">
-<div style="background:#1E293B;border-top:3px solid #2DD4BF;padding:16px;text-align:center;">
-  <div style="color:#94A3B8;font-size:0.6em;letter-spacing:0.15em;text-transform:uppercase;">CRS Score</div>
-  <div style="color:#2DD4BF;font-size:2.2em;font-weight:700;">${total}</div>
-</div>
-<div style="background:#1E293B;border-top:3px solid ${poolEligible ? '#86EFAC' : '#FCA5A5'};padding:16px;text-align:center;">
-  <div style="color:#94A3B8;font-size:0.6em;letter-spacing:0.15em;text-transform:uppercase;">Pool Status</div>
-  <div style="color:${poolEligible ? '#86EFAC' : '#FCA5A5'};font-size:1.1em;font-weight:700;">${poolEligible ? 'ELIGIBLE' : 'NOT ELIGIBLE'}</div>
-</div>
-<div style="background:#1E293B;border-top:3px solid #FDE047;padding:16px;text-align:center;">
-  <div style="color:#94A3B8;font-size:0.6em;letter-spacing:0.15em;text-transform:uppercase;">Report Date</div>
-  <div style="color:#FDE047;font-size:0.95em;font-weight:700;">${p.reportDate}</div>
-</div>
-</div>
-
-<div style="color:#64748B;font-size:0.62em;margin-top:16px;">
-${rId} · All data sourced from canada.ca · For guidance purposes only
-</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:16px;border-top:1px solid ${BORDER};">
+      <div style="color:${DIM};font-size:11px;">${rId} · All data sourced from canada.ca · For guidance purposes only</div>
+      <div style="color:${DIM};font-size:11px;">Visa Forte · visaforte.com</div>
+    </div>
+  </div>
 
 </div>
 
 ---
 
-<!-- header: "Profile · **Eligibility** · Gaps · Strategy · Risk" -->
+<div style="background:${BG};height:100%;padding:40px 52px;box-sizing:border-box;">
 
-## Executive Summary
+  ${sectionBar('Executive Summary')}
 
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px;">
-${metricCard('CRS Score', total, 'out of 1200')}
-${metricCard('FSW Grid', `${fswGrid.total}/67`, fswGrid.eligible ? 'Threshold Met' : 'Below Threshold', fswGrid.eligible ? '#86EFAC' : '#FCA5A5')}
-${metricCard('Foreign WE', `${fwYrs}y`, fwYrs >= 1 ? 'FSW Eligible' : 'Below 1-yr Min', fwYrs >= 1 ? '#86EFAC' : '#FCA5A5')}
-${metricCard('Pool', poolEligible ? 'YES' : 'NO', poolEligible ? 'Pool Eligible' : 'Not Eligible', poolEligible ? '#86EFAC' : '#FCA5A5')}
-</div>
+  <div style="display:flex;gap:12px;margin-bottom:20px;">
+    ${mc('CRS Score', total, 'out of 1200', TEAL)}
+    ${mc('FSW Grid', `${fswGrid.total}/67`, fswGrid.eligible ? 'Threshold Met' : 'Below Threshold', fswGrid.eligible ? GREEN : RED)}
+    ${mc('Canadian WE', `${p.canadianWorkExperienceYears}y`, p.canadianWorkExperienceYears >= 1 ? 'CEC Eligible' : 'Below Min', p.canadianWorkExperienceYears >= 1 ? GREEN : MUTED)}
+    ${mc('Settlement', `$${Math.round(p.settlementFunds / 1000)}K`, r.proofOfFundsSufficient ? 'Funds Sufficient' : 'Below Threshold', r.proofOfFundsSufficient ? GREEN : RED)}
+  </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
-<div>
-
-**CRS Breakdown at a Glance**
-- Core / Human Capital: **${breakdown.coreTotal}**
-- Transferability: **${breakdown.transferTotal}**
-- Additional (PNP/etc): **${breakdown.additionalTotal}**
-${breakdown.spousePoints > 0 ? `- Spouse factors: **${breakdown.spousePoints}**` : ''}
-
-</div>
-<div>
-
-**Pathway Status**
-${streamsRows.map(([name, status]) => `- ${name}: ${pill(status, status as 'eligible' | 'not-eligible')}`).join('\n')}
-
-</div>
-</div>
-
----
-
-<!-- header: "**Profile** · Eligibility · Gaps · Strategy · Risk" -->
-
-## Applicant Data Profile
-
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
-<div>
-
-### Personal & Work
-
-| Field | Value |
-|-------|-------|
-| Age | ${p.age} years |
-| NOC Code | ${p.nocCode || '—'} (TEER ${p.nocTeer}) |
-| Occupation | ${p.occupationTitle || '—'} |
-| Citizenship | ${p.countryOfCitizenship || '—'} |
-| Foreign WE | ${fwYrs} years |
-| Canadian WE | ${p.canadianWorkExperienceYears} years |
-| Funds | CAD $${p.settlementFunds.toLocaleString()} |
-
-</div>
-<div>
-
-### Education & Language
-
-| Field | Value |
-|-------|-------|
-| Education | ${EDU_LABELS[p.education]} |
-| ECA | ${p.hasEca ? 'Confirmed' : 'Not Confirmed'} |
-| 1st Language | ${p.firstLanguageScores.testType} |
-| CLB Bands | L:${r.firstLanguageBands.listening} R:${r.firstLanguageBands.reading} W:${r.firstLanguageBands.writing} S:${r.firstLanguageBands.speaking} |
-| Spouse | ${p.hasSpouse ? 'Yes' : 'No'} |
-| Family Size | ${p.familySize} |
-| PNP | ${p.hasProvincialNomination ? 'Yes (+600)' : 'No'} |
-
-</div>
-</div>
-
----
-
-<!-- header: "Profile · **CRS Score** · Gaps · Strategy · Risk" -->
-
-## CRS Score Breakdown
-
-<div style="display:grid;grid-template-columns:220px 1fr;gap:40px;align-items:start;">
-
-<div style="text-align:center;">
-<svg viewBox="0 0 200 120" width="200" height="120">
-  <circle cx="100" cy="100" r="80" fill="none" stroke="#1E293B" stroke-width="18" stroke-dasharray="${circumference}" stroke-dashoffset="${circumference * 0.5}" stroke-linecap="round" transform="rotate(-180 100 100)"/>
-  <circle cx="100" cy="100" r="80" fill="none" stroke="#2DD4BF" stroke-width="18" stroke-dasharray="${circumference}" stroke-dashoffset="${(circumference * 0.5 + crsOffset * 0.5).toFixed(1)}" stroke-linecap="round" transform="rotate(-180 100 100)"/>
-  <text x="100" y="88" text-anchor="middle" fill="#F1F5F9" font-size="28" font-weight="700">${total}</text>
-  <text x="100" y="106" text-anchor="middle" fill="#94A3B8" font-size="10">CRS / 1200</text>
-</svg>
-
-<div style="color:#FDE047;font-size:0.72em;margin-top:8px;">General cutoff ~500 pts</div>
-<div style="color:#64748B;font-size:0.6em;">Verify at canada.ca</div>
-</div>
-
-<div>
-
-| Factor | Points |
-|--------|--------|
-| Age | ${breakdown.agePoints} |
-| Education | ${breakdown.educationPoints} |
-| First Language | ${breakdown.firstLanguagePoints} |
-${breakdown.secondLanguagePoints > 0 ? `| Second Language | ${breakdown.secondLanguagePoints} |` : ''}
-| Canadian Work Exp | ${breakdown.canadianExpPoints} |
-${breakdown.spousePoints > 0 ? `| Spouse Factors | ${breakdown.spousePoints} |` : ''}
-| Transferability | ${breakdown.transferTotal} |
-${breakdown.additionalTotal > 0 ? `| Additional (PNP/etc) | ${breakdown.additionalTotal} |` : ''}
-| **Total CRS** | **${total}** |
-
-<div style="background:#1E293B;padding:12px 16px;margin-top:12px;border-left:3px solid #2DD4BF;font-size:0.8em;color:#94A3B8;">
-⚠ Job offer points removed from CRS post-March 2025 (IRCC policy change)
-</div>
-
-</div>
-</div>
-
----
-
-<!-- header: "Profile · **Eligibility** · Gaps · Strategy · Risk" -->
-
-## Stream Eligibility Matrix
-
-<table>
-<thead><tr><th>PR Pathway</th><th>Status</th><th>Requirement Analysis</th></tr></thead>
-<tbody>
-${streamsRows.map(([name, status, note]) => `<tr><td><strong>${name}</strong></td><td>${pill(status, status as 'eligible' | 'not-eligible')}</td><td style="color:#94A3B8;font-size:0.85em;">${note}</td></tr>`).join('\n')}
-</tbody>
-</table>
-
----
-
-<!-- header: "Profile · **Eligibility** · Gaps · Strategy · Risk" -->
-
-## FSW 67-Point Grid
-
-<div style="display:grid;grid-template-columns:1fr auto;gap:24px;align-items:start;">
-<div>
-
-| Selection Factor | Score | Max |
-|-----------------|-------|-----|
-| Language Ability | ${fswGrid.language} | 28 |
-| Education | ${fswGrid.education} | 25 |
-| Work Experience | ${fswGrid.workExperience} | 15 |
-| Age | ${fswGrid.age} | 12 |
-| Adaptability | ${fswGrid.adaptability} | 10 |
-| **Total** | **${fswGrid.total}** | **90** |
-
-</div>
-<div style="text-align:center;padding:24px;">
-<div style="font-size:4em;font-weight:700;color:${fswGrid.eligible ? '#86EFAC' : '#FCA5A5'};">${fswGrid.total}</div>
-<div style="color:#94A3B8;font-size:0.75em;margin-top:4px;">out of 90</div>
-<div style="margin-top:12px;">${pill(fswGrid.eligible ? 'eligible' : 'not-eligible', fswGrid.eligible ? 'eligible' : 'not-eligible')}</div>
-<div style="color:#64748B;font-size:0.65em;margin-top:8px;">Threshold: 67 points</div>
-</div>
-</div>
-
-<div style="background:#1E293B;padding:10px 14px;margin-top:8px;border-left:3px solid #FDE047;font-size:0.75em;color:#94A3B8;">
-Arranged Employment factor removed post-March 2025 (IRCC policy change) — verify at canada.ca
-</div>
-
----
-
-<!-- header: "Profile · Eligibility · **Gaps** · Strategy · Risk" -->
-
-## Profile Deficit Map
-
-Critical and high-priority gaps that must be resolved for pathway eligibility.
-
-${gapCards.join('\n')}
-
----
-
-<!-- header: "Profile · Eligibility · **Gaps** · Strategy · Risk" -->
-
-## Scenario Projections
-
-What CRS score improvements are achievable — and how.
-
-| Scenario | CRS Delta | Projected Total | Timeline |
-|----------|-----------|-----------------|----------|
-${scenarioRows}
-
-<div style="background:#1E293B;padding:12px 16px;margin-top:16px;border-left:3px solid #2DD4BF;font-size:0.78em;color:#94A3B8;">
-All projections are estimates based on current IRCC scoring rules. Verify draw cutoffs at canada.ca before acting.
-</div>
-
----
-
-<!-- header: "Profile · Eligibility · Gaps · **Strategy** · Risk" -->
-
-## Strategic Recommendation
-
-<div style="background:#1E293B;border:1px solid #334155;padding:28px 32px;margin-bottom:20px;">
-<div style="color:#94A3B8;font-size:0.62em;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:12px;">AI Narrative — Pending API Key</div>
-<div style="color:#475569;font-size:0.88em;line-height:1.7;">
-Add <code>ANTHROPIC_API_KEY</code> to your environment to unlock personalized strategic recommendations, market intelligence, and execution planning for this applicant's profile.
-</div>
-</div>
-
-**Immediate Actions**
-1. Verify all supporting documents against IRCC checklist
-2. Address critical gaps identified in the Deficit Map
-3. Monitor Express Entry draw history at canada.ca
-4. Target next category-based or general draw within projected score window
-
----
-
-<!-- header: "Profile · Eligibility · Gaps · Strategy · **Risk**" -->
-
-## Risk Assessment
-
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px;">
-
-<div style="background:#1E293B;border-top:3px solid #86EFAC;padding:20px;">
-<div style="color:#86EFAC;font-size:0.65em;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;">Financial</div>
-<div style="font-size:0.9em;font-weight:600;">Settlement Funds</div>
-<div style="color:#94A3B8;font-size:0.78em;margin-top:8px;">
-CAD $${p.settlementFunds.toLocaleString()} declared<br/>
-Required: CAD $${r.proofOfFundsRequired.toLocaleString()}<br/>
-Status: ${r.proofOfFundsSufficient ? pill('Sufficient', 'eligible') : pill('Insufficient', 'not-eligible')}
-</div>
-</div>
-
-<div style="background:#1E293B;border-top:3px solid ${p.hasCriminalRecord ? '#FCA5A5' : '#86EFAC'};padding:20px;">
-<div style="color:${p.hasCriminalRecord ? '#FCA5A5' : '#86EFAC'};font-size:0.65em;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;">Admissibility</div>
-<div style="font-size:0.9em;font-weight:600;">Criminal Record</div>
-<div style="color:#94A3B8;font-size:0.78em;margin-top:8px;">
-${p.hasCriminalRecord ? 'Criminal history declared. Legal review required before application.' : 'No criminal history declared. Standard admissibility applies.'}
-</div>
-</div>
-
-<div style="background:#1E293B;border-top:3px solid ${p.hasPriorRefusal ? '#FDE047' : '#86EFAC'};padding:20px;">
-<div style="color:${p.hasPriorRefusal ? '#FDE047' : '#86EFAC'};font-size:0.65em;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;">Prior History</div>
-<div style="font-size:0.9em;font-weight:600;">Prior Refusals</div>
-<div style="color:#94A3B8;font-size:0.78em;margin-top:8px;">
-${p.hasPriorRefusal ? `Prior refusal declared: ${p.refusalDetails || 'Details not provided.'}` : 'No prior refusals declared.'}
-</div>
-</div>
+  <div style="display:flex;gap:16px;">
+    <div style="flex:1;background:${CARD};padding:18px 20px;">
+      <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:14px;">CRS Breakdown</div>
+      ${row('Core / Human Capital', `${breakdown.coreTotal} pts`, true)}
+      ${row('Transferability (Sec. C)', `${breakdown.transferTotal} pts`)}
+      ${row('Additional (PNP / Other)', `${breakdown.additionalTotal} pts`)}
+      ${row('Grand Total', `${total} pts`, true)}
+    </div>
+    <div style="flex:1;background:${CARD};padding:18px 20px;">
+      <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:14px;">Pathway Status</div>
+      ${[
+        ['FSW', eligibility.fsw.eligible],
+        ['CEC', eligibility.cec.eligible],
+        ['FST', eligibility.fst.eligible],
+        ['Express Entry Pool', poolEligible],
+      ].map(([name, ok]) =>
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid ${BORDER};">
+          <span style="color:${TEXT};font-size:13px;">${name}</span>
+          ${badge(ok as boolean)}
+        </div>`
+      ).join('')}
+    </div>
+  </div>
 
 </div>
 
 ---
 
-<!-- _class: lead -->
-<!-- _paginate: false -->
+<div style="background:${BG};height:100%;padding:40px 52px;box-sizing:border-box;">
 
-<div style="background:#0D1B2A;padding:48px 56px;min-height:100%;text-align:left;">
+  ${sectionBar('Applicant Data Profile')}
 
-<h2 style="color:#2DD4BF;font-size:1.3em;margin-bottom:16px;">Legal Disclaimer & Data Sources</h2>
+  <div style="display:flex;gap:16px;">
+    <div style="flex:1;background:${CARD};padding:18px 20px;">
+      <div style="color:${TEAL};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:14px;">Principal Applicant</div>
+      ${row('Age', `${p.age} Years`)}
+      ${row('Education', EDU_LABELS[p.education])}
+      ${row('ECA Status', p.hasEca ? 'Confirmed' : 'Not Confirmed')}
+      ${row('Citizenship', p.countryOfCitizenship || '—')}
+      ${row('Country of Residence', p.countryOfResidence || '—')}
+      ${row('NOC Code', `${p.nocCode || '—'} (TEER ${p.nocTeer})`)}
+      ${row('Occupation', p.occupationTitle || '—')}
+    </div>
+    <div style="flex:1;background:${CARD};padding:18px 20px;">
+      <div style="color:${TEAL};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:14px;">Experience &amp; Language</div>
+      ${row('Foreign Work Exp', `${fwYrs} Years`)}
+      ${row('Canadian Work Exp', `${p.canadianWorkExperienceYears} Years`)}
+      ${row('Language Test', p.firstLanguageScores.testType)}
+      ${row('CLB — Listening', `${r.firstLanguageBands.listening}`, r.firstLanguageBands.listening >= 9)}
+      ${row('CLB — Reading', `${r.firstLanguageBands.reading}`, r.firstLanguageBands.reading >= 9)}
+      ${row('CLB — Writing', `${r.firstLanguageBands.writing}`, r.firstLanguageBands.writing >= 9)}
+      ${row('CLB — Speaking', `${r.firstLanguageBands.speaking}`, r.firstLanguageBands.speaking >= 9)}
+    </div>
+    <div style="flex:1;background:${CARD};padding:18px 20px;">
+      <div style="color:${TEAL};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:14px;">Additional Factors</div>
+      ${row('Spouse / CLP', p.hasSpouse ? 'Yes' : 'No')}
+      ${row('Family Size', `${p.familySize}`)}
+      ${row('Settlement Funds', `CAD $${p.settlementFunds.toLocaleString()}`)}
+      ${row('Funds Required', `CAD $${r.proofOfFundsRequired.toLocaleString()}`)}
+      ${row('Funds Status', r.proofOfFundsSufficient ? '✓ Sufficient' : '✗ Insufficient', r.proofOfFundsSufficient)}
+      ${row('Provincial Nomination', p.hasProvincialNomination ? 'Yes (+600 pts)' : 'No')}
+      ${row('Canadian Education', p.hasCanadianEducation ? 'Yes' : 'No')}
+    </div>
+  </div>
 
-<p style="color:#94A3B8;font-size:0.72em;line-height:1.8;max-width:800px;">
-The information provided in this report is for informational and guidance purposes only, based on publicly available Immigration, Refugees and Citizenship Canada (IRCC) regulations and policies. This does not constitute legal advice, and no solicitor-client or consultant-client relationship is created. Immigration regulations, program requirements, processing times, and CRS cutoff scores are subject to frequent change without notice. You are responsible for verifying all information with official IRCC sources (www.canada.ca/immigration).
-</p>
-
-<p style="color:#94A3B8;font-size:0.72em;line-height:1.8;max-width:800px;margin-top:12px;">
-Visa Forte provides documentation consulting services only. Prashant Thirthingoth is not a Registered Canadian Immigration Consultant (RCIC) and does not provide legal immigration representation.
-</p>
-
-<div style="margin-top:24px;padding-top:16px;border-top:1px solid #334155;color:#475569;font-size:0.62em;">
-${rId} · Generated ${p.reportDate} · All CRS calculations sourced from canada.ca<br/>
-To convert this file to PPTX: <code>npx @marp-team/marp-cli report.md --pptx --allow-local-files -o report.pptx</code>
 </div>
+
+---
+
+<div style="background:${BG};height:100%;padding:40px 52px;box-sizing:border-box;">
+
+  ${sectionBar('CRS Score Breakdown')}
+
+  <div style="display:flex;gap:24px;align-items:flex-start;">
+
+    <div style="flex:0 0 200px;text-align:center;">
+      <svg viewBox="0 0 200 110" width="200" height="110">
+        <path d="M15,100 A85,85 0 0 1 185,100" fill="none" stroke="${CARD}" stroke-width="16" stroke-linecap="round"/>
+        ${gaugeArc}
+        <text x="100" y="80" text-anchor="middle" fill="${TEXT}" font-size="30" font-weight="700" font-family="system-ui">${total}</text>
+        <text x="100" y="96" text-anchor="middle" fill="${MUTED}" font-size="10" font-family="system-ui">CRS / 1200</text>
+      </svg>
+      <div style="color:${AMBER};font-size:11px;margin-top:4px;">General cutoff ≈ 500</div>
+      <div style="color:${DIM};font-size:10px;margin-top:2px;">Verify at canada.ca</div>
+      <div style="background:${CARD};border-top:3px solid ${total >= 500 ? GREEN : AMBER};padding:12px;margin-top:16px;text-align:center;">
+        <div style="color:${MUTED};font-size:10px;letter-spacing:1.5px;text-transform:uppercase;">vs Cutoff</div>
+        <div style="color:${total >= 500 ? GREEN : AMBER};font-size:22px;font-weight:700;">${total >= 500 ? '+' : ''}${total - 500}</div>
+      </div>
+    </div>
+
+    <div style="flex:1;background:${CARD};padding:18px 20px;">
+      <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:14px;">Section A — Core / Human Capital</div>
+      ${row('Age', `${breakdown.agePoints} pts`)}
+      ${row('Education', `${breakdown.educationPoints} pts`)}
+      ${row('First Language', `${breakdown.firstLanguagePoints} pts`, true)}
+      ${breakdown.secondLanguagePoints > 0 ? row('Second Language', `${breakdown.secondLanguagePoints} pts`) : ''}
+      ${row('Canadian Work Experience', `${breakdown.canadianExpPoints} pts`)}
+      ${breakdown.spousePoints > 0 ? row('Spouse Factors', `${breakdown.spousePoints} pts`) : ''}
+      <div style="height:1px;background:${BORDER};margin:10px 0;"></div>
+      <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin:12px 0 10px;">Section C &amp; D</div>
+      ${row('Transferability Factors', `${breakdown.transferTotal} pts`)}
+      ${breakdown.additionalTotal > 0 ? row('Additional (PNP/Other)', `${breakdown.additionalTotal} pts`) : ''}
+      <div style="height:1px;background:${TEAL};margin:10px 0;opacity:0.4;"></div>
+      ${row('TOTAL CRS', `${total} pts`, true)}
+    </div>
+
+    <div style="flex:0 0 200px;">
+      <div style="background:${CARD};padding:14px 16px;margin-bottom:10px;border-left:3px solid ${TEAL};">
+        <div style="color:${MUTED};font-size:10px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">Transferability Detail</div>
+        ${row('Edu + Language', `${breakdown.eduLanguageTransfer} pts`)}
+        ${row('FWE + Language', `${breakdown.foreignExpLanguageTransfer} pts`)}
+      </div>
+      <div style="background:${CARD};padding:14px 16px;border-left:3px solid ${AMBER};">
+        <div style="color:${AMBER};font-size:10px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">⚠ Policy Note</div>
+        <div style="color:${MUTED};font-size:11px;line-height:1.5;">Job offer points removed from CRS post-March 2025 per IRCC policy change.</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+---
+
+<div style="background:${BG};height:100%;padding:40px 52px;box-sizing:border-box;">
+
+  ${sectionBar('Stream Eligibility Matrix')}
+
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    ${[
+      {
+        name: 'Federal Skilled Worker (FSW)',
+        eligible: eligibility.fsw.eligible,
+        reason: eligibility.fsw.reason,
+        detail: `67-pt grid: ${fswGrid.total}/67 — ${fswGrid.eligible ? 'Threshold met' : 'Below threshold'}`,
+      },
+      {
+        name: 'Canadian Experience Class (CEC)',
+        eligible: eligibility.cec.eligible,
+        reason: eligibility.cec.reason,
+        detail: p.canadianWorkExperienceYears >= 1 ? `${p.canadianWorkExperienceYears} yr CWE — meets 1-yr minimum` : 'Insufficient Canadian work experience',
+      },
+      {
+        name: 'Federal Skilled Trades (FST)',
+        eligible: eligibility.fst.eligible,
+        reason: eligibility.fst.reason,
+        detail: 'Trades NOC required + CLB 5 (writing/reading) or CLB 7 (speaking/listening)',
+      },
+      {
+        name: 'Express Entry Pool',
+        eligible: poolEligible,
+        reason: eligibility.expressEntryPool.reason,
+        detail: poolEligible ? 'Qualifies for at least one stream — pool eligible' : 'No qualifying stream — cannot enter pool',
+      },
+    ].map(s => `
+      <div style="background:${CARD};padding:14px 20px;display:flex;align-items:center;gap:20px;border-left:3px solid ${s.eligible ? GREEN : RED};">
+        <div style="flex:0 0 240px;color:${TEXT};font-size:14px;font-weight:600;">${s.name}</div>
+        <div style="flex:0 0 120px;">${badge(s.eligible)}</div>
+        <div style="flex:1;color:${MUTED};font-size:12px;line-height:1.4;">${s.detail}</div>
+      </div>`).join('')}
+  </div>
+
+  <div style="background:${CARD};border-left:3px solid ${AMBER};padding:12px 18px;margin-top:16px;">
+    <div style="color:${MUTED};font-size:12px;line-height:1.5;">
+      <span style="color:${AMBER};font-weight:700;">Note:</span> Stream eligibility is a hard gate — a single disqualifying factor blocks the entire stream. Verify all requirements at <span style="color:${TEAL};">canada.ca/immigration</span> before proceeding.
+    </div>
+  </div>
+
+</div>
+
+---
+
+<div style="background:${BG};height:100%;padding:40px 52px;box-sizing:border-box;">
+
+  ${sectionBar('FSW 67-Point Grid')}
+
+  <div style="display:flex;gap:24px;align-items:flex-start;">
+
+    <div style="flex:1;background:${CARD};padding:18px 20px;">
+      <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:14px;">Selection Factors</div>
+      ${[
+        ['Language Ability', fswGrid.language, 28],
+        ['Education', fswGrid.education, 25],
+        ['Work Experience', fswGrid.workExperience, 15],
+        ['Age', fswGrid.age, 12],
+        ['Adaptability', fswGrid.adaptability, 10],
+      ].map(([label, score, max]) => `
+        <div style="padding:8px 0;border-bottom:1px solid ${BORDER};">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+            <span style="color:${TEXT};font-size:13px;">${label}</span>
+            <span style="color:${TEAL};font-size:13px;font-weight:700;">${score} / ${max}</span>
+          </div>
+          <div style="background:${BORDER};height:4px;border-radius:2px;">
+            <div style="background:${TEAL};height:4px;border-radius:2px;width:${Math.round((score as number) / (max as number) * 100)}%;"></div>
+          </div>
+        </div>`).join('')}
+      <div style="display:flex;justify-content:space-between;padding:10px 0;">
+        <span style="color:${TEXT};font-size:14px;font-weight:700;">Total</span>
+        <span style="color:${fswGrid.eligible ? GREEN : RED};font-size:14px;font-weight:700;">${fswGrid.total} / 90</span>
+      </div>
+    </div>
+
+    <div style="flex:0 0 200px;display:flex;flex-direction:column;gap:12px;">
+      <div style="background:${CARD};padding:24px;text-align:center;border-top:3px solid ${fswGrid.eligible ? GREEN : RED};">
+        <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:12px;">FSW Score</div>
+        <div style="color:${fswGrid.eligible ? GREEN : RED};font-size:56px;font-weight:700;line-height:1;">${fswGrid.total}</div>
+        <div style="color:${MUTED};font-size:12px;margin:8px 0;">out of 90</div>
+        ${badge(fswGrid.eligible)}
+        <div style="color:${DIM};font-size:10px;margin-top:8px;">Threshold: 67 points</div>
+      </div>
+      <div style="background:${CARD};padding:14px 16px;border-left:3px solid ${AMBER};">
+        <div style="color:${AMBER};font-size:10px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">⚠ Policy</div>
+        <div style="color:${MUTED};font-size:11px;line-height:1.5;">Arranged Employment removed post-March 2025 (IRCC). Max grid = 90.</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+---
+
+<div style="background:${BG};height:100%;padding:40px 52px;box-sizing:border-box;">
+
+  ${sectionBar('Profile Deficit Map — Critical Gaps')}
+
+  <div style="display:flex;flex-direction:column;gap:0;">
+    ${gapItems.join('')}
+  </div>
+
+  <div style="background:${CARD};border-left:3px solid ${DIM};padding:12px 18px;margin-top:8px;">
+    <div style="color:${MUTED};font-size:12px;">Gaps are ranked by impact on pool eligibility. Address Critical items before submitting an Expression of Interest.</div>
+  </div>
+
+</div>
+
+---
+
+<div style="background:${BG};height:100%;padding:40px 52px;box-sizing:border-box;">
+
+  ${sectionBar('Scenario Projections — CRS Improvement Model')}
+
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    ${scenarios.map(s => {
+      const sign = s.delta >= 0 ? '+' : ''
+      const color = s.delta > 0 ? GREEN : s.delta === 0 ? MUTED : RED
+      return `<div style="background:${CARD};padding:14px 20px;display:flex;align-items:center;gap:16px;">
+        <div style="flex:0 0 28px;color:${color};font-size:16px;font-weight:700;text-align:center;">${sign}${s.delta}</div>
+        <div style="width:1px;height:36px;background:${BORDER};"></div>
+        <div style="flex:1;">
+          <div style="color:${TEXT};font-size:13px;font-weight:600;margin-bottom:3px;">${s.name}</div>
+          <div style="color:${MUTED};font-size:11px;">${s.change}</div>
+        </div>
+        <div style="flex:0 0 100px;text-align:right;">
+          <div style="color:${MUTED};font-size:10px;text-transform:uppercase;letter-spacing:1px;">Projected</div>
+          <div style="color:${s.competitive ? GREEN : AMBER};font-size:20px;font-weight:700;">${s.projectedCrs}</div>
+        </div>
+        <div style="flex:0 0 90px;text-align:center;">
+          ${badge(s.competitive, 'COMPETITIVE', 'BORDERLINE')}
+        </div>
+      </div>`
+    }).join('')}
+  </div>
+
+  <div style="background:${CARD};border-left:3px solid ${TEAL};padding:12px 18px;margin-top:12px;">
+    <div style="color:${MUTED};font-size:12px;">All projections assume current IRCC scoring rules. Verify live draw cutoffs at canada.ca before acting on any scenario.</div>
+  </div>
+
+</div>
+
+---
+
+<div style="background:${BG};height:100%;padding:40px 52px;box-sizing:border-box;">
+
+  ${sectionBar('Risk Assessment')}
+
+  <div style="display:flex;gap:14px;margin-bottom:16px;">
+    <div style="flex:1;background:${CARD};border-top:3px solid ${r.proofOfFundsSufficient ? GREEN : RED};padding:18px 20px;">
+      <div style="color:${r.proofOfFundsSufficient ? GREEN : RED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:10px;">Financial Risk</div>
+      <div style="color:${TEXT};font-size:14px;font-weight:600;margin-bottom:12px;">Settlement Funds</div>
+      ${row('Declared', `CAD $${p.settlementFunds.toLocaleString()}`)}
+      ${row('Required', `CAD $${r.proofOfFundsRequired.toLocaleString()}`)}
+      ${row('Status', r.proofOfFundsSufficient ? '✓ Sufficient' : '✗ Below Threshold', r.proofOfFundsSufficient)}
+    </div>
+    <div style="flex:1;background:${CARD};border-top:3px solid ${p.hasCriminalRecord ? RED : GREEN};padding:18px 20px;">
+      <div style="color:${p.hasCriminalRecord ? RED : GREEN};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:10px;">Admissibility</div>
+      <div style="color:${TEXT};font-size:14px;font-weight:600;margin-bottom:12px;">Criminal Record</div>
+      <div style="color:${MUTED};font-size:12px;line-height:1.6;margin-top:8px;">
+        ${p.hasCriminalRecord
+          ? 'Criminal history declared. Legal review strongly recommended before any application.'
+          : 'No criminal history declared. Standard IRCC admissibility requirements apply.'}
+      </div>
+    </div>
+    <div style="flex:1;background:${CARD};border-top:3px solid ${p.hasMedicalCondition ? AMBER : GREEN};padding:18px 20px;">
+      <div style="color:${p.hasMedicalCondition ? AMBER : GREEN};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:10px;">Medical</div>
+      <div style="color:${TEXT};font-size:14px;font-weight:600;margin-bottom:12px;">Medical Condition</div>
+      <div style="color:${MUTED};font-size:12px;line-height:1.6;margin-top:8px;">
+        ${p.hasMedicalCondition
+          ? 'Medical condition declared. IRCC medical examination required. May affect excessive demand assessment.'
+          : 'No medical conditions declared. Standard IME (Immigration Medical Exam) required at time of application.'}
+      </div>
+    </div>
+    <div style="flex:1;background:${CARD};border-top:3px solid ${p.hasPriorRefusal ? AMBER : GREEN};padding:18px 20px;">
+      <div style="color:${p.hasPriorRefusal ? AMBER : GREEN};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:10px;">Prior History</div>
+      <div style="color:${TEXT};font-size:14px;font-weight:600;margin-bottom:12px;">Prior Refusals</div>
+      <div style="color:${MUTED};font-size:12px;line-height:1.6;margin-top:8px;">
+        ${p.hasPriorRefusal
+          ? `Prior refusal declared: ${p.refusalDetails || 'Details not provided. Must disclose full history on application.'}`
+          : 'No prior refusals declared. Standard IRCC application history review applies.'}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+---
+
+<div style="background:${NAVY};height:100%;padding:52px 60px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;">
+
+  <div>
+    <div style="color:${TEAL};font-size:12px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:20px;">Legal Disclaimer &amp; Data Sources</div>
+
+    <div style="color:${MUTED};font-size:13px;line-height:1.9;max-width:820px;margin-bottom:20px;">
+      The information provided in this report is for informational and guidance purposes only, based on publicly available Immigration, Refugees and Citizenship Canada (IRCC) regulations and policies. This does not constitute legal advice, and no solicitor-client or consultant-client relationship is created by accessing this content.
+    </div>
+    <div style="color:${MUTED};font-size:13px;line-height:1.9;max-width:820px;margin-bottom:20px;">
+      Immigration regulations, program requirements, processing times, and CRS cutoff scores are subject to frequent change without notice. You are responsible for verifying all information with official IRCC sources at <span style="color:${TEAL};">www.canada.ca/immigration</span> and confirming current eligibility requirements before taking any action.
+    </div>
+    <div style="color:${MUTED};font-size:13px;line-height:1.9;max-width:820px;">
+      Visa Forte provides documentation consulting services only. Prashant Thirthingoth is not a Registered Canadian Immigration Consultant (RCIC) and does not provide legal immigration representation.
+    </div>
+  </div>
+
+  <div style="padding-top:20px;border-top:1px solid ${BORDER};display:flex;justify-content:space-between;align-items:center;">
+    <div style="color:${DIM};font-size:11px;">${rId} · Generated ${p.reportDate} · All CRS data sourced from canada.ca</div>
+    <div style="color:${DIM};font-size:11px;">Visa Forte · visaforte.com · prashant@visaforte.com</div>
+  </div>
 
 </div>
 `
