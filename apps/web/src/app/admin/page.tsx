@@ -1,11 +1,10 @@
 import { redirect } from "next/navigation";
-import { and, gte, lte } from "drizzle-orm";
+import { and, gte, lte, eq, desc } from "drizzle-orm";
 import { getCurrentAuthSession } from "@/lib/auth-server";
 import SignOutButton from "./SignOutButton";
 import PromoteButton from "./PromoteButton";
 import { db } from "@/lib/db";
-import { leads, bookings } from "../../../drizzle/schema";
-import { desc } from "drizzle-orm";
+import { leads, bookings, clients } from "../../../drizzle/schema";
 import "./admin.css";
 
 export default async function AdminPage() {
@@ -54,6 +53,12 @@ export default async function AdminPage() {
       )
     );
 
+  // Fetch clients in ITA Window for the alert banner on this page.
+  const itaClients = await db
+    .select()
+    .from(clients)
+    .where(eq(clients.stage, 'ITA Window'))
+
   // IST-aware greeting
   const hour = todayIST.getHours();
   const greeting =
@@ -77,6 +82,18 @@ export default async function AdminPage() {
 
       {/* ── Saffron accent rule ── */}
       <div className="admin-accent" />
+
+      {/* ── ITA Window alert banner — shown when any client requires immediate action ── */}
+      {itaClients.length > 0 && (
+        <div className="crm-ita-banner admin-ita-banner">
+          <span className="crm-ita-banner-icon">⚑</span>
+          <span className="crm-ita-banner-text">
+            {itaClients.length} client{itaClients.length > 1 ? 's' : ''} in ITA Window —
+            immediate action required.{' '}
+            <a href="/admin/clients" className="admin-ita-banner-link">Go to CRM →</a>
+          </span>
+        </div>
+      )}
 
       {/* ── Main content ── */}
       <main className="admin-main">

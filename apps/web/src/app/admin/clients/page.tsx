@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
-import { desc } from 'drizzle-orm'
+import { desc, eq, count } from 'drizzle-orm'
 import { getCurrentAuthSession } from '@/lib/auth-server'
 import { db } from '@/lib/db'
-import { clients } from '../../../../drizzle/schema'
+import { clients, clientDocuments } from '../../../../drizzle/schema'
 import { PRICING } from '@/lib/pricing'
 import CrmTable from './CrmTable'
 import '../admin.css'
@@ -16,6 +16,17 @@ export default async function CrmPage() {
 
   const allClients = await db.select().from(clients).orderBy(desc(clients.createdAt))
   const serviceTiers = Object.keys(PRICING)
+
+  // Count documents per client for the initial "Docs (N)" button label.
+  const docCountRows = await db
+    .select({ clientId: clientDocuments.clientId, count: count() })
+    .from(clientDocuments)
+    .groupBy(clientDocuments.clientId)
+
+  const initialDocCounts: Record<string, number> = {}
+  for (const row of docCountRows) {
+    initialDocCounts[row.clientId] = row.count
+  }
 
   return (
     <div className="admin-wrap">
@@ -45,7 +56,11 @@ export default async function CrmPage() {
           </p>
         </div>
 
-        <CrmTable initialClients={allClients} serviceTiers={serviceTiers} />
+        <CrmTable
+          initialClients={allClients}
+          serviceTiers={serviceTiers}
+          initialDocCounts={initialDocCounts}
+        />
 
         <div className="admin-footer">
           <p className="admin-footer-text">Visa Forte · Engineered for Passage.</p>

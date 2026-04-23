@@ -98,6 +98,30 @@
   opacity: 1;
 }
 
+/* ── Toolbar right button group ──────────────────────────── */
+.crm-toolbar-right {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+/* ── Export CSV button ───────────────────────────────────── */
+.crm-export-btn {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  color: var(--prussian);
+  background: white;
+  border: 1px solid var(--sand);
+  padding: 0.625rem 1.25rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+.crm-export-btn:hover { border-color: var(--prussian); opacity: 0.8; }
+
 /* ── Add Client button ───────────────────────────────────── */
 .crm-add-btn {
   font-family: var(--font-body);
@@ -412,9 +436,223 @@
 .crm-modal-submit-btn:hover { opacity: 0.85; }
 .crm-modal-submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* ── Docs column + button ────────────────────────────────── */
+.crm-docs-col {
+  white-space: nowrap;
+}
+
+.crm-docs-btn {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--teal, var(--prussian));
+  background: none;
+  border: 1px solid var(--sand);
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+.crm-docs-btn:hover { border-color: var(--prussian); opacity: 0.85; }
+
+/* ── Documents modal ─────────────────────────────────────── */
+.crm-docs-modal {
+  max-width: 40rem;
+}
+
+.crm-docs-modal-eyebrow {
+  font-family: var(--font-body);
+  font-size: 0.5625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.38;
+  margin: 0 0 0.25rem;
+}
+
+.crm-docs-body {
+  padding: 0 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── Upload area ─────────────────────────────────────────── */
+.crm-upload-area {
+  background: rgba(12, 35, 64, 0.03);
+  border: 1px dashed var(--sand);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.crm-upload-label {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.45;
+  margin: 0;
+}
+
+.crm-upload-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Hide the native file input; trigger via label */
+.crm-upload-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.crm-upload-trigger {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: var(--prussian);
+  background: white;
+  border: 1px solid var(--sand);
+  padding: 0.5rem 0.875rem;
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 22rem;
+  transition: border-color 0.15s ease;
+}
+.crm-upload-trigger:hover { border-color: var(--prussian); }
+
+.crm-upload-submit {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--pearl);
+  background: var(--prussian);
+  border: none;
+  padding: 0.5rem 1.25rem;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: opacity 0.15s ease;
+}
+.crm-upload-submit:hover { opacity: 0.85; }
+.crm-upload-submit:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.crm-upload-hint {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  color: var(--ink);
+  opacity: 0.3;
+  margin: 0;
+}
+
+/* ── Document list ───────────────────────────────────────── */
+.crm-doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 2rem;
+}
+
+.crm-doc-empty {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: var(--ink);
+  opacity: 0.32;
+  margin: 0;
+}
+
+.crm-doc-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--sand);
+  background: white;
+}
+
+.crm-doc-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.crm-doc-item-name {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--prussian);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crm-doc-item-date {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  color: var(--ink);
+  opacity: 0.38;
+}
+
+.crm-doc-item-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.crm-doc-download-btn {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--prussian);
+  background: none;
+  border: 1px solid var(--sand);
+  padding: 0.3rem 0.625rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.crm-doc-download-btn:hover { border-color: var(--prussian); }
+
+.crm-doc-delete-btn {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: #b53d00;
+  background: none;
+  border: none;
+  padding: 0.3rem 0.4rem;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.15s ease;
+  line-height: 1;
+}
+.crm-doc-delete-btn:hover { opacity: 1; }
+.crm-doc-delete-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {
   .crm-toolbar { flex-direction: column; }
-  .crm-add-btn { width: 100%; text-align: center; }
+  .crm-toolbar-right { width: 100%; }
+  .crm-add-btn { flex: 1; text-align: center; }
+  .crm-export-btn { flex: 1; text-align: center; }
   .crm-modal { margin: 0; max-width: 100%; border-radius: 0; }
+  .crm-upload-row { flex-direction: column; align-items: stretch; }
+  .crm-upload-trigger { max-width: 100%; }
 }

@@ -467,19 +467,94 @@ linking to the CRM. CRM tool card added to admin dashboard tools grid. 49 Vitest
 ---
 
 ### TASK P2-2: Full CRM Pipeline (Document Storage + ITA Flag + CSV Export)
-**Status:** Deferred until P2-1 is live and tested
+**Status:** In Progress — April 2026
 **What this delivers:** Each client record can hold uploaded documents (stored in Vercel Blob).
-Prash sees an ITA Window alert banner at the top of the admin when any client is in that stage.
-The full client list is exportable to CSV for offline backup.
+Prash sees an ITA Window alert banner on the main admin dashboard. The full client list is
+exportable to CSV. When a client's stage changes, Prash gets an internal email notification.
 
-**Plan (high-level — detail written before code):**
-- [ ] Add document upload to each client record → Vercel Blob at `clients/{clientId}/{filename}`
-- [ ] Add document list panel in client detail view (filename, upload date, download link)
-- [ ] ITA Window banner: if any client has stage "ITA Window", show a red/saffron alert banner
-      at the top of all admin pages — name, service tier, date entered ITA Window
-- [ ] CSV export: admin button → server action builds CSV from `clients` table → triggers download
-- [ ] Status-change notification: when Prash changes a client's stage, send a Resend email to Prash
-      with old stage → new stage, client name (internal audit trail, not sent to client)
+---
+
+**Feature 1 — Document upload per client**
+
+New `clientDocuments` table (migration 0006):
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid PK | auto-generated |
+| clientId | uuid FK → clients.id | CASCADE on delete |
+| filename | text NOT NULL | original filename shown in the UI |
+| blobUrl | text NOT NULL | private Vercel Blob URL (never exposed to browser) |
+| uploadedAt | timestamp | auto-set on insert |
+
+New API routes (all require admin session):
+- `POST /api/admin/clients/[id]/documents` — multipart upload → Vercel Blob → DB insert
+- `GET /api/admin/clients/[id]/documents` — list all documents for a client
+- `DELETE /api/admin/clients/[id]/documents/[docId]` — delete blob + DB row
+- `GET /api/admin/clients/[id]/documents/[docId]/download` — returns signed download URL (server only)
+
+CRM UI change:
+- Add "Docs" button per row in CrmTable showing count (e.g., "Docs (3)")
+- Clicking opens a modal: document list (filename, date, download link, delete button)
+  + a file-upload area (choose file → Upload button → progress → list refreshes)
+
+---
+
+**Feature 2 — ITA Window banner on /admin dashboard**
+
+- `apps/web/src/app/admin/page.tsx` queries `clients` for stage = 'ITA Window'
+- If any exist, render a saffron alert banner (same style as the CRM page banner)
+  showing: "{N} client(s) in ITA Window — go to CRM" with a link to `/admin/clients`
+
+---
+
+**Feature 3 — CSV export**
+
+- "Export CSV" button added to the CRM toolbar in CrmTable
+- Button opens `/api/admin/clients/export` in a new tab
+- `GET /api/admin/clients/export` (admin-only) queries all clients, builds a UTF-8 CSV string,
+  returns with `Content-Disposition: attachment; filename=clients.csv`
+- Columns: Name, Email, Phone, Service Tier, Stage, Notes, Date Added
+
+---
+
+**Feature 4 — Stage-change notification email**
+
+- In `PATCH /api/admin/clients/[id]`, if `stage` is in the update body:
+  1. Fetch current client first to get old stage
+  2. If new stage ≠ old stage, after DB update send Resend email to prashant@visaforte.com
+  3. Subject: `[Stage Change] {name}: {oldStage} → {newStage}`
+  4. Body: client name, email, service tier, old stage, new stage, timestamp (IST)
+  5. This is an internal audit log — never sent to the client
+
+---
+
+**Detailed step plan:**
+
+- [ ] Step 1 — DB: add `clientDocuments` table to schema.ts, run drizzle-kit generate + migrate
+- [ ] Step 2 — API: `POST /api/admin/clients/[id]/documents` (multipart upload)
+- [ ] Step 3 — API: `GET /api/admin/clients/[id]/documents` (list)
+- [ ] Step 4 — API: `DELETE /api/admin/clients/[id]/documents/[docId]` (delete)
+- [ ] Step 5 — API: `GET /api/admin/clients/[id]/documents/[docId]/download` (signed URL)
+- [ ] Step 6 — API: `GET /api/admin/clients/export` (CSV download)
+- [ ] Step 7 — PATCH route: add stage-change Resend email
+- [ ] Step 8 — /admin page: ITA Window banner (server-side query)
+- [ ] Step 9 — CrmTable: "Docs (N)" button + document modal (upload + list + delete + download)
+- [ ] Step 10 — CrmTable: "Export CSV" button in toolbar
+- [ ] Step 11 — crm.css: styles for document modal, file upload area, export button
+- [ ] Step 12 — Vitest: unit tests for CSV builder and document route input validation
+- [ ] Step 13 — TypeScript check: `npx tsc --noEmit` — zero errors
+- [ ] Step 14 — Commit and push → Vercel auto-deploy
+
+---
+
+**Prashant Proof:**
+1. Go to `/admin` — if any client is in ITA Window, confirm the saffron alert banner appears
+2. Go to `/admin/clients` — click "Docs (0)" on any client row
+3. In the modal, upload a PDF or image — confirm it appears in the list with filename and date
+4. Click the download link — confirm the file downloads correctly
+5. Click the delete icon on the uploaded file — confirm it disappears from the list
+6. Click "Export CSV" in the toolbar — confirm a CSV file downloads with all clients
+7. Change a client's stage from Lead to Active Client — check prashant@visaforte.com
+   for the stage-change email within a few seconds
 
 ---
 

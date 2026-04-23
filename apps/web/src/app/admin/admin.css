@@ -66,6 +66,41 @@
   opacity: 0.35;
 }
 
+/* ── ITA Window alert banner (admin dashboard) ───────────── */
+.crm-ita-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(201, 123, 30, 0.14);
+  border-left: 3px solid var(--saffron, #c97b1e);
+  padding: 0.875rem 2.5rem;
+}
+
+.crm-ita-banner-icon {
+  color: var(--saffron, #c97b1e);
+  font-size: 1rem;
+}
+
+.crm-ita-banner-text {
+  font-family: var(--font-body, 'DM Sans', sans-serif);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--prussian, #0c2340);
+}
+
+/* Modifier: banner sits between header and main on dashboard */
+.admin-ita-banner {
+  flex-shrink: 0;
+}
+
+.admin-ita-banner-link {
+  color: var(--prussian, #0c2340);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  margin-left: 0.25rem;
+}
+.admin-ita-banner-link:hover { opacity: 0.7; }
+
 /* ── Saffron accent rule ─────────────────────────────────── */
 .admin-accent {
   height: 2px;

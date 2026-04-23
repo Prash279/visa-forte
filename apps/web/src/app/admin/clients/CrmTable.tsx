@@ -4,12 +4,21 @@ import { useState, useRef } from 'react'
 import type { Client } from '../../../../drizzle/schema'
 import { CRM_STAGES, CRM_FILTER_STAGES } from '@/lib/crm-stages'
 
+interface ClientDoc {
+  id: string
+  clientId: string
+  filename: string
+  blobUrl: string
+  uploadedAt: string | Date
+}
+
 interface Props {
   initialClients: Client[]
   serviceTiers: string[]
+  initialDocCounts: Record<string, number>
 }
 
-export default function CrmTable({ initialClients, serviceTiers }: Props) {
+export default function CrmTable({ initialClients, serviceTiers, initialDocCounts }: Props) {
   const [clients, setClients] = useState<Client[]>(initialClients)
   const [search, setSearch] = useState('')
   const [stageFilter, setStageFilter] = useState<string>('all')
@@ -22,7 +31,18 @@ export default function CrmTable({ initialClients, serviceTiers }: Props) {
   const [addError, setAddError] = useState('')
   const [addLoading, setAddLoading] = useState(false)
 
+  // Document modal state
+  const [docCounts, setDocCounts] = useState<Record<string, number>>(initialDocCounts)
+  const [docsModal, setDocsModal] = useState<{ clientId: string; clientName: string } | null>(null)
+  const [docs, setDocs] = useState<ClientDoc[]>([])
+  const [docsLoading, setDocsLoading] = useState(false)
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
+  const [uploadLoading, setUploadLoading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const [deletingDocId, setDeletingDocId] = useState<string | null>(null)
+
   const notesRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const filtered = clients.filter((c) => {
     const matchSearch =
@@ -59,7 +79,7 @@ export default function CrmTable({ initialClients, serviceTiers }: Props) {
     })
   }
 
-  async function handleAddClient(e: React.FormEvent) {
+  async function handleAddClient(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setAddError('')
     if (!addForm.name.trim() || !addForm.email.trim() || !addForm.serviceTier) {
@@ -85,6 +105,7 @@ export default function CrmTable({ initialClients, serviceTiers }: Props) {
       }
       if (data.client) {
         setClients((prev) => [data.client as Client, ...prev])
+        setDocCounts((prev) => ({ ...prev, [(data.client as Client).id]: 0 }))
       }
       setAddForm({ name: '', email: '', phone: '', serviceTier: '' })
       setShowAddModal(false)
@@ -93,6 +114,92 @@ export default function CrmTable({ initialClients, serviceTiers }: Props) {
     } finally {
       setAddLoading(false)
     }
+  }
+
+  // ── Document modal handlers ───────────────────────────────
+
+  async function openDocsModal(clientId: string, clientName: string) {
+    setDocsModal({ clientId, clientName })
+    setDocs([])
+    setUploadFile(null)
+    setUploadError('')
+    setDocsLoading(true)
+    try {
+      const res = await fetch(`/api/admin/clients/${clientId}/documents`)
+      const data = (await res.json()) as { documents?: ClientDoc[] }
+      setDocs(data.documents ?? [])
+    } finally {
+      setDocsLoading(false)
+    }
+  }
+
+  function closeDocsModal() {
+    setDocsModal(null)
+    setDocs([])
+    setUploadFile(null)
+    setUploadError('')
+  }
+
+  async function handleUpload() {
+    if (!docsModal || !uploadFile) return
+    setUploadError('')
+    setUploadLoading(true)
+    const form = new FormData()
+    form.append('file', uploadFile)
+    try {
+      const res = await fetch(`/api/admin/clients/${docsModal.clientId}/documents`, {
+        method: 'POST',
+        body: form,
+      })
+      const data = (await res.json()) as { document?: ClientDoc; error?: string }
+      if (!res.ok) {
+        setUploadError(data.error ?? 'Upload failed. Try again.')
+        return
+      }
+      if (data.document) {
+        setDocs((prev) => [data.document as ClientDoc, ...prev])
+        setDocCounts((prev) => ({
+          ...prev,
+          [docsModal.clientId]: (prev[docsModal.clientId] ?? 0) + 1,
+        }))
+      }
+      setUploadFile(null)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    } catch {
+      setUploadError('Network error. Try again.')
+    } finally {
+      setUploadLoading(false)
+    }
+  }
+
+  async function handleDeleteDoc(docId: string) {
+    if (!docsModal) return
+    setDeletingDocId(docId)
+    try {
+      await fetch(`/api/admin/clients/${docsModal.clientId}/documents/${docId}`, {
+        method: 'DELETE',
+      })
+      setDocs((prev) => prev.filter((d) => d.id !== docId))
+      setDocCounts((prev) => ({
+        ...prev,
+        [docsModal.clientId]: Math.max(0, (prev[docsModal.clientId] ?? 1) - 1),
+      }))
+    } finally {
+      setDeletingDocId(null)
+    }
+  }
+
+  async function handleDownload(docId: string) {
+    if (!docsModal) return
+    const res = await fetch(
+      `/api/admin/clients/${docsModal.clientId}/documents/${docId}/download`
+    )
+    const data = (await res.json()) as { url?: string }
+    if (data.url) window.open(data.url, '_blank')
+  }
+
+  function handleExportCsv() {
+    window.open('/api/admin/clients/export', '_blank')
   }
 
   const itaCount = clients.filter((c) => c.stage === 'ITA Window').length
@@ -132,9 +239,14 @@ export default function CrmTable({ initialClients, serviceTiers }: Props) {
             ))}
           </div>
         </div>
-        <button className="crm-add-btn" onClick={() => setShowAddModal(true)}>
-          + Add Client
-        </button>
+        <div className="crm-toolbar-right">
+          <button className="crm-export-btn" onClick={handleExportCsv}>
+            ↓ Export CSV
+          </button>
+          <button className="crm-add-btn" onClick={() => setShowAddModal(true)}>
+            + Add Client
+          </button>
+        </div>
       </div>
 
       {/* Metric strip */}
@@ -158,7 +270,7 @@ export default function CrmTable({ initialClients, serviceTiers }: Props) {
           <table className="admin-table crm-table">
             <thead>
               <tr>
-                {['Name', 'Email', 'Service Tier', 'Stage', 'Added', 'Notes'].map((h) => (
+                {['Name', 'Email', 'Service Tier', 'Stage', 'Added', 'Notes', 'Docs'].map((h) => (
                   <th key={h}>{h}</th>
                 ))}
               </tr>
@@ -167,6 +279,7 @@ export default function CrmTable({ initialClients, serviceTiers }: Props) {
               {filtered.map((client) => {
                 const isIta = client.stage === 'ITA Window'
                 const isEditingNotes = editingNotes?.id === client.id
+                const count = docCounts[client.id] ?? 0
 
                 return (
                   <tr key={client.id} className={isIta ? 'crm-row-ita' : ''}>
@@ -272,6 +385,16 @@ export default function CrmTable({ initialClients, serviceTiers }: Props) {
                       )}
                     </td>
 
+                    {/* Documents */}
+                    <td className="crm-docs-col">
+                      <button
+                        className="crm-docs-btn"
+                        onClick={() => openDocsModal(client.id, client.name)}
+                      >
+                        Docs{count > 0 ? ` (${count})` : ''}
+                      </button>
+                    </td>
+
                   </tr>
                 )
               })}
@@ -280,7 +403,7 @@ export default function CrmTable({ initialClients, serviceTiers }: Props) {
         </div>
       )}
 
-      {/* Add Client Modal */}
+      {/* ── Add Client Modal ── */}
       {showAddModal && (
         <div
           className="crm-modal-overlay"
@@ -366,6 +489,102 @@ export default function CrmTable({ initialClients, serviceTiers }: Props) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Documents Modal ── */}
+      {docsModal && (
+        <div
+          className="crm-modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeDocsModal()
+          }}
+        >
+          <div className="crm-modal crm-docs-modal">
+            <div className="crm-modal-header">
+              <div>
+                <p className="crm-docs-modal-eyebrow">Documents</p>
+                <h2 className="crm-modal-title">{docsModal.clientName}</h2>
+              </div>
+              <button className="crm-modal-close" onClick={closeDocsModal}>
+                ✕
+              </button>
+            </div>
+
+            <div className="crm-docs-body">
+
+              {/* Upload area */}
+              <div className="crm-upload-area">
+                <p className="crm-upload-label">Upload a document</p>
+                <div className="crm-upload-row">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="crm-upload-input"
+                    id="crm-file-input"
+                    onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)}
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.csv"
+                  />
+                  <label htmlFor="crm-file-input" className="crm-upload-trigger">
+                    {uploadFile ? uploadFile.name : 'Choose file…'}
+                  </label>
+                  <button
+                    className="crm-upload-submit"
+                    onClick={handleUpload}
+                    disabled={!uploadFile || uploadLoading}
+                  >
+                    {uploadLoading ? 'Uploading…' : 'Upload'}
+                  </button>
+                </div>
+                {uploadError && <p className="crm-form-error">{uploadError}</p>}
+                <p className="crm-upload-hint">PDF, Word, Excel, or image · Max 20 MB</p>
+              </div>
+
+              {/* Document list */}
+              <div className="crm-doc-list">
+                {docsLoading ? (
+                  <p className="crm-doc-empty">Loading documents…</p>
+                ) : docs.length === 0 ? (
+                  <p className="crm-doc-empty">No documents uploaded yet.</p>
+                ) : (
+                  docs.map((doc) => (
+                    <div key={doc.id} className="crm-doc-item">
+                      <div className="crm-doc-item-info">
+                        <span className="crm-doc-item-name" title={doc.filename}>
+                          {doc.filename}
+                        </span>
+                        <span className="crm-doc-item-date">
+                          {new Date(doc.uploadedAt).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </span>
+                      </div>
+                      <div className="crm-doc-item-actions">
+                        <button
+                          className="crm-doc-download-btn"
+                          onClick={() => handleDownload(doc.id)}
+                          title="Download"
+                        >
+                          ↓ Download
+                        </button>
+                        <button
+                          className="crm-doc-delete-btn"
+                          onClick={() => handleDeleteDoc(doc.id)}
+                          disabled={deletingDocId === doc.id}
+                          title="Delete"
+                        >
+                          {deletingDocId === doc.id ? '…' : '✕'}
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+            </div>
           </div>
         </div>
       )}
