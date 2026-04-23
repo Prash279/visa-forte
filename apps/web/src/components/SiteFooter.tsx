@@ -1,12 +1,20 @@
-// SiteFooter — shared footer rendered via root layout on all public pages.
-// Server component: no client-side JS needed.
+"use client";
+
+// SiteFooter — shared footer on all public pages.
+// Hidden on /admin, /portal, /login, /signup (those pages have their own footers).
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const DISCLAIMER =
   "The information provided is for informational and guidance purposes only, based on publicly available Immigration, Refugees and Citizenship Canada (IRCC) regulations and policies. This does not constitute legal advice, and no solicitor-client or consultant-client relationship is created by accessing this content. Immigration regulations, program requirements, processing times, and CRS cutoff scores are subject to frequent change without notice. You are responsible for verifying all information with official IRCC sources (www.canada.ca/immigration) and confirming current eligibility requirements before taking any action. Visa Forte provides documentation consulting services only. Prashant Thirthingoth is not a Regulated Canadian Immigration Consultant (RCIC) and does not provide legal advice or immigration representation.";
 
+const HIDDEN_PREFIXES = ["/admin", "/portal", "/login", "/signup", "/logout"];
+
 export default function SiteFooter() {
+  const pathname = usePathname();
+  if (HIDDEN_PREFIXES.some((p) => pathname.startsWith(p))) return null;
+
   return (
     <footer className="site-footer">
       <div className="footer-inner">

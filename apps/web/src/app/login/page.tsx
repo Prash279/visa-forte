@@ -40,7 +40,9 @@ export default function LoginPage() {
         return;
       }
 
-      window.location.href = "/admin";
+      const data = await res.json().catch(() => ({})) as { user?: { email?: string } };
+      const loggedInEmail = data?.user?.email ?? email;
+      window.location.href = loggedInEmail === "prashant@visaforte.com" ? "/admin" : "/portal";
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {

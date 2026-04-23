@@ -45,6 +45,13 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
   const [deletePassword, setDeletePassword] = useState('')
   const [deleteError, setDeleteError] = useState('')
 
+  // Link-to-portal modal state
+  const [linkModal, setLinkModal] = useState<{ clientId: string; email: string } | null>(null)
+  const [linkEmail, setLinkEmail] = useState('')
+  const [linkLoading, setLinkLoading] = useState(false)
+  const [linkError, setLinkError] = useState('')
+  const [linkSuccess, setLinkSuccess] = useState('')
+
   const notesRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -206,6 +213,48 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
     window.open('/api/admin/clients/export', '_blank')
   }
 
+  function openLinkModal(clientId: string, currentEmail: string) {
+    setLinkModal({ clientId, email: currentEmail })
+    setLinkEmail(currentEmail)
+    setLinkError('')
+    setLinkSuccess('')
+  }
+
+  async function handleLinkPortal(e: React.FormEvent) {
+    e.preventDefault()
+    if (!linkModal) return
+    setLinkError('')
+    setLinkSuccess('')
+    setLinkLoading(true)
+    try {
+      const res = await fetch(`/api/admin/clients/${linkModal.clientId}/link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: linkEmail.trim() }),
+      })
+      const data = (await res.json()) as { linked?: boolean; created?: boolean; error?: unknown }
+      if (!res.ok) {
+        setLinkError('Could not link the portal account. Check the email and try again.')
+        return
+      }
+      // Update the local client record so the badge reflects the linked state
+      setClients((prev) =>
+        prev.map((c) =>
+          c.id === linkModal.clientId ? { ...c, userId: 'linked' } : c
+        )
+      )
+      setLinkSuccess(
+        data.created
+          ? `Portal account created and invite sent to ${linkEmail}.`
+          : `Existing account linked. Client can log in at /portal.`
+      )
+    } catch {
+      setLinkError('Network error. Please try again.')
+    } finally {
+      setLinkLoading(false)
+    }
+  }
+
   function handleDeleteClient(id: string, name: string) {
     setDeleteTarget({ id, name })
     setDeletePassword('')
@@ -304,7 +353,7 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
           <table className="admin-table crm-table">
             <thead>
               <tr>
-                {['Name', 'Email', 'Service Tier', 'Stage', 'Added', 'Notes', 'Docs', ''].map((h) => (
+                {['Name', 'Email', 'Service Tier', 'Stage', 'Added', 'Notes', 'Docs', 'Portal', ''].map((h) => (
                   <th key={h}>{h}</th>
                 ))}
               </tr>
@@ -427,6 +476,21 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                       >
                         Docs{count > 0 ? ` (${count})` : ''}
                       </button>
+                    </td>
+
+                    {/* Portal link status */}
+                    <td className="crm-portal-col">
+                      {client.userId ? (
+                        <span className="crm-portal-linked">Portal ✓</span>
+                      ) : (
+                        <button
+                          className="crm-portal-link-btn"
+                          onClick={() => openLinkModal(client.id, client.email)}
+                          title="Link client to portal"
+                        >
+                          Link Portal
+                        </button>
+                      )}
                     </td>
 
                     {/* Delete */}
@@ -594,6 +658,72 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                 {deletingClientId === deleteTarget.id ? 'Deleting…' : 'Delete Permanently'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Link Portal Modal ── */}
+      {linkModal && (
+        <div
+          className="crm-modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setLinkModal(null)
+          }}
+        >
+          <div className="crm-modal">
+            <div className="crm-modal-header">
+              <h2 className="crm-modal-title">Link Client Portal</h2>
+              <button className="crm-modal-close" onClick={() => setLinkModal(null)}>
+                ✕
+              </button>
+            </div>
+
+            {linkSuccess ? (
+              <div className="crm-link-success">
+                <p className="crm-link-success-text">{linkSuccess}</p>
+                <div className="crm-modal-footer">
+                  <button className="crm-modal-submit-btn" onClick={() => setLinkModal(null)}>
+                    Done
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleLinkPortal} className="crm-modal-form">
+                <p className="crm-link-hint">
+                  Enter the email address the client will use to log in. If no account exists,
+                  one will be created and an invite email will be sent.
+                </p>
+                <label className="crm-field-label">
+                  Client Email *
+                  <input
+                    type="email"
+                    className="crm-field-input"
+                    value={linkEmail}
+                    onChange={(e) => setLinkEmail(e.target.value)}
+                    placeholder="client@example.com"
+                    required
+                    autoFocus
+                  />
+                </label>
+                {linkError && <p className="crm-form-error">{linkError}</p>}
+                <div className="crm-modal-footer">
+                  <button
+                    type="button"
+                    className="crm-modal-cancel-btn"
+                    onClick={() => setLinkModal(null)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="crm-modal-submit-btn"
+                    disabled={linkLoading}
+                  >
+                    {linkLoading ? 'Linking…' : 'Send Invite'}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

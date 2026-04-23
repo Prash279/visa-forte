@@ -698,6 +698,49 @@
 .crm-delete-confirm-btn:hover { opacity: 0.85; }
 .crm-delete-confirm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* ── Portal link column ──────────────────────────────────── */
+.crm-portal-col { white-space: nowrap; }
+
+.crm-portal-link-btn {
+  background: transparent;
+  border: 1px solid rgba(12, 35, 64, 0.3);
+  border-radius: 5px;
+  color: var(--prussian);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.3rem 0.65rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.crm-portal-link-btn:hover {
+  background: rgba(12, 35, 64, 0.06);
+  border-color: var(--prussian);
+}
+
+.crm-portal-linked {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1a7a44;
+  letter-spacing: 0.02em;
+}
+
+/* ── Link Portal modal content ───────────────────────────── */
+.crm-link-hint {
+  font-size: 0.875rem;
+  color: var(--ink);
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+  opacity: 0.8;
+}
+.crm-link-success { padding: 1.5rem 1.75rem; }
+.crm-link-success-text {
+  font-size: 0.875rem;
+  color: #1a7a44;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {
   .crm-toolbar { flex-direction: column; }

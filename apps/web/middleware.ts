@@ -22,9 +22,13 @@ export function middleware(request: NextRequest): NextResponse {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+  if (pathname.startsWith("/portal") && !hasSession) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/login", "/signup"],
+  matcher: ["/admin/:path*", "/portal/:path*", "/login", "/signup"],
 };

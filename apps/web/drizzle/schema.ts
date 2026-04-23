@@ -114,6 +114,8 @@ export const clients = pgTable('clients', {
   serviceTier: text('service_tier').notNull(),
   stage: text('stage').notNull().default('Lead'),     // one of 9 CRM stages
   notes: text('notes'),                               // Prash's private notes — never client-visible
+  // Links a CRM record to a Better Auth user account (nullable — not every client needs portal access)
+  userId: text('user_id').references(() => users.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -128,6 +130,8 @@ export const clientDocuments = pgTable('client_documents', {
   clientId: uuid('client_id').notNull().references(() => clients.id, { onDelete: 'cascade' }),
   filename: text('filename').notNull(),       // original filename, e.g. "passport.pdf"
   blobUrl: text('blob_url').notNull(),        // private Vercel Blob URL
+  // Checklist slot this document fills (null for admin-uploaded documents)
+  docType: text('doc_type'),                  // e.g. "passport", "ielts_certificate"
   uploadedAt: timestamp('uploaded_at').notNull().defaultNow(),
 });
 

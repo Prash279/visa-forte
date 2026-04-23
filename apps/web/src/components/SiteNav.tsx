@@ -9,8 +9,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
-// Routes where the public nav should not appear
-const HIDDEN_PREFIXES = ["/admin", "/login", "/signup", "/logout"];
+// Routes where the public nav should not appear (these pages have their own headers)
+const HIDDEN_PREFIXES = ["/admin", "/portal", "/login", "/signup", "/logout"];
 
 const NAV_LINKS = [
   { href: "/about",    label: "About"    },

@@ -467,7 +467,7 @@ linking to the CRM. CRM tool card added to admin dashboard tools grid. 49 Vitest
 ---
 
 ### TASK P2-2: Full CRM Pipeline (Document Storage + ITA Flag + CSV Export)
-**Status:** In Progress — April 2026
+**Status:** ✅ COMPLETE — April 2026
 **What this delivers:** Each client record can hold uploaded documents (stored in Vercel Blob).
 Prash sees an ITA Window alert banner on the main admin dashboard. The full client list is
 exportable to CSV. When a client's stage changes, Prash gets an internal email notification.
@@ -529,20 +529,20 @@ CRM UI change:
 
 **Detailed step plan:**
 
-- [ ] Step 1 — DB: add `clientDocuments` table to schema.ts, run drizzle-kit generate + migrate
-- [ ] Step 2 — API: `POST /api/admin/clients/[id]/documents` (multipart upload)
-- [ ] Step 3 — API: `GET /api/admin/clients/[id]/documents` (list)
-- [ ] Step 4 — API: `DELETE /api/admin/clients/[id]/documents/[docId]` (delete)
-- [ ] Step 5 — API: `GET /api/admin/clients/[id]/documents/[docId]/download` (signed URL)
-- [ ] Step 6 — API: `GET /api/admin/clients/export` (CSV download)
-- [ ] Step 7 — PATCH route: add stage-change Resend email
-- [ ] Step 8 — /admin page: ITA Window banner (server-side query)
-- [ ] Step 9 — CrmTable: "Docs (N)" button + document modal (upload + list + delete + download)
-- [ ] Step 10 — CrmTable: "Export CSV" button in toolbar
-- [ ] Step 11 — crm.css: styles for document modal, file upload area, export button
-- [ ] Step 12 — Vitest: unit tests for CSV builder and document route input validation
-- [ ] Step 13 — TypeScript check: `npx tsc --noEmit` — zero errors
-- [ ] Step 14 — Commit and push → Vercel auto-deploy
+- [x] Step 1 — DB: add `clientDocuments` table to schema.ts, run drizzle-kit generate + migrate
+- [x] Step 2 — API: `POST /api/admin/clients/[id]/documents` (multipart upload)
+- [x] Step 3 — API: `GET /api/admin/clients/[id]/documents` (list)
+- [x] Step 4 — API: `DELETE /api/admin/clients/[id]/documents/[docId]` (delete)
+- [x] Step 5 — API: `GET /api/admin/clients/[id]/documents/[docId]/download` (signed URL)
+- [x] Step 6 — API: `GET /api/admin/clients/export` (CSV download)
+- [x] Step 7 — PATCH route: add stage-change Resend email
+- [x] Step 8 — /admin page: ITA Window banner (server-side query)
+- [x] Step 9 — CrmTable: "Docs (N)" button + document modal (upload + list + delete + download)
+- [x] Step 10 — CrmTable: "Export CSV" button in toolbar
+- [x] Step 11 — crm.css: styles for document modal, file upload area, export button
+- [x] Step 12 — Vitest: unit tests for CSV builder and document route input validation
+- [x] Step 13 — TypeScript check: `npx tsc --noEmit` — zero errors
+- [x] Step 14 — Commit and push → Vercel auto-deploy
 
 ---
 
@@ -559,29 +559,127 @@ CRM UI change:
 ---
 
 ### TASK P2-3: Client Portal MVP
-**Status:** Deferred until P2-1 is live and tested
-**What this delivers:** Clients can log in to visaforte.com and see their case status and
-a document upload checklist. Prash controls what clients see from the admin CRM.
+**Status:** Ready to start — P2-1 and P2-2 complete
+**What this delivers:** Clients can log in at visaforte.com/portal and see their current pipeline
+stage plus a document upload checklist. Prash controls all client data from the admin CRM — the
+portal is a read-only window into their case status plus a document upload surface.
 
-**Architecture note:**
-- Clients use Better Auth to log in — same auth system already in place
-- The `clients` table is linked to a `userId` from Better Auth (added in this task)
-- The client portal is at `/portal` — completely separate from `/admin`
-- Clients can only see their own data. Admin can see all clients. No cross-contamination.
+**Architecture decisions:**
+- Clients use the same Better Auth system already in place (email + password login)
+- A new `userId` column in the `clients` table links a CRM record to a Better Auth login
+- The portal at `/portal` is completely separate from `/admin` — zero data cross-contamination
+- All Vercel Blob operations go through server-side API routes — raw blob URLs never reach the browser
+- Document checklist is hardcoded per service tier (7 tiers × 4–8 required documents each)
+- Login redirects: admin email → `/admin`, everyone else → `/portal`
+- IDOR prevention: `clientId` is always derived from `session.user.id` server-side, never from request body
 
-**Plan (high-level — detail written before code):**
-- [ ] Add `userId` column (FK to Better Auth `users` table) to `clients` table
-- [ ] "Link to account" action in admin CRM: Prash enters a client's email → links client record
-      to their Better Auth account (auto-creates a user invite if needed)
-- [ ] Build `/portal/page.tsx` — protected by middleware (non-admin auth required):
-  - Client name + current pipeline stage (read-only — set by Prash)
-  - Document checklist: a hardcoded list per service tier (what documents IRCC requires)
-  - Each checklist item: status = Not Uploaded / Uploaded (based on Vercel Blob contents)
-  - Upload button per checklist item → uploads file to `clients/{clientId}/{docType}`
-  - After upload, checklist item shows "Uploaded ✓" with filename and date
-- [ ] `/portal` route blocked from admin email — admin sees /admin, everyone else sees /portal
-- [ ] All Vercel Blob upload/download from portal must go through signed server-side URLs
-      (never expose raw blob URLs to the browser)
+---
+
+**Step 1 — Schema changes (migration 0007):**
+- [ ] Add `userId text` (nullable, FK → users.id ON DELETE SET NULL) to `clients` table
+      → Nullable because not every CRM client needs a portal account
+- [ ] Add `docType text` (nullable) to `client_documents` table
+      → Identifies which checklist slot a document fills; null for admin-uploaded documents
+- [ ] Run `drizzle-kit generate` → review generated SQL → apply with `drizzle-kit migrate`
+
+**Step 2 — Document checklist constants:**
+- [ ] Create `apps/web/src/lib/document-checklist.ts`
+      → `DOCUMENT_CHECKLIST` map: `serviceTier string → Array<{ id: string, label: string }>`
+      → `id` is a stable machine key (e.g. `'passport'`, `'ielts_certificate'`)
+      → `label` is the human-readable name shown in the portal UI
+      → Cover all 7 active service tiers, 4–8 items each
+
+**Step 3 — "Link to Portal" feature in admin CRM:**
+- [ ] New API route `POST /api/admin/clients/[id]/link` (admin session required):
+      → Body: `{ email: string }` validated with Zod
+      → If a user with that email already exists in `users` table:
+        → Set `clients.userId = user.id`, return `{ linked: true, created: false }`
+      → If no user exists:
+        → Generate a random 16-char temp password
+        → Create a new `users` row (role: 'client', status: 'active') and `accounts` row (credential provider, bcrypt hash)
+        → Send invite email via Resend to that address:
+          Subject: "Your Visa Forte client portal is ready"
+          Body: name, temp password, link to /login, instruction to change password after first login
+        → Set `clients.userId = new user.id`, return `{ linked: true, created: true }`
+- [ ] CrmTable: add "Link Portal" button per row (in the Actions column)
+      → If `userId` is null → shows "Link Portal" button
+      → If `userId` is set → shows green "Portal Active ✓" badge (no button needed)
+      → Click "Link Portal" → opens a modal with email field (pre-filled from client.email) + "Send Invite" button
+
+**Step 4 — Middleware update:**
+- [ ] Add `/portal/:path*` to the matcher in `middleware.ts`
+      → Protect `/portal` with the same session cookie presence check as `/admin`
+      → The server component handles the admin-email guard (redirect to /admin if admin visits /portal)
+
+**Step 5 — Login redirect fix:**
+- [ ] In `apps/web/src/app/login/page.tsx`, after successful sign-in:
+      → Read the `user.email` from the sign-in response body
+      → If email matches `ADMIN_EMAIL` constant (`prashant@visaforte.com`) → `window.location.href = '/admin'`
+      → Otherwise → `window.location.href = '/portal'`
+
+**Step 6 — `/portal` server component:**
+- [ ] Create `apps/web/src/app/portal/page.tsx` (server component):
+      → Call `getCurrentAuthSession()` → if no session, redirect to /login
+      → If `session.user.email === ADMIN_EMAIL` → redirect to /admin
+      → Query `clients` WHERE `userId = session.user.id` LIMIT 1
+      → If no client record → render graceful empty state: "Your portal is being set up. Please contact Prash."
+      → If found → fetch `clientDocuments` WHERE `clientId = client.id`
+      → Render `PortalDashboard` client component with `client` + `docs` + `checklist` props
+
+**Step 7 — `PortalDashboard` client component:**
+- [ ] Create `apps/web/src/app/portal/PortalDashboard.tsx` ("use client"):
+      → Header: "Welcome, {client.name}" + current stage badge (Saffron if ITA Window, Prussian otherwise)
+      → Progress indicator: "X of Y documents uploaded"
+      → Document checklist: one row per `DOCUMENT_CHECKLIST[client.serviceTier]` item
+        → Not uploaded: grey row + "Upload" button → opens file picker → calls upload API
+        → Uploaded: green tick + filename + date
+      → File upload: calls `POST /api/portal/documents` (multipart), optimistic UI update on success
+
+**Step 8 — Portal document upload API:**
+- [ ] Create `POST /api/portal/documents/route.ts` (client session required, NOT admin):
+      → Parse multipart body: `docType` (string) + `file`
+      → Zod-validate `docType` is a non-empty string
+      → Derive `clientId` from `session.user.id` → query `clients.userId = session.user.id` → get `client.id`
+        (IDOR prevention: clientId always comes from the session, never from the request)
+      → Validate `docType` is in `DOCUMENT_CHECKLIST[client.serviceTier]` — reject if not
+      → Upload to Vercel Blob at path `clients/{clientId}/{docType}/{filename}` (access: private)
+      → Insert into `clientDocuments` with `docType` set
+      → Return `{ success: true, doc: { id, filename, uploadedAt } }`
+
+**Step 9 — Portal CSS:**
+- [ ] Create `apps/web/src/app/portal/portal.css`
+      → Visa Forte brand: Prussian `#0C2340`, Saffron `#C97B1E`, Pearl `#F8F4EE`, Ink `#1A1A2E`
+      → Typography: Cormorant Garamond display headings, DM Sans body
+      → Checklist layout: clean card rows, icon states (uploaded ✓ / pending ○), progress bar
+      → Stage badge with ITA Window urgency highlight in Saffron
+
+**Step 10 — Nav bar update:**
+- [ ] In `apps/web/src/components/NavBar.tsx`, check the session server-side:
+      → If logged in as a non-admin user → show "My Portal" link pointing to `/portal`
+      → If logged in as admin → show "Admin" link (already exists) instead
+      → If not logged in → show existing "Log In" button
+
+**Step 11 — Vitest tests:**
+- [ ] Tests for `document-checklist.ts`: all 7 tiers return a non-empty array; each item has `id` and `label`
+- [ ] Tests for portal upload route Zod schema validation
+
+**Step 12 — TypeScript check + deploy:**
+- [ ] `npx tsc --noEmit` — zero errors
+- [ ] Commit and push → Vercel auto-deploys
+
+---
+
+**Prashant Proof:**
+1. Go to `/admin/clients` — find a client row, click "Link Portal"
+2. In the modal, confirm the client's email is pre-filled; click "Send Invite"
+3. Check the inbox of that email address — confirm the invite email arrives with a temp password
+4. Open an incognito window, go to visaforte.com/login
+5. Log in with the client email and temp password — confirm you land at `/portal` (not `/admin`)
+6. Confirm the client's name and current stage badge appear at the top
+7. Confirm the document checklist appears with the correct documents for their service tier
+8. Upload a test PDF to one checklist item — confirm it shows "Uploaded ✓" with filename and date
+9. Refresh the page — confirm the uploaded item still shows as uploaded
+10. Back in `/admin/clients`, click "Docs" on that client — confirm the uploaded file also appears there
 
 ---
 
