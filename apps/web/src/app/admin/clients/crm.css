@@ -669,7 +669,7 @@
 
 /* ── Delete confirmation modal ───────────────────────────── */
 .crm-delete-modal-body {
-  padding: 1.5rem 1.75rem;
+  padding: 1.5rem 1.75rem 0;
 }
 .crm-delete-warning {
   font-size: 0.875rem;
@@ -678,6 +678,11 @@
   margin-bottom: 1.25rem;
 }
 .crm-delete-warning strong { color: var(--prussian); font-weight: 700; }
+/* Footer that follows the delete body needs its own padding (not inside a form) */
+.crm-delete-modal-body + .crm-modal-footer {
+  padding: 1rem 1.75rem 1.75rem;
+  align-items: center;
+}
 .crm-delete-confirm-btn {
   background: #b53d00;
   color: #fff;
@@ -686,6 +691,7 @@
   padding: 0.5rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
   transition: opacity 0.15s ease;
 }
