@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { and, gte, lte } from "drizzle-orm";
 import { getCurrentAuthSession } from "@/lib/auth-server";
 import SignOutButton from "./SignOutButton";
+import PromoteButton from "./PromoteButton";
 import { db } from "@/lib/db";
 import { leads, bookings } from "../../../drizzle/schema";
 import { desc } from "drizzle-orm";
@@ -135,7 +136,7 @@ export default async function AdminPage() {
             <table className="admin-table">
               <thead>
                 <tr>
-                  {["Name", "Email", "Service Interest", "Submitted", "Status"].map((h) => (
+                  {["Name", "Email", "Service Interest", "Submitted", "Status", "Action"].map((h) => (
                     <th key={h}>{h}</th>
                   ))}
                 </tr>
@@ -164,9 +165,15 @@ export default async function AdminPage() {
                       </span>
                     </td>
                     <td>
-                      <span className={`admin-badge ${lead.status === "new" ? "admin-badge-new" : "admin-badge-other"}`}>
+                      <span className={`admin-badge ${lead.status === "new" ? "admin-badge-new" : lead.status === "converted" ? "admin-badge-paid" : "admin-badge-other"}`}>
                         {lead.status}
                       </span>
+                    </td>
+                    <td>
+                      <PromoteButton
+                        leadId={lead.id}
+                        alreadyPromoted={lead.status === "converted"}
+                      />
                     </td>
                   </tr>
                 ))}
@@ -251,6 +258,11 @@ export default async function AdminPage() {
           <span className="admin-section-rule" />
         </div>
         <div className="admin-tools">
+          <a href="/admin/crm" className="admin-tool-card">
+            <p className="admin-tool-name">Client CRM</p>
+            <p className="admin-tool-desc">Manage your client pipeline across 9 stages from Lead to Completed. Edit stages inline, add private notes, and track ITA Window clients at a glance.</p>
+            <span className="admin-tool-cta">Open CRM →</span>
+          </a>
           <a href="/admin/canvisa-pro" className="admin-tool-card">
             <p className="admin-tool-name">CanVisa Pro</p>
             <p className="admin-tool-desc">Generate a full PR eligibility assessment report for any applicant. Includes CRS calculation, FSW grid, pathway ranking, and gap analysis.</p>

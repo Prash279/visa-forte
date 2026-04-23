@@ -36,6 +36,13 @@
       "when": 1776084090853,
       "tag": "0004_modern_daimon_hellstrom",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1776917787928,
+      "tag": "0005_gifted_nuke",
+      "breakpoints": true
     }
   ]
 }

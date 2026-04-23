@@ -408,6 +408,44 @@
   color: var(--teal);
 }
 
+/* ── Promote button (leads table action column) ──────────── */
+.admin-promote-btn {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--teal);
+  background: none;
+  border: 1px solid var(--teal);
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.admin-promote-btn:hover:not(:disabled) {
+  background: var(--teal);
+  color: var(--pearl);
+}
+.admin-promote-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.admin-promote-btn-error {
+  border-color: #b53d00;
+  color: #b53d00;
+}
+
+.admin-promote-done {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #1a7a4a;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.admin-promote-done:hover { text-decoration: underline; }
+
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {
   .admin-tools { grid-template-columns: 1fr; }

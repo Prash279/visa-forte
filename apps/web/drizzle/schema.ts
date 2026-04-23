@@ -103,3 +103,19 @@ export const bookings = pgTable('bookings', {
 });
 
 export type Booking = typeof bookings.$inferSelect;
+
+// Active client records managed in the CRM. Separate from leads (raw enquiries).
+// A client row is created when Prash promotes a lead or manually adds a client.
+export const clients = pgTable('clients', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  phone: text('phone'),
+  serviceTier: text('service_tier').notNull(),
+  stage: text('stage').notNull().default('Lead'),     // one of 9 CRM stages
+  notes: text('notes'),                               // Prash's private notes — never client-visible
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export type Client = typeof clients.$inferSelect;

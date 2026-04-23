@@ -1,0 +1,420 @@
+/* ============================================================
+   CRM PAGE — Visa Forte
+   Extends admin.css — do not duplicate base layout rules here.
+============================================================ */
+
+/* ── Header nav link ─────────────────────────────────────── */
+.crm-header-nav-link {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pearl);
+  opacity: 0.45;
+  text-decoration: none;
+  margin-right: 0.5rem;
+}
+.crm-header-nav-link:hover { opacity: 0.9; }
+
+/* ── ITA Window alert banner ─────────────────────────────── */
+.crm-ita-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(201, 123, 30, 0.14);
+  border-left: 3px solid var(--saffron);
+  padding: 0.875rem 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.crm-ita-banner-icon {
+  color: var(--saffron);
+  font-size: 1rem;
+}
+
+.crm-ita-banner-text {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--prussian);
+}
+
+/* ── Toolbar ─────────────────────────────────────────────── */
+.crm-toolbar {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.crm-toolbar-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.crm-search {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--prussian);
+  background: white;
+  border: 1px solid var(--sand);
+  padding: 0.6rem 1rem;
+  width: 100%;
+  max-width: 26rem;
+  outline: none;
+}
+.crm-search:focus { border-color: var(--prussian); }
+.crm-search::placeholder { color: var(--ink); opacity: 0.3; }
+
+/* ── Stage filter pills ──────────────────────────────────── */
+.crm-filter-pills {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.crm-pill {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--sand);
+  background: white;
+  color: var(--ink);
+  opacity: 0.55;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.crm-pill:hover { opacity: 0.9; border-color: var(--prussian); }
+.crm-pill-active {
+  background: var(--prussian);
+  color: var(--pearl);
+  border-color: var(--prussian);
+  opacity: 1;
+}
+
+/* ── Add Client button ───────────────────────────────────── */
+.crm-add-btn {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  color: var(--pearl);
+  background: var(--prussian);
+  border: none;
+  padding: 0.625rem 1.25rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s ease;
+  align-self: flex-start;
+}
+.crm-add-btn:hover { opacity: 0.85; }
+
+/* ── Client count meta strip ─────────────────────────────── */
+.crm-meta {
+  margin-bottom: 1rem;
+}
+.crm-meta-count {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.32;
+}
+
+/* ── Table wrapper override ──────────────────────────────── */
+.crm-table-wrap {
+  margin-bottom: 3.5rem;
+}
+
+.crm-table {
+  min-width: 900px;
+}
+
+/* ── ITA Window row highlight ────────────────────────────── */
+.crm-row-ita {
+  background: rgba(201, 123, 30, 0.07) !important;
+}
+.crm-row-ita:hover {
+  background: rgba(201, 123, 30, 0.13) !important;
+}
+
+/* ── Phone sub-label ─────────────────────────────────────── */
+.crm-td-phone {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  color: var(--ink);
+  opacity: 0.38;
+  margin-top: 0.2rem;
+}
+
+/* ── Stage dropdown ──────────────────────────────────────── */
+.crm-stage-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.crm-stage-select {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--prussian);
+  background: white;
+  border: 1px solid var(--sand);
+  padding: 0.35rem 0.625rem;
+  outline: none;
+  cursor: pointer;
+  max-width: 11rem;
+}
+.crm-stage-select:focus { border-color: var(--prussian); }
+.crm-stage-select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.crm-stage-select-ita {
+  border-color: var(--saffron);
+  color: #8a5a00;
+  font-weight: 600;
+}
+
+.crm-saving-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--saffron);
+  animation: crm-pulse 0.9s ease infinite;
+}
+@keyframes crm-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+/* ── Notes cell ──────────────────────────────────────────── */
+.crm-notes-cell {
+  min-width: 14rem;
+  max-width: 20rem;
+}
+
+.crm-notes-view {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.crm-notes-text {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: var(--ink);
+  opacity: 0.65;
+  line-height: 1.5;
+  flex: 1;
+  white-space: pre-wrap;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.crm-notes-empty { opacity: 0.25; }
+
+.crm-notes-edit-btn {
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  color: var(--teal);
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.55;
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+.crm-notes-edit-btn:hover { opacity: 1; }
+
+.crm-notes-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.crm-notes-textarea {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: var(--prussian);
+  background: white;
+  border: 1px solid var(--prussian);
+  padding: 0.5rem;
+  resize: vertical;
+  width: 100%;
+  outline: none;
+  line-height: 1.5;
+}
+
+.crm-notes-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.crm-notes-save {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--pearl);
+  background: var(--prussian);
+  border: none;
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+}
+.crm-notes-save:hover { opacity: 0.85; }
+
+.crm-notes-cancel {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ink);
+  background: none;
+  border: 1px solid var(--sand);
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+  opacity: 0.55;
+}
+.crm-notes-cancel:hover { opacity: 0.9; }
+
+/* ── Add Client Modal ────────────────────────────────────── */
+.crm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 35, 64, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+}
+
+.crm-modal {
+  background: white;
+  width: 100%;
+  max-width: 32rem;
+  border-top: 3px solid var(--saffron);
+}
+
+.crm-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem 0;
+}
+
+.crm-modal-title {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--prussian);
+}
+
+.crm-modal-close {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: var(--ink);
+  opacity: 0.4;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+}
+.crm-modal-close:hover { opacity: 0.9; }
+
+.crm-modal-form {
+  padding: 1.5rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.crm-field-label {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.crm-field-input {
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  color: var(--prussian);
+  background: white;
+  border: 1px solid var(--sand);
+  padding: 0.625rem 0.875rem;
+  outline: none;
+  width: 100%;
+  appearance: none;
+  opacity: 1;
+}
+.crm-field-input:focus { border-color: var(--prussian); }
+.crm-field-input::placeholder { color: var(--ink); opacity: 0.3; }
+
+.crm-form-error {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: #b53d00;
+}
+
+.crm-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.crm-modal-cancel-btn {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ink);
+  background: none;
+  border: 1px solid var(--sand);
+  padding: 0.625rem 1.25rem;
+  cursor: pointer;
+  opacity: 0.55;
+}
+.crm-modal-cancel-btn:hover { opacity: 0.9; }
+
+.crm-modal-submit-btn {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--pearl);
+  background: var(--prussian);
+  border: none;
+  padding: 0.625rem 1.5rem;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.crm-modal-submit-btn:hover { opacity: 0.85; }
+.crm-modal-submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .crm-toolbar { flex-direction: column; }
+  .crm-add-btn { width: 100%; text-align: center; }
+  .crm-modal { margin: 0; max-width: 100%; border-radius: 0; }
+}

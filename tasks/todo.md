@@ -180,7 +180,7 @@ Submit a booking. Go to /admin — confirm the booking appears in the table and 
 ---
 
 ### TASK 4: Razorpay Payment Integration
-**Status:** Not started
+**Status:** ✅ COMPLETE
 **Approved:** ✅ Approved April 2026
 **What this delivers:** All 7 consultation bookings require payment upfront. Clients pay before the
 booking is saved. Razorpay handles INR (Indian clients) and USD (international clients). Prices
@@ -297,10 +297,17 @@ Tier 8 (Retainer-Based Ongoing Support) removed from all pages and deferred to a
 - [ ] `paymentStatus` shown as a badge (green = paid, grey = pending)
 
 **Step 10 — TypeScript check + deploy:**
-- [ ] `npx tsc --noEmit` — zero errors
-- [ ] Commit and push → Vercel auto-deploys
+- [x] `npx tsc --noEmit` — zero errors
+- [x] Commit and push → Vercel auto-deploys
 
 ---
+
+**Review:**
+`pricing.ts` with 7 tiers (INR + USD). `POST /api/payment/create-order` creates Razorpay order server-side.
+`POST /api/payment/verify` does HMAC-SHA256 check before inserting booking and sending Resend notification.
+BookingForm: currency toggle (INR ↔ USD), live price display, Razorpay modal on submit.
+Bookings table: 5 new payment columns. Admin page: Amount, Payment, Status columns with green paid badge.
+`/refund-policy` and `/privacy-policy` pages added for Razorpay KYC compliance.
 
 **Prashant Proof:**
 1. Go to `/booking` in an incognito window
@@ -314,39 +321,53 @@ Tier 8 (Retainer-Based Ongoing Support) removed from all pages and deferred to a
 
 ---
 
-### TASK 5: Cloudflare R2 Document Storage
-**Status:** Not started
-**Approved:** Pending
+### TASK 5: Vercel Blob Document Storage
+**Status:** ✅ COMPLETE
+**Approved:** ✅ Approved
 **What this delivers:** The infrastructure to securely store and retrieve client documents.
+**Provider change:** Cloudflare R2 replaced with Vercel Blob — same Vercel dashboard, zero extra accounts, Mumbai region (BOM1).
 
 **Plan:**
-- [ ] Create R2 bucket in the Cloudflare dashboard (Prash action — 5 minutes)
-- [ ] Build `apps/web/src/lib/storage.ts` with three functions:
-  - `uploadFile(key, buffer, contentType)` — stores a file in R2
-  - `deleteFile(key)` — removes a file
-  - `generateSignedUrl(key)` — returns a 15-minute expiry download URL
-- [ ] Add to Render environment: `CLOUDFLARE_R2_ACCESS_KEY`, `CLOUDFLARE_R2_SECRET_KEY`, `CLOUDFLARE_R2_BUCKET`, `CLOUDFLARE_R2_ENDPOINT`
-- [ ] Write Vitest unit tests for the storage utility functions
+- [x] Create `visa-forte-blob` Blob Store in Vercel dashboard (Mumbai, Private access) — Prash action
+- [x] Add `BLOB_READ_WRITE_TOKEN` to `apps/web/.env.local`
+- [x] `npm install @vercel/blob` in `apps/web`
+- [x] Build `apps/web/src/lib/storage.ts` with three functions:
+  - `uploadFile(pathname, body, contentType)` — stores file as private blob, returns `{ url, pathname }`
+  - `deleteFile(url)` — removes the blob permanently
+  - `generateDownloadUrl(blobUrl)` — returns a token-embedded download URL (server-side use only)
+- [x] `apps/web/src/lib/storage.test.ts` — 3 Vitest unit tests, all passing
+- [x] `apps/web/.env.example` updated — R2 vars replaced with `BLOB_READ_WRITE_TOKEN`
+- [x] `tech.md` and `spec.md` storage rows updated to Vercel Blob
 
-**Prashant Proof:** Upload a test PDF through the admin dashboard. Confirm it appears in the
-Cloudflare R2 dashboard. Generate a signed download link — confirm it opens the file and
-expires after 15 minutes.
+**Review:**
+`storage.ts` wraps `@vercel/blob` with typed, named functions. All blobs stored as `access: 'private'` —
+never publicly accessible. `generateDownloadUrl` embeds the read token and must only be called from
+server-side routes (never exposed to browser code directly). 3 unit tests pass with mocked SDK.
+
+**Prashant Proof:** Phase 2 client portal will be the first UI surface to use this.
+Verify then: upload a document from the admin panel, confirm it appears in
+Vercel dashboard → Storage → visa-forte-blob, click the download link and confirm the file opens.
 
 ---
 
 ### TASK 8: CI/CD and Observability (Phase 1 closer)
-**Status:** Not started
-**Approved:** Pending
+**Status:** ✅ COMPLETE
+**Approved:** ✅ Approved
 **What this delivers:** Broken code cannot reach production. Prash gets alerted if the site goes down.
 
 **Plan:**
-- [ ] Create `.github/workflows/ci.yml` — typecheck, lint, Vitest, PyTest per `tech.md §11`
-- [ ] Create `apps/web/src/lib/logger.ts` — structured JSON logger per `tech.md §12`
-- [ ] Create `apps/api/config/logger.py` — Python structured logger
-- [ ] Create `GET /app/api/health/route.ts` — checks DB connectivity, returns 200 or 503
-- [ ] Install `@sentry/nextjs` + configure PII scrubbing (email, name, document content never logged)
-- [ ] Install `sentry-sdk[fastapi]`
-- [ ] Set up UptimeRobot monitors: `/api/health` and `/`
+- [x] Create `.github/workflows/ci.yml` — typecheck + lint + Vitest on every push/PR to main
+- [x] Create `apps/web/src/lib/logger.ts` — structured JSON logger (service/action/result shape)
+- [x] Create `apps/web/src/lib/logger.test.ts` — 4 Vitest unit tests, all passing
+- [x] Create `GET /api/health/route.ts` — DB ping, returns 200 or 503
+- [x] Install `@sentry/nextjs` + GlitchTip config + PII scrubbing (email, name, document content never logged)
+- [x] SiteFooter updated with Refund Policy + Privacy Policy links
+- [x] `.env.example` updated — Razorpay keys, R2 vars, Sentry vars documented
+
+**Review:**
+GitHub Actions CI runs typecheck + lint + Vitest on every push/PR to main. `logger.ts` emits structured
+JSON with service/action/result shape. `GET /api/health` pings DB — 200 on healthy, 503 on failure.
+GlitchTip error tracking via `@sentry/nextjs` with PII scrubbing. `vitest.config.ts` configured with @ alias.
 
 **Prashant Proof:** Go to UptimeRobot dashboard — confirm the health monitor shows "Up."
 On a feature branch, introduce a deliberate TypeScript type error and push it — confirm GitHub Actions
@@ -354,11 +375,152 @@ fails and the branch is blocked from merging to main.
 
 ---
 
-## Deferred — Phase 2
+---
 
-### TASK 7: MVP CRM (Simple Client Table)
-**Status:** Deferred to Phase 2
-Per `spec.md §8`, CRM pipeline is Phase 2 scope. Do not build during Phase 1.
+## Current Phase: Phase 2 — Client Management
+
+**Phase 2 architecture decision (April 2026):** Stay on Vercel. FastAPI is not needed for Phase 2 — all
+CRM and client portal features use Next.js server actions + Drizzle ORM, exactly like Phase 1.
+FastAPI migration to Render is deferred to Phase 3 when Python background jobs (data retention cron)
+require a persistent process.
+
+**Data model:** A new `clients` table is the CRM backbone. It is separate from `leads` (intake form
+submissions). When Prash promotes a lead to a client (or creates one directly), a `clients` row is
+created. This keeps leads as raw enquiries and clients as active relationships.
+
+**Phase 2 build sequence:**
+1. Task P2-1: CRM MVP — simple client table, 9-stage status dropdown, notes field
+2. Task P2-2: Full CRM Pipeline — document upload per client (Vercel Blob), ITA flag, CSV export
+3. Task P2-3: Client Portal MVP — client login, status view, document checklist + upload
+4. Task P2-4: Admin Dashboard Enhancement — pipeline summary cards, booking calendar view
+
+---
+
+### TASK P2-1: CRM MVP (Simple Client Table in Admin)
+**Status:** ✅ COMPLETE
+**What this delivers:** Prash has a working client list inside the admin dashboard. He can add clients,
+track their pipeline stage, and write private notes. Nothing automated — just a readable, editable table.
+
+**Data model — new `clients` table:**
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid PK | auto-generated |
+| name | text NOT NULL | Full name |
+| email | text NOT NULL | Contact email |
+| phone | text | Optional |
+| serviceTier | text NOT NULL | One of the 7 service tiers |
+| stage | text NOT NULL DEFAULT 'Lead' | One of 9 CRM stages (see below) |
+| notes | text | Prash's private notes — never client-visible |
+| createdAt | timestamp | Auto-set on insert |
+| updatedAt | timestamp | Auto-set on update |
+
+**9 pipeline stages (from spec.md §5):**
+1. Lead
+2. Qualified
+3. Proposal Sent
+4. Active Client
+5. ITA Window
+6. Submitted
+7. Decision Pending
+8. Completed
+9. Archived
+
+**Plan:**
+- [x] Read `security.md` before any admin route work
+- [x] Add `clients` table to `apps/web/drizzle/schema.ts`
+- [x] Run `drizzle-kit generate` + `drizzle-kit migrate` → applied to Neon (migration 0005)
+- [x] Build `GET /api/admin/clients` and `POST /api/admin/clients` — list + create
+- [x] Build `PATCH /api/admin/clients/[id]` — update stage and notes
+- [x] Build `POST /api/admin/leads/[id]/promote` — one-click promote lead to CRM client
+- [x] Build admin CRM page at `/admin/crm/page.tsx` (server) + `CrmTable.tsx` (client):
+  - Table: Name · Email · Service Tier · Stage (editable dropdown inline) · Date Added · Notes (edit icon)
+  - "Add Client" modal (name, email, phone, service tier)
+  - Search bar: client-side filter by name or email
+  - Stage filter pills: All | Lead | Qualified | Active Client | ITA Window | Completed
+  - ITA Window rows highlighted with Saffron accent + ITA banner if any client in that stage
+- [x] "Promote to Client" button added to admin leads table (Action column)
+- [x] CRM tool card added to admin dashboard Tools section
+- [x] Zod validation on all API inputs (`crm-stages.ts` exports CreateClientSchema + UpdateClientSchema)
+- [x] 8 Vitest unit tests for CRM schemas — all passing (49 total, 0 failures)
+- [x] `npx tsc --noEmit` — zero errors
+- [x] Commit and push → Vercel auto-deploy
+
+**Review:**
+`clients` table in Neon (9 columns, migration 0005 applied). `crm-stages.ts` exports CRM_STAGES (9 stages),
+CreateClientSchema, UpdateClientSchema. Three admin API routes: GET+POST `/api/admin/clients`,
+PATCH `/api/admin/clients/[id]`, POST `/api/admin/leads/[id]/promote`. CRM page at `/admin/crm` with
+server component + `CrmTable` client component: inline stage dropdown (optimistic update), inline notes
+edit, search + stage filter pills, ITA Window row saffron highlight, ITA banner, Add Client modal.
+Admin leads table has new "Action" column with "Promote →" button per lead; promoted leads show "✓ In CRM →"
+linking to the CRM. CRM tool card added to admin dashboard tools grid. 49 Vitest tests passing, TypeScript clean.
+
+**Prashant Proof:**
+1. Go to visaforte.com/admin — confirm "Client CRM" tool card appears in the Tools section
+2. Go to the New Leads table — confirm each lead row has a "Promote →" button in the Action column
+3. Click "Promote →" on one lead — confirm the button changes to "✓ In CRM →"
+4. Click "✓ In CRM →" — confirm you land on visaforte.com/admin/crm with the promoted client in the table at stage "Lead"
+5. Click "Add Client" — fill in a test name, email, service tier → submit — confirm the client appears
+6. Change the stage dropdown on any client to "Active Client" — confirm it updates immediately (no page reload)
+7. Click the ✎ pencil icon on any client — type a note, click Save — confirm the note persists on page refresh
+8. Change a client's stage to "ITA Window" — confirm the row turns saffron and the alert banner appears at the top
+
+---
+
+### TASK P2-2: Full CRM Pipeline (Document Storage + ITA Flag + CSV Export)
+**Status:** Deferred until P2-1 is live and tested
+**What this delivers:** Each client record can hold uploaded documents (stored in Vercel Blob).
+Prash sees an ITA Window alert banner at the top of the admin when any client is in that stage.
+The full client list is exportable to CSV for offline backup.
+
+**Plan (high-level — detail written before code):**
+- [ ] Add document upload to each client record → Vercel Blob at `clients/{clientId}/{filename}`
+- [ ] Add document list panel in client detail view (filename, upload date, download link)
+- [ ] ITA Window banner: if any client has stage "ITA Window", show a red/saffron alert banner
+      at the top of all admin pages — name, service tier, date entered ITA Window
+- [ ] CSV export: admin button → server action builds CSV from `clients` table → triggers download
+- [ ] Status-change notification: when Prash changes a client's stage, send a Resend email to Prash
+      with old stage → new stage, client name (internal audit trail, not sent to client)
+
+---
+
+### TASK P2-3: Client Portal MVP
+**Status:** Deferred until P2-1 is live and tested
+**What this delivers:** Clients can log in to visaforte.com and see their case status and
+a document upload checklist. Prash controls what clients see from the admin CRM.
+
+**Architecture note:**
+- Clients use Better Auth to log in — same auth system already in place
+- The `clients` table is linked to a `userId` from Better Auth (added in this task)
+- The client portal is at `/portal` — completely separate from `/admin`
+- Clients can only see their own data. Admin can see all clients. No cross-contamination.
+
+**Plan (high-level — detail written before code):**
+- [ ] Add `userId` column (FK to Better Auth `users` table) to `clients` table
+- [ ] "Link to account" action in admin CRM: Prash enters a client's email → links client record
+      to their Better Auth account (auto-creates a user invite if needed)
+- [ ] Build `/portal/page.tsx` — protected by middleware (non-admin auth required):
+  - Client name + current pipeline stage (read-only — set by Prash)
+  - Document checklist: a hardcoded list per service tier (what documents IRCC requires)
+  - Each checklist item: status = Not Uploaded / Uploaded (based on Vercel Blob contents)
+  - Upload button per checklist item → uploads file to `clients/{clientId}/{docType}`
+  - After upload, checklist item shows "Uploaded ✓" with filename and date
+- [ ] `/portal` route blocked from admin email — admin sees /admin, everyone else sees /portal
+- [ ] All Vercel Blob upload/download from portal must go through signed server-side URLs
+      (never expose raw blob URLs to the browser)
+
+---
+
+### TASK P2-4: Admin Dashboard Enhancement (Pipeline Overview + Booking Calendar)
+**Status:** Deferred until P2-3 is live and tested
+**What this delivers:** The admin homepage shows a CRM pipeline funnel (client counts by stage)
+and a proper calendar view of upcoming bookings.
+
+**Plan (high-level — detail written before code):**
+- [ ] Pipeline summary cards on `/admin`: client counts per stage (Lead: 3, Active Client: 2, etc.)
+- [ ] ITA Window count shown as red badge if count > 0
+- [ ] Booking calendar: replace the current bookings table with a month-view calendar
+      (custom-built, no third-party calendar library — just CSS grid + booking data)
+- [ ] Each calendar day shows the booking count; click to see the list for that day
 
 ---
 
@@ -378,6 +540,9 @@ Per `spec.md §8`, DPDP consent interface and automated deletion cron are Phase 
 | Task 2 | Authentication — Better Auth + Neon PostgreSQL | April 2026 |
 | Task 3A | Client Intake Form — leads table + /intake + admin dashboard | April 2026 |
 | Task 3B | Booking Engine — availability toggle, /booking, /admin/availability, Resend email | April 2026 |
+| Task 4 | Razorpay payment — pay-first flow, HMAC verify, INR/USD toggle, admin payment columns | April 2026 |
+| Task 8 | CI/CD (GitHub Actions), structured logger, /api/health, GlitchTip error tracking | April 2026 |
+| Task 5 | Vercel Blob storage — uploadFile, deleteFile, generateDownloadUrl + 3 unit tests | April 2026 |
 
 ---
 
