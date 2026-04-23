@@ -646,6 +646,27 @@
 .crm-doc-delete-btn:hover { opacity: 1; }
 .crm-doc-delete-btn:disabled { opacity: 0.2; cursor: not-allowed; }
 
+/* ── Delete client column ────────────────────────────────── */
+.crm-delete-col {
+  width: 2.5rem;
+  text-align: center;
+  padding: 0 0.5rem !important;
+}
+
+.crm-delete-btn {
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  color: var(--ink);
+  opacity: 0.25;
+  cursor: pointer;
+  padding: 0.25rem 0.4rem;
+  line-height: 1;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+.crm-delete-btn:hover { color: #b53d00; opacity: 1; }
+.crm-delete-btn:disabled { opacity: 0.15; cursor: not-allowed; }
+
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {
   .crm-toolbar { flex-direction: column; }

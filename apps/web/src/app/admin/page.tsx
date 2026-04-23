@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { and, gte, lte, eq, desc } from "drizzle-orm";
+import { and, gte, lte, desc } from "drizzle-orm";
 import { getCurrentAuthSession } from "@/lib/auth-server";
 import SignOutButton from "./SignOutButton";
 import PromoteButton from "./PromoteButton";
@@ -53,11 +53,9 @@ export default async function AdminPage() {
       )
     );
 
-  // Fetch clients in ITA Window for the alert banner on this page.
-  const itaClients = await db
-    .select()
-    .from(clients)
-    .where(eq(clients.stage, 'ITA Window'))
+  // Fetch all CRM clients for the metric card and ITA Window banner.
+  const allClients = await db.select().from(clients).orderBy(desc(clients.createdAt))
+  const itaClients = allClients.filter(c => c.stage === 'ITA Window')
 
   // IST-aware greeting
   const hour = todayIST.getHours();
@@ -120,9 +118,9 @@ export default async function AdminPage() {
             <p className="admin-stat-note">All time</p>
           </div>
           <div className="admin-stat">
-            <p className="admin-stat-label">Reports Sent</p>
-            <p className="admin-stat-value">—</p>
-            <p className="admin-stat-note">This month</p>
+            <p className="admin-stat-label">CRM Clients</p>
+            <p className="admin-stat-value">{allClients.length}</p>
+            <p className="admin-stat-note">All stages</p>
           </div>
           <div className="admin-stat">
             <p className="admin-stat-label">Upcoming Bookings</p>

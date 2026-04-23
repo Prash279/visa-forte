@@ -40,6 +40,7 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
   const [uploadLoading, setUploadLoading] = useState(false)
   const [uploadError, setUploadError] = useState('')
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null)
+  const [deletingClientId, setDeletingClientId] = useState<string | null>(null)
 
   const notesRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -202,6 +203,17 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
     window.open('/api/admin/clients/export', '_blank')
   }
 
+  async function handleDeleteClient(id: string, name: string) {
+    if (!window.confirm(`Permanently delete "${name}"? This removes all their documents too and cannot be undone.`)) return
+    setDeletingClientId(id)
+    try {
+      await fetch(`/api/admin/clients/${id}`, { method: 'DELETE' })
+      setClients((prev) => prev.filter((c) => c.id !== id))
+    } finally {
+      setDeletingClientId(null)
+    }
+  }
+
   const itaCount = clients.filter((c) => c.stage === 'ITA Window').length
 
   return (
@@ -270,7 +282,7 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
           <table className="admin-table crm-table">
             <thead>
               <tr>
-                {['Name', 'Email', 'Service Tier', 'Stage', 'Added', 'Notes', 'Docs'].map((h) => (
+                {['Name', 'Email', 'Service Tier', 'Stage', 'Added', 'Notes', 'Docs', ''].map((h) => (
                   <th key={h}>{h}</th>
                 ))}
               </tr>
@@ -392,6 +404,18 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                         onClick={() => openDocsModal(client.id, client.name)}
                       >
                         Docs{count > 0 ? ` (${count})` : ''}
+                      </button>
+                    </td>
+
+                    {/* Delete */}
+                    <td className="crm-delete-col">
+                      <button
+                        className="crm-delete-btn"
+                        onClick={() => handleDeleteClient(client.id, client.name)}
+                        disabled={deletingClientId === client.id}
+                        title="Delete client permanently"
+                      >
+                        {deletingClientId === client.id ? '…' : '✕'}
                       </button>
                     </td>
 

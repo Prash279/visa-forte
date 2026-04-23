@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { eq, sql } from 'drizzle-orm'
 import { Resend } from 'resend'
 import { db } from '@/lib/db'
-import { clients } from '../../../../../../drizzle/schema'
+import { clients, clientDocuments } from '../../../../../../drizzle/schema'
 import { getCurrentAuthSession } from '@/lib/auth-server'
 import { UpdateClientSchema } from '@/lib/crm-stages'
+import { deleteFile } from '@/lib/storage'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -95,4 +96,40 @@ export async function PATCH(
     console.error('Client update failed:', err)
     return NextResponse.json({ error: 'Could not update client' }, { status: 500 })
   }
+}
+
+// DELETE /api/admin/clients/[id] — permanently removes the client and all their documents.
+// Blobs are cleaned up first; DB cascade handles the clientDocuments rows.
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
+  const deny = await requireAdmin()
+  if (deny) return deny
+
+  const { id } = await params
+
+  // Fetch all stored blobs for this client so we can clean up Vercel Blob storage.
+  const docs = await db
+    .select()
+    .from(clientDocuments)
+    .where(eq(clientDocuments.clientId, id))
+
+  // Delete blobs — failures are logged but do not block the client deletion.
+  await Promise.allSettled(
+    docs.map((doc) => deleteFile(doc.blobUrl).catch((err) =>
+      console.error(`Blob delete failed for ${doc.blobUrl}:`, err)
+    ))
+  )
+
+  const [deleted] = await db
+    .delete(clients)
+    .where(eq(clients.id, id))
+    .returning()
+
+  if (!deleted) {
+    return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+  }
+
+  return NextResponse.json({ success: true })
 }
