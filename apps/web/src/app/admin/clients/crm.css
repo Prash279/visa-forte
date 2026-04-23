@@ -667,6 +667,31 @@
 .crm-delete-btn:hover { color: #b53d00; opacity: 1; }
 .crm-delete-btn:disabled { opacity: 0.15; cursor: not-allowed; }
 
+/* ── Delete confirmation modal ───────────────────────────── */
+.crm-delete-modal-body {
+  padding: 1.5rem 1.75rem;
+}
+.crm-delete-warning {
+  font-size: 0.875rem;
+  color: var(--ink);
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+.crm-delete-warning strong { color: var(--prussian); font-weight: 700; }
+.crm-delete-confirm-btn {
+  background: #b53d00;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.crm-delete-confirm-btn:hover { opacity: 0.85; }
+.crm-delete-confirm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {
   .crm-toolbar { flex-direction: column; }

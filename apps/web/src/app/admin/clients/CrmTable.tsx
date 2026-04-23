@@ -41,6 +41,9 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
   const [uploadError, setUploadError] = useState('')
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null)
   const [deletingClientId, setDeletingClientId] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteError, setDeleteError] = useState('')
 
   const notesRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -203,12 +206,31 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
     window.open('/api/admin/clients/export', '_blank')
   }
 
-  async function handleDeleteClient(id: string, name: string) {
-    if (!window.confirm(`Permanently delete "${name}"? This removes all their documents too and cannot be undone.`)) return
-    setDeletingClientId(id)
+  function handleDeleteClient(id: string, name: string) {
+    setDeleteTarget({ id, name })
+    setDeletePassword('')
+    setDeleteError('')
+  }
+
+  async function handleConfirmDelete() {
+    if (!deleteTarget) return
+    setDeletingClientId(deleteTarget.id)
+    setDeleteError('')
     try {
-      await fetch(`/api/admin/clients/${id}`, { method: 'DELETE' })
-      setClients((prev) => prev.filter((c) => c.id !== id))
+      const res = await fetch(`/api/admin/clients/${deleteTarget.id}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-delete-password': deletePassword },
+      })
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string }
+        setDeleteError(data.error ?? 'Delete failed. Check your password.')
+        return
+      }
+      setClients((prev) => prev.filter((c) => c.id !== deleteTarget.id))
+      setDeleteTarget(null)
+      setDeletePassword('')
+    } catch {
+      setDeleteError('Network error. Try again.')
     } finally {
       setDeletingClientId(null)
     }
@@ -513,6 +535,65 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete Confirmation Modal ── */}
+      {deleteTarget && (
+        <div
+          className="crm-modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) { setDeleteTarget(null); setDeletePassword('') }
+          }}
+        >
+          <div className="crm-modal crm-delete-modal">
+            <div className="crm-modal-header">
+              <h2 className="crm-modal-title">Delete Client</h2>
+              <button
+                className="crm-modal-close"
+                onClick={() => { setDeleteTarget(null); setDeletePassword('') }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="crm-delete-modal-body">
+              <p className="crm-delete-warning">
+                You are about to permanently delete <strong>{deleteTarget.name}</strong> and all
+                their documents. This cannot be undone.
+              </p>
+              <label className="crm-field-label">
+                Admin Password
+                <input
+                  type="password"
+                  className="crm-field-input"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  placeholder="Enter admin password to confirm"
+                  autoFocus
+                  onKeyDown={(e) => { if (e.key === 'Enter' && deletePassword) handleConfirmDelete() }}
+                />
+              </label>
+              {deleteError && <p className="crm-form-error">{deleteError}</p>}
+            </div>
+
+            <div className="crm-modal-footer">
+              <button
+                type="button"
+                className="crm-modal-cancel-btn"
+                onClick={() => { setDeleteTarget(null); setDeletePassword('') }}
+              >
+                Cancel
+              </button>
+              <button
+                className="crm-delete-confirm-btn"
+                onClick={handleConfirmDelete}
+                disabled={!deletePassword || deletingClientId === deleteTarget.id}
+              >
+                {deletingClientId === deleteTarget.id ? 'Deleting…' : 'Delete Permanently'}
+              </button>
+            </div>
           </div>
         </div>
       )}

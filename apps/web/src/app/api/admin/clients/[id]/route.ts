@@ -99,13 +99,20 @@ export async function PATCH(
 }
 
 // DELETE /api/admin/clients/[id] — permanently removes the client and all their documents.
+// Requires x-admin-delete-password header matching ADMIN_DELETE_PASSWORD env var.
 // Blobs are cleaned up first; DB cascade handles the clientDocuments rows.
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   const deny = await requireAdmin()
   if (deny) return deny
+
+  const adminDeletePassword = process.env.ADMIN_DELETE_PASSWORD ?? ''
+  const providedPassword = req.headers.get('x-admin-delete-password') ?? ''
+  if (!adminDeletePassword || providedPassword !== adminDeletePassword) {
+    return NextResponse.json({ error: 'Invalid password' }, { status: 401 })
+  }
 
   const { id } = await params
 
