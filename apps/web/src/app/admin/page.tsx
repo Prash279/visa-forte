@@ -258,7 +258,7 @@ export default async function AdminPage() {
           <span className="admin-section-rule" />
         </div>
         <div className="admin-tools">
-          <a href="/admin/crm" className="admin-tool-card">
+          <a href="/admin/clients" className="admin-tool-card">
             <p className="admin-tool-name">Client CRM</p>
             <p className="admin-tool-desc">Manage your client pipeline across 9 stages from Lead to Completed. Edit stages inline, add private notes, and track ITA Window clients at a glance.</p>
             <span className="admin-tool-cta">Open CRM →</span>

@@ -6,6 +6,11 @@ import { users, sessions, accounts, verifications } from "../../drizzle/schema";
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  trustedOrigins: [
+    "http://localhost:3000",
+    "https://visaforte.com",
+    "https://www.visaforte.com",
+  ],
   basePath: "/api/auth",
   database: drizzleAdapter(db, {
     provider: "pg",

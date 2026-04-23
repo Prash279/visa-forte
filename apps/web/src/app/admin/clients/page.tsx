@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { clients } from '../../../../drizzle/schema'
 import { PRICING } from '@/lib/pricing'
 import CrmTable from './CrmTable'
+import '../admin.css'
 import './crm.css'
 
 export default async function CrmPage() {

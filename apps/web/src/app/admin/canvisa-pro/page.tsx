@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getCurrentAuthSession } from '@/lib/auth-server'
 import CanVisaProTool from './CanVisaProTool'
+import '../admin.css'
 
 export const metadata = { title: 'CanVisa Pro — Visa Forte Consultant' }
 

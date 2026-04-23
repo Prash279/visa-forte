@@ -30,7 +30,7 @@ export default function PromoteButton({ leadId, alreadyPromoted }: Props) {
 
   if (status === 'done') {
     return (
-      <a href="/admin/crm" className="admin-promote-done">
+      <a href="/admin/clients" className="admin-promote-done">
         ✓ In CRM →
       </a>
     )

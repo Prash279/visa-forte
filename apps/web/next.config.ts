@@ -6,7 +6,12 @@
 import type { NextConfig } from 'next';
 import { withSentryConfig } from '@sentry/nextjs';
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  serverExternalPackages: ['require-in-the-middle', 'import-in-the-middle'],
+  turbopack: {
+    root: __dirname,
+  },
+};
 
 export default withSentryConfig(nextConfig, {
   // Suppress all Sentry build log output — keeps Vercel build logs clean
