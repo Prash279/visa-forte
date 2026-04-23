@@ -559,7 +559,7 @@ CRM UI change:
 ---
 
 ### TASK P2-3: Client Portal MVP
-**Status:** Ready to start — P2-1 and P2-2 complete
+**Status:** ✅ COMPLETE — April 2026
 **What this delivers:** Clients can log in at visaforte.com/portal and see their current pipeline
 stage plus a document upload checklist. Prash controls all client data from the admin CRM — the
 portal is a read-only window into their case status plus a document upload surface.
@@ -668,6 +668,25 @@ portal is a read-only window into their case status plus a document upload surfa
 - [ ] Commit and push → Vercel auto-deploys
 
 ---
+
+---
+
+**Review:**
+Migration 0007: `userId` (nullable FK → users.id, ON DELETE SET NULL) added to `clients`,
+`docType` (nullable text) added to `client_documents`. `document-checklist.ts` exports
+`DOCUMENT_CHECKLIST` (7 tiers × 4–10 items each) and `getChecklist()`. New API route
+`POST /api/admin/clients/[id]/link` creates a Better Auth user (email/password provider, random
+12-char temp password hashed via Better Auth's `hashPassword`) if none exists, sends Resend
+invite email, and sets `clients.userId`. CrmTable: new "Portal" column — "Link Portal" button
+opens modal pre-filled with client email; shows "Portal ✓" badge after linking. `/portal` added
+to middleware matcher. Login page: reads user email from sign-in response and redirects to
+`/admin` or `/portal` accordingly. `POST /api/portal/documents`: client-session-only upload
+route — `clientId` derived from `session.user.id`, `docType` validated against checklist for
+client's service tier, 20 MB limit. `/portal` server page: guards admin redirect, fetches
+linked client + documents, passes data to `PortalDashboard`. `PortalDashboard`: stage badge
+(Saffron highlight for ITA Window), progress bar, per-item upload with optimistic UI. `portal.css`:
+full Visa Forte brand system. `SiteNav` + `SiteFooter` hidden on `/portal` (portal has own header
+and footer). 65 Vitest tests passing (up from 49). TypeScript clean. Deployed.
 
 **Prashant Proof:**
 1. Go to `/admin/clients` — find a client row, click "Link Portal"
