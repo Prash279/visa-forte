@@ -702,6 +702,62 @@ and footer). 65 Vitest tests passing (up from 49). TypeScript clean. Deployed.
 
 ---
 
+### TASK P2-3B: Portal Access Gated to Paid Clients (Magic Link on Payment)
+**Status:** In Progress — April 2026
+**What this delivers:** Portal access is automatically granted only after a client pays. The admin
+"Link Portal" button is unchanged and stays available for manually-added CRM clients. For booking
+clients, the flow is fully automatic: pay → magic link email → set password → portal access.
+
+**Architecture:** Magic link stored as a UUID token on the `bookings` row (2 new nullable columns:
+`portalToken`, `portalTokenExpiresAt`). Token is single-use and expires in 7 days. The activation
+page lives at `/activate` (outside `/portal/*` middleware protection) so the unauthenticated client
+can reach it. After setting a password, the client is automatically signed in and redirected to `/portal`.
+
+**Why not a temp password in email:** Credentials in email is a security anti-pattern. The magic link
+contains no credentials — the client sets their own password on activation. Nothing sensitive in the email.
+
+**Activation flow:**
+1. Client pays via Razorpay → `/api/payment/verify` generates UUID token, stores on booking row, emails client
+2. Client clicks `visaforte.com/activate?token=<uuid>` — page validates token from DB
+3. If valid: show "Activate Your Portal" form with name/email (read-only) + password fields
+4. Client sets password → POST `/api/portal/activate` → creates Better Auth user + clients CRM row → clears token
+5. Client is auto-signed in via `/api/auth/sign-in/email` → redirected to `/portal`
+
+**DB changes (migration 0008):**
+- `bookings.portal_token` — text, nullable, unique
+- `bookings.portal_token_expires_at` — timestamp, nullable
+
+**New files:**
+- `apps/web/src/app/activate/page.tsx` — server component (token validation)
+- `apps/web/src/app/activate/ActivateForm.tsx` — client component (password form + auto-signin)
+- `apps/web/src/app/api/portal/activate/route.ts` — POST: create user + client row, clear token
+
+**Modified files (surgical — no other changes):**
+- `apps/web/drizzle/schema.ts` — 2 new columns on bookings
+- `apps/web/src/app/api/payment/verify/route.ts` — generate token + send client email after booking insert
+
+**Steps:**
+- [x] Write plan to todo.md
+- [ ] Add `portalToken` + `portalTokenExpiresAt` columns to `bookings` in schema.ts
+- [ ] Run `drizzle-kit generate` + `drizzle-kit migrate` → migration 0008 applied to Neon
+- [ ] Update `/api/payment/verify` — add token generation + client activation email
+- [ ] Create `/activate/page.tsx` — server component validates token, renders ActivateForm
+- [ ] Create `/activate/ActivateForm.tsx` — password form, calls activate API + auto-signin
+- [ ] Create `/api/portal/activate/route.ts` — POST: validate token, create user, create/link client row, clear token
+- [ ] `npx tsc --noEmit` — zero errors
+- [ ] Commit and push → Vercel auto-deploys
+
+**Prashant Proof:**
+1. Go to `/booking` in incognito — fill all fields, pay with test card
+2. After payment success, check the email address used in the booking for a portal activation email
+3. Click the activation link in the email — confirm you land at `/activate` with your name and service tier shown
+4. Set a password → click "Activate Portal →"
+5. Confirm you are automatically redirected to `/portal` and see your dashboard
+6. Sign out → go to `/login` → log in with that email + password → confirm you reach `/portal` again
+7. Go to `/admin/clients` — confirm the client row was auto-created and shows "Active Client" link
+
+---
+
 ### TASK P2-4: Admin Dashboard Enhancement (Pipeline Overview + Booking Calendar)
 **Status:** Deferred until P2-3 is live and tested
 **What this delivers:** The admin homepage shows a CRM pipeline funnel (client counts by stage)

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createHmac } from 'crypto';
+import { createHmac, randomUUID } from 'crypto';
 import { eq } from 'drizzle-orm';
 import { Resend } from 'resend';
 import { db } from '@/lib/db';
@@ -74,8 +74,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // ── Save booking ────────────────────────────────────────────────────────────
+  // ── Save booking (with portal activation token) ─────────────────────────────
   const amountPaid = getAmountInSmallestUnit(serviceTier, currency);
+  // Generate a single-use token so the client can activate their portal account.
+  // The token expires in 7 days and is cleared from the DB on first use.
+  const portalToken = randomUUID();
+  const portalTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   try {
     await db.insert(bookings).values({
@@ -90,6 +94,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       amountPaid,
       paymentStatus: 'paid',
       status: 'pending',
+      portalToken,
+      portalTokenExpiresAt,
     });
   } catch (err) {
     console.error('Booking insert failed after payment:', err);
@@ -99,9 +105,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://visaforte.com';
+  const displayPrice = formatPrice(serviceTier, currency);
+
   // ── Notify Prash via email ──────────────────────────────────────────────────
   // Email failure is non-fatal — booking is already in the DB.
-  const displayPrice = formatPrice(serviceTier, currency);
   try {
     await resend.emails.send({
       from: 'Visa Forte <noreply@visaforte.com>',
@@ -120,13 +128,56 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             <tr><td style="padding:8px 0;color:#666;vertical-align:top;">Query</td><td style="padding:8px 0;line-height:1.6;white-space:pre-wrap;">${query}</td></tr>
           </table>
           <p style="margin-top:24px;">
-            <a href="https://visaforte.com/admin" style="color:#c97b1e;">View all bookings in your dashboard →</a>
+            <a href="${siteUrl}/admin" style="color:#c97b1e;">View all bookings in your dashboard →</a>
           </p>
         </div>
       `,
     });
   } catch (err) {
-    console.error('Resend notification failed:', err);
+    console.error('Resend notification to Prash failed:', err);
+  }
+
+  // ── Send portal activation email to client ──────────────────────────────────
+  // Contains a single-use magic link — no credentials, no password in email.
+  // The client sets their own password on the activation page.
+  const activationUrl = `${siteUrl}/activate?token=${portalToken}`;
+  try {
+    await resend.emails.send({
+      from: 'Visa Forte <noreply@visaforte.com>',
+      to: email,
+      subject: 'Your Visa Forte consultation is confirmed — activate your client portal',
+      html: `
+        <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1A1A2E;">
+          <h2 style="color:#0C2340;margin-bottom:4px;">Your consultation is confirmed.</h2>
+          <div style="width:40px;height:2px;background:#C97B1E;margin-bottom:24px;"></div>
+          <p style="margin:0 0 8px;">Dear ${name},</p>
+          <p style="margin:0 0 24px;line-height:1.7;color:#444;">
+            Your payment for <strong>${serviceTier}</strong> on <strong>${bookingDate}</strong>
+            has been received. Prashant will be in touch to confirm your consultation details.
+          </p>
+          <p style="margin:0 0 12px;line-height:1.7;color:#444;">
+            You can now activate your Visa Forte client portal to track your case status
+            and upload the required documents for your consultation:
+          </p>
+          <a href="${activationUrl}"
+             style="display:inline-block;padding:14px 28px;background:#0C2340;color:#fff;
+                    text-decoration:none;border-radius:4px;font-weight:600;
+                    letter-spacing:0.04em;margin-bottom:24px;">
+            Activate My Portal →
+          </a>
+          <p style="margin:0 0 24px;font-size:0.825rem;color:#999;line-height:1.6;">
+            This link is valid for 7 days and can only be used once. If it expires,
+            please contact <a href="mailto:prashant@visaforte.com" style="color:#C97B1E;">prashant@visaforte.com</a>.
+          </p>
+          <hr style="border:none;border-top:1px solid #eee;margin:24px 0;" />
+          <p style="margin:0;font-size:0.8rem;color:#aaa;">
+            Visa Forte · Engineered for Passage. · Secunderabad, India
+          </p>
+        </div>
+      `,
+    });
+  } catch (err) {
+    console.error('Portal activation email to client failed:', err);
   }
 
   return NextResponse.json({ success: true }, { status: 201 });

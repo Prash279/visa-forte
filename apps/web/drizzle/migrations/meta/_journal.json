@@ -57,6 +57,13 @@
       "when": 1776966780143,
       "tag": "0007_thankful_blue_blade",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1777058168935,
+      "tag": "0008_misty_ken_ellis",
+      "breakpoints": true
     }
   ]
 }

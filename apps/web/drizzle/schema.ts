@@ -99,6 +99,9 @@ export const bookings = pgTable('bookings', {
   amountPaid: integer('amount_paid').notNull().default(0), // in smallest unit: paise (INR) or cents (USD)
   paymentStatus: text('payment_status').notNull().default('pending'), // 'pending' | 'paid'
   status: text('status').notNull().default('pending'),  // 'pending' | 'confirmed' | 'cancelled'
+  // Portal activation — generated after payment, cleared after first use (single-use)
+  portalToken: text('portal_token').unique(),
+  portalTokenExpiresAt: timestamp('portal_token_expires_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
