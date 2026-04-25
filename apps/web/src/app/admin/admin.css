@@ -481,6 +481,263 @@
 }
 .admin-promote-done:hover { text-decoration: underline; }
 
+/* ── Pipeline Overview strip ─────────────────────────────── */
+.admin-pipeline {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 3.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  /* Subtle scrollbar on overflow for large monitors */
+  scrollbar-width: thin;
+}
+
+.admin-pipeline-card {
+  flex: 0 0 auto;
+  background: white;
+  border-top: 2px solid var(--sand);
+  padding: 1.25rem 1.375rem;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 6.5rem;
+  transition: border-top-color 0.15s ease;
+}
+
+.admin-pipeline-card:hover {
+  border-top-color: var(--prussian);
+}
+
+.admin-pipeline-card-ita {
+  border-top-color: var(--saffron);
+}
+
+.admin-pipeline-stage {
+  font-family: var(--font-body);
+  font-size: 0.5625rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.42;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.admin-pipeline-count {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  line-height: 1;
+  color: var(--prussian);
+  font-weight: 400;
+}
+
+.admin-pipeline-count-ita {
+  color: var(--saffron);
+}
+
+/* ── Booking Calendar ────────────────────────────────────── */
+.booking-calendar {
+  background: white;
+  padding: 1.75rem;
+  margin-bottom: 3.5rem;
+}
+
+.booking-cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.booking-cal-month-label {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 400;
+  color: var(--prussian);
+  font-style: italic;
+}
+
+.booking-cal-nav-btn {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--teal);
+  background: none;
+  border: 1px solid var(--teal);
+  padding: 0.3rem 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.booking-cal-nav-btn:hover {
+  background: var(--teal);
+  color: var(--pearl);
+}
+
+/* 7-column grid for the calendar — DOW headers + day cells share the same grid */
+.booking-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 0;
+}
+
+/* Day-of-week header cells */
+.booking-cal-dow {
+  font-family: var(--font-body);
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.35;
+  text-align: center;
+  padding: 0.625rem 0 0.875rem;
+}
+
+/* Standard day cell */
+.booking-cal-cell {
+  min-height: 4.5rem;
+  padding: 0.5rem 0.625rem;
+  background: rgba(248, 244, 238, 0.45);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+}
+
+/* Empty padding cells (days before month starts / after month ends) */
+.booking-cal-cell-empty {
+  background: transparent;
+  min-height: 4.5rem;
+}
+
+/* Day number label */
+.booking-cal-day-num {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--ink);
+  opacity: 0.45;
+  font-weight: 400;
+  line-height: 1;
+}
+
+/* Today: saffron day number */
+.booking-cal-cell-today .booking-cal-day-num {
+  color: var(--saffron);
+  opacity: 1;
+  font-weight: 700;
+}
+
+/* Days that have at least one booking: pointer cursor + hover tint */
+.booking-cal-cell-has-bookings {
+  cursor: pointer;
+}
+
+.booking-cal-cell-has-bookings:hover {
+  background: rgba(12, 35, 64, 0.055);
+}
+
+/* Selected day: prussian outline */
+.booking-cal-cell-selected {
+  background: rgba(12, 35, 64, 0.075);
+  outline: 2px solid var(--prussian);
+  outline-offset: -2px;
+}
+
+/* Saffron booking count badge */
+.booking-cal-count {
+  font-family: var(--font-body);
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background: var(--saffron);
+  color: white;
+  padding: 0.175rem 0.4rem;
+  display: inline-block;
+}
+
+/* ── Day detail panel ────────────────────────────────────── */
+.booking-cal-detail {
+  border-top: 1px solid var(--sand);
+  margin-top: 1rem;
+  padding-top: 1.25rem;
+}
+
+.booking-cal-detail-heading {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.4;
+  margin-bottom: 1rem;
+}
+
+.booking-cal-detail-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.booking-cal-detail-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 1.25rem;
+  align-items: center;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid var(--sand);
+}
+
+.booking-cal-detail-row:last-child {
+  border-bottom: none;
+}
+
+.booking-cal-detail-client {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.booking-cal-detail-name {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--prussian);
+}
+
+.booking-cal-detail-email {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--teal);
+  text-decoration: none;
+}
+
+.booking-cal-detail-email:hover { text-decoration: underline; }
+
+.booking-cal-detail-service {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: var(--ink);
+  opacity: 0.62;
+}
+
+.booking-cal-detail-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  flex-shrink: 0;
+}
+
+.booking-cal-detail-amount {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--ink);
+  opacity: 0.42;
+  white-space: nowrap;
+}
+
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {
   .admin-tools { grid-template-columns: 1fr; }
@@ -489,4 +746,13 @@
   .admin-stat-value { font-size: 3.25rem; }
   .admin-welcome-heading { font-size: 2.5rem; }
   .admin-header-email { display: none; }
+
+  .booking-cal-cell { min-height: 3rem; padding: 0.375rem; }
+  .booking-cal-dow { font-size: 0.5rem; padding: 0.5rem 0 0.625rem; }
+  .booking-cal-month-label { font-size: 1.125rem; }
+  .booking-cal-detail-row { grid-template-columns: 1fr; gap: 0.375rem; }
+  .booking-cal-detail-meta { justify-content: flex-start; }
+
+  .admin-pipeline-card { min-width: 5.5rem; padding: 1rem 1rem; }
+  .admin-pipeline-count { font-size: 2rem; }
 }

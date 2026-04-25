@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
-import { and, gte, lte, desc } from "drizzle-orm";
+import { and, gte, lte, desc, sql } from "drizzle-orm";
 import { getCurrentAuthSession } from "@/lib/auth-server";
 import SignOutButton from "./SignOutButton";
 import PromoteButton from "./PromoteButton";
+import BookingCalendar from "./BookingCalendar";
 import { db } from "@/lib/db";
 import { leads, bookings, clients } from "../../../drizzle/schema";
+import { CRM_STAGES } from "@/lib/crm-stages";
 import "./admin.css";
 
 export default async function AdminPage() {
@@ -53,14 +55,44 @@ export default async function AdminPage() {
       )
     );
 
-  // Fetch all CRM clients for the metric card and ITA Window banner.
-  const allClients = await db.select().from(clients).orderBy(desc(clients.createdAt))
-  const itaClients = allClients.filter(c => c.stage === 'ITA Window')
+  // Fetch all CRM clients for the metric card, ITA Window banner, and pipeline overview.
+  const allClients = await db.select().from(clients).orderBy(desc(clients.createdAt));
+  const itaClients = allClients.filter(c => c.stage === 'ITA Window');
 
-  // IST-aware greeting
+  // Count clients per pipeline stage for the Pipeline Overview section.
+  const pipelineRows = await db
+    .select({ stage: clients.stage, count: sql<number>`count(*)::int` })
+    .from(clients)
+    .groupBy(clients.stage);
+
+  // Map to all 9 stages so stages with zero clients still render (no missing card).
+  const stageCountMap = Object.fromEntries(CRM_STAGES.map(s => [s, 0]));
+  for (const row of pipelineRows) {
+    stageCountMap[row.stage] = row.count;
+  }
+
+  // Strip bookings to serializable scalar fields only before passing to the client calendar component.
+  // Excludes createdAt (Date object) — not needed for calendar display.
+  const bookingsForCalendar = allBookings.map(b => ({
+    id: b.id,
+    name: b.name,
+    email: b.email,
+    serviceTier: b.serviceTier,
+    bookingDate: b.bookingDate,     // text column — already a YYYY-MM-DD string
+    paymentStatus: b.paymentStatus,
+    status: b.status,
+    amountPaid: b.amountPaid,
+    currency: b.currency,
+  }));
+
+  // IST-aware greeting and calendar seed values.
   const hour = todayIST.getHours();
   const greeting =
     hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+  const todayStr = fmt(todayIST);
+  const calInitialYear = todayIST.getFullYear();
+  const calInitialMonth = todayIST.getMonth(); // 0-indexed
 
   return (
     <div className="admin-wrap">
@@ -127,6 +159,33 @@ export default async function AdminPage() {
             <p className="admin-stat-value">{upcomingBookings.length}</p>
             <p className="admin-stat-note">Next 7 days</p>
           </div>
+        </div>
+
+        {/* ── Pipeline Overview ── */}
+        <div className="admin-section-header">
+          <span className="admin-section-title">Pipeline Overview</span>
+          <span className="admin-section-rule" />
+          <a href="/admin/clients" className="admin-section-link">Open CRM →</a>
+        </div>
+
+        <div className="admin-pipeline">
+          {CRM_STAGES.map(stage => {
+            const count = stageCountMap[stage] ?? 0;
+            const isITA = stage === 'ITA Window';
+            const itaActive = isITA && count > 0;
+            return (
+              <a
+                key={stage}
+                href="/admin/clients"
+                className={`admin-pipeline-card${itaActive ? ' admin-pipeline-card-ita' : ''}`}
+              >
+                <span className="admin-pipeline-stage">{stage}</span>
+                <span className={`admin-pipeline-count${itaActive ? ' admin-pipeline-count-ita' : ''}`}>
+                  {count}
+                </span>
+              </a>
+            );
+          })}
         </div>
 
         {/* ── New Leads section ── */}
@@ -197,7 +256,7 @@ export default async function AdminPage() {
           </div>
         )}
 
-        {/* ── Bookings section ── */}
+        {/* ── Bookings Calendar ── */}
         <div className="admin-section-header">
           <span className="admin-section-title">
             Bookings
@@ -215,56 +274,12 @@ export default async function AdminPage() {
             <a href="/admin/availability" className="admin-empty-link">Open availability slots →</a>
           </div>
         ) : (
-          <div className="admin-table-wrap">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  {["Name", "Email", "Service", "Date", "Amount", "Payment", "Status"].map((h) => (
-                    <th key={h}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {allBookings.map((booking) => {
-                  // Format amount from smallest unit back to display value.
-                  const amount = booking.currency === 'INR'
-                    ? `₹${(booking.amountPaid / 100).toLocaleString('en-IN')}`
-                    : `$${(booking.amountPaid / 100)}`;
-                  return (
-                    <tr key={booking.id}>
-                      <td><span className="admin-td-name">{booking.name}</span></td>
-                      <td>
-                        <a href={`mailto:${booking.email}`} className="admin-td-email">
-                          {booking.email}
-                        </a>
-                      </td>
-                      <td>
-                        <span className="admin-td-service" title={booking.serviceTier}>
-                          {booking.serviceTier}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="admin-td-date">{booking.bookingDate}</span>
-                      </td>
-                      <td>
-                        <span className="admin-td-date">{booking.amountPaid > 0 ? amount : '—'}</span>
-                      </td>
-                      <td>
-                        <span className={`admin-badge ${booking.paymentStatus === 'paid' ? 'admin-badge-paid' : 'admin-badge-new'}`}>
-                          {booking.paymentStatus}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`admin-badge ${booking.status === "pending" ? "admin-badge-new" : "admin-badge-other"}`}>
-                          {booking.status}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <BookingCalendar
+            bookings={bookingsForCalendar}
+            initialYear={calInitialYear}
+            initialMonth={calInitialMonth}
+            today={todayStr}
+          />
         )}
 
         {/* ── Tools section ── */}

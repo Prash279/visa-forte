@@ -759,16 +759,86 @@ contains no credentials — the client sets their own password on activation. No
 ---
 
 ### TASK P2-4: Admin Dashboard Enhancement (Pipeline Overview + Booking Calendar)
-**Status:** Deferred until P2-3 is live and tested
+**Status:** In Progress — April 2026
 **What this delivers:** The admin homepage shows a CRM pipeline funnel (client counts by stage)
-and a proper calendar view of upcoming bookings.
+and a proper month-view calendar of all bookings. Both sections replace the current flat list/table
+approach with a more actionable visual format.
 
-**Plan (high-level — detail written before code):**
-- [ ] Pipeline summary cards on `/admin`: client counts per stage (Lead: 3, Active Client: 2, etc.)
-- [ ] ITA Window count shown as red badge if count > 0
-- [ ] Booking calendar: replace the current bookings table with a month-view calendar
-      (custom-built, no third-party calendar library — just CSS grid + booking data)
-- [ ] Each calendar day shows the booking count; click to see the list for that day
+---
+
+**Feature 1 — Pipeline Overview section**
+
+A horizontal strip of 9 compact cards, one per CRM stage, inserted between the existing metric cards
+and the New Leads section. Each card shows the stage name and the count of clients in that stage.
+ITA Window card gets a saffron count number and border if count > 0 (reinforces urgency without
+duplicating the existing ITA banner).
+
+Server-side query: `GROUP BY stage COUNT(*)` on the `clients` table. Map to all 9 CRM_STAGES
+so stages with zero clients still render as "0" (no missing card).
+
+No new API route needed — data is fetched in the existing `/admin` server component.
+
+---
+
+**Feature 2 — Booking Calendar**
+
+Replace the current "Bookings" section table (all-time flat list) with a month-view calendar.
+- Custom-built: CSS Grid, 7 columns, no external calendar library.
+- Navigation: ← Prev / Next → buttons to move between months.
+- Each day cell: shows the day number. If any bookings fall on that date, shows a saffron count badge.
+- Clicking a day with bookings reveals a detail panel below the grid: booking name, email, service
+  tier, payment status badge, and amount paid.
+- Today's date is highlighted (saffron day number).
+- The ← Prev / Next → navigation resets the selected day.
+- The "Upcoming Bookings" metric card (next 7 days count) stays in place — the calendar is a
+  complement, not a replacement for that KPI.
+
+Architecture:
+- `BookingCalendar.tsx` — "use client" component (needs state: currentMonth + selectedDate)
+- Server passes `bookings` array (serializable scalar fields only — no Date objects), `initialYear`,
+  `initialMonth`, `today` (all derived from IST todayIST in the server component)
+- The `createdAt` timestamp is excluded from the props (not needed for calendar display)
+
+---
+
+**Step plan:**
+
+- [x] Step 0 — Write plan to todo.md
+- [ ] Step 1 — Create `apps/web/src/app/admin/BookingCalendar.tsx` ("use client"):
+      - Props: `bookings: BookingForCalendar[]`, `initialYear: number`, `initialMonth: number`, `today: string`
+      - State: `year`, `month`, `selectedDate`
+      - `getCalendarDays(year, month)` → array of day numbers + nulls for padding
+      - Grid: 7-column CSS grid, DOW header row, day cells
+      - Day cell classes: `has-bookings`, `selected`, `today` (conditional)
+      - Clicking a booking day → toggle `selectedDate` → show detail panel
+      - Detail panel: list of bookings for that date with name / email / service / payment badge / amount
+- [ ] Step 2 — Update `apps/web/src/app/admin/page.tsx`:
+      - Import `sql` from `drizzle-orm`
+      - Import `BookingCalendar` and `CRM_STAGES`
+      - Add pipeline counts query: `GROUP BY stage COUNT(*)`
+      - Build `stageCountMap`: all 9 stages mapped to count (0 if absent)
+      - Build `bookingsForCalendar`: `allBookings.map(b => { id, name, email, serviceTier, bookingDate, paymentStatus, status, amountPaid, currency })`
+      - Add "Pipeline Overview" section (after metrics, before Leads)
+      - Replace Bookings table with `<BookingCalendar />` (keep section header)
+- [ ] Step 3 — Update `apps/web/src/app/admin/admin.css`:
+      - Pipeline strip: flex, horizontal scroll, compact cards, saffron ITA highlight
+      - Calendar wrapper, nav bar, CSS grid, DOW headers, day cells, count badge, today highlight
+      - Detail panel: border-top, row grid layout, name/email/service/meta layout
+- [ ] Step 4 — `npx tsc --noEmit` — zero errors
+- [ ] Step 5 — Commit and push → Vercel auto-deploys
+
+---
+
+**Prashant Proof:**
+1. Go to visaforte.com/admin — confirm the "Pipeline Overview" strip appears between metrics and New Leads
+2. Count the cards — confirm all 9 stages appear, each with a number (0 or actual count)
+3. If any client is in ITA Window, confirm that card has a saffron count number
+4. Scroll to the Bookings section — confirm the flat table is gone and a calendar grid appears
+5. Confirm the current month and year are shown in the header
+6. Click ← Prev — confirm the calendar moves to the previous month
+7. Click Next → — confirm it returns to the current month
+8. If any day has bookings, click it — confirm a detail panel appears below the grid with booking details
+9. Click the same day again — confirm the detail panel collapses
 
 ---
 
