@@ -759,7 +759,7 @@ contains no credentials — the client sets their own password on activation. No
 ---
 
 ### TASK P2-4: Admin Dashboard Enhancement (Pipeline Overview + Booking Calendar)
-**Status:** In Progress — April 2026
+**Status:** ✅ COMPLETE — April 2026
 **What this delivers:** The admin homepage shows a CRM pipeline funnel (client counts by stage)
 and a proper month-view calendar of all bookings. Both sections replace the current flat list/table
 approach with a more actionable visual format.
@@ -804,30 +804,28 @@ Architecture:
 **Step plan:**
 
 - [x] Step 0 — Write plan to todo.md
-- [ ] Step 1 — Create `apps/web/src/app/admin/BookingCalendar.tsx` ("use client"):
-      - Props: `bookings: BookingForCalendar[]`, `initialYear: number`, `initialMonth: number`, `today: string`
-      - State: `year`, `month`, `selectedDate`
-      - `getCalendarDays(year, month)` → array of day numbers + nulls for padding
-      - Grid: 7-column CSS grid, DOW header row, day cells
-      - Day cell classes: `has-bookings`, `selected`, `today` (conditional)
-      - Clicking a booking day → toggle `selectedDate` → show detail panel
-      - Detail panel: list of bookings for that date with name / email / service / payment badge / amount
-- [ ] Step 2 — Update `apps/web/src/app/admin/page.tsx`:
-      - Import `sql` from `drizzle-orm`
-      - Import `BookingCalendar` and `CRM_STAGES`
-      - Add pipeline counts query: `GROUP BY stage COUNT(*)`
-      - Build `stageCountMap`: all 9 stages mapped to count (0 if absent)
-      - Build `bookingsForCalendar`: `allBookings.map(b => { id, name, email, serviceTier, bookingDate, paymentStatus, status, amountPaid, currency })`
-      - Add "Pipeline Overview" section (after metrics, before Leads)
-      - Replace Bookings table with `<BookingCalendar />` (keep section header)
-- [ ] Step 3 — Update `apps/web/src/app/admin/admin.css`:
-      - Pipeline strip: flex, horizontal scroll, compact cards, saffron ITA highlight
-      - Calendar wrapper, nav bar, CSS grid, DOW headers, day cells, count badge, today highlight
-      - Detail panel: border-top, row grid layout, name/email/service/meta layout
-- [ ] Step 4 — `npx tsc --noEmit` — zero errors
-- [ ] Step 5 — Commit and push → Vercel auto-deploys
+- [x] Step 1 — Create `apps/web/src/app/admin/BookingCalendar.tsx` ("use client")
+- [x] Step 2 — Update `apps/web/src/app/admin/page.tsx` — pipeline query + calendar integration
+- [x] Step 3 — Update `apps/web/src/app/admin/admin.css` — pipeline + calendar styles
+- [x] Step 4 — `npx tsc --noEmit` — zero errors
+- [x] Step 5 — Commit and push → Vercel auto-deployed
 
 ---
+
+---
+
+**Review:**
+`BookingCalendar.tsx` ("use client"): month-view CSS grid calendar with prev/next navigation,
+saffron count badges on booking days, today date highlighted, click-to-expand detail panel
+(name / email / service / payment badge / amount). Props: `bookings[]`, `initialYear`,
+`initialMonth`, `today` — all scalar/serializable (no Date objects). `admin/page.tsx`: added
+`sql` GROUP BY query for pipeline stage counts, `stageCountMap` fills zero for all 9 stages,
+`bookingsForCalendar` strips `createdAt` before passing to client component. New "Pipeline
+Overview" section (9-card horizontal strip) inserted after metrics, before Leads. Bookings flat
+table replaced with `<BookingCalendar />`. `admin.css`: pipeline strip flex layout + compact cards
+with saffron ITA highlight; calendar grid, DOW headers, cell states (has-bookings, selected,
+today), count badge, detail panel rows. Mobile responsive breakpoints added for both sections.
+TypeScript clean. Deployed.
 
 **Prashant Proof:**
 1. Go to visaforte.com/admin — confirm the "Pipeline Overview" strip appears between metrics and New Leads
