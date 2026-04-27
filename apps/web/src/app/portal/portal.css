@@ -419,3 +419,123 @@
   .portal-progress-bar-track { margin: 0.75rem 1rem 0; }
   .portal-stage-card { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
 }
+
+/* ── Messages section ────────────────────────────────────── */
+.portal-msg-empty {
+  font-size: 0.875rem;
+  color: #999;
+  padding: 1.25rem 0 0.5rem;
+  line-height: 1.6;
+}
+
+.portal-msg-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding-top: 0.75rem;
+}
+
+.portal-msg-bubble {
+  max-width: 85%;
+  padding: 0.875rem 1.125rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.portal-msg-bubble-admin {
+  background: var(--prussian);
+  color: var(--pearl);
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+}
+.portal-msg-bubble-client {
+  background: rgba(201, 123, 30, 0.1);
+  border: 1px solid rgba(201, 123, 30, 0.28);
+  color: var(--ink);
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+}
+.portal-msg-bubble-sender {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin: 0;
+}
+.portal-msg-bubble-admin .portal-msg-bubble-sender { color: var(--pearl); }
+.portal-msg-bubble-client .portal-msg-bubble-sender { color: var(--saffron); }
+
+.portal-msg-bubble-body {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  line-height: 1.65;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.portal-msg-bubble-time {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  opacity: 0.45;
+  margin: 0;
+  text-align: right;
+}
+
+/* Reply form */
+.portal-msg-reply-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(12, 35, 64, 0.08);
+}
+.portal-msg-textarea {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--ink);
+  border: 1px solid rgba(12, 35, 64, 0.2);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  resize: vertical;
+  min-height: 80px;
+  background: #fff;
+  transition: border-color 0.15s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+.portal-msg-textarea:focus {
+  outline: none;
+  border-color: var(--prussian);
+}
+.portal-msg-reply-btn {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: var(--prussian);
+  color: var(--pearl);
+  border: none;
+  border-radius: 5px;
+  padding: 0.625rem 1.25rem;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: opacity 0.15s ease;
+}
+.portal-msg-reply-btn:hover { opacity: 0.85; }
+.portal-msg-reply-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Replied confirmation */
+.portal-msg-replied {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: #1a7a44;
+  font-weight: 600;
+  margin: 0.75rem 0 0;
+  padding: 0.75rem 1rem;
+  background: rgba(26, 122, 68, 0.07);
+  border-radius: 6px;
+}

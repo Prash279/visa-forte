@@ -751,3 +751,112 @@
   .crm-upload-row { flex-direction: column; align-items: stretch; }
   .crm-upload-trigger { max-width: 100%; }
 }
+
+/* ── Message column + button ─────────────────────────────── */
+.crm-msg-col { white-space: nowrap; }
+
+.crm-msg-btn {
+  background: transparent;
+  border: 1px solid rgba(12, 35, 64, 0.25);
+  border-radius: 5px;
+  color: var(--prussian);
+  font-size: 0.875rem;
+  padding: 0.3rem 0.55rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  line-height: 1;
+}
+.crm-msg-btn:hover {
+  background: rgba(12, 35, 64, 0.06);
+  border-color: var(--prussian);
+}
+
+/* ── Message modal ───────────────────────────────────────── */
+.crm-msg-modal { max-height: 80vh; display: flex; flex-direction: column; }
+
+/* Scrollable thread area */
+.crm-msg-thread {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  min-height: 120px;
+  max-height: 320px;
+  border-bottom: 1px solid rgba(12, 35, 64, 0.08);
+}
+
+/* Message bubbles */
+.crm-msg-bubble {
+  max-width: 82%;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.crm-msg-bubble-admin {
+  background: var(--prussian);
+  color: var(--pearl);
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+}
+.crm-msg-bubble-client {
+  background: rgba(201, 123, 30, 0.12);
+  border: 1px solid rgba(201, 123, 30, 0.3);
+  color: var(--ink);
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+}
+.crm-msg-bubble-sender {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.65;
+  margin: 0;
+}
+.crm-msg-bubble-admin .crm-msg-bubble-sender { color: var(--pearl); }
+.crm-msg-bubble-client .crm-msg-bubble-sender { color: var(--saffron); }
+
+.crm-msg-bubble-body {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.crm-msg-bubble-time {
+  font-size: 0.7rem;
+  opacity: 0.5;
+  margin: 0;
+  text-align: right;
+}
+
+/* Compose area */
+.crm-msg-compose {
+  padding: 1.25rem 1.75rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.crm-msg-textarea {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--ink);
+  border: 1px solid rgba(12, 35, 64, 0.2);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  resize: vertical;
+  min-height: 80px;
+  background: #fafaf8;
+  transition: border-color 0.15s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+.crm-msg-textarea:focus {
+  outline: none;
+  border-color: var(--prussian);
+  background: #fff;
+}

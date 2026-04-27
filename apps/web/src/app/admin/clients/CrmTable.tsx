@@ -12,6 +12,17 @@ interface ClientDoc {
   uploadedAt: string | Date
 }
 
+interface MsgRow {
+  id: string
+  clientId: string
+  senderRole: string
+  senderId: string
+  body: string
+  isRead: boolean
+  readAt: string | Date | null
+  createdAt: string | Date
+}
+
 interface Props {
   initialClients: Client[]
   serviceTiers: string[]
@@ -44,6 +55,15 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
   const [deletePassword, setDeletePassword] = useState('')
   const [deleteError, setDeleteError] = useState('')
+
+  // Message modal state
+  const [msgModal, setMsgModal] = useState<{ clientId: string; clientName: string } | null>(null)
+  const [msgThread, setMsgThread] = useState<MsgRow[]>([])
+  const [msgThreadLoading, setMsgThreadLoading] = useState(false)
+  const [msgBody, setMsgBody] = useState('')
+  const [msgSending, setMsgSending] = useState(false)
+  const [msgError, setMsgError] = useState('')
+  const [msgSent, setMsgSent] = useState(false)
 
   // Link-to-portal modal state
   const [linkModal, setLinkModal] = useState<{ clientId: string; email: string } | null>(null)
@@ -255,6 +275,59 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
     }
   }
 
+  async function openMsgModal(clientId: string, clientName: string) {
+    setMsgModal({ clientId, clientName })
+    setMsgBody('')
+    setMsgError('')
+    setMsgSent(false)
+    setMsgThread([])
+    setMsgThreadLoading(true)
+    try {
+      const res = await fetch(`/api/admin/clients/${clientId}/messages`)
+      const data = (await res.json()) as { messages?: MsgRow[] }
+      setMsgThread(data.messages ?? [])
+    } finally {
+      setMsgThreadLoading(false)
+    }
+  }
+
+  function closeMsgModal() {
+    setMsgModal(null)
+    setMsgThread([])
+    setMsgBody('')
+    setMsgError('')
+    setMsgSent(false)
+  }
+
+  async function handleSendMessage(e: React.FormEvent) {
+    e.preventDefault()
+    if (!msgModal || !msgBody.trim()) return
+    setMsgError('')
+    setMsgSending(true)
+    try {
+      const res = await fetch(`/api/admin/clients/${msgModal.clientId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: msgBody.trim() }),
+      })
+      const data = (await res.json()) as { message?: MsgRow; error?: string }
+      if (!res.ok) {
+        setMsgError(data.error ?? 'Failed to send message. Try again.')
+        return
+      }
+      if (data.message) {
+        setMsgThread((prev) => [...prev, data.message as MsgRow])
+      }
+      setMsgBody('')
+      setMsgSent(true)
+      setTimeout(() => setMsgSent(false), 3000)
+    } catch {
+      setMsgError('Network error. Please try again.')
+    } finally {
+      setMsgSending(false)
+    }
+  }
+
   function handleDeleteClient(id: string, name: string) {
     setDeleteTarget({ id, name })
     setDeletePassword('')
@@ -353,7 +426,7 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
           <table className="admin-table crm-table">
             <thead>
               <tr>
-                {['Name', 'Email', 'Service Tier', 'Stage', 'Added', 'Notes', 'Docs', 'Portal', ''].map((h) => (
+                {['Name', 'Email', 'Service Tier', 'Stage', 'Added', 'Notes', 'Docs', 'Msg', 'Portal', ''].map((h) => (
                   <th key={h}>{h}</th>
                 ))}
               </tr>
@@ -475,6 +548,17 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                         onClick={() => openDocsModal(client.id, client.name)}
                       >
                         Docs{count > 0 ? ` (${count})` : ''}
+                      </button>
+                    </td>
+
+                    {/* Message */}
+                    <td className="crm-msg-col">
+                      <button
+                        className="crm-msg-btn"
+                        onClick={() => openMsgModal(client.id, client.name)}
+                        title="Send message to client"
+                      >
+                        ✉
                       </button>
                     </td>
 
@@ -724,6 +808,73 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Message Modal ── */}
+      {msgModal && (
+        <div
+          className="crm-modal-overlay"
+          onClick={(e) => { if (e.target === e.currentTarget) closeMsgModal() }}
+        >
+          <div className="crm-modal crm-msg-modal">
+            <div className="crm-modal-header">
+              <div>
+                <p className="crm-docs-modal-eyebrow">Message</p>
+                <h2 className="crm-modal-title">{msgModal.clientName}</h2>
+              </div>
+              <button className="crm-modal-close" onClick={closeMsgModal}>✕</button>
+            </div>
+
+            {/* Thread */}
+            <div className="crm-msg-thread">
+              {msgThreadLoading ? (
+                <p className="crm-doc-empty">Loading…</p>
+              ) : msgThread.length === 0 ? (
+                <p className="crm-doc-empty">No messages yet. Send the first one below.</p>
+              ) : (
+                msgThread.map((m) => (
+                  <div
+                    key={m.id}
+                    className={`crm-msg-bubble ${m.senderRole === 'admin' ? 'crm-msg-bubble-admin' : 'crm-msg-bubble-client'}`}
+                  >
+                    <p className="crm-msg-bubble-sender">
+                      {m.senderRole === 'admin' ? 'You (Prashant)' : 'Client'}
+                    </p>
+                    <p className="crm-msg-bubble-body">{m.body}</p>
+                    <p className="crm-msg-bubble-time">
+                      {new Date(m.createdAt).toLocaleString('en-IN', {
+                        day: 'numeric', month: 'short', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Compose */}
+            <form className="crm-msg-compose" onSubmit={handleSendMessage}>
+              <textarea
+                className="crm-msg-textarea"
+                placeholder="Write a message to the client…"
+                value={msgBody}
+                onChange={(e) => setMsgBody(e.target.value)}
+                rows={3}
+                maxLength={4000}
+                required
+              />
+              {msgError && <p className="crm-form-error">{msgError}</p>}
+              <div className="crm-modal-footer" style={{ paddingTop: 0 }}>
+                <button type="button" className="crm-modal-cancel-btn" onClick={closeMsgModal}>
+                  Close
+                </button>
+                <button type="submit" className="crm-modal-submit-btn" disabled={msgSending || !msgBody.trim()}>
+                  {msgSending ? 'Sending…' : msgSent ? 'Sent ✓' : 'Send Message'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -1,7 +1,14 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import type { ChecklistItem } from '@/lib/document-checklist'
+
+interface MsgRow {
+  id: string
+  senderRole: string
+  body: string
+  createdAt: string | Date
+}
 
 interface UploadedDoc {
   id: string
@@ -27,11 +34,59 @@ export default function PortalDashboard({ client, checklist, uploadedMap }: Prop
   const fileInputRef = useRef<HTMLInputElement>(null)
   const pendingDocType = useRef<string | null>(null)
 
+  // Messaging state
+  const [msgThread, setMsgThread] = useState<MsgRow[]>([])
+  const [msgLoading, setMsgLoading] = useState(true)
+  const [replyBody, setReplyBody] = useState('')
+  const [replySending, setReplySending] = useState(false)
+  const [replyError, setReplyError] = useState('')
+  const [replied, setReplied] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/portal/messages')
+      .then((r) => r.json())
+      .then((data: { messages?: MsgRow[] }) => {
+        const thread = data.messages ?? []
+        setMsgThread(thread)
+        setReplied(thread.some((m) => m.senderRole === 'client'))
+      })
+      .catch(() => {})
+      .finally(() => setMsgLoading(false))
+  }, [])
+
   const uploadedCount = checklist.filter((item) => uploaded[item.id]).length
   const totalCount = checklist.length
   const progressPct = totalCount > 0 ? Math.round((uploadedCount / totalCount) * 100) : 0
 
   const isIta = client.stage === 'ITA Window'
+
+  async function handleReply(e: React.FormEvent) {
+    e.preventDefault()
+    if (!replyBody.trim()) return
+    setReplyError('')
+    setReplySending(true)
+    try {
+      const res = await fetch('/api/portal/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: replyBody.trim() }),
+      })
+      const data = (await res.json()) as { message?: MsgRow; error?: string }
+      if (!res.ok) {
+        setReplyError(data.error ?? 'Could not send reply. Please try again.')
+        return
+      }
+      if (data.message) {
+        setMsgThread((prev) => [...prev, data.message as MsgRow])
+      }
+      setReplyBody('')
+      setReplied(true)
+    } catch {
+      setReplyError('Network error. Please try again.')
+    } finally {
+      setReplySending(false)
+    }
+  }
 
   function triggerUpload(docTypeId: string) {
     pendingDocType.current = docTypeId
@@ -188,6 +243,66 @@ export default function PortalDashboard({ client, checklist, uploadedMap }: Prop
         accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
         onChange={handleFileChange}
       />
+
+      {/* Messages */}
+      <div className="portal-section">
+        <div className="portal-section-header">
+          <h2 className="portal-section-title">Messages</h2>
+        </div>
+
+        {msgLoading ? (
+          <p className="portal-msg-empty">Loading…</p>
+        ) : msgThread.length === 0 ? (
+          <p className="portal-msg-empty">No messages yet. Prashant will reach out here when needed.</p>
+        ) : (
+          <div className="portal-msg-thread">
+            {msgThread.map((m) => (
+              <div
+                key={m.id}
+                className={`portal-msg-bubble ${m.senderRole === 'admin' ? 'portal-msg-bubble-admin' : 'portal-msg-bubble-client'}`}
+              >
+                <p className="portal-msg-bubble-sender">
+                  {m.senderRole === 'admin' ? 'Prashant' : 'You'}
+                </p>
+                <p className="portal-msg-bubble-body">{m.body}</p>
+                <p className="portal-msg-bubble-time">
+                  {new Date(m.createdAt).toLocaleString('en-IN', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit',
+                  })}
+                </p>
+              </div>
+            ))}
+
+            {/* Reply form — shown only if there's an admin message and client hasn't replied yet */}
+            {msgThread.some((m) => m.senderRole === 'admin') && (
+              replied ? (
+                <p className="portal-msg-replied">Replied ✓ — Prashant will get back to you soon.</p>
+              ) : (
+                <form className="portal-msg-reply-form" onSubmit={handleReply}>
+                  <textarea
+                    className="portal-msg-textarea"
+                    placeholder="Type your reply…"
+                    value={replyBody}
+                    onChange={(e) => setReplyBody(e.target.value)}
+                    rows={3}
+                    maxLength={4000}
+                    required
+                  />
+                  {replyError && <p className="portal-upload-error">{replyError}</p>}
+                  <button
+                    type="submit"
+                    className="portal-msg-reply-btn"
+                    disabled={replySending || !replyBody.trim()}
+                  >
+                    {replySending ? 'Sending…' : 'Send Reply'}
+                  </button>
+                </form>
+              )
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Footer */}
       <div className="portal-footer">

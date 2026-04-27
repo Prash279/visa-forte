@@ -703,7 +703,7 @@ and footer). 65 Vitest tests passing (up from 49). TypeScript clean. Deployed.
 ---
 
 ### TASK P2-3B: Portal Access Gated to Paid Clients (Magic Link on Payment)
-**Status:** In Progress — April 2026
+**Status:** ✅ COMPLETE — April 2026
 **What this delivers:** Portal access is automatically granted only after a client pays. The admin
 "Link Portal" button is unchanged and stays available for manually-added CRM clients. For booking
 clients, the flow is fully automatic: pay → magic link email → set password → portal access.
@@ -738,14 +738,14 @@ contains no credentials — the client sets their own password on activation. No
 
 **Steps:**
 - [x] Write plan to todo.md
-- [ ] Add `portalToken` + `portalTokenExpiresAt` columns to `bookings` in schema.ts
-- [ ] Run `drizzle-kit generate` + `drizzle-kit migrate` → migration 0008 applied to Neon
-- [ ] Update `/api/payment/verify` — add token generation + client activation email
-- [ ] Create `/activate/page.tsx` — server component validates token, renders ActivateForm
-- [ ] Create `/activate/ActivateForm.tsx` — password form, calls activate API + auto-signin
-- [ ] Create `/api/portal/activate/route.ts` — POST: validate token, create user, create/link client row, clear token
-- [ ] `npx tsc --noEmit` — zero errors
-- [ ] Commit and push → Vercel auto-deploys
+- [x] Add `portalToken` + `portalTokenExpiresAt` columns to `bookings` in schema.ts
+- [x] Run `drizzle-kit generate` + `drizzle-kit migrate` → migration 0008 applied to Neon
+- [x] Update `/api/payment/verify` — add token generation + client activation email
+- [x] Create `/activate/page.tsx` — server component validates token, renders ActivateForm
+- [x] Create `/activate/ActivateForm.tsx` — password form, calls activate API + auto-signin
+- [x] Create `/api/portal/activate/route.ts` — POST: validate token, create user, create/link client row, clear token
+- [x] `npx tsc --noEmit` — zero errors
+- [x] Commit and push → Vercel auto-deploys
 
 **Prashant Proof:**
 1. Go to `/booking` in incognito — fill all fields, pay with test card
@@ -859,6 +859,359 @@ Per `spec.md §8`, DPDP consent interface and automated deletion cron are Phase 
 | Task 4 | Razorpay payment — pay-first flow, HMAC verify, INR/USD toggle, admin payment columns | April 2026 |
 | Task 8 | CI/CD (GitHub Actions), structured logger, /api/health, GlitchTip error tracking | April 2026 |
 | Task 5 | Vercel Blob storage — uploadFile, deleteFile, generateDownloadUrl + 3 unit tests | April 2026 |
+
+---
+
+---
+
+## Phase 3 — Communication & Automation (Plan — Awaiting Prash Approval)
+
+**Prerequisite:** Task P3-2B (portal access gating via magic link) is currently In Progress and must be completed before Phase 3 build begins.
+
+**Phase 3 scope (from spec.md §8):**
+1. Messaging system
+2. Automated email notifications (booking confirmation, SLA reminders)
+3. DPDP consent interface + automated deletion cron
+4. Post-submission monitoring workflow
+
+**Hosting:** Stays on Vercel throughout Phase 3. The deletion cron runs as a Vercel Cron job (TypeScript API route) — no FastAPI, no Render migration needed. `render.yaml` is written and ready; Render migration is deferred to when FastAPI is genuinely needed (Phase 4 or when CanVisa Pro gets a server-side Python AI component).
+
+**Build sequence:**
+1. Complete P3-2B (open task, Phase 2 carryover)
+2. P3-1: Messaging System MVP → Full
+3. P3-2: Automated Email Notifications
+4. P3-3: DPDP Consent Interface + Deletion Cron
+5. P3-4: Post-Submission Monitoring Workflow
+
+---
+
+### TASK P3-1: Messaging System
+
+**Status:** ✅ COMPLETE (MVP v1) — April 2026
+**Stack:** Next.js + Drizzle + Vercel (no FastAPI needed)
+
+**What this delivers (MVP v1):**
+Prash sends a message to any client from the admin CRM. The client sees it on their portal dashboard and can reply once. No threading, no attachments, no SLA indicators in v1.
+
+**What this delivers (Full, built after MVP is stable):**
+Threaded messages per case. Read receipts. File attachments via Vercel Blob. Transcript download via signed URL (per security.md §5). SLA indicators in Prash's admin view.
+
+---
+
+**Data model — new `messages` table (migration 0009):**
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid PK | auto-generated |
+| clientId | uuid FK → clients.id | CASCADE on delete |
+| senderRole | text NOT NULL | `'admin'` or `'client'` |
+| senderId | text NOT NULL | admin email or Better Auth user.id |
+| body | text NOT NULL | message content |
+| isRead | boolean DEFAULT false | flips when recipient views it |
+| readAt | timestamp | nullable — set when isRead flips |
+| createdAt | timestamp | auto-set |
+
+---
+
+**MVP step plan:**
+
+- [x] Step 1 — DB: add `messages` table to `schema.ts`, run `drizzle-kit generate` + `drizzle-kit migrate` (migration 0009)
+- [x] Step 2 — API: `POST /api/admin/clients/[id]/messages` — admin sends a message (admin session required, Zod-validate body)
+- [x] Step 3 — API: `GET /api/admin/clients/[id]/messages` — admin lists all messages for a client (admin session required)
+- [x] Step 4 — API: `POST /api/portal/messages` — client sends a reply (client session required; derive clientId from session — never from request body; enforce one-reply-per-thread limit in MVP)
+- [x] Step 5 — API: `GET /api/portal/messages` — client views their messages (session-derived clientId)
+- [x] Step 6 — CRM UI: add "Message" button per client row in `CrmTable.tsx`; click opens a compose modal with a textarea + Send; after send, modal shows "Sent ✓"
+- [x] Step 7 — Admin message list: in the compose modal (or a separate panel), show the full message thread for that client — admin message, then any client reply
+- [x] Step 8 — Portal UI: add a "Messages" card to `PortalDashboard.tsx` — shows latest unread message from Prash (Prussian blue card, Saffron border if unread); reply textarea shown below if client has not yet replied; if replied, show "Replied ✓"
+- [x] Step 9 — `portal.css` + `crm.css`: message card, compose modal, reply thread styles
+- [x] Step 10 — Vitest: tests for message route Zod schemas (invalid body, missing clientId, client session impersonation attempt)
+- [x] Step 11 — `npx tsc --noEmit` — zero errors; commit + push
+
+---
+
+**Review:**
+`messages` table in Neon (8 columns, migration 0009 applied). `GET` + `POST /api/admin/clients/[id]/messages`:
+admin-session-only routes — GET returns full thread ordered by `createdAt ASC`, POST inserts with
+`senderRole: 'admin'`. `GET` + `POST /api/portal/messages`: client-session-only routes — `clientId`
+always derived from `session.user.id` (IDOR prevention), POST enforces one-reply-per-thread in MVP.
+`CrmTable.tsx`: `MsgRow` type, message state + handlers, "✉" button per row opens a compose modal
+with scrollable thread (Prussian admin bubbles / Saffron-bordered client bubbles) + textarea compose form.
+`PortalDashboard.tsx`: `useEffect` fetches thread on mount, Messages section shows all bubbles,
+reply form appears if admin has sent at least one message and client hasn't replied; "Replied ✓"
+confirmation shown after first reply. `crm.css` + `portal.css`: bubble layout, sender labels,
+timestamps, reply form, "Replied ✓" badge — all Visa Forte brand. 77 Vitest tests passing (up from 65).
+`messages.test.ts`: 9 tests covering admin schema validation, client reply schema, and one-reply logic.
+TypeScript clean. Committed and pushed — Vercel auto-deploys.
+
+**Prashant Proof (MVP):**
+1. Go to `/admin/crm` — click "✉" on any client row
+2. Type a test message → click Send — confirm modal shows "Sent ✓" and the message appears in the thread
+3. Open incognito → log in as that client → go to `/portal`
+4. Confirm the Messages section appears at the bottom with your message in a Prussian blue bubble
+5. Type a reply → click Reply — confirm "Replied ✓" appears
+6. Back in admin `/admin/crm` → open the Message modal for that client — confirm the client's reply is visible in the thread
+
+---
+
+**Full messaging additions (after MVP is live and tested):**
+
+- [ ] Step 12 — Threading: group messages chronologically per client; admin can reply to a client's reply; remove one-reply limit
+- [ ] Step 13 — Read receipts: when client opens the portal and the Messages card renders, call `PATCH /api/portal/messages/read` to mark all admin messages as read; return 204 — admin CRM shows unread count badge per client row
+- [ ] Step 14 — Unread badge: `CrmTable` row shows a saffron dot next to the client name if they have an unread message from the client waiting
+- [ ] Step 15 — File attachments: extend `POST /api/admin/clients/[id]/messages` to accept multipart with optional file; upload to Vercel Blob at `clients/{id}/messages/{filename}`; store `attachmentUrl` on message row; render download link in thread
+- [ ] Step 16 — Transcript download: implement `GET /api/admin/clients/[id]/messages/transcript` per security.md §5 — assembles thread, writes to temp Vercel Blob object, returns signed URL (15-min expiry), logs event to `auditLog`
+- [ ] Step 17 — SLA indicators: add `slaBreachedAt` computed field — in admin CRM view, if oldest unanswered client message is older than 24 hours (or 12 hours for ITA Window clients), flag the row with a red ⚠ indicator
+
+---
+
+**Prashant Proof (MVP):**
+1. Go to `/admin/crm` — click "Message" on any client row
+2. Type a test message → click Send — confirm modal shows "Sent ✓"
+3. Open incognito → log in as that client → go to `/portal`
+4. Confirm the Messages card appears with your message text
+5. Type a reply → click Reply — confirm "Replied ✓" appears
+6. Back in admin `/admin/crm` → open the Message modal for that client — confirm the client's reply is visible
+
+---
+
+### TASK P3-2: Automated Email Notifications
+
+**Status:** Not started — Awaiting approval
+**Stack:** Next.js + Resend + Vercel Cron (no FastAPI needed)
+
+**What this delivers:**
+Three automated emails that currently do not exist or are incomplete:
+1. Client booking confirmation (client currently receives no email after paying — only Prash does)
+2. 24-hour appointment reminder sent to both client and Prash the day before
+3. SLA breach alert sent to Prash when a message has gone unanswered past the threshold
+
+---
+
+**Email 1 — Client booking confirmation (surgical change to existing route):**
+
+- [ ] Step 1 — In `POST /api/payment/verify/route.ts`, after the booking insert and Prash notification email, add a second `resend.emails.send()` call addressed to `booking.email` (the client):
+  - Subject: `Your Visa Forte consultation is confirmed — {serviceTier}`
+  - Body: booking date, service tier, what to expect, next steps (Prash will be in touch within 24 hours), Prash's contact email
+  - Visa Forte brand styling (same HTML email template pattern as existing Resend calls)
+
+---
+
+**Email 2 — 24-hour appointment reminder:**
+
+**DB change (migration 0010):**
+Add `reminderSent boolean NOT NULL DEFAULT false` to the `bookings` table.
+
+**Vercel Cron setup:**
+- Add `vercel.json` at the project root (or update if it exists) with:
+  ```json
+  { "crons": [{ "path": "/api/cron/reminders", "schedule": "30 0 * * *" }] }
+  ```
+  (00:30 UTC = 06:00 IST — runs daily before business hours)
+- Create `GET /api/cron/reminders/route.ts`:
+  - Verify `Authorization: Bearer {CRON_SECRET}` header (Vercel passes this automatically)
+  - Query: bookings WHERE `bookingDate = tomorrow` AND `reminderSent = false` AND `paymentStatus = 'paid'`
+  - For each: send Resend email to client + a copy to Prash; set `reminderSent = true`
+  - Return `{ sent: N }` — log via `lib/logger.ts`
+- Add `CRON_SECRET` to `.env.local` and Vercel environment variables
+
+**Step plan:**
+- [ ] Step 2 — Add `reminderSent` column to `bookings` in `schema.ts`; run `drizzle-kit generate` + `drizzle-kit migrate` (migration 0010)
+- [ ] Step 3 — Create `GET /api/cron/reminders/route.ts` — CRON_SECRET header check, tomorrow's bookings query, Resend email pair, update `reminderSent`
+- [ ] Step 4 — Add `vercel.json` with cron schedule
+- [ ] Step 5 — Add `CRON_SECRET` to env vars (Vercel dashboard + `.env.local` + `.env.example`)
+
+---
+
+**Email 3 — SLA breach alert to Prash:**
+
+- [ ] Step 6 — Extend the reminders cron (same `GET /api/cron/reminders/route.ts`) to also check messages:
+  - Query: `messages` WHERE `senderRole = 'client'` AND `isRead = false` AND `createdAt < now() - SLA threshold`
+  - SLA threshold: 24 hours by default; 12 hours if the client's stage is `'ITA Window'`
+  - If any exist: send one summary email to Prash listing the client names + message ages
+  - Do NOT send a separate email per message — one summary digest
+- [ ] Step 7 — Vitest: unit tests for reminder query logic (tomorrow's date boundary, SLA threshold calculation)
+- [ ] Step 8 — `npx tsc --noEmit` — zero errors; commit + push
+
+---
+
+**Prashant Proof:**
+1. Create a booking for tomorrow using test card; pay — check client email inbox for confirmation email
+2. In Vercel dashboard → Deployments → Functions → trigger `GET /api/cron/reminders` manually (or set bookingDate to today and run)
+3. Confirm reminder email arrives in the client's inbox + a copy at prashant@visaforte.com
+4. Send a test client message from portal; wait (or manually set createdAt to 25 hours ago in DB); trigger cron — confirm SLA alert email arrives at prashant@visaforte.com
+
+---
+
+### TASK P3-3: DPDP Consent Interface + Automated Deletion Cron
+
+**Status:** Not started — Awaiting approval
+**Stack:** Next.js + Vercel Cron throughout — no Render migration needed for Phase 3
+
+**Architecture decision (confirmed):** The deletion cron runs as a Vercel Cron job calling a Next.js API route in TypeScript. All operations (DB via Drizzle, blob delete via `@vercel/blob`, email via Resend) already have working implementations in this codebase. The Render + FastAPI migration is deferred to when Python is genuinely needed — most likely when CanVisa Pro gets a server-side AI component. `render.yaml` remains ready for that trigger.
+
+**Timeout safeguard:** The deletion API route processes clients in batches of 20 per run to stay well within Vercel's 60-second serverless limit. Vercel Cron runs daily — any overflow is processed the following day.
+
+**What this delivers:**
+- DPDP-compliant consent checkbox wired to every data-collection form
+- Client portal "Data & Privacy" section showing what data is held and a deletion request button
+- Admin view of pending deletion requests with Approve / Reject
+- Automated TypeScript cron that deletes Archived client records older than 2 years
+
+---
+
+**Sub-task P3-3A: Consent Interface (Next.js)**
+
+**DB changes (migration 0011):**
+Add to `clients` table:
+- `consentGiven boolean NOT NULL DEFAULT false`
+- `consentGivenAt timestamp` (nullable)
+
+New `deletionRequests` table:
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid PK | auto-generated |
+| clientId | uuid FK → clients.id | CASCADE |
+| requestedAt | timestamp | auto-set |
+| status | text DEFAULT 'pending' | `'pending'` \| `'approved'` \| `'rejected'` |
+| adminNotes | text | nullable — Prash's response note |
+| processedAt | timestamp | nullable — set when approved/rejected |
+
+New `auditLog` table (used by deletion cron and transcript download):
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid PK | auto-generated |
+| event | text NOT NULL | `'client_deleted'` \| `'transcript_downloaded'` \| `'deletion_requested'` \| `'deletion_approved'` |
+| actorId | text | admin email or `'cron'` |
+| targetClientId | uuid | nullable |
+| metadata | jsonb | nullable — e.g. `{ filesDeleted: 12, reason: "retention_policy" }` |
+| createdAt | timestamp | auto-set |
+
+**Step plan:**
+- [ ] Step 8 — DB: add consent columns + `deletionRequests` table + `auditLog` table to `schema.ts`; generate + apply migration 0011
+- [ ] Step 9 — Build `ConsentCheckbox.tsx` component (per security.md §8.1 design) — checkbox + plain-language copy; `onConsent` callback prop
+- [ ] Step 10 — Wire `ConsentCheckbox` into `/intake` form — add `consentGiven` field to Zod schema; store `consentGiven + consentGivenAt` on `clients` row at creation
+- [ ] Step 11 — Wire `ConsentCheckbox` into `/booking` form — consent required before payment proceeds; pass `consentGiven` to `/api/payment/create-order`
+- [ ] Step 12 — Wire `ConsentCheckbox` into `/activate` form — consent required at portal activation; store on `clients` row when client record is created
+- [ ] Step 13 — Portal "Data & Privacy" section: new bottom section in `PortalDashboard.tsx`
+  - Shows: name, email, service tier, document count, consent date
+  - "Request Data Deletion" button → opens confirmation modal with plain-language warning
+  - On confirm: `POST /api/portal/deletion-request` → insert `deletionRequests` row + log to `auditLog`
+  - Button becomes "Request Submitted" after click (one request at a time)
+- [ ] Step 14 — `POST /api/portal/deletion-request/route.ts` — client session required; derive clientId from session; reject if existing pending request; insert row; log event
+- [ ] Step 15 — Admin deletion requests view: new card in `/admin` page (or tab in CRM) — lists pending deletion requests with client name, email, request date; Approve / Reject buttons with notes field
+- [ ] Step 16 — `PATCH /api/admin/deletion-requests/[id]/route.ts` — admin approves or rejects; on approval: immediately delete client's Vercel Blob folder + cascade-delete DB rows + log to `auditLog`
+- [ ] Step 17 — Vitest: tests for deletion request Zod schemas, duplicate request rejection, auditLog insert
+
+---
+
+**Sub-task P3-3B: Automated Deletion Cron (TypeScript / Vercel Cron)**
+
+- [ ] Step 18 — Add deletion cron to `vercel.json` (alongside the reminders cron):
+  ```json
+  { "path": "/api/cron/data-retention", "schedule": "30 20 * * *" }
+  ```
+  (20:30 UTC = 02:00 IST — runs nightly)
+- [ ] Step 19 — Create `GET /api/cron/data-retention/route.ts`:
+  - Verify `Authorization: Bearer {CRON_SECRET}` header
+  - Query: `clients` WHERE `stage = 'Archived'` AND `updatedAt < now() - 730 days` LIMIT 20 (batch cap)
+  - For each client: `del` all blobs under `clients/{id}/` via `@vercel/blob`; `db.delete` client row (cascade handles documents, messages, deletion requests); insert `auditLog` row with `event = 'client_deleted'` and `metadata: { filesDeleted: N }`
+  - If `remainingCount > 0` (more than 20 expired clients exist), log a warning — the next nightly run will handle the remainder
+  - Send one Resend summary email to Prash with count deleted (send nothing if count = 0)
+  - Log via `lib/logger.ts` with `result: 'success'` or `'failure'`
+- [ ] Step 20 — `apps/web/src/app/api/cron/data-retention/route.test.ts` — Vitest: mock DB + blob, verify batch limit, audit log entry, cascade, email only when count > 0
+- [ ] Step 21 — Add `auditLog` last-run indicator to admin dashboard: a small "Last retention run: {date} — {N} records deleted" line in the admin footer or a dashboard card
+
+---
+
+**Prashant Proof:**
+1. Go to `/intake` — confirm consent checkbox appears; form should not submit without checking it
+2. Go to `/booking` — confirm consent checkbox appears; payment should not proceed without it
+3. Log in as a test client → go to `/portal` → scroll to bottom → confirm "Data & Privacy" section shows your data summary
+4. Click "Request Data Deletion" → confirm modal appears → submit → confirm "Request Submitted" state
+5. Go to `/admin` → find the deletion requests panel → confirm the request appears with Approve / Reject buttons
+6. Click Approve — confirm the client's documents and record are removed (check Vercel Storage dashboard and `/admin/crm`)
+7. In Vercel dashboard → Functions, confirm the data retention cron fires at 02:00 IST and logs "deleted 0 records" (or actual count)
+
+---
+
+### TASK P3-4: Post-Submission Monitoring Workflow
+
+**Status:** Not started — Awaiting approval
+**Stack:** Next.js + Drizzle (admin UI + portal view); Vercel Cron for deadline alerts
+
+**What this delivers:**
+An operational tracking layer for clients whose applications have been submitted to IRCC. Prash can log the AOR number, submission date, expected decision date, and any IRCC queries (Additional Documents Requests) with response deadlines. Clients in "Submitted" or "Decision Pending" stages see a read-only status summary in their portal. Prash gets an alert email when an IRCC query deadline is approaching.
+
+This directly supports Tier 7 (Post-Submission Monitoring) and all Tier 5/6 clients who have submitted.
+
+---
+
+**Data model — new `applicationMonitoring` table (migration 0012):**
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid PK | auto-generated |
+| clientId | uuid FK → clients.id | CASCADE — one record per client |
+| aorNumber | text | IRCC Acknowledgement of Receipt number |
+| submittedAt | date NOT NULL | date application was submitted |
+| expectedDecisionDate | date | nullable — estimated by Prash |
+| lastStatusCheck | date | nullable — last time Prash checked IRCC portal |
+| irccPortalStatus | text | nullable — free-text note from IRCC portal (e.g., "In Progress") |
+| monitoringNotes | text | nullable — Prash's private observations (never client-visible) |
+| createdAt | timestamp | auto-set |
+
+**New `irccQueries` table:**
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid PK | auto-generated |
+| clientId | uuid FK → clients.id | CASCADE |
+| queryType | text NOT NULL | e.g., "Additional Documents Request", "Medical Update", "Background Check" |
+| receivedAt | date NOT NULL | date query arrived from IRCC |
+| responseDeadline | date NOT NULL | last date to respond |
+| responseSubmittedAt | date | nullable — date response was sent to IRCC |
+| status | text DEFAULT 'Open' | `'Open'` \| `'Responded'` \| `'Overdue'` |
+| notes | text | nullable — Prash's internal notes on this query |
+| createdAt | timestamp | auto-set |
+
+---
+
+**Step plan:**
+
+- [ ] Step 1 — DB: add `applicationMonitoring` + `irccQueries` tables to `schema.ts`; run `drizzle-kit generate` + `drizzle-kit migrate` (migration 0012)
+- [ ] Step 2 — API: `POST /api/admin/clients/[id]/monitoring` — create or update monitoring record (admin session; Zod-validate all fields)
+- [ ] Step 3 — API: `GET /api/admin/clients/[id]/monitoring` — fetch monitoring record + all IRCC queries for a client
+- [ ] Step 4 — API: `POST /api/admin/clients/[id]/queries` — log a new IRCC query with type, received date, deadline
+- [ ] Step 5 — API: `PATCH /api/admin/clients/[id]/queries/[queryId]` — update query status (mark as Responded; set responseSubmittedAt)
+- [ ] Step 6 — Admin monitoring page at `/admin/monitoring`:
+  - Server component — queries all clients in `'Submitted'` or `'Decision Pending'` stage
+  - For each client: name, AOR number, submission date, expected decision date, IRCC portal status, open query count
+  - "Edit" button per row — opens an inline edit panel with all monitoring fields + IRCC query log
+  - New query form: query type dropdown, received date, deadline — "Add Query" button
+  - Overdue queries (deadline < today + status ≠ 'Responded') highlighted in Saffron
+  - ITA Window clients in this list get the standard Saffron row highlight
+- [ ] Step 7 — Admin monitoring CSS (`monitoring.css`): table layout, edit panel, query rows, overdue highlight, deadline countdown
+- [ ] Step 8 — Admin monitoring card: add "Monitoring" tool card to `/admin` dashboard (shows count of clients in Submitted + Decision Pending + count of open queries)
+- [ ] Step 9 — Portal monitoring view: in `PortalDashboard.tsx`, if client stage is `'Submitted'` or `'Decision Pending'`:
+  - Show "Application Status" section: submission date, current IRCC portal status, last status check date
+  - If an open IRCC query exists: show "Your consultant is reviewing a query from IRCC. We will update you shortly." (no deadline or query type exposed to client)
+  - Do NOT expose AOR number or monitoring notes to the client
+- [ ] Step 10 — Deadline alert cron: extend `GET /api/cron/reminders/route.ts` to also check `irccQueries`:
+  - Query: `irccQueries` WHERE `status = 'Open'` AND `responseDeadline <= today + 3 days`
+  - If any: send Prash a digest email listing client name, query type, deadline
+  - Log to `lib/logger.ts`
+- [ ] Step 11 — Vitest: tests for monitoring Zod schemas, overdue query status logic, deadline alert query
+- [ ] Step 12 — `npx tsc --noEmit` — zero errors; commit + push
+
+---
+
+**Prashant Proof:**
+1. Go to `/admin/monitoring` — confirm the page loads showing any clients in Submitted/Decision Pending stage
+2. Click "Edit" on a client — fill AOR number, submission date, expected decision date → Save; confirm values persist on refresh
+3. Add an IRCC query (type: "Additional Documents Request", received today, deadline in 2 days) → confirm it appears in the query log with status "Open"
+4. Log in as that client in an incognito window → go to `/portal` → confirm "Application Status" section appears with submission date and IRCC portal status; confirm AOR number is NOT visible
+5. Mark the query as Responded → confirm status changes to "Responded" in the admin view
+6. Trigger the reminders cron manually — confirm Prash receives the deadline alert email if any queries are within 3 days
 
 ---
 

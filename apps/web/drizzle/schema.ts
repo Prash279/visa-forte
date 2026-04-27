@@ -139,3 +139,19 @@ export const clientDocuments = pgTable('client_documents', {
 });
 
 export type ClientDocument = typeof clientDocuments.$inferSelect;
+
+// Messages exchanged between Prash (admin) and a client.
+// senderRole distinguishes who sent each message; senderId is the admin email or
+// the Better Auth user.id for clients.
+export const messages = pgTable('messages', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  clientId: uuid('client_id').notNull().references(() => clients.id, { onDelete: 'cascade' }),
+  senderRole: text('sender_role').notNull(), // 'admin' | 'client'
+  senderId: text('sender_id').notNull(),     // admin email or Better Auth user.id
+  body: text('body').notNull(),
+  isRead: boolean('is_read').notNull().default(false),
+  readAt: timestamp('read_at'),              // nullable — set when the recipient opens the thread
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type Message = typeof messages.$inferSelect;
