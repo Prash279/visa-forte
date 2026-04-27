@@ -976,7 +976,7 @@ TypeScript clean. Committed and pushed — Vercel auto-deploys.
 
 ### TASK P3-2: Automated Email Notifications
 
-**Status:** Not started — Awaiting approval
+**Status:** ✅ COMPLETE — April 2026
 **Stack:** Next.js + Resend + Vercel Cron (no FastAPI needed)
 
 **What this delivers:**
@@ -1015,22 +1015,36 @@ Add `reminderSent boolean NOT NULL DEFAULT false` to the `bookings` table.
 - Add `CRON_SECRET` to `.env.local` and Vercel environment variables
 
 **Step plan:**
-- [ ] Step 2 — Add `reminderSent` column to `bookings` in `schema.ts`; run `drizzle-kit generate` + `drizzle-kit migrate` (migration 0010)
-- [ ] Step 3 — Create `GET /api/cron/reminders/route.ts` — CRON_SECRET header check, tomorrow's bookings query, Resend email pair, update `reminderSent`
-- [ ] Step 4 — Add `vercel.json` with cron schedule
-- [ ] Step 5 — Add `CRON_SECRET` to env vars (Vercel dashboard + `.env.local` + `.env.example`)
+- [x] Step 1 — Client booking confirmation: already delivered in P2-3B (the portal activation email confirms the booking date and service tier — no additional email needed)
+- [x] Step 2 — Add `reminderSent` column to `bookings` in `schema.ts`; run `drizzle-kit generate` + `drizzle-kit migrate` (migration 0010)
+- [x] Step 3 — Create `GET /api/cron/reminders/route.ts` — CRON_SECRET header check, tomorrow's bookings query, Resend email pair, update `reminderSent`
+- [x] Step 4 — Add cron schedule to `apps/web/vercel.json` (30 0 * * * = 06:00 IST daily)
+- [x] Step 5 — Add `CRON_SECRET` to `.env.example` (add to Vercel dashboard + `.env.local` manually)
+- [x] Step 6 — Extend cron to check SLA: unread client messages past 24h (12h for ITA Window) → digest email to Prash
+- [x] Step 7 — Vitest: 6 unit tests for tomorrowIST (date boundary, month/year rollover) and slaThresholdMs in `helpers.ts`
+- [x] Step 8 — `npx tsc --noEmit` — zero errors; commit + push
 
 ---
 
-**Email 3 — SLA breach alert to Prash:**
+**Review:**
+Email 1 (client booking confirmation) was already delivered in P2-3B — the portal activation email
+confirms the booking date, service tier, and payment received. No new email needed.
 
-- [ ] Step 6 — Extend the reminders cron (same `GET /api/cron/reminders/route.ts`) to also check messages:
-  - Query: `messages` WHERE `senderRole = 'client'` AND `isRead = false` AND `createdAt < now() - SLA threshold`
-  - SLA threshold: 24 hours by default; 12 hours if the client's stage is `'ITA Window'`
-  - If any exist: send one summary email to Prash listing the client names + message ages
-  - Do NOT send a separate email per message — one summary digest
-- [ ] Step 7 — Vitest: unit tests for reminder query logic (tomorrow's date boundary, SLA threshold calculation)
-- [ ] Step 8 — `npx tsc --noEmit` — zero errors; commit + push
+`bookings.reminderSent boolean DEFAULT false` added (migration 0010 applied to Neon).
+`helpers.ts` exports `tomorrowIST()` (tomorrow's date in IST as YYYY-MM-DD, handling month and year
+boundaries) and `slaThresholdMs()` (12h for ITA Window, 24h for all other stages).
+`GET /api/cron/reminders/route.ts`: verifies `Authorization: Bearer {CRON_SECRET}` header; queries
+tomorrow's paid bookings where `reminderSent = false`; sends client reminder + Prash copy via Resend;
+marks `reminderSent = true` per booking; then queries all unread client messages, joins with clients
+for stage, filters by SLA threshold, groups by client (oldest message age), sends one SLA digest
+email to Prash if any breaches found. Logs all outcomes via `lib/logger.ts`.
+`apps/web/vercel.json` updated with `"crons": [{ "path": "/api/cron/reminders", "schedule": "30 0 * * *" }]`.
+`.env.example` updated with `CRON_SECRET` documentation. 83 Vitest tests passing (up from 77). TypeScript clean.
+
+**One manual step required:**
+Add `CRON_SECRET` to Vercel dashboard → Settings → Environment Variables (generate with `openssl rand -hex 32`).
+Vercel automatically passes this as `Authorization: Bearer {CRON_SECRET}` on cron invocations.
+Also add to `.env.local` for local testing.
 
 ---
 

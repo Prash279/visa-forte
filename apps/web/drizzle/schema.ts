@@ -102,6 +102,8 @@ export const bookings = pgTable('bookings', {
   // Portal activation — generated after payment, cleared after first use (single-use)
   portalToken: text('portal_token').unique(),
   portalTokenExpiresAt: timestamp('portal_token_expires_at'),
+  // Tracks whether the 24-hour reminder email has been sent for this booking
+  reminderSent: boolean('reminder_sent').notNull().default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 

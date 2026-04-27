@@ -71,6 +71,13 @@
       "when": 1777275997764,
       "tag": "0009_jittery_ultragirl",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1777277583464,
+      "tag": "0010_thick_warbird",
+      "breakpoints": true
     }
   ]
 }

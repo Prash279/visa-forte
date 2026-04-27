@@ -3,6 +3,12 @@
   "framework": "nextjs",
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
+  "crons": [
+    {
+      "path": "/api/cron/reminders",
+      "schedule": "30 0 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
