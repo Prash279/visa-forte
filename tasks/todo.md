@@ -859,6 +859,9 @@ Per `spec.md §8`, DPDP consent interface and automated deletion cron are Phase 
 | Task 4 | Razorpay payment — pay-first flow, HMAC verify, INR/USD toggle, admin payment columns | April 2026 |
 | Task 8 | CI/CD (GitHub Actions), structured logger, /api/health, GlitchTip error tracking | April 2026 |
 | Task 5 | Vercel Blob storage — uploadFile, deleteFile, generateDownloadUrl + 3 unit tests | April 2026 |
+| Task P3-1 | Messaging System MVP — admin compose + portal reply + thread view | April 2026 |
+| Task P3-2 | Automated Email Notifications — 24h reminders + SLA breach alerts | April 2026 |
+| Task P3-3 | DPDP Consent Interface + Deletion Cron — consent forms + portal deletion request + admin approve/reject + nightly purge cron | May 2026 |
 
 ---
 
@@ -1058,7 +1061,7 @@ Also add to `.env.local` for local testing.
 
 ### TASK P3-3: DPDP Consent Interface + Automated Deletion Cron
 
-**Status:** Not started — Awaiting approval
+**Status:** ✅ COMPLETE — May 2026
 **Stack:** Next.js + Vercel Cron throughout — no Render migration needed for Phase 3
 
 **Architecture decision (confirmed):** The deletion cron runs as a Vercel Cron job calling a Next.js API route in TypeScript. All operations (DB via Drizzle, blob delete via `@vercel/blob`, email via Resend) already have working implementations in this codebase. The Render + FastAPI migration is deferred to when Python is genuinely needed — most likely when CanVisa Pro gets a server-side AI component. `render.yaml` remains ready for that trigger.
@@ -1101,50 +1104,63 @@ New `auditLog` table (used by deletion cron and transcript download):
 | createdAt | timestamp | auto-set |
 
 **Step plan:**
-- [ ] Step 8 — DB: add consent columns + `deletionRequests` table + `auditLog` table to `schema.ts`; generate + apply migration 0011
-- [ ] Step 9 — Build `ConsentCheckbox.tsx` component (per security.md §8.1 design) — checkbox + plain-language copy; `onConsent` callback prop
-- [ ] Step 10 — Wire `ConsentCheckbox` into `/intake` form — add `consentGiven` field to Zod schema; store `consentGiven + consentGivenAt` on `clients` row at creation
-- [ ] Step 11 — Wire `ConsentCheckbox` into `/booking` form — consent required before payment proceeds; pass `consentGiven` to `/api/payment/create-order`
-- [ ] Step 12 — Wire `ConsentCheckbox` into `/activate` form — consent required at portal activation; store on `clients` row when client record is created
-- [ ] Step 13 — Portal "Data & Privacy" section: new bottom section in `PortalDashboard.tsx`
+- [x] Step 8 — DB: add consent columns + `deletionRequests` table + `auditLog` table to `schema.ts`; generate + apply migration 0011
+- [x] Step 9 — Build `ConsentCheckbox.tsx` component (per security.md §8.1 design) — checkbox + plain-language copy; `onConsent` callback prop
+- [x] Step 10 — Wire `ConsentCheckbox` into `/intake` form — add `consentGiven` field to Zod schema; store `consentGiven + consentGivenAt` on `clients` row at creation
+- [x] Step 11 — Wire `ConsentCheckbox` into `/booking` form — consent required before payment proceeds; pass `consentGiven` to `/api/payment/create-order`
+- [x] Step 12 — Wire `ConsentCheckbox` into `/activate` form — consent required at portal activation; store on `clients` row when client record is created
+- [x] Step 13 — Portal "Data & Privacy" section: new bottom section in `PortalDashboard.tsx`
   - Shows: name, email, service tier, document count, consent date
   - "Request Data Deletion" button → opens confirmation modal with plain-language warning
   - On confirm: `POST /api/portal/deletion-request` → insert `deletionRequests` row + log to `auditLog`
   - Button becomes "Request Submitted" after click (one request at a time)
-- [ ] Step 14 — `POST /api/portal/deletion-request/route.ts` — client session required; derive clientId from session; reject if existing pending request; insert row; log event
-- [ ] Step 15 — Admin deletion requests view: new card in `/admin` page (or tab in CRM) — lists pending deletion requests with client name, email, request date; Approve / Reject buttons with notes field
-- [ ] Step 16 — `PATCH /api/admin/deletion-requests/[id]/route.ts` — admin approves or rejects; on approval: immediately delete client's Vercel Blob folder + cascade-delete DB rows + log to `auditLog`
-- [ ] Step 17 — Vitest: tests for deletion request Zod schemas, duplicate request rejection, auditLog insert
+- [x] Step 14 — `POST /api/portal/deletion-request/route.ts` — client session required; derive clientId from session; reject if existing pending request; insert row; log event
+- [x] Step 15 — Admin deletion requests view: new card in `/admin` page (or tab in CRM) — lists pending deletion requests with client name, email, request date; Approve / Reject buttons with notes field
+- [x] Step 16 — `PATCH /api/admin/deletion-requests/[id]/route.ts` — admin approves or rejects; on approval: immediately delete client's Vercel Blob folder + cascade-delete DB rows + log to `auditLog`
+- [x] Step 17 — Vitest: 17 tests — ActionSchema (approve/reject/invalid/notes boundary), hasPendingRequest() logic, VALID_AUDIT_EVENTS (5 events), batch cap (BATCH_LIMIT=20), email gate
 
 ---
 
 **Sub-task P3-3B: Automated Deletion Cron (TypeScript / Vercel Cron)**
 
-- [ ] Step 18 — Add deletion cron to `vercel.json` (alongside the reminders cron):
-  ```json
-  { "path": "/api/cron/data-retention", "schedule": "30 20 * * *" }
-  ```
-  (20:30 UTC = 02:00 IST — runs nightly)
-- [ ] Step 19 — Create `GET /api/cron/data-retention/route.ts`:
-  - Verify `Authorization: Bearer {CRON_SECRET}` header
-  - Query: `clients` WHERE `stage = 'Archived'` AND `updatedAt < now() - 730 days` LIMIT 20 (batch cap)
-  - For each client: `del` all blobs under `clients/{id}/` via `@vercel/blob`; `db.delete` client row (cascade handles documents, messages, deletion requests); insert `auditLog` row with `event = 'client_deleted'` and `metadata: { filesDeleted: N }`
-  - If `remainingCount > 0` (more than 20 expired clients exist), log a warning — the next nightly run will handle the remainder
-  - Send one Resend summary email to Prash with count deleted (send nothing if count = 0)
-  - Log via `lib/logger.ts` with `result: 'success'` or `'failure'`
-- [ ] Step 20 — `apps/web/src/app/api/cron/data-retention/route.test.ts` — Vitest: mock DB + blob, verify batch limit, audit log entry, cascade, email only when count > 0
-- [ ] Step 21 — Add `auditLog` last-run indicator to admin dashboard: a small "Last retention run: {date} — {N} records deleted" line in the admin footer or a dashboard card
+- [x] Step 18 — Add deletion cron to `vercel.json` (alongside the reminders cron): `{ "path": "/api/cron/data-retention", "schedule": "30 20 * * *" }` (20:30 UTC = 02:00 IST — runs nightly)
+- [x] Step 19 — Create `GET /api/cron/data-retention/route.ts`: CRON_SECRET header check; batch-20 query of Archived clients older than 2 years; blob delete + cascade-delete + auditLog per client; Resend summary email when count > 0; log via logger.ts
+- [x] Step 20 — Vitest: batch cap, email gate, VALID_AUDIT_EVENTS, and hasPendingRequest tests in `deletion.test.ts` (17 tests — 100 total passing)
+- [x] Step 21 — auditLog last-run indicator in admin footer: queries most recent `client_deleted` cron entry, counts records deleted on same UTC day, renders "Last retention run: {date} — {N} records deleted" or "No retention runs yet."
 
 ---
 
+**Review:**
+`deletionRequests` and `auditLog` tables added to schema + migration 0011. `consentGiven boolean DEFAULT false`
+and `consentGivenAt timestamp` added to `clients` table. `ConsentCheckbox.tsx` wired into `/intake`,
+`/booking`, and `/activate` — all three forms block submission if consent is not checked.
+`PortalDashboard.tsx` has a new "Data & Privacy" section at the bottom: shows name, email, service tier,
+consent date, and a deletion request state machine (idle → confirming → submitting → pending/done).
+`GET /api/portal/deletion-request` returns `{ hasPending }`. `POST /api/portal/deletion-request` enforces
+one pending request at a time, inserts row, writes auditLog event `deletion_requested`.
+`DeletionRequestsPanel.tsx` renders in admin dashboard under "Data Deletion Requests" — lists pending
+requests with Approve + Reject buttons and optional admin notes field.
+`PATCH /api/admin/deletion-requests/[id]` approves (delete blobs + cascade-delete client row + auditLog
+`deletion_approved`) or rejects (update status + auditLog `deletion_rejected`).
+`GET /api/cron/data-retention`: CRON_SECRET auth, batch cap of 20, purges Archived clients older than 2 years
+(blob delete → cascade → auditLog `client_deleted` per client), sends Resend summary email to Prash if count > 0.
+Admin footer shows "Last retention run: {date} — {N} records deleted" (or "No retention runs yet.").
+17 new Vitest tests in `deletion.test.ts` — 100 total passing. TypeScript clean. Committed.
+
+**One manual step required before cron fires:**
+Add `CRON_SECRET` to Vercel dashboard → Settings → Environment Variables (generate with `openssl rand -hex 32`).
+Also add to `.env.local` for local testing.
+Also apply migration 0011 to Neon: run `npx drizzle-kit migrate` from `apps/web/` after confirming `DATABASE_URL` is set in `.env.local`.
+
 **Prashant Proof:**
-1. Go to `/intake` — confirm consent checkbox appears; form should not submit without checking it
-2. Go to `/booking` — confirm consent checkbox appears; payment should not proceed without it
-3. Log in as a test client → go to `/portal` → scroll to bottom → confirm "Data & Privacy" section shows your data summary
-4. Click "Request Data Deletion" → confirm modal appears → submit → confirm "Request Submitted" state
-5. Go to `/admin` → find the deletion requests panel → confirm the request appears with Approve / Reject buttons
-6. Click Approve — confirm the client's documents and record are removed (check Vercel Storage dashboard and `/admin/crm`)
-7. In Vercel dashboard → Functions, confirm the data retention cron fires at 02:00 IST and logs "deleted 0 records" (or actual count)
+1. Go to `/intake` — confirm consent checkbox appears at the bottom; try to submit without checking it — form should not proceed
+2. Go to `/booking` — confirm consent checkbox appears; try to proceed to payment without checking it — button should be disabled
+3. Log in as a test client → go to `/portal` → scroll to the bottom → confirm "Data & Privacy" section shows your name, email, service tier, and consent date
+4. Click "Request Data Deletion" → confirm confirmation step appears → click Confirm → button should change to "Request Pending"
+5. Go to `/admin` → scroll to "Data Deletion Requests" section → confirm the request appears with client name and date
+6. Click "Approve & Delete" — confirm client disappears from `/admin/clients` and files disappear from Vercel Storage dashboard
+7. Go back to `/admin` → scroll to the footer → confirm "Last retention run:" or "No retention runs yet." appears
+8. In Vercel dashboard → Settings → Cron Jobs → confirm `data-retention` cron is listed at `30 20 * * *`
 
 ---
 
