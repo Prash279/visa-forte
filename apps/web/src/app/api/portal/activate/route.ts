@@ -8,6 +8,7 @@ import { hashPassword, generateRandomString } from 'better-auth/crypto';
 const Schema = z.object({
   token: z.string().min(1, 'Token is required'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
+  consentGiven: z.literal(true, { errorMap: () => ({ message: 'Consent is required to proceed' }) }),
 });
 
 // POST /api/portal/activate
@@ -29,6 +30,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const { token, password } = result.data;
+  const consentGivenAt = new Date();
 
   // Re-validate the token server-side — the page already checked it, but the
   // API must not trust the client. Checks existence, expiry, and non-null state.
@@ -108,15 +110,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (existingClient) {
     await db
       .update(clients)
-      .set({ userId: newUserId, updatedAt: now })
+      .set({ userId: newUserId, updatedAt: now, consentGiven: true, consentGivenAt })
       .where(eq(clients.id, existingClient.id));
   } else {
     await db.insert(clients).values({
-      name:        booking.name,
-      email:       booking.email,
-      serviceTier: booking.serviceTier,
-      stage:       'Lead',   // Prash advances the stage after the first consultation
-      userId:      newUserId,
+      name:          booking.name,
+      email:         booking.email,
+      serviceTier:   booking.serviceTier,
+      stage:         'Lead',   // Prash advances the stage after the first consultation
+      userId:        newUserId,
+      consentGiven:  true,
+      consentGivenAt,
     });
   }
 

@@ -99,8 +99,10 @@ export default async function PortalPage() {
           client={{
             id: client.id,
             name: client.name,
+            email: client.email,
             serviceTier: client.serviceTier,
             stage: client.stage,
+            consentGivenAt: client.consentGivenAt,
           }}
           checklist={checklist}
           uploadedMap={uploadedMap}

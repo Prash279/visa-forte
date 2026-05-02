@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, uuid, integer } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, uuid, integer, jsonb } from 'drizzle-orm/pg-core';
 
 // Better Auth requires these exact fields on the user table.
 // The 'id' column uses text (not uuid) because Better Auth generates its own random string IDs.
@@ -121,6 +121,9 @@ export const clients = pgTable('clients', {
   notes: text('notes'),                               // Prash's private notes — never client-visible
   // Links a CRM record to a Better Auth user account (nullable — not every client needs portal access)
   userId: text('user_id').references(() => users.id, { onDelete: 'set null' }),
+  // DPDP compliance: explicit consent captured at data collection point
+  consentGiven: boolean('consent_given').notNull().default(false),
+  consentGivenAt: timestamp('consent_given_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -157,3 +160,29 @@ export const messages = pgTable('messages', {
 });
 
 export type Message = typeof messages.$inferSelect;
+
+// DPDP data deletion requests submitted by clients from their portal.
+// One pending request per client at a time — enforced at the API layer.
+export const deletionRequests = pgTable('deletion_requests', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  clientId: uuid('client_id').notNull().references(() => clients.id, { onDelete: 'cascade' }),
+  requestedAt: timestamp('requested_at').notNull().defaultNow(),
+  status: text('status').notNull().default('pending'), // 'pending' | 'approved' | 'rejected'
+  adminNotes: text('admin_notes'),                     // nullable — Prash's response note
+  processedAt: timestamp('processed_at'),              // nullable — set when approved or rejected
+});
+
+export type DeletionRequest = typeof deletionRequests.$inferSelect;
+
+// Immutable audit trail for compliance events.
+// Written by the deletion cron, admin approval actions, and transcript downloads.
+export const auditLog = pgTable('audit_log', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  event: text('event').notNull(), // 'client_deleted' | 'transcript_downloaded' | 'deletion_requested' | 'deletion_approved' | 'deletion_rejected'
+  actorId: text('actor_id'),      // admin email or 'cron'
+  targetClientId: uuid('target_client_id'), // nullable
+  metadata: jsonb('metadata'),    // e.g. { filesDeleted: 12, reason: "retention_policy" }
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type AuditLog = typeof auditLog.$inferSelect;

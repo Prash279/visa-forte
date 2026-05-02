@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { z } from "zod";
+import { ConsentCheckbox } from "@/components/ConsentCheckbox";
 
 const schema = z
   .object({
@@ -27,10 +28,16 @@ export default function ActivateForm({ token, name, email, serviceTier, bookingD
   const [error, setError]                     = useState("");
   const [loading, setLoading]                 = useState(false);
   const [accountExists, setAccountExists]     = useState(false);
+  const [consentGiven, setConsentGiven]       = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!consentGiven) {
+      setError("Please agree to the data collection terms to proceed.");
+      return;
+    }
 
     const result = schema.safeParse({ password, confirmPassword });
     if (!result.success) {
@@ -45,7 +52,7 @@ export default function ActivateForm({ token, name, email, serviceTier, bookingD
       const activateRes = await fetch("/api/portal/activate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, password }),
+        body: JSON.stringify({ token, password, consentGiven: true }),
         credentials: "include",
       });
 
@@ -189,7 +196,9 @@ export default function ActivateForm({ token, name, email, serviceTier, bookingD
               />
             </div>
 
-            <button type="submit" className="auth-submit" disabled={loading}>
+            <ConsentCheckbox checked={consentGiven} onConsent={setConsentGiven} />
+
+            <button type="submit" className="auth-submit" disabled={loading || !consentGiven}>
               {loading ? "Activating…" : "Activate Portal →"}
             </button>
           </form>

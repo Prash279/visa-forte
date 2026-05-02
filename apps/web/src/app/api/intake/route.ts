@@ -10,6 +10,8 @@ const IntakeSchema = z.object({
   phone: z.string().max(20).optional(),
   serviceInterest: z.string().min(1, 'Please select a service'),
   notes: z.string().max(2000).optional(),
+  // DPDP: consent must be explicitly given — server rejects any submission without it
+  consentGiven: z.literal(true, { errorMap: () => ({ message: 'Consent is required to proceed' }) }),
 });
 
 export async function POST(req: NextRequest): Promise<NextResponse> {

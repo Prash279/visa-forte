@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation";
-import { and, gte, lte, desc, sql } from "drizzle-orm";
+import { and, eq, gte, lte, lt, desc, sql } from "drizzle-orm";
 import { getCurrentAuthSession } from "@/lib/auth-server";
 import SignOutButton from "./SignOutButton";
 import PromoteButton from "./PromoteButton";
 import BookingCalendar from "./BookingCalendar";
+import DeletionRequestsPanel from "./DeletionRequestsPanel";
 import { db } from "@/lib/db";
-import { leads, bookings, clients } from "../../../drizzle/schema";
+import { leads, bookings, clients, deletionRequests, auditLog } from "../../../drizzle/schema";
 import { CRM_STAGES } from "@/lib/crm-stages";
 import "./admin.css";
 
@@ -69,6 +70,58 @@ export default async function AdminPage() {
   const stageCountMap = Object.fromEntries(CRM_STAGES.map(s => [s, 0]));
   for (const row of pipelineRows) {
     stageCountMap[row.stage] = row.count;
+  }
+
+  // Fetch pending data deletion requests for the admin action panel.
+  const pendingDeletionRows = await db
+    .select({
+      requestId: deletionRequests.id,
+      clientId: clients.id,
+      clientName: clients.name,
+      clientEmail: clients.email,
+      requestedAt: deletionRequests.requestedAt,
+    })
+    .from(deletionRequests)
+    .innerJoin(clients, eq(deletionRequests.clientId, clients.id))
+    .where(eq(deletionRequests.status, 'pending'))
+    .orderBy(desc(deletionRequests.requestedAt));
+
+  // Serialize Date → ISO string for the client component.
+  const pendingDeletions = pendingDeletionRows.map(r => ({
+    ...r,
+    requestedAt: r.requestedAt.toISOString(),
+  }));
+
+  // Find the most recent nightly data-retention cron run for the admin footer indicator.
+  const [lastCronRow] = await db
+    .select({ createdAt: auditLog.createdAt })
+    .from(auditLog)
+    .where(and(eq(auditLog.event, 'client_deleted'), eq(auditLog.actorId, 'cron')))
+    .orderBy(desc(auditLog.createdAt))
+    .limit(1);
+
+  let lastRetentionRun: string | null = null;
+  let lastRetentionCount = 0;
+
+  if (lastCronRow) {
+    lastRetentionRun = lastCronRow.createdAt.toISOString();
+    // Count all clients deleted by the cron on the same UTC calendar day as the latest run.
+    const dayStart = new Date(lastCronRow.createdAt);
+    dayStart.setUTCHours(0, 0, 0, 0);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
+    const [countRow] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(auditLog)
+      .where(
+        and(
+          eq(auditLog.event, 'client_deleted'),
+          eq(auditLog.actorId, 'cron'),
+          gte(auditLog.createdAt, dayStart),
+          lt(auditLog.createdAt, dayEnd)
+        )
+      );
+    lastRetentionCount = countRow?.count ?? 0;
   }
 
   // Strip bookings to serializable scalar fields only before passing to the client calendar component.
@@ -282,6 +335,20 @@ export default async function AdminPage() {
           />
         )}
 
+        {/* ── Data Deletion Requests ── */}
+        <div className="admin-section-header">
+          <span className="admin-section-title">
+            Data Deletion Requests
+            {pendingDeletions.length > 0 && (
+              <span className="admin-section-count admin-section-count-alert">
+                ({pendingDeletions.length})
+              </span>
+            )}
+          </span>
+          <span className="admin-section-rule" />
+        </div>
+        <DeletionRequestsPanel initialRequests={pendingDeletions} />
+
         {/* ── Tools section ── */}
         <div className="admin-section-header">
           <span className="admin-section-title">Tools</span>
@@ -309,6 +376,11 @@ export default async function AdminPage() {
         <div className="admin-footer">
           <p className="admin-footer-text">Visa Forte · Engineered for Passage.</p>
           <a href="/" className="admin-footer-link">View Site →</a>
+          <p className="admin-retention-note">
+            {lastRetentionRun
+              ? `Last retention run: ${new Date(lastRetentionRun).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} — ${lastRetentionCount} record${lastRetentionCount === 1 ? '' : 's'} deleted`
+              : 'No retention runs yet.'}
+          </p>
         </div>
 
       </main>

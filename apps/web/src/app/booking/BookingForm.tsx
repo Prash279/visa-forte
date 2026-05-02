@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { PRICING, formatPrice } from '@/lib/pricing';
 import type { Currency } from '@/lib/pricing';
+import { ConsentCheckbox } from '@/components/ConsentCheckbox';
 
 // The 7 active Visa Forte service tiers (Tier 8 deferred).
 const SERVICE_TIERS = [
@@ -67,6 +68,7 @@ export default function BookingForm({ availableDates }: Props) {
   const [errorMessage, setErrorMessage] = useState('');
   const [currency, setCurrency] = useState<Currency>('INR');
   const [selectedTier, setSelectedTier] = useState('');
+  const [consentGiven, setConsentGiven] = useState(false);
 
   // Set currency from browser locale after mount (avoids SSR mismatch).
   useEffect(() => {
@@ -87,6 +89,7 @@ export default function BookingForm({ availableDates }: Props) {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!consentGiven) return;
     setFormState('submitting');
     setErrorMessage('');
 
@@ -342,6 +345,9 @@ export default function BookingForm({ availableDates }: Props) {
         />
       </div>
 
+      {/* DPDP consent — must be checked before payment proceeds */}
+      <ConsentCheckbox checked={consentGiven} onConsent={setConsentGiven} />
+
       {/* Error */}
       {formState === 'error' && (
         <p className="booking-error" role="alert">{errorMessage}</p>
@@ -350,7 +356,7 @@ export default function BookingForm({ availableDates }: Props) {
       <button
         className="booking-submit"
         type="submit"
-        disabled={formState === 'submitting'}
+        disabled={formState === 'submitting' || !consentGiven}
       >
         {formState === 'submitting' ? 'Processing…' : 'Proceed to Payment →'}
       </button>

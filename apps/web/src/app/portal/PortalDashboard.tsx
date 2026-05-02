@@ -20,8 +20,10 @@ interface Props {
   client: {
     id: string
     name: string
+    email: string
     serviceTier: string
     stage: string
+    consentGivenAt: Date | null
   }
   checklist: ChecklistItem[]
   uploadedMap: Record<string, UploadedDoc>
@@ -42,6 +44,10 @@ export default function PortalDashboard({ client, checklist, uploadedMap }: Prop
   const [replyError, setReplyError] = useState('')
   const [replied, setReplied] = useState(false)
 
+  // Data deletion state
+  const [deletionStatus, setDeletionStatus] = useState<'idle' | 'pending' | 'confirming' | 'submitting' | 'done'>('idle')
+  const [deletionError, setDeletionError] = useState('')
+
   useEffect(() => {
     fetch('/api/portal/messages')
       .then((r) => r.json())
@@ -52,6 +58,15 @@ export default function PortalDashboard({ client, checklist, uploadedMap }: Prop
       })
       .catch(() => {})
       .finally(() => setMsgLoading(false))
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/portal/deletion-request')
+      .then((r) => r.json())
+      .then((data: { hasPending?: boolean }) => {
+        if (data.hasPending) setDeletionStatus('pending')
+      })
+      .catch(() => {})
   }, [])
 
   const uploadedCount = checklist.filter((item) => uploaded[item.id]).length
@@ -301,6 +316,85 @@ export default function PortalDashboard({ client, checklist, uploadedMap }: Prop
               )
             )}
           </div>
+        )}
+      </div>
+
+      {/* Data & Privacy */}
+      <div className="portal-section">
+        <div className="portal-section-header">
+          <h2 className="portal-section-title">Data &amp; Privacy</h2>
+        </div>
+        <div className="portal-privacy-card">
+          <div className="portal-privacy-row">
+            <span className="portal-privacy-label">Name</span>
+            <span className="portal-privacy-value">{client.name}</span>
+          </div>
+          <div className="portal-privacy-row">
+            <span className="portal-privacy-label">Email</span>
+            <span className="portal-privacy-value">{client.email}</span>
+          </div>
+          <div className="portal-privacy-row">
+            <span className="portal-privacy-label">Service</span>
+            <span className="portal-privacy-value">{client.serviceTier}</span>
+          </div>
+          <div className="portal-privacy-row">
+            <span className="portal-privacy-label">Consent given</span>
+            <span className="portal-privacy-value">
+              {client.consentGivenAt
+                ? new Date(client.consentGivenAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+                : 'Not recorded'}
+            </span>
+          </div>
+        </div>
+
+        {deletionStatus === 'idle' && (
+          <button className="portal-deletion-btn" onClick={() => setDeletionStatus('confirming')}>
+            Request Data Deletion
+          </button>
+        )}
+
+        {(deletionStatus === 'confirming' || deletionStatus === 'submitting') && (
+          <div className="portal-deletion-confirm">
+            <p className="portal-deletion-confirm-text">
+              This will permanently delete your account, all uploaded documents, and your case data.
+              Prashant will review the request before any data is removed.
+            </p>
+            {deletionError && <p className="portal-upload-error">{deletionError}</p>}
+            <div className="portal-deletion-confirm-actions">
+              <button
+                className="portal-deletion-submit-btn"
+                disabled={deletionStatus === 'submitting'}
+                onClick={async () => {
+                  setDeletionStatus('submitting')
+                  setDeletionError('')
+                  try {
+                    const res = await fetch('/api/portal/deletion-request', { method: 'POST' })
+                    const data = await res.json() as { error?: string }
+                    if (!res.ok) {
+                      setDeletionError(data.error ?? 'Could not submit request. Please try again.')
+                      setDeletionStatus('confirming')
+                      return
+                    }
+                    setDeletionStatus('done')
+                  } catch {
+                    setDeletionError('Network error. Please try again.')
+                    setDeletionStatus('confirming')
+                  }
+                }}
+              >
+                Confirm Deletion Request
+              </button>
+              <button className="portal-deletion-cancel-btn" onClick={() => setDeletionStatus('idle')}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {(deletionStatus === 'pending' || deletionStatus === 'done') && (
+          <p className="portal-deletion-pending">
+            Your data deletion request has been submitted. Prashant will review and process it within 30 days.
+          </p>
         )}
       </div>
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { ConsentCheckbox } from '@/components/ConsentCheckbox';
 import './intake.css';
 
 // The 7 Visa Forte service tiers.
@@ -20,9 +21,11 @@ type FormState = 'idle' | 'submitting' | 'success' | 'error';
 export default function IntakePage() {
   const [formState, setFormState] = useState<FormState>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [consentGiven, setConsentGiven] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!consentGiven) return;
     setFormState('submitting');
     setErrorMessage('');
 
@@ -33,6 +36,7 @@ export default function IntakePage() {
       phone: (form.elements.namedItem('phone') as HTMLInputElement).value.trim() || undefined,
       serviceInterest: (form.elements.namedItem('serviceInterest') as HTMLSelectElement).value,
       notes: (form.elements.namedItem('notes') as HTMLTextAreaElement).value.trim() || undefined,
+      consentGiven: true,
     };
 
     try {
@@ -173,6 +177,9 @@ export default function IntakePage() {
                 />
               </div>
 
+              {/* DPDP consent — must be checked before submission */}
+              <ConsentCheckbox checked={consentGiven} onConsent={setConsentGiven} />
+
               {/* Error message */}
               {formState === 'error' && (
                 <p className="intake-error" role="alert">{errorMessage}</p>
@@ -182,7 +189,7 @@ export default function IntakePage() {
               <button
                 className="intake-submit"
                 type="submit"
-                disabled={formState === 'submitting'}
+                disabled={formState === 'submitting' || !consentGiven}
               >
                 {formState === 'submitting' ? 'Submitting…' : 'Submit Intake Form →'}
               </button>
