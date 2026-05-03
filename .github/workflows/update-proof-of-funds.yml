@@ -24,8 +24,9 @@ jobs:
           node-version: 22
 
       - name: Install Playwright
+        working-directory: scripts
         run: |
-          npm install --no-save playwright
+          npm install
           npx playwright install chromium --with-deps
 
       - name: Fetch and update funds table
