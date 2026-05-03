@@ -672,10 +672,6 @@
   color: rgba(248, 244, 238, 0.3);
 }
 
-.contact-sep {
-  color: rgba(248, 244, 238, 0.2);
-}
-
 .final-contact a {
   color: rgba(248, 244, 238, 0.45);
   transition: color 0.22s ease;
@@ -704,18 +700,10 @@
   .final-headline      { font-size: clamp(1.8rem, 4.5vw, 3rem); }
   .final-cta           { padding: 6rem 1.5rem; }
 
-  /* Contact block — block layout, no flex, no uppercase, no overflow risk */
   .final-contact {
     display: block;
     text-transform: none;
     letter-spacing: 0.02em;
     font-size: 0.78rem;
-    line-height: 2;
   }
-  .final-contact > span {
-    display: block;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-  .contact-sep { display: none; }
 }

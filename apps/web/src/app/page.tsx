@@ -357,11 +357,9 @@ export default function Home() {
             Request Triage Assessment →
           </a>
           <p className="final-contact r d4">
-            <span><a href="mailto:prashant@visaforte.com">prashant@visaforte.com</a></span>
-            <span className="contact-sep" aria-hidden="true">·</span>
-            <span><a href="https://visaforte.com" target="_blank" rel="noreferrer">visaforte.com</a></span>
-            <span className="contact-sep" aria-hidden="true">·</span>
-            <span>Secunderabad, India</span>
+            <a href="mailto:prashant@visaforte.com">prashant@visaforte.com</a>
+            &nbsp;·&nbsp;
+            <a href="https://visaforte.com" target="_blank" rel="noreferrer">visaforte.com</a>
           </p>
         </div>
       </section>
