@@ -1,0 +1,40 @@
+name: Update IRCC Settlement Funds
+
+# Runs every Monday at 06:00 UTC (11:30 IST).
+# Also triggerable manually from the Actions tab.
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: Sync proof-of-funds from canada.ca
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch and update funds table
+        run: node scripts/update-proof-of-funds.mjs
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet; then
+            echo "No changes — skipping commit."
+          else
+            git config user.name "VisaForte Data Bot"
+            git config user.email "bot@visaforte.com"
+            git add apps/web/src/lib/proof-of-funds.json
+            git commit -m "data: update IRCC settlement funds from canada.ca ($(date +%Y-%m-%d))"
+            git push
+            echo "Committed and pushed updated proof-of-funds.json"
+          fi

@@ -1,0 +1,15 @@
+{
+  "source": "canada.ca",
+  "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/proof-funds.html",
+  "lastUpdated": "2025-07-07",
+  "byFamilySize": {
+    "1": 15263,
+    "2": 19001,
+    "3": 23360,
+    "4": 28362,
+    "5": 32168,
+    "6": 36280,
+    "7": 40392
+  },
+  "extraPerMember": 4112
+}

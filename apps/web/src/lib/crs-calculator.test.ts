@@ -5,6 +5,7 @@ import {
   type ApplicantProfile,
   type LanguageScores,
 } from './crs-calculator'
+import fundsData from './proof-of-funds.json'
 
 // Ground-truth test profile derived from the verified HTML report for Kishore Sai.
 // All expected values are confirmed outputs from the CanVisa Pro HTML tool.
@@ -197,25 +198,26 @@ describe('calculate — stream eligibility', () => {
 })
 
 describe('calculate — proof of funds', () => {
-  // Thresholds sourced from canada.ca, updated July 7, 2025.
-  it('single applicant funds required = 15263', () => {
+  const f = fundsData.byFamilySize as Record<string, number>
+
+  it('single applicant funds required matches proof-of-funds.json', () => {
     const result = calculate(kishoreProfile)
-    expect(result.proofOfFundsRequired).toBe(15263)
+    expect(result.proofOfFundsRequired).toBe(f['1'])
   })
 
   it('funds sufficient when settlement funds >= required', () => {
-    const result = calculate({ ...kishoreProfile, settlementFunds: 16000 })
+    const result = calculate({ ...kishoreProfile, settlementFunds: f['1'] + 1000 })
     expect(result.proofOfFundsSufficient).toBe(true)
   })
 
   it('funds insufficient when below threshold', () => {
-    const result = calculate({ ...kishoreProfile, settlementFunds: 10000 })
+    const result = calculate({ ...kishoreProfile, settlementFunds: f['1'] - 1000 })
     expect(result.proofOfFundsSufficient).toBe(false)
   })
 
-  it('family of 8 = 40392 + 4112 = 44504', () => {
+  it('family of 8 uses extraPerMember increment', () => {
     const result = calculate({ ...kishoreProfile, familySize: 8 })
-    expect(result.proofOfFundsRequired).toBe(44504)
+    expect(result.proofOfFundsRequired).toBe(f['7'] + fundsData.extraPerMember)
   })
 })
 
