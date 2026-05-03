@@ -115,21 +115,34 @@ and confirm it arrives at prashant@visaforte.com.
 ---
 
 ### TASK 3: CanVisa Pro Integration
-**Status:** Not started
-**Approved:** Pending
+**Status:** In Progress — May 2026
+**Approved:** Yes (Prash directed build)
 **What this delivers:** The PR assessment tool is accessible to clients at visaforte.com/assessment.
 
-**Plan:**
-- [ ] Read `/mnt/skills/user/canvisa-pro/SKILL.md` in full before writing a line
-- [ ] Stand up `apps/api/` FastAPI skeleton: `main.py`, `config.py`, `requirements.txt`
-- [ ] Add FastAPI service to `render.yaml`
-- [ ] Embed CanVisa Pro at `/app/assessment/page.tsx`
-- [ ] Confirm: only `api.anthropic.com` and `canada.ca` are called externally
-- [ ] Confirm: Claude API key entered at runtime — never stored anywhere
-- [ ] Confirm: every generated report includes the Standard Legal Disclaimer
+**Architecture note (revised from original):** No FastAPI needed. The CRS engine already runs
+entirely client-side via `@/lib/crs-calculator`. No backend, no Render, no Claude API key input.
+The MARP download remains in the admin tool only. Staying on Vercel.
 
-**Prashant Proof:** Go to visaforte.com/assessment. Enter a test profile. Confirm a report generates.
-Scroll to the bottom — confirm the legal disclaimer is present.
+**Plan:**
+- [x] Read visa-forte-brand SKILL.md before any UI work
+- [x] Create `apps/web/src/app/assessment/AssessmentTool.tsx` — client component
+  - Same CRS calculation engine as admin tool
+  - Visa Forte brand (Prussian/Saffron/Pearl), NOT the dark consultant theme
+  - Same form fields as admin, minus `strategyTitle` and `currentEmployer` (internal only)
+  - Client-friendly result view: score card, eligibility, gaps, scenarios, CTA, disclaimer
+  - No MARP download button (consultant-only feature stays at /admin/canvisa-pro)
+- [x] Create `apps/web/src/app/assessment/assessment.css` — Visa Forte brand CSS
+- [x] Create `apps/web/src/app/assessment/page.tsx` — public server component (no auth)
+- [x] Add "Assessment" link to `SiteNav.tsx`
+- [x] `npx tsc --noEmit` — zero errors
+- [x] Commit and push → Vercel auto-deploys
+
+**Prashant Proof:**
+1. Go to visaforte.com/assessment (no login required)
+2. Fill in any profile data — age, education, IELTS scores, work experience
+3. Click "Check My Eligibility →" — confirm the result view appears with a CRS score
+4. Scroll down — confirm the legal disclaimer block is visible at the bottom
+5. Click "Book a Consultation →" — confirm it links to /booking
 
 ---
 
@@ -862,6 +875,7 @@ Per `spec.md §8`, DPDP consent interface and automated deletion cron are Phase 
 | Task P3-1 | Messaging System MVP — admin compose + portal reply + thread view | April 2026 |
 | Task P3-2 | Automated Email Notifications — 24h reminders + SLA breach alerts | April 2026 |
 | Task P3-3 | DPDP Consent Interface + Deletion Cron — consent forms + portal deletion request + admin approve/reject + nightly purge cron | May 2026 |
+| Task P3-4 | Post-Submission Monitoring — AOR tracking, IRCC queries, portal status view, deadline cron alerts | May 2026 |
 
 ---
 
@@ -1166,7 +1180,7 @@ Also apply migration 0011 to Neon: run `npx drizzle-kit migrate` from `apps/web/
 
 ### TASK P3-4: Post-Submission Monitoring Workflow
 
-**Status:** Not started — Awaiting approval
+**Status:** ✅ COMPLETE — May 2026
 **Stack:** Next.js + Drizzle (admin UI + portal view); Vercel Cron for deadline alerts
 
 **What this delivers:**
@@ -1208,30 +1222,16 @@ This directly supports Tier 7 (Post-Submission Monitoring) and all Tier 5/6 clie
 
 **Step plan:**
 
-- [ ] Step 1 — DB: add `applicationMonitoring` + `irccQueries` tables to `schema.ts`; run `drizzle-kit generate` + `drizzle-kit migrate` (migration 0012)
-- [ ] Step 2 — API: `POST /api/admin/clients/[id]/monitoring` — create or update monitoring record (admin session; Zod-validate all fields)
-- [ ] Step 3 — API: `GET /api/admin/clients/[id]/monitoring` — fetch monitoring record + all IRCC queries for a client
-- [ ] Step 4 — API: `POST /api/admin/clients/[id]/queries` — log a new IRCC query with type, received date, deadline
-- [ ] Step 5 — API: `PATCH /api/admin/clients/[id]/queries/[queryId]` — update query status (mark as Responded; set responseSubmittedAt)
-- [ ] Step 6 — Admin monitoring page at `/admin/monitoring`:
-  - Server component — queries all clients in `'Submitted'` or `'Decision Pending'` stage
-  - For each client: name, AOR number, submission date, expected decision date, IRCC portal status, open query count
-  - "Edit" button per row — opens an inline edit panel with all monitoring fields + IRCC query log
-  - New query form: query type dropdown, received date, deadline — "Add Query" button
-  - Overdue queries (deadline < today + status ≠ 'Responded') highlighted in Saffron
-  - ITA Window clients in this list get the standard Saffron row highlight
-- [ ] Step 7 — Admin monitoring CSS (`monitoring.css`): table layout, edit panel, query rows, overdue highlight, deadline countdown
-- [ ] Step 8 — Admin monitoring card: add "Monitoring" tool card to `/admin` dashboard (shows count of clients in Submitted + Decision Pending + count of open queries)
-- [ ] Step 9 — Portal monitoring view: in `PortalDashboard.tsx`, if client stage is `'Submitted'` or `'Decision Pending'`:
-  - Show "Application Status" section: submission date, current IRCC portal status, last status check date
-  - If an open IRCC query exists: show "Your consultant is reviewing a query from IRCC. We will update you shortly." (no deadline or query type exposed to client)
-  - Do NOT expose AOR number or monitoring notes to the client
-- [ ] Step 10 — Deadline alert cron: extend `GET /api/cron/reminders/route.ts` to also check `irccQueries`:
-  - Query: `irccQueries` WHERE `status = 'Open'` AND `responseDeadline <= today + 3 days`
-  - If any: send Prash a digest email listing client name, query type, deadline
-  - Log to `lib/logger.ts`
-- [ ] Step 11 — Vitest: tests for monitoring Zod schemas, overdue query status logic, deadline alert query
-- [ ] Step 12 — `npx tsc --noEmit` — zero errors; commit + push
+- [x] Step 1 — DB: add `applicationMonitoring` + `irccQueries` tables to `schema.ts`; migration 0012 generated
+- [x] Step 2 — API: `GET+POST /api/admin/clients/[id]/monitoring` — upsert via onConflictDoUpdate on clientId
+- [x] Step 3 — API: `POST /api/admin/clients/[id]/queries` — log a new IRCC query
+- [x] Step 4 — API: `PATCH /api/admin/clients/[id]/queries/[queryId]` — update query status
+- [x] Step 5 — Admin monitoring page at `/admin/monitoring` + `MonitoringPanel.tsx` + `monitoring.css`
+- [x] Step 6 — Admin dashboard: Monitoring stat card + Post-Submission Monitoring tool card
+- [x] Step 7 — Portal: Application Status section in PortalDashboard (submission date, IRCC status, open query notice; AOR/notes never exposed)
+- [x] Step 8 — Cron: Email 4 — IRCC deadline digest for queries due within 3 days
+- [x] Step 9 — 22 new Vitest tests in monitoring.test.ts — 122 total passing, 0 failures
+- [x] Step 10 — `npx tsc --noEmit` zero errors; committed (a710ee1)
 
 ---
 
@@ -1242,6 +1242,36 @@ This directly supports Tier 7 (Post-Submission Monitoring) and all Tier 5/6 clie
 4. Log in as that client in an incognito window → go to `/portal` → confirm "Application Status" section appears with submission date and IRCC portal status; confirm AOR number is NOT visible
 5. Mark the query as Responded → confirm status changes to "Responded" in the admin view
 6. Trigger the reminders cron manually — confirm Prash receives the deadline alert email if any queries are within 3 days
+
+---
+
+**Review (P3-4):**
+`applicationMonitoring` (unique FK per client) + `irccQueries` tables added; migration 0012 generated.
+`monitoring-schemas.ts`: `CreateMonitoringSchema`, `CreateQuerySchema`, `UpdateQuerySchema` + `isOverdue`/`isDeadlineWithin` helpers.
+`GET+POST /api/admin/clients/[id]/monitoring`: upsert via `onConflictDoUpdate` on `clientId`.
+`POST /api/admin/clients/[id]/queries`: log new IRCC query.
+`PATCH /api/admin/clients/[id]/queries/[queryId]`: update status (Open → Responded/Overdue) with optional `responseSubmittedAt`.
+`/admin/monitoring`: server component fetches Submitted+Decision Pending clients + monitoring + queries;
+`MonitoringPanel` client component: table with inline Edit panel (all monitoring fields, private notes), IRCC query log
+with overdue row highlights and "Mark Responded" button, and new query form (type dropdown, dates, notes).
+Admin dashboard: "Monitoring" stat card (client count + open query count); "Post-Submission Monitoring" tool card.
+`portal/page.tsx`: fetches `applicationMonitoring` + checks open `irccQueries` for Submitted/Decision Pending clients.
+`PortalDashboard.tsx`: "Application Status" section — submittedAt, IRCC portal status, last check date, open query notice.
+AOR number and monitoring notes intentionally excluded from portal view.
+Cron extended with Email 4: digest to Prash for open queries with deadline ≤ today+3, sorted by urgency with days-left column.
+22 new Vitest tests — 122 total passing. TypeScript clean.
+
+**One manual step required:**
+Run `npx drizzle-kit migrate` from `apps/web/` with `DATABASE_URL` set in `.env.local` to apply migration 0012 to Neon.
+
+**Prashant Proof:**
+1. Go to `/admin/monitoring` — confirm the page loads showing any clients in Submitted/Decision Pending stage
+2. Click "Edit" on a client — fill AOR number, submission date, expected decision date → Save; confirm values persist on refresh
+3. Add an IRCC query (type: "Additional Documents Request", received today, deadline in 2 days) → confirm it appears in the query log with status "Open"
+4. Log in as that client in an incognito window → go to `/portal` → confirm "Application Status" section appears with submission date and IRCC portal status; confirm AOR number is NOT visible
+5. Mark the query as Responded → confirm status changes to "Responded" in the admin view
+6. Trigger the reminders cron manually — confirm Prash receives the deadline alert email if any queries are within 3 days
+7. Go to `/admin` — confirm the Monitoring stat card shows the client count and open query count; confirm the "Post-Submission Monitoring" tool card links to `/admin/monitoring`
 
 ---
 
