@@ -8,6 +8,7 @@
 // On change: writes the updated JSON and exits 0. GitHub Actions detects
 // the dirty file with `git diff --quiet` and commits it.
 
+import { chromium } from 'playwright'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, resolve } from 'node:path'
@@ -20,14 +21,14 @@ const IRCC_URL =
   'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/proof-funds.html'
 
 async function fetchPage() {
-  const res = await fetch(IRCC_URL, {
-    headers: {
-      'User-Agent': 'VisaForte-DataSync/1.0 (+https://visaforte.com)',
-      Accept: 'text/html',
-    },
-  })
-  if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText} from canada.ca`)
-  return res.text()
+  const browser = await chromium.launch({ headless: true })
+  try {
+    const page = await browser.newPage()
+    await page.goto(IRCC_URL, { waitUntil: 'domcontentloaded', timeout: 30000 })
+    return page.content()
+  } finally {
+    await browser.close()
+  }
 }
 
 function parseFundsTable(html) {

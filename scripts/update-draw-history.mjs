@@ -8,6 +8,7 @@
 //
 // On any change, writes the updated JSON; caller detects via `git diff --quiet`.
 
+import { chromium } from 'playwright'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, resolve } from 'node:path'
@@ -35,17 +36,14 @@ function parseDate(str) {
 }
 
 async function fetchPage() {
-  const res = await fetch(IRCC_URL, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      'Accept-Language': 'en-CA,en;q=0.9',
-      'Accept-Encoding': 'gzip, deflate, br',
-      'Cache-Control': 'no-cache',
-    },
-  })
-  if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText} from canada.ca`)
-  return res.text()
+  const browser = await chromium.launch({ headless: true })
+  try {
+    const page = await browser.newPage()
+    await page.goto(IRCC_URL, { waitUntil: 'domcontentloaded', timeout: 30000 })
+    return page.content()
+  } finally {
+    await browser.close()
+  }
 }
 
 function parseDrawsTable(html) {
