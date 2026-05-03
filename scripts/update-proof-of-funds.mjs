@@ -25,7 +25,8 @@ async function fetchPage() {
   try {
     const page = await browser.newPage()
     await page.goto(IRCC_URL, { waitUntil: 'domcontentloaded', timeout: 30000 })
-    return page.content()
+    const html = await page.content()
+    return html
   } finally {
     await browser.close()
   }
