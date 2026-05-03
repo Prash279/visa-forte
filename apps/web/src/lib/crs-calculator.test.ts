@@ -197,9 +197,10 @@ describe('calculate — stream eligibility', () => {
 })
 
 describe('calculate — proof of funds', () => {
-  it('single applicant funds required = 14690', () => {
+  // Thresholds sourced from canada.ca, updated July 7, 2025.
+  it('single applicant funds required = 15263', () => {
     const result = calculate(kishoreProfile)
-    expect(result.proofOfFundsRequired).toBe(14690)
+    expect(result.proofOfFundsRequired).toBe(15263)
   })
 
   it('funds sufficient when settlement funds >= required', () => {
@@ -210,6 +211,11 @@ describe('calculate — proof of funds', () => {
   it('funds insufficient when below threshold', () => {
     const result = calculate({ ...kishoreProfile, settlementFunds: 10000 })
     expect(result.proofOfFundsSufficient).toBe(false)
+  })
+
+  it('family of 8 = 40392 + 4112 = 44504', () => {
+    const result = calculate({ ...kishoreProfile, familySize: 8 })
+    expect(result.proofOfFundsRequired).toBe(44504)
   })
 })
 

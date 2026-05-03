@@ -565,15 +565,19 @@ function fswAdaptabilityPoints(
 
 // ── Proof of Funds ────────────────────────────────────────────────────────────
 
-// IRCC proof of funds thresholds (approximate — verify before each use at canada.ca).
+// IRCC proof of funds thresholds — source: canada.ca, updated July 7, 2025.
+// https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/proof-funds.html
+// Per-additional-member increment beyond 7: $4,112.
 const PROOF_OF_FUNDS: Record<number, number> = {
-  1: 14690, 2: 18288, 3: 22484, 4: 27297,
-  5: 30690, 6: 34602, 7: 38516,
+  1: 15263, 2: 19001, 3: 23360, 4: 28362,
+  5: 32168, 6: 36280, 7: 40392,
 }
+const PROOF_OF_FUNDS_EXTRA_PER_MEMBER = 4112
 
 function proofOfFundsRequired(familySize: number): number {
-  const size = Math.max(1, Math.min(7, familySize))
-  return PROOF_OF_FUNDS[size] ?? 38516
+  const size = Math.max(1, familySize)
+  if (size <= 7) return PROOF_OF_FUNDS[size]
+  return PROOF_OF_FUNDS[7] + (size - 7) * PROOF_OF_FUNDS_EXTRA_PER_MEMBER
 }
 
 // ── Stream Eligibility ───────────────────────────────────────────────────────
