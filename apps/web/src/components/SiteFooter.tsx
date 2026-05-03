@@ -7,7 +7,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const DISCLAIMER =
-  "The information provided is for informational and guidance purposes only, based on publicly available Immigration, Refugees and Citizenship Canada (IRCC) regulations and policies. This does not constitute legal advice, and no solicitor-client or consultant-client relationship is created by accessing this content. Immigration regulations, program requirements, processing times, and CRS cutoff scores are subject to frequent change without notice. You are responsible for verifying all information with official IRCC sources (www.canada.ca/immigration) and confirming current eligibility requirements before taking any action. Visa Forte provides documentation consulting services only. Prashant Thirthingoth is not a Regulated Canadian Immigration Consultant (RCIC) and does not provide legal advice or immigration representation.";
+  "The information provided is for informational and guidance purposes only, based on publicly available Immigration, Refugees and Citizenship Canada (IRCC) regulations and policies. This does not constitute legal advice, and no solicitor-client or consultant-client relationship is created by accessing this content. Immigration regulations, program requirements, processing times, and CRS cutoff scores are subject to frequent change without notice. You are responsible for verifying all information with official IRCC sources (www.canada.ca/immigration) and confirming current eligibility requirements before taking any action. Visa Forte specialises in documentation forensics and regulatory alignment—where applications succeed through precision and fail through oversight.";
 
 const HIDDEN_PREFIXES = ["/admin", "/portal", "/login", "/signup", "/logout"];
 
@@ -38,6 +38,9 @@ export default function SiteFooter() {
       </div>
 
       <p className="footer-disclaimer">{DISCLAIMER}</p>
+      <div className="footer-copyright">
+        © {new Date().getFullYear()} Visa Forte. All rights reserved.
+      </div>
     </footer>
   );
 }

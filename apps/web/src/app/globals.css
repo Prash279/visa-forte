@@ -309,13 +309,16 @@ footer.site-footer {
   font-family: var(--font-body);
   font-size: 0.75rem;
   font-weight: 300;
-  color: rgba(248, 244, 238, 0.32);
+  color: rgba(248, 244, 238, 0.58);
   margin-top: 0.5rem;
   letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .footer-contact a {
-  color: rgba(248, 244, 238, 0.38);
+  color: rgba(248, 244, 238, 0.62);
   transition: color 0.2s;
 }
 
@@ -334,7 +337,7 @@ footer.site-footer {
   font-weight: 400;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(248, 244, 238, 0.28);
+  color: rgba(248, 244, 238, 0.6);
   transition: color 0.22s ease;
 }
 
@@ -344,12 +347,25 @@ footer.site-footer {
   max-width: var(--max-w);
   margin: 1.5rem auto 0;
   padding-top: 1.25rem;
-  border-top: 1px solid rgba(226, 219, 209, 0.07);
+  border-top: 1px solid rgba(226, 219, 209, 0.15);
   font-family: var(--font-body);
   font-size: 0.68rem;
   font-weight: 300;
   line-height: 1.7;
-  color: rgba(248, 244, 238, 0.2);
+  color: rgba(248, 244, 238, 0.55);
+}
+
+.footer-copyright {
+  max-width: var(--max-w);
+  margin: 1.5rem auto 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(226, 219, 209, 0.15);
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: rgba(248, 244, 238, 0.5);
 }
 
 /* ── 6. SHARED SECTION LAYOUT ─────────────────────────────── */
@@ -491,8 +507,13 @@ footer.site-footer {
     text-align: center;
   }
 
-  .footer-brand  { align-items: center; }
-  .footer-nav    { align-items: center; }
+  .footer-brand       { align-items: center; }
+  .footer-nav         { align-items: center; }
+  .footer-contact     { white-space: normal; }
+  .footer-wordmark    { font-size: 0.9rem; }
+  .footer-nav a       { font-size: 0.62rem; }
+  .footer-disclaimer  { font-size: 0.62rem; line-height: 1.65; padding: 0 0.5rem; }
+  .footer-copyright   { font-size: 0.6rem; padding: 0 0.5rem; }
 }
 
 /* ── CONSENT CHECKBOX (shared across intake, booking, activate) ─────────── */
