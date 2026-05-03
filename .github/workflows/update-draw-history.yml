@@ -1,0 +1,42 @@
+name: Update Express Entry Draw History
+
+# IRCC runs draws roughly every 2 weeks — sync every Wednesday and Saturday at 07:00 UTC.
+# Also triggerable manually from the Actions tab (use this immediately after first deploy
+# to seed the initial draw data).
+on:
+  schedule:
+    - cron: '0 7 * * 3'  # Wednesday 07:00 UTC
+    - cron: '0 7 * * 6'  # Saturday  07:00 UTC
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: Sync draw history from canada.ca
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch and update draw history
+        run: node scripts/update-draw-history.mjs
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet; then
+            echo "No changes — skipping commit."
+          else
+            git config user.name "VisaForte Data Bot"
+            git config user.email "bot@visaforte.com"
+            git add apps/web/src/lib/crs-draw-history.json
+            git commit -m "data: update EE draw history from canada.ca ($(date +%Y-%m-%d))"
+            git push
+            echo "Committed and pushed updated crs-draw-history.json"
+          fi

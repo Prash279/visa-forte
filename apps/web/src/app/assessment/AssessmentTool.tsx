@@ -10,7 +10,31 @@ import {
   type CrsResult,
   type EducationLevel,
 } from '@/lib/crs-calculator'
+import drawData from '@/lib/crs-draw-history.json'
 import './assessment.css'
+
+// ── Draw history helpers ───────────────────────────────────────────────────────
+
+type Draw = { date: string; type: string; cutoffScore: number; invitationsIssued: number }
+
+function fmtDate(iso: string): string {
+  // "2025-04-30" → "Apr 30, 2025"
+  const [y, m, d] = iso.split('-').map(Number)
+  const dt = new Date(y, (m ?? 1) - 1, d ?? 1)
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+function shortType(type: string): string {
+  if (/^general$/i.test(type)) return 'General'
+  if (/pnp|provincial nominee/i.test(type)) return 'PNP'
+  if (/stem/i.test(type)) return 'STEM'
+  if (/french/i.test(type)) return 'French'
+  if (/health/i.test(type)) return 'Healthcare'
+  if (/trade/i.test(type)) return 'Trades'
+  if (/transport/i.test(type)) return 'Transport'
+  if (/agri/i.test(type)) return 'Agriculture'
+  return type.length > 20 ? type.slice(0, 18) + '…' : type
+}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -495,6 +519,14 @@ export default function AssessmentTool() {
   const total = bd.total
   const poolEligible = elig.expressEntryPool.eligible
 
+  // Draw history context
+  const allDraws = drawData.draws as Draw[]
+  const recentGeneral = allDraws.filter(d => /^general$/i.test(d.type)).slice(0, 3)
+  const lastGeneral = recentGeneral[0] ?? null
+  const cutoff = lastGeneral?.cutoffScore ?? null
+  const gap = cutoff !== null ? total - cutoff : null
+  const hasDrawData = allDraws.length > 0
+
   const programs = [
     { name: 'Express Entry Pool', eligible: elig.expressEntryPool.eligible, likely: false, reason: elig.expressEntryPool.reason },
     { name: 'Federal Skilled Worker (FSW)', eligible: elig.fsw.eligible, likely: elig.fsw.likely ?? false, reason: elig.fsw.reason },
@@ -549,6 +581,56 @@ export default function AssessmentTool() {
         </section>
 
         <div className="asx-result-body">
+
+          {/* ── Recent Draw Context ──────────────────────────────── */}
+          {hasDrawData && (
+            <div className="asx-card asx-draws-card">
+              <h2 className="asx-card-title">Pool Draw Context</h2>
+              <p className="asx-card-sub">
+                Your score compared to recent Express Entry general draws from canada.ca.
+              </p>
+
+              {lastGeneral && (
+                <div className={`asx-gap-row${gap !== null && gap >= 0 ? ' asx-gap-above' : ' asx-gap-below'}`}>
+                  <div className="asx-gap-score">
+                    <span className="asx-gap-label">Last General Draw</span>
+                    <span className="asx-gap-val">{lastGeneral.cutoffScore}</span>
+                    <span className="asx-gap-meta">{fmtDate(lastGeneral.date)}</span>
+                  </div>
+                  <div className="asx-gap-vs">
+                    <span className="asx-gap-your-label">Your Score</span>
+                    <span className="asx-gap-your-val">{total}</span>
+                    {gap !== null && (
+                      <span className="asx-gap-diff">
+                        {gap >= 0
+                          ? `+${gap} pts above cutoff`
+                          : `${gap} pts below cutoff`}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="asx-draws-table">
+                <div className="asx-draws-header">
+                  <span>Date</span><span>Type</span><span>Cutoff</span><span>ITAs</span>
+                </div>
+                {allDraws.slice(0, 5).map((d, i) => (
+                  <div key={i} className="asx-draw-row">
+                    <span className="asx-draw-date">{fmtDate(d.date)}</span>
+                    <span className="asx-draw-type">{shortType(d.type)}</span>
+                    <span className="asx-draw-score">{d.cutoffScore}</span>
+                    <span className="asx-draw-itas">{d.invitationsIssued.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="asx-draws-source">
+                Data synced from{' '}
+                <a href={drawData.url} target="_blank" rel="noopener noreferrer">canada.ca rounds of invitations</a>
+                {drawData.lastUpdated ? ` · ${fmtDate(drawData.lastUpdated)}` : ''}.
+              </p>
+            </div>
+          )}
 
           {/* ── Program Eligibility ──────────────────────────────── */}
           <div className="asx-card">
@@ -642,28 +724,41 @@ export default function AssessmentTool() {
             <div className="asx-card">
               <h2 className="asx-card-title">How to Improve Your Score</h2>
               <p className="asx-card-sub">
-                The highest-impact changes you can make to your CRS score.
+                {cutoff !== null
+                  ? `Projected scores are compared against the last general draw cutoff of ${cutoff} pts (${fmtDate(lastGeneral!.date)}).`
+                  : 'The highest-impact changes you can make to your CRS score.'}
               </p>
               <div className="asx-scenarios">
-                {scenarios.map((s, i) => (
-                  <div key={i} className="asx-scenario-row">
-                    <div className={`asx-scenario-delta${s.delta > 0 ? ' positive' : ''}`}>
-                      {s.delta > 0 ? '+' : ''}{s.delta}
+                {scenarios.map((s, i) => {
+                  const meetsReal = cutoff !== null
+                    ? s.projectedCrs >= cutoff
+                    : s.competitive
+                  return (
+                    <div key={i} className="asx-scenario-row">
+                      <div className={`asx-scenario-delta${s.delta > 0 ? ' positive' : ''}`}>
+                        {s.delta > 0 ? '+' : ''}{s.delta}
+                      </div>
+                      <div className="asx-scenario-info">
+                        <p className="asx-scenario-name">{s.name}</p>
+                        <p className="asx-scenario-desc">{s.change}</p>
+                      </div>
+                      <div className="asx-scenario-projected">
+                        <span className="asx-projected-label">Projected</span>
+                        <span className="asx-projected-val">{s.projectedCrs}</span>
+                        <span
+                          className="asx-competitive-tag"
+                          data-meets={meetsReal ? 'yes' : 'no'}
+                        >
+                          {meetsReal ? '▲ Cutoff met' : '▼ Below cutoff'}
+                        </span>
+                      </div>
                     </div>
-                    <div className="asx-scenario-info">
-                      <p className="asx-scenario-name">{s.name}</p>
-                      <p className="asx-scenario-desc">{s.change}</p>
-                    </div>
-                    <div className="asx-scenario-projected">
-                      <span className="asx-projected-label">Projected</span>
-                      <span className="asx-projected-val">{s.projectedCrs}</span>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
               <p className="asx-scenarios-note">
-                All projections assume current IRCC scoring rules. Verify live draw cutoffs at
-                {' '}<a href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry.html"
+                All projections assume current IRCC scoring rules. Verify live draw cutoffs at{' '}
+                <a href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry.html"
                   target="_blank" rel="noopener noreferrer">canada.ca</a>{' '}
                 before acting on any scenario.
               </p>
