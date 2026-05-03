@@ -702,6 +702,20 @@
   .positioning-block   { padding: 1.2rem 1.2rem; }
   .positioning-block p { font-size: 0.8rem; line-height: 1.65; }
   .final-headline      { font-size: clamp(1.8rem, 4.5vw, 3rem); }
-  .final-contact       { flex-direction: column; gap: 0.45rem; letter-spacing: 0.08em; }
-  .contact-sep         { display: none; }
+  .final-cta           { padding: 6rem 1.5rem; }
+
+  /* Contact block — block layout, no flex, no uppercase, no overflow risk */
+  .final-contact {
+    display: block;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    font-size: 0.78rem;
+    line-height: 2;
+  }
+  .final-contact > span {
+    display: block;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .contact-sep { display: none; }
 }
