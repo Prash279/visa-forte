@@ -2,11 +2,13 @@
 // Fetches the Express Entry rounds-of-invitations table from canada.ca and
 // updates apps/web/src/lib/crs-draw-history.json with the most recent 25 draws.
 //
+// Uses Playwright DOM extraction (page.evaluate) with networkidle wait so the
+// real page content is read after Cloudflare JS challenges complete and all
+// dynamic content is rendered — no regex on raw HTML.
+//
 // Exit codes:
 //   0 — success (updated or unchanged)
-//   1 — fatal error (fetch failed or page structure changed)
-//
-// On any change, writes the updated JSON; caller detects via `git diff --quiet`.
+//   1 — fatal error (navigation failed or data not found)
 
 import { chromium } from 'playwright'
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -27,7 +29,6 @@ const MONTHS = {
 }
 
 function parseDate(str) {
-  // "April 30, 2025" → "2025-04-30"
   const m = str.trim().match(/^([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})$/)
   if (!m) return null
   const month = MONTHS[m[1]]
@@ -35,71 +36,78 @@ function parseDate(str) {
   return `${m[3]}-${month}-${m[2].padStart(2, '0')}`
 }
 
-async function fetchPage() {
+async function scrapeDraws() {
   const browser = await chromium.launch({ headless: true })
   try {
     const page = await browser.newPage()
-    await page.goto(IRCC_URL, { waitUntil: 'domcontentloaded', timeout: 30000 })
-    const html = await page.content()
-    return html
+
+    // networkidle waits until there are no more than 2 active connections for 500ms.
+    // This ensures Cloudflare JS challenges complete and the real page content renders
+    // before we read the DOM.
+    const response = await page.goto(IRCC_URL, { waitUntil: 'networkidle', timeout: 60000 })
+    console.log(`Page status: ${response?.status()} | URL: ${page.url()}`)
+
+    // Extract every table row's cell text directly from the rendered DOM.
+    // page.evaluate runs inside the browser — we get rendered text, not raw HTML.
+    const { title, rows } = await page.evaluate(() => {
+      const rows = []
+      for (const row of document.querySelectorAll('table tr')) {
+        const cells = row.querySelectorAll('td')
+        if (cells.length >= 2) {
+          rows.push(Array.from(cells).map(td => td.innerText.trim()))
+        }
+      }
+      return { title: document.title, rows }
+    })
+
+    console.log(`Page title: "${title}" | Table rows found: ${rows.length}`)
+    return rows
   } finally {
     await browser.close()
   }
 }
 
-function parseDrawsTable(html) {
+function parseDrawRows(rows) {
   const draws = []
-
-  // Match tbody rows in the rounds-of-invitations table.
-  // Each row: Date | Type | CRS score | # invitations
-  // The table id is "round-history" or similar on canada.ca.
-  const rowRe =
-    /<tr[^>]*>\s*<td[^>]*>\s*([A-Za-z]+ \d{1,2}, \d{4})\s*<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>\s*<td[^>]*>\s*([\d,]+)\s*<\/td>\s*<td[^>]*>\s*([\d,]+)\s*<\/td>\s*<\/tr>/gi
-
-  let m
-  while ((m = rowRe.exec(html)) !== null) {
-    const date = parseDate(m[1])
+  for (const cells of rows) {
+    if (cells.length < 4) continue
+    const date = parseDate(cells[0])
     if (!date) continue
 
-    // Strip HTML tags from type cell (some cells have links or spans)
-    const type = m[2].replace(/<[^>]+>/g, '').trim()
-    const cutoffScore = parseInt(m[3].replace(/,/g, ''), 10)
-    const invitationsIssued = parseInt(m[4].replace(/,/g, ''), 10)
+    // innerText already strips HTML — just normalise whitespace
+    const type = cells[1].replace(/\s+/g, ' ').trim()
+    const cutoffScore = parseInt(cells[2].replace(/,/g, ''), 10)
+    const invitationsIssued = parseInt(cells[3].replace(/,/g, ''), 10)
 
     if (!type || isNaN(cutoffScore) || isNaN(invitationsIssued)) continue
-    if (cutoffScore < 200 || cutoffScore > 1200) continue // sanity check
+    if (cutoffScore < 200 || cutoffScore > 1200) continue
 
     draws.push({ date, type, cutoffScore, invitationsIssued })
   }
 
   if (draws.length === 0) {
     throw new Error(
-      'No draw rows parsed from canada.ca page. ' +
-        'The table structure may have changed — manual review required.'
+      'No draw rows found in any table on canada.ca page. ' +
+      'The page may still be showing a challenge/redirect or the table structure changed.'
     )
   }
 
-  // Sort most-recent first, keep latest 25
   draws.sort((a, b) => b.date.localeCompare(a.date))
   return draws.slice(0, 25)
 }
 
 async function main() {
   console.log(`Fetching: ${IRCC_URL}`)
-  const html = await fetchPage()
-  console.log(`Fetched ${html.length} bytes`)
+  const rows = await scrapeDraws()
 
-  const draws = parseDrawsTable(html)
+  const draws = parseDrawRows(rows)
   console.log(`Parsed ${draws.length} draws. Most recent: ${draws[0]?.date} — ${draws[0]?.type} — ${draws[0]?.cutoffScore}`)
 
   const existing = JSON.parse(readFileSync(DRAWS_JSON, 'utf-8'))
-
-  // Compare: same count, same most-recent-5 draws
   const existingTop5 = JSON.stringify(existing.draws.slice(0, 5))
   const newTop5 = JSON.stringify(draws.slice(0, 5))
-  const unchanged = existingTop5 === newTop5
 
-  if (unchanged) {
+  if (existingTop5 === newTop5) {
     console.log('No change — crs-draw-history.json is current.')
     return
   }
