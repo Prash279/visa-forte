@@ -298,7 +298,7 @@ export default function Home() {
               </p>
               <div className="positioning-block">
                 <p>
-                  <strong>On scope:</strong> Visa Forte provides documentation consulting, not legal advice or immigration representation. Prashant Thirthingoth is not a Regulated Canadian Immigration Consultant (RCIC). What you engage is the most thorough documentation review available outside of a regulated legal practice — delivered personally, against current criteria, by a practitioner who has prepared every document type in every scenario this process produces over 20 years of active practice.
+                  <strong>On scope:</strong> Every application lives or dies on documentation. Visa Forte is built around that single point. What you engage is a practitioner with two decades of specialisation in this exact domain—someone who has reviewed every document type, caught every structural error, and navigated every edge case the Canadian immigration process produces. This is personal documentation consulting delivered to the highest standard available outside of law practice.
                 </p>
               </div>
             </div>
@@ -357,10 +357,11 @@ export default function Home() {
             Request Triage Assessment →
           </a>
           <p className="final-contact r d4">
-            <a href="mailto:prashant@visaforte.com">prashant@visaforte.com</a>
-            &nbsp;·&nbsp;
-            <a href="https://visaforte.com" target="_blank" rel="noreferrer">visaforte.com</a>
-            &nbsp;·&nbsp;Secunderabad, India
+            <span><a href="mailto:prashant@visaforte.com">prashant@visaforte.com</a></span>
+            <span className="contact-sep" aria-hidden="true">·</span>
+            <span><a href="https://visaforte.com" target="_blank" rel="noreferrer">visaforte.com</a></span>
+            <span className="contact-sep" aria-hidden="true">·</span>
+            <span>Secunderabad, India</span>
           </p>
         </div>
       </section>
