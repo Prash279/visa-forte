@@ -16,6 +16,13 @@ interface UploadedDoc {
   uploadedAt: Date
 }
 
+interface MonitoringData {
+  submittedAt: string
+  irccPortalStatus: string | null
+  lastStatusCheck: string | null
+  hasOpenQuery: boolean
+}
+
 interface Props {
   client: {
     id: string
@@ -27,9 +34,10 @@ interface Props {
   }
   checklist: ChecklistItem[]
   uploadedMap: Record<string, UploadedDoc>
+  monitoring?: MonitoringData | null
 }
 
-export default function PortalDashboard({ client, checklist, uploadedMap }: Props) {
+export default function PortalDashboard({ client, checklist, uploadedMap, monitoring }: Props) {
   const [uploaded, setUploaded] = useState<Record<string, UploadedDoc>>(uploadedMap)
   const [uploading, setUploading] = useState<string | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
@@ -178,6 +186,38 @@ export default function PortalDashboard({ client, checklist, uploadedMap }: Prop
           </div>
         )}
       </div>
+
+      {/* Application Status — shown only when monitoring data exists (Submitted / Decision Pending stages) */}
+      {monitoring && (
+        <div className="portal-section portal-app-status">
+          <div className="portal-section-header">
+            <h2 className="portal-section-title">Application Status</h2>
+          </div>
+          <div className="portal-privacy-card">
+            <div className="portal-privacy-row">
+              <span className="portal-privacy-label">Submitted</span>
+              <span className="portal-privacy-value">{monitoring.submittedAt}</span>
+            </div>
+            {monitoring.irccPortalStatus && (
+              <div className="portal-privacy-row">
+                <span className="portal-privacy-label">IRCC Portal Status</span>
+                <span className="portal-privacy-value">{monitoring.irccPortalStatus}</span>
+              </div>
+            )}
+            {monitoring.lastStatusCheck && (
+              <div className="portal-privacy-row">
+                <span className="portal-privacy-label">Last Status Check</span>
+                <span className="portal-privacy-value">{monitoring.lastStatusCheck}</span>
+              </div>
+            )}
+          </div>
+          {monitoring.hasOpenQuery && (
+            <div className="portal-query-notice">
+              Your consultant is reviewing a query from IRCC. We will update you shortly.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Document checklist */}
       <div className="portal-section">

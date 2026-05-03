@@ -186,3 +186,35 @@ export const auditLog = pgTable('audit_log', {
 });
 
 export type AuditLog = typeof auditLog.$inferSelect;
+
+// Application monitoring for clients in Submitted or Decision Pending stages.
+// One record per client — upserted via the admin monitoring page.
+export const applicationMonitoring = pgTable('application_monitoring', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  clientId: uuid('client_id').notNull().references(() => clients.id, { onDelete: 'cascade' }).unique(),
+  aorNumber: text('aor_number'),
+  submittedAt: text('submitted_at').notNull(),           // ISO date string YYYY-MM-DD
+  expectedDecisionDate: text('expected_decision_date'),  // nullable
+  lastStatusCheck: text('last_status_check'),            // nullable
+  irccPortalStatus: text('ircc_portal_status'),          // nullable free-text
+  monitoringNotes: text('monitoring_notes'),             // nullable — never client-visible
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type ApplicationMonitoring = typeof applicationMonitoring.$inferSelect;
+
+// Individual IRCC queries (ADR, Medical Update, etc.) logged against a client.
+// Multiple per client. Status: 'Open' | 'Responded' | 'Overdue'.
+export const irccQueries = pgTable('ircc_queries', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  clientId: uuid('client_id').notNull().references(() => clients.id, { onDelete: 'cascade' }),
+  queryType: text('query_type').notNull(),               // e.g. "Additional Documents Request"
+  receivedAt: text('received_at').notNull(),             // ISO date string YYYY-MM-DD
+  responseDeadline: text('response_deadline').notNull(), // ISO date string YYYY-MM-DD
+  responseSubmittedAt: text('response_submitted_at'),    // nullable
+  status: text('status').notNull().default('Open'),      // 'Open' | 'Responded' | 'Overdue'
+  notes: text('notes'),                                  // nullable
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type IrccQuery = typeof irccQueries.$inferSelect;

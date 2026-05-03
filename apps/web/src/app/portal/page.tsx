@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { getCurrentAuthSession } from '@/lib/auth-server'
 import { db } from '@/lib/db'
-import { clients, clientDocuments } from '../../../drizzle/schema'
+import { clients, clientDocuments, applicationMonitoring, irccQueries } from '../../../drizzle/schema'
 import { getChecklist } from '@/lib/document-checklist'
 import PortalDashboard from './PortalDashboard'
 import './portal.css'
@@ -78,6 +78,42 @@ export default async function PortalPage() {
     }
   }
 
+  // For clients in Submitted or Decision Pending stage, fetch monitoring data (read-only portal view).
+  // AOR number and monitoring notes are intentionally excluded — client-visible only: dates and status.
+  let portalMonitoring: {
+    submittedAt: string;
+    irccPortalStatus: string | null;
+    lastStatusCheck: string | null;
+    hasOpenQuery: boolean;
+  } | null = null;
+
+  if (client.stage === 'Submitted' || client.stage === 'Decision Pending') {
+    const [mon] = await db
+      .select({
+        submittedAt: applicationMonitoring.submittedAt,
+        irccPortalStatus: applicationMonitoring.irccPortalStatus,
+        lastStatusCheck: applicationMonitoring.lastStatusCheck,
+      })
+      .from(applicationMonitoring)
+      .where(eq(applicationMonitoring.clientId, client.id))
+      .limit(1);
+
+    if (mon) {
+      const openQueries = await db
+        .select({ id: irccQueries.id })
+        .from(irccQueries)
+        .where(and(eq(irccQueries.clientId, client.id), eq(irccQueries.status, 'Open')))
+        .limit(1);
+
+      portalMonitoring = {
+        submittedAt: mon.submittedAt,
+        irccPortalStatus: mon.irccPortalStatus,
+        lastStatusCheck: mon.lastStatusCheck,
+        hasOpenQuery: openQueries.length > 0,
+      };
+    }
+  }
+
   return (
     <div className="portal-wrap">
       <header className="portal-header">
@@ -106,6 +142,7 @@ export default async function PortalPage() {
           }}
           checklist={checklist}
           uploadedMap={uploadedMap}
+          monitoring={portalMonitoring}
         />
       </main>
     </div>

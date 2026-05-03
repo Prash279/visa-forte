@@ -6,7 +6,7 @@ import PromoteButton from "./PromoteButton";
 import BookingCalendar from "./BookingCalendar";
 import DeletionRequestsPanel from "./DeletionRequestsPanel";
 import { db } from "@/lib/db";
-import { leads, bookings, clients, deletionRequests, auditLog } from "../../../drizzle/schema";
+import { leads, bookings, clients, deletionRequests, auditLog, irccQueries } from "../../../drizzle/schema";
 import { CRM_STAGES } from "@/lib/crm-stages";
 import "./admin.css";
 
@@ -71,6 +71,17 @@ export default async function AdminPage() {
   for (const row of pipelineRows) {
     stageCountMap[row.stage] = row.count;
   }
+
+  // Count clients in Submitted / Decision Pending stages and their open IRCC queries.
+  const monitoringClientCount = allClients.filter(
+    c => c.stage === 'Submitted' || c.stage === 'Decision Pending'
+  ).length;
+
+  const openQueryRows = await db
+    .select({ id: irccQueries.id })
+    .from(irccQueries)
+    .where(eq(irccQueries.status, 'Open'));
+  const openQueryCount = openQueryRows.length;
 
   // Fetch pending data deletion requests for the admin action panel.
   const pendingDeletionRows = await db
@@ -211,6 +222,15 @@ export default async function AdminPage() {
             <p className="admin-stat-label">Upcoming Bookings</p>
             <p className="admin-stat-value">{upcomingBookings.length}</p>
             <p className="admin-stat-note">Next 7 days</p>
+          </div>
+          <div className="admin-stat">
+            <p className="admin-stat-label">Monitoring</p>
+            <p className="admin-stat-value">{monitoringClientCount}</p>
+            <p className="admin-stat-note">
+              {openQueryCount > 0
+                ? <a href="/admin/monitoring" style={{ color: 'var(--saffron)', fontWeight: 600 }}>{openQueryCount} open {openQueryCount === 1 ? 'query' : 'queries'}</a>
+                : 'Submitted / pending'}
+            </p>
           </div>
         </div>
 
@@ -369,6 +389,11 @@ export default async function AdminPage() {
             <p className="admin-tool-name">Availability Manager</p>
             <p className="admin-tool-desc">Set available and unavailable dates for client bookings across all service tiers.</p>
             <span className="admin-tool-cta">Manage →</span>
+          </a>
+          <a href="/admin/monitoring" className="admin-tool-card">
+            <p className="admin-tool-name">Post-Submission Monitoring</p>
+            <p className="admin-tool-desc">Track AOR numbers, expected decision dates, IRCC portal status, and open queries for submitted applications. Get deadline alerts before responses are due.</p>
+            <span className="admin-tool-cta">Open Monitoring →</span>
           </a>
         </div>
 

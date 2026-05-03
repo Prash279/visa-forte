@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { and, eq, lt } from 'drizzle-orm';
+import { and, eq, lt, inArray } from 'drizzle-orm';
 import { Resend } from 'resend';
 import { db } from '@/lib/db';
-import { bookings, messages, clients } from '../../../../../drizzle/schema';
+import { bookings, messages, clients, irccQueries } from '../../../../../drizzle/schema';
 import { log } from '@/lib/logger';
 import { tomorrowIST, slaThresholdMs } from './helpers';
 
@@ -247,5 +247,107 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     result: 'success', metadata: { breachedClients: slaBreachCount },
   });
 
-  return NextResponse.json({ sent: remindersSent, slaBreaches: slaBreachCount });
+  // ── Email 4: IRCC deadline alerts ──────────────────────────────────
+  // Query open IRCC queries whose deadline falls within 3 days from today (IST).
+  let irccAlertCount = 0;
+
+  try {
+    // Compute today and today+3 as YYYY-MM-DD strings (IST)
+    const todayDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const todayStr = fmt(todayDate);
+    const plusThree = new Date(todayDate);
+    plusThree.setDate(plusThree.getDate() + 3);
+    const plusThreeStr = fmt(plusThree);
+
+    // Find open queries with deadline in the window [today, today+3]
+    const upcomingQueries = await db
+      .select({
+        queryId: irccQueries.id,
+        clientId: irccQueries.clientId,
+        queryType: irccQueries.queryType,
+        responseDeadline: irccQueries.responseDeadline,
+      })
+      .from(irccQueries)
+      .where(
+        and(
+          eq(irccQueries.status, 'Open'),
+          // deadline >= today AND deadline <= today+3
+          // Using string comparison on ISO dates is safe (lexicographic = chronological)
+          lt(irccQueries.responseDeadline, plusThreeStr),
+        )
+      );
+
+    // Post-filter: deadline >= todayStr (drizzle doesn't expose gte for text columns easily here)
+    const dueQueries = upcomingQueries.filter(q => q.responseDeadline >= todayStr);
+
+    if (dueQueries.length > 0) {
+      // Fetch client names for each affected clientId
+      const clientIds = [...new Set(dueQueries.map(q => q.clientId))];
+      const affectedClients = await db
+        .select({ id: clients.id, name: clients.name })
+        .from(clients)
+        .where(inArray(clients.id, clientIds));
+      const clientNameMap = Object.fromEntries(affectedClients.map(c => [c.id, c.name]));
+
+      const tableRows = dueQueries
+        .sort((a, b) => a.responseDeadline.localeCompare(b.responseDeadline))
+        .map(q => {
+          const daysLeft = Math.ceil(
+            (new Date(q.responseDeadline).getTime() - todayDate.getTime()) / (24 * 60 * 60 * 1000)
+          );
+          const urgency = daysLeft === 0 ? '⚠ Today' : daysLeft < 0 ? '⚠ Overdue' : `${daysLeft}d left`;
+          return `<tr>
+            <td style="padding:8px;border-bottom:1px solid #eee;">${clientNameMap[q.clientId] ?? q.clientId}</td>
+            <td style="padding:8px;border-bottom:1px solid #eee;">${q.queryType}</td>
+            <td style="padding:8px;border-bottom:1px solid #eee;font-weight:600;">${q.responseDeadline}</td>
+            <td style="padding:8px;border-bottom:1px solid #eee;color:#c97b1e;font-weight:600;">${urgency}</td>
+          </tr>`;
+        })
+        .join('');
+
+      await resend.emails.send({
+        from: 'Visa Forte <noreply@visaforte.com>',
+        to: 'prashant@visaforte.com',
+        subject: `[Action Required] ${dueQueries.length} IRCC ${dueQueries.length === 1 ? 'query' : 'queries'} due within 3 days`,
+        html: `
+          <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
+            <h2 style="color:#0c2340;">IRCC Query Deadline Alert</h2>
+            <p style="color:#444;line-height:1.6;">
+              The following IRCC queries have a response deadline within the next 3 days.
+            </p>
+            <table style="width:100%;border-collapse:collapse;margin-top:16px;">
+              <thead>
+                <tr style="background:#f5f5f5;">
+                  <th style="padding:8px;text-align:left;color:#666;font-weight:600;">Client</th>
+                  <th style="padding:8px;text-align:left;color:#666;font-weight:600;">Query Type</th>
+                  <th style="padding:8px;text-align:left;color:#666;font-weight:600;">Deadline</th>
+                  <th style="padding:8px;text-align:left;color:#666;font-weight:600;">Urgency</th>
+                </tr>
+              </thead>
+              <tbody>${tableRows}</tbody>
+            </table>
+            <p style="margin-top:20px;">
+              <a href="${siteUrl}/admin/monitoring" style="color:#c97b1e;">Go to Monitoring →</a>
+            </p>
+          </div>
+        `,
+      });
+
+      irccAlertCount = dueQueries.length;
+    }
+  } catch (err) {
+    log({
+      level: 'error', service: 'cron-reminders', action: 'ircc_deadline_check',
+      result: 'failure', metadata: { error: String(err) },
+    });
+  }
+
+  log({
+    level: 'info', service: 'cron-reminders', action: 'ircc_deadline_complete',
+    result: 'success', metadata: { alertsSent: irccAlertCount },
+  });
+
+  return NextResponse.json({ sent: remindersSent, slaBreaches: slaBreachCount, irccAlerts: irccAlertCount });
 }
