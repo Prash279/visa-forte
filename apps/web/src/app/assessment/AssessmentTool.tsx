@@ -520,8 +520,11 @@ export default function AssessmentTool() {
   const poolEligible = elig.expressEntryPool.eligible
 
   // Draw history context
+  // IRCC shifted to category-based selection in 2023 — "General" draws no longer occur.
+  // Use the most recent draw that isn't PNP (PNP cutoffs are inflated by the 600-pt bonus
+  // and are irrelevant to most candidates) as the comparison benchmark.
   const allDraws = drawData.draws as Draw[]
-  const recentGeneral = allDraws.filter(d => /^general$/i.test(d.type)).slice(0, 3)
+  const recentGeneral = allDraws.filter(d => !/provincial nominee/i.test(d.type)).slice(0, 3)
   const lastGeneral = recentGeneral[0] ?? null
   const cutoff = lastGeneral?.cutoffScore ?? null
   const gap = cutoff !== null ? total - cutoff : null
@@ -587,13 +590,13 @@ export default function AssessmentTool() {
             <div className="asx-card asx-draws-card">
               <h2 className="asx-card-title">Pool Draw Context</h2>
               <p className="asx-card-sub">
-                Your score compared to recent Express Entry general draws from canada.ca.
+                Your score compared to recent Express Entry draws from canada.ca.
               </p>
 
               {lastGeneral && (
                 <div className={`asx-gap-row${gap !== null && gap >= 0 ? ' asx-gap-above' : ' asx-gap-below'}`}>
                   <div className="asx-gap-score">
-                    <span className="asx-gap-label">Last General Draw</span>
+                    <span className="asx-gap-label">Most Recent Draw</span>
                     <span className="asx-gap-val">{lastGeneral.cutoffScore}</span>
                     <span className="asx-gap-meta">{fmtDate(lastGeneral.date)}</span>
                   </div>
@@ -725,7 +728,7 @@ export default function AssessmentTool() {
               <h2 className="asx-card-title">How to Improve Your Score</h2>
               <p className="asx-card-sub">
                 {cutoff !== null
-                  ? `Projected scores are compared against the last general draw cutoff of ${cutoff} pts (${fmtDate(lastGeneral!.date)}).`
+                  ? `Projected scores are compared against the most recent draw cutoff of ${cutoff} pts (${fmtDate(lastGeneral!.date)}).`
                   : 'The highest-impact changes you can make to your CRS score.'}
               </p>
               <div className="asx-scenarios">

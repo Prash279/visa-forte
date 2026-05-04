@@ -2,13 +2,13 @@
 // Fetches the IRCC settlement funds table from canada.ca and updates
 // apps/web/src/lib/proof-of-funds.json if the values have changed.
 //
-// Uses Playwright DOM extraction (page.evaluate) with networkidle wait so the
-// real page content is read after Cloudflare JS challenges complete and all
-// dynamic content is rendered — no regex on raw HTML.
+// The canada.ca proof-of-funds table uses <th> for the family-size column and
+// <td> for the dollar amount. We query 'td, th' to capture both.
+// The "additional family member" row is detected by cell text containing "additional".
 //
 // Exit codes:
 //   0 — success (updated or unchanged)
-//   1 — fatal error (navigation failed or data not found)
+//   1 — fatal error
 
 import { chromium } from 'playwright'
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -26,47 +26,50 @@ async function scrapeFunds() {
   const browser = await chromium.launch({ headless: true })
   try {
     const page = await browser.newPage()
-
-    // networkidle waits until there are no more than 2 active connections for 500ms.
-    // This ensures Cloudflare JS challenges complete and the real page content renders
-    // before we read the DOM.
     const response = await page.goto(IRCC_URL, { waitUntil: 'networkidle', timeout: 60000 })
     console.log(`Page status: ${response?.status()} | URL: ${page.url()}`)
 
-    // Extract all table row cells and the full body text from the rendered DOM.
-    // page.evaluate runs inside the browser — we get rendered text, not raw HTML.
-    const { title, rows, bodyText } = await page.evaluate(() => {
+    // The table uses <th> for family-size cells and <td> for dollar amounts.
+    // Querying 'td, th' captures all cells in document order per row.
+    const { title, rows } = await page.evaluate(() => {
       const rows = []
       for (const row of document.querySelectorAll('table tr')) {
-        const cells = row.querySelectorAll('td')
+        const cells = row.querySelectorAll('td, th')
         if (cells.length >= 2) {
-          rows.push(Array.from(cells).map(td => td.innerText.trim()))
+          rows.push(Array.from(cells).map(cell => cell.innerText.trim()))
         }
       }
-      return {
-        title: document.title,
-        rows,
-        // body text is used to find "add $X for each additional family member"
-        bodyText: document.body.innerText,
-      }
+      return { title: document.title, rows }
     })
 
     console.log(`Page title: "${title}" | Table rows found: ${rows.length}`)
-    return { rows, bodyText }
+    return rows
   } finally {
     await browser.close()
   }
 }
 
-function parseFunds({ rows, bodyText }) {
+function parseFunds(rows) {
   const byFamilySize = {}
+  let extraPerMember = null
 
   for (const cells of rows) {
     if (cells.length < 2) continue
+
+    const firstCell = cells[0].toLowerCase()
+    const amountStr = cells[1].replace(/[$,\s]/g, '')
+    const amount = parseInt(amountStr, 10)
+
+    if (isNaN(amount) || amount < 1000) continue
+
+    // Row for "additional family member" — text detection
+    if (firstCell.includes('additional')) {
+      extraPerMember = amount
+      continue
+    }
+
     const n = parseInt(cells[0], 10)
-    // Strip $, commas, and whitespace — works regardless of formatting
-    const amount = parseInt(cells[1].replace(/[$,\s]/g, ''), 10)
-    if (n >= 1 && n <= 7 && amount > 5000) {
+    if (n >= 1 && n <= 7) {
       byFamilySize[String(n)] = amount
     }
   }
@@ -74,27 +77,23 @@ function parseFunds({ rows, bodyText }) {
   if (Object.keys(byFamilySize).length !== 7) {
     throw new Error(
       `Expected 7 family-size rows, parsed ${Object.keys(byFamilySize).length}. ` +
-      'The page may still be showing a challenge/redirect or the table structure changed.'
+      'The page may be showing a challenge/redirect or the table structure changed.'
     )
   }
 
-  // Find "add $X for each additional family member" in the rendered page text
-  const extraM = bodyText.match(/\$\s*([\d,]+)\s+for\s+each\s+additional/i)
-  if (!extraM) {
+  if (extraPerMember === null) {
     throw new Error(
-      'Could not find per-additional-member increment on canada.ca page. Manual review required.'
+      'Could not find per-additional-member row on canada.ca page. Manual review required.'
     )
   }
-  const extraPerMember = parseInt(extraM[1].replace(/,/g, ''), 10)
 
   return { byFamilySize, extraPerMember }
 }
 
 async function main() {
   console.log(`Fetching: ${IRCC_URL}`)
-  const scraped = await scrapeFunds()
-
-  const { byFamilySize, extraPerMember } = parseFunds(scraped)
+  const rows = await scrapeFunds()
+  const { byFamilySize, extraPerMember } = parseFunds(rows)
   console.log('Parsed:', { byFamilySize, extraPerMember })
 
   const existing = JSON.parse(readFileSync(FUNDS_JSON, 'utf-8'))
