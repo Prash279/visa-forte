@@ -109,17 +109,18 @@
   font-family: var(--font-body);
   font-size: 0.82rem;
   letter-spacing: 0.06em;
-  color: rgba(26, 43, 60, 0.55);
+  color: var(--prussian);
   text-decoration: none;
-  border: 1px solid rgba(26, 43, 60, 0.2);
+  border: 1px solid rgba(26, 43, 60, 0.35);
   padding: 0.45rem 1.1rem;
   border-radius: 3px;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
 .booking-back-link:hover {
-  background: rgba(26, 43, 60, 0.06);
-  color: rgba(26, 43, 60, 0.85);
+  background: var(--saffron);
+  color: var(--prussian);
+  border-color: var(--saffron);
 }
 
 /* ── CURRENCY TOGGLE ───────────────────────────────────────── */
