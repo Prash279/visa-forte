@@ -741,6 +741,27 @@
 }
 .asx-draws-source a { color: var(--teal); text-decoration: underline; }
 
+/* No-eligible-draw amber state (shown when profile doesn't match any active draw category) */
+.asx-no-eligible-state {
+  background: rgba(251,191,36,0.08);
+  border: 1px solid rgba(251,191,36,0.3);
+  border-left: 4px solid var(--saffron);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+.asx-no-eligible-heading {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--prussian);
+  margin-bottom: 0.5rem;
+}
+.asx-no-eligible-body {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: #4a5568;
+}
+
 /* CTA card */
 .asx-cta-card {
   background: var(--prussian);

@@ -9,6 +9,8 @@ import {
   type LanguageScores,
   type CrsResult,
   type EducationLevel,
+  type StreamEligibility,
+  type LanguageBands,
 } from '@/lib/crs-calculator'
 import drawData from '@/lib/crs-draw-history.json'
 import './assessment.css'
@@ -27,13 +29,59 @@ function fmtDate(iso: string): string {
 function shortType(type: string): string {
   if (/^general$/i.test(type)) return 'General'
   if (/pnp|provincial nominee/i.test(type)) return 'PNP'
+  if (/canadian experience class/i.test(type)) return 'CEC'
   if (/stem/i.test(type)) return 'STEM'
   if (/french/i.test(type)) return 'French'
   if (/health/i.test(type)) return 'Healthcare'
   if (/trade/i.test(type)) return 'Trades'
   if (/transport/i.test(type)) return 'Transport'
   if (/agri/i.test(type)) return 'Agriculture'
+  if (/education/i.test(type)) return 'Education'
+  if (/senior manager/i.test(type)) return 'Senior Mgr'
+  if (/physician/i.test(type)) return 'Physicians'
   return type.length > 20 ? type.slice(0, 18) + '…' : type
+}
+
+// Which IRCC draw categories is this applicant eligible for, in priority order?
+// CEC > French > Healthcare > Trades > Education > PNP (already nominated)
+// Returns an array so the caller can pick the highest-priority match against actual draw data.
+function getEligibleDrawCategories(
+  profile: ApplicantProfile,
+  elig: StreamEligibility,
+  secondLangBands: LanguageBands | undefined
+): string[] {
+  const cats: string[] = []
+
+  // CEC: ≥1 year of skilled Canadian work experience (uses pre-computed eligibility)
+  if (elig.cec.eligible) cats.push('CEC')
+
+  // French: took a French test (TEF or TCF) AND scored CLB ≥7 in all four abilities
+  const isFrenchTest =
+    profile.hasSecondLanguage &&
+    (profile.secondLanguageScores?.testType === 'TEF' ||
+      profile.secondLanguageScores?.testType === 'TCF')
+  const frenchClbMet =
+    secondLangBands != null &&
+    secondLangBands.listening >= 7 && secondLangBands.reading >= 7 &&
+    secondLangBands.writing >= 7 && secondLangBands.speaking >= 7
+  if (isFrenchTest && frenchClbMet) cats.push('French')
+
+  // Sector draws: detect by NOC 2021 5-digit code prefix (approved ranges)
+  const nocNum = parseInt(profile.nocCode, 10)
+  if (!isNaN(nocNum)) {
+    if (nocNum >= 30010 && nocNum <= 35109) cats.push('Healthcare')  // Healthcare & Social Services
+    if (
+      (nocNum >= 72000 && nocNum <= 75199) ||  // Skilled trades
+      (nocNum >= 82000 && nocNum <= 82099) ||  // Natural-resources trades
+      (nocNum >= 92000 && nocNum <= 95199)     // Processing & utilities
+    ) cats.push('Trades')
+    if (nocNum >= 40000 && nocNum <= 41499) cats.push('Education')   // Education workers
+  }
+
+  // PNP: already holds a provincial nomination
+  if (profile.hasProvincialNomination) cats.push('PNP')
+
+  return cats
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -527,15 +575,20 @@ export default function AssessmentTool() {
   const poolEligible = elig.expressEntryPool.eligible
 
   // Draw history context
-  // IRCC shifted to category-based selection in 2023 — "General" draws no longer occur.
-  // Use the most recent draw that isn't PNP (PNP cutoffs are inflated by the 600-pt bonus
-  // and are irrelevant to most candidates) as the comparison benchmark.
+  // IRCC now runs category-specific draws only — no General draws since 2023.
+  // Find the highest-priority draw category this applicant qualifies for, then compare
+  // their CRS against the most recent draw in that category. If no category matches,
+  // show a PNP pathway message instead of a misleading score comparison.
   const allDraws = drawData.draws as Draw[]
-  const recentGeneral = allDraws.filter(d => !/provincial nominee/i.test(d.type)).slice(0, 3)
-  const lastGeneral = recentGeneral[0] ?? null
-  const cutoff = lastGeneral?.cutoffScore ?? null
+  const eligibleCategories = getEligibleDrawCategories(profile, elig, result.secondLanguageBands)
+  const topCategory = eligibleCategories[0] ?? null
+  const relevantDraw = topCategory
+    ? (allDraws.find(d => shortType(d.type) === topCategory) ?? null)
+    : null
+  const cutoff = relevantDraw?.cutoffScore ?? null
   const gap = cutoff !== null ? total - cutoff : null
   const hasDrawData = allDraws.length > 0
+  const pnpScore = total + 600
 
   const programs = [
     { name: 'Express Entry Pool', eligible: elig.expressEntryPool.eligible, likely: false, reason: elig.expressEntryPool.reason },
@@ -603,12 +656,12 @@ export default function AssessmentTool() {
                 Your score compared to recent Express Entry draws from canada.ca.
               </p>
 
-              {lastGeneral && (
+              {relevantDraw ? (
                 <div className={`asx-gap-row${gap !== null && gap >= 0 ? ' asx-gap-above' : ' asx-gap-below'}`}>
                   <div className="asx-gap-score">
-                    <span className="asx-gap-label">Most Recent Draw</span>
-                    <span className="asx-gap-val">{lastGeneral.cutoffScore}</span>
-                    <span className="asx-gap-meta">{fmtDate(lastGeneral.date)}</span>
+                    <span className="asx-gap-label">Most Recent {topCategory} Draw</span>
+                    <span className="asx-gap-val">{relevantDraw.cutoffScore}</span>
+                    <span className="asx-gap-meta">{fmtDate(relevantDraw.date)}</span>
                   </div>
                   <div className="asx-gap-vs">
                     <span className="asx-gap-your-label">Your Score</span>
@@ -621,6 +674,17 @@ export default function AssessmentTool() {
                       </span>
                     )}
                   </div>
+                </div>
+              ) : (
+                <div className="asx-no-eligible-state">
+                  <p className="asx-no-eligible-heading">No active draw category matched</p>
+                  <p className="asx-no-eligible-body">
+                    Your profile does not currently match an active draw category. Your primary
+                    pathway to Canadian PR is the Provincial Nominee Program (PNP) — enter the
+                    Express Entry pool and watch for Notifications of Interest from provinces like
+                    OINP, AINP, and others. Once nominated, your effective CRS becomes{' '}
+                    <strong>{pnpScore}</strong>, placing you well above PNP draw cutoffs.
+                  </p>
                 </div>
               )}
 
@@ -737,8 +801,8 @@ export default function AssessmentTool() {
             <div className="asx-card">
               <h2 className="asx-card-title">How to Improve Your Score</h2>
               <p className="asx-card-sub">
-                {cutoff !== null
-                  ? `Projected scores are compared against the most recent draw cutoff of ${cutoff} pts (${fmtDate(lastGeneral!.date)}).`
+                {relevantDraw !== null
+                  ? `Projections compared against the most recent ${topCategory} draw cutoff of ${cutoff} pts (${fmtDate(relevantDraw.date)}).`
                   : 'The highest-impact changes you can make to your CRS score.'}
               </p>
               <div className="asx-scenarios">
