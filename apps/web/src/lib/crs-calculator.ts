@@ -652,8 +652,9 @@ function buildScenarios(
     }
   }
 
-  // Scenario B: Hit 3yr FWE threshold (if not already there)
-  if (foreignWhole < 3) {
+  // Scenario B: Hit 3yr FWE threshold — only when Scenario A targets an intermediate
+  // milestone (1 or 2 yrs). If A already targets 3 yrs (foreignWhole === 2), B is a duplicate.
+  if (foreignWhole < 2) {
     const delta3 = foreignExpLanguageTransfer(3, firstBands) -
                    foreignExpLanguageTransfer(profile.foreignWorkExperienceYears, firstBands)
     if (delta3 > 0) {
