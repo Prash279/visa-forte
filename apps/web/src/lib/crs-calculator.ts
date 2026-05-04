@@ -163,21 +163,21 @@ function ieltsGtToClb(ability: 'L' | 'R' | 'W' | 'S', score: number): number {
   if (ability === 'W') {
     if (score >= 7.5) return 10
     if (score >= 7.0) return 9
-    if (score >= 6.0) return 8
-    if (score >= 5.5) return 7
-    if (score >= 5.0) return 6
-    if (score >= 4.0) return 5
-    if (score >= 3.5) return 4
+    if (score >= 6.5) return 8
+    if (score >= 6.0) return 7
+    if (score >= 5.5) return 6
+    if (score >= 5.0) return 5
+    if (score >= 4.0) return 4
     return 0
   }
   // Speaking — same thresholds as Writing
   if (score >= 7.5) return 10
   if (score >= 7.0) return 9
-  if (score >= 6.0) return 8
-  if (score >= 5.5) return 7
-  if (score >= 5.0) return 6
-  if (score >= 4.0) return 5
-  if (score >= 3.5) return 4
+  if (score >= 6.5) return 8
+  if (score >= 6.0) return 7
+  if (score >= 5.5) return 6
+  if (score >= 5.0) return 5
+  if (score >= 4.0) return 4
   return 0
 }
 
