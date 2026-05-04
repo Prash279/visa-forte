@@ -122,6 +122,13 @@ export default function AssessmentTool() {
     setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50)
   }
 
+  function resetAssessment() {
+    setProfile({ ...INITIAL, reportDate: new Date().toISOString().split('T')[0] ?? '' })
+    setResult(null)
+    setView('form')
+    setTimeout(() => window.scrollTo({ top: 0 }), 50)
+  }
+
   // ── FORM ───────────────────────────────────────────────────────────────────
 
   if (view === 'form') {
@@ -546,6 +553,9 @@ export default function AssessmentTool() {
         <button className="asx-back-btn" onClick={() => setView('form')}>
           ← Edit Profile
         </button>
+        <button className="asx-back-btn" onClick={resetAssessment}>
+          New Assessment
+        </button>
         <button className="asx-print-btn" onClick={() => window.print()}>
           Save / Print
         </button>
@@ -736,13 +746,14 @@ export default function AssessmentTool() {
                   const meetsReal = cutoff !== null
                     ? s.projectedCrs >= cutoff
                     : s.competitive
+                  const label = String.fromCharCode(65 + i) // A, B, C… always sequential
                   return (
                     <div key={i} className="asx-scenario-row">
                       <div className={`asx-scenario-delta${s.delta > 0 ? ' positive' : ''}`}>
                         {s.delta > 0 ? '+' : ''}{s.delta}
                       </div>
                       <div className="asx-scenario-info">
-                        <p className="asx-scenario-name">{s.name}</p>
+                        <p className="asx-scenario-name">{label}: {s.name}</p>
                         <p className="asx-scenario-desc">{s.change}</p>
                       </div>
                       <div className="asx-scenario-projected">

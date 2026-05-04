@@ -636,13 +636,13 @@ function buildScenarios(
   const foreignWhole = Math.floor(profile.foreignWorkExperienceYears)
   const canadianWhole = Math.floor(profile.canadianWorkExperienceYears)
 
-  // Scenario A: Additional 1yr foreign work experience (if < 3yr threshold)
-  if (foreignWhole < 3) {
+  // Scenario: next 1yr milestone — only when it targets below the 3yr cap (avoids duplicating the 3yr scenario)
+  if (foreignWhole < 2) {
     const delta = foreignExpLanguageTransfer(foreignWhole + 1, firstBands) -
                   foreignExpLanguageTransfer(profile.foreignWorkExperienceYears, firstBands)
     if (delta > 0) {
       scenarios.push({
-        name: `A: Wait to Hit ${foreignWhole + 1}-Year Work Mark`,
+        name: `Wait to Hit ${foreignWhole + 1}-Year Work Mark`,
         change: `Accrue ${foreignWhole + 1} full years of foreign work experience`,
         currentCrs,
         projectedCrs: currentCrs + delta,
@@ -652,14 +652,13 @@ function buildScenarios(
     }
   }
 
-  // Scenario B: Hit 3yr FWE threshold — only when Scenario A targets an intermediate
-  // milestone (1 or 2 yrs). If A already targets 3 yrs (foreignWhole === 2), B is a duplicate.
-  if (foreignWhole < 2) {
+  // Scenario: Hit 3yr FWE threshold (if not already there)
+  if (foreignWhole < 3) {
     const delta3 = foreignExpLanguageTransfer(3, firstBands) -
                    foreignExpLanguageTransfer(profile.foreignWorkExperienceYears, firstBands)
     if (delta3 > 0) {
       scenarios.push({
-        name: 'B: Hit 3-Year Foreign Work Mark',
+        name: 'Hit 3-Year Foreign Work Mark',
         change: 'Reach 3 full years of foreign work experience',
         currentCrs,
         projectedCrs: currentCrs + delta3,
@@ -669,14 +668,14 @@ function buildScenarios(
     }
   }
 
-  // Scenario C: Language improvement — bring all CLBs to 10+
+  // Scenario: Language improvement — bring all CLBs to 10+
   const currentLangPts = firstLanguagePoints(firstBands, profile.hasSpouse)
   const improvedBands: LanguageBands = { listening: 10, reading: 10, writing: 10, speaking: 10 }
   const improvedLangPts = firstLanguagePoints(improvedBands, profile.hasSpouse)
   const langDelta = improvedLangPts - currentLangPts
   if (langDelta > 0) {
     scenarios.push({
-      name: 'C: Maximize Language (CLB 10 All Abilities)',
+      name: 'Maximize Language (CLB 10 All Abilities)',
       change: 'Achieve CLB 10 in all four language abilities',
       currentCrs,
       projectedCrs: currentCrs + langDelta,
@@ -685,10 +684,10 @@ function buildScenarios(
     })
   }
 
-  // Scenario D: Provincial nomination (+600)
+  // Scenario: Provincial nomination (+600)
   if (!profile.hasProvincialNomination) {
     scenarios.push({
-      name: 'D: Provincial Nomination (PNP)',
+      name: 'Provincial Nomination (PNP)',
       change: 'Receive Enhanced PNP nomination',
       currentCrs,
       projectedCrs: currentCrs + PROVINCIAL_NOMINATION,
@@ -697,14 +696,14 @@ function buildScenarios(
     })
   }
 
-  // Scenario E: 1yr Canadian work experience (if no CWE currently)
+  // Scenario: 1yr Canadian work experience (if no CWE currently)
   if (canadianWhole === 0) {
     const cweDelta =
       canadianExpPoints(1, profile.hasSpouse) +
       eduCanadianExpTransfer(profile.education, 1) +
       foreignExpCanadianExpTransfer(profile.foreignWorkExperienceYears, 1)
     scenarios.push({
-      name: 'E: Obtain 1 Year of Canadian Work Experience',
+      name: 'Obtain 1 Year of Canadian Work Experience',
       change: '1 year of authorized Canadian work in qualifying NOC',
       currentCrs,
       projectedCrs: currentCrs + cweDelta,

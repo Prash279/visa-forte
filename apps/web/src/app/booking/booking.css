@@ -103,6 +103,25 @@
 
 .booking-unavailable-link:hover { text-decoration: underline; }
 
+.booking-back-link {
+  display: inline-block;
+  margin-top: 1.5rem;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  color: rgba(26, 43, 60, 0.55);
+  text-decoration: none;
+  border: 1px solid rgba(26, 43, 60, 0.2);
+  padding: 0.45rem 1.1rem;
+  border-radius: 3px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.booking-back-link:hover {
+  background: rgba(26, 43, 60, 0.06);
+  color: rgba(26, 43, 60, 0.85);
+}
+
 /* ── CURRENCY TOGGLE ───────────────────────────────────────── */
 .booking-currency-toggle {
   display: flex;
@@ -389,9 +408,24 @@
 
 /* ── RESPONSIVE ────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .booking-header   { padding: 8rem 1.25rem 5rem; }
-  .booking-header::before { display: none; }
-  .booking-body     { padding: 3.5rem 1.25rem; }
-  .booking-disclaimer { padding: 1.5rem 1.25rem 4rem; }
-  .booking-submit   { width: 100%; text-align: center; }
+  .booking-header               { padding: 8rem 1.25rem 5rem; }
+  .booking-header::before       { display: none; }
+  .booking-body                 { padding: 3.5rem 1.25rem; }
+  .booking-title                { font-size: clamp(2rem, 5vw, 3.5rem); }
+  .booking-subtitle             { font-size: 0.95rem; }
+  .booking-price-block          { padding: 0.9rem 1rem; }
+  .booking-price-amount         { font-size: 1.6rem; }
+  .booking-currency-pill        { font-size: 0.65rem; padding: 0.35rem 0.75rem; }
+  .booking-label                { font-size: 0.62rem; }
+  .booking-input,
+  .booking-select,
+  .booking-textarea             { font-size: 0.85rem; padding: 0.8rem 0.9rem; }
+  .booking-field-hint           { font-size: 0.7rem; }
+  .booking-submit               { width: 100%; text-align: center; padding: 0.95rem; font-size: 0.75rem; }
+  .booking-privacy              { font-size: 0.65rem; }
+  .booking-unavailable-heading  { font-size: 1.4rem; }
+  .booking-success-title        { font-size: 1.8rem; }
+  .booking-success-body         { font-size: 0.9rem; }
+  .booking-disclaimer           { padding: 1.5rem 1.25rem 4rem; }
+  .booking-disclaimer p         { font-size: 0.65rem; line-height: 1.65; }
 }

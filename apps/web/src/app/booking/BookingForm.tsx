@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { PRICING, formatPrice } from '@/lib/pricing';
 import type { Currency } from '@/lib/pricing';
 import { ConsentCheckbox } from '@/components/ConsentCheckbox';
@@ -83,6 +84,9 @@ export default function BookingForm({ availableDates }: Props) {
           Prashant is currently fully booked. Please check back soon or{' '}
           <a href="/contact" className="booking-unavailable-link">contact us directly</a>.
         </p>
+        <Link href="/assessment" className="booking-back-link">
+          ← Back to Assessment
+        </Link>
       </div>
     );
   }
