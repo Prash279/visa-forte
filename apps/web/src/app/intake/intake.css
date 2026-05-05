@@ -278,9 +278,23 @@
 
 /* ── RESPONSIVE ────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .intake-header   { padding: 8rem 1.25rem 5rem; }
-  .intake-header::before { display: none; }
-  .intake-body     { padding: 3.5rem 1.25rem; }
-  .intake-disclaimer { padding: 1.5rem 1.25rem 4rem; }
-  .intake-submit   { width: 100%; text-align: center; }
+  .intake-header               { padding: 8rem 1.25rem 5rem; }
+  .intake-header::before       { display: none; }
+  .intake-body                 { padding: 3.5rem 1.25rem; }
+  .intake-title                { font-size: clamp(2rem, 5vw, 3.5rem); }
+  .intake-subtitle             { font-size: 0.95rem; }
+  .intake-label                { font-size: 0.62rem; }
+  .intake-optional             { font-size: 0.6rem; }
+  .intake-input,
+  .intake-select,
+  .intake-textarea             { font-size: 0.85rem; padding: 0.8rem 0.9rem; }
+  .intake-textarea             { min-height: 110px; }
+  .intake-form                 { gap: 1.4rem; }
+  .intake-field                { gap: 0.4rem; }
+  .intake-submit               { width: 100%; text-align: center; padding: 0.95rem; font-size: 0.75rem; }
+  .intake-privacy              { font-size: 0.65rem; }
+  .intake-success-title        { font-size: 1.8rem; }
+  .intake-success-body         { font-size: 0.9rem; }
+  .intake-disclaimer           { padding: 1.5rem 1.25rem 4rem; }
+  .intake-disclaimer p         { font-size: 0.65rem; line-height: 1.65; }
 }

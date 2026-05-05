@@ -200,7 +200,7 @@ The platform serves eight distinct service tiers. These are not interchangeable.
 | Notifications | Build (Phase 3) | Email only initially; no push notifications needed |
 | Authentication | Better Auth | Well-maintained open-source; not worth building from scratch |
 | Payments | Paddle | Tax/compliance complexity justifies a managed MoR |
-| Storage | Cloudflare R2 | Infrastructure commodity; zero-egress-cost justifies it |
+| Storage | Vercel Blob | Private blobs, Mumbai region; zero extra accounts — same Vercel dashboard |
 | Database | PostgreSQL (managed) | Infrastructure commodity; managed instance at hosting platform |
 | Email delivery | TBD pipe (Resend or similar) | Commodity; vendor-agnostic interface, swap without app changes |
 

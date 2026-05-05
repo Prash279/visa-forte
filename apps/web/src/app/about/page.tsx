@@ -164,10 +164,7 @@ export default function AboutPage() {
               </ul>
               <div className="scope-disclaimer-block">
                 <p>
-                  Prashant Thirthingoth is not a Regulated Canadian Immigration Consultant (RCIC).
-                  Visa Forte provides documentation preparation and review only. For legal representation
-                  or regulated advice, consult a licensed RCIC or immigration lawyer authorised to
-                  practise in Canada.
+                  Visa Forte focuses exclusively on the documentation phase—the singular point where IRCC accepts or rejects otherwise qualified applicants. This engagement delivers personal, forensic-level review of your complete file against current regulatory criteria, informed by 20 years of practitioner exposure to every failure mode the process produces. This is advanced documentation consulting, not legal practice or immigration law advice.
                 </p>
               </div>
             </div>

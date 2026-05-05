@@ -258,7 +258,9 @@
   .contact-hero       { padding: 9rem 1.25rem 5rem; }
   .contact-hero::before { display: none; }
 
-  .form-row { grid-template-columns: 1fr; }
-
-  .form-submit { width: 100%; text-align: center; }
+  .contact-layout     { gap: 2rem; }
+  .form-row           { grid-template-columns: 1fr; }
+  .form-submit        { width: 100%; text-align: center; }
+  .contact-info-col   { gap: 1.8rem; }
+  .contact-info-email { font-size: 1rem; word-break: break-word; }
 }

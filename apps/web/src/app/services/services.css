@@ -302,10 +302,20 @@
 }
 
 @media (max-width: 640px) {
-  .services-hero  { padding: 9rem 1.25rem 5rem; }
-  .services-hero::after { display: none; }
-  .service-card   { padding: 2rem 1.5rem; }
-  .services-cta-section { padding: 6rem 1.25rem; }
-
-  .services-cta-actions { flex-direction: column; align-items: flex-start; }
+  .services-hero                  { padding: 9rem 1.25rem 5rem; }
+  .services-hero::after           { display: none; }
+  .service-card                   { padding: 1.5rem 1.2rem; gap: 0; }
+  .service-card-n                 { font-size: 2.5rem; }
+  .service-card-name              { font-size: clamp(1.2rem, 2vw, 1.8rem); margin-bottom: 1rem; }
+  .service-card-desc              { font-size: 0.85rem; margin-bottom: 1.2rem; }
+  .service-card-tag               { font-size: 0.55rem; padding: 0.2rem 0.5rem; }
+  .service-delivers-label         { font-size: 0.55rem; margin-bottom: 0.65rem; }
+  .service-delivers-list li       { font-size: 0.78rem; padding-left: 0.85rem; }
+  .services-cta-section           { padding: 6rem 1.25rem; }
+  .services-cta-headline          { font-size: clamp(1.5rem, 3vw, 2.2rem); }
+  .services-cta-body              { font-size: 0.9rem; }
+  .services-cta-actions           { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .process-step                   { min-width: 140px; }
+  .process-step-title             { font-size: 0.7rem; }
+  .process-step-body              { font-size: 0.8rem; }
 }

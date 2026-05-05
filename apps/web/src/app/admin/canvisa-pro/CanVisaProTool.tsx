@@ -188,9 +188,9 @@ function buildMarpMarkdown(p: ApplicantProfile, r: CrsResult): string {
   // ── Gap cards data ─────────────────────────────────────────────────────────
   const gapItems: string[] = []
   if (!r.proofOfFundsSufficient) gapItems.push(gc('CRITICAL', 'Insufficient Proof of Funds', `CAD $${p.settlementFunds.toLocaleString()} declared — minimum required: CAD $${r.proofOfFundsRequired.toLocaleString()} for family of ${p.familySize}.`))
-  if (!poolEligible) gapItems.push(gc('CRITICAL', 'Not Pool-Eligible', 'Must qualify for FSW, CEC, or FST to enter the Express Entry pool.'))
-  if (fwYrs < 1) gapItems.push(gc('HIGH', 'Foreign Work Experience Below 1 Year', 'Minimum 1 year in NOC TEER 0/1/2/3 required for FSW eligibility.'))
-  if (r.firstLanguageBands.listening < 7 || r.firstLanguageBands.reading < 7 || r.firstLanguageBands.writing < 7 || r.firstLanguageBands.speaking < 7) gapItems.push(gc('HIGH', 'Language Score Below CLB 7', 'CLB 7 minimum required across all four abilities for FSW.'))
+  if (!poolEligible) gapItems.push(gc('CRITICAL', 'Not Pool-Eligible', eligibility.expressEntryPool.reason))
+  if (!eligibility.fsw.eligible) gapItems.push(gc('HIGH', 'FSW Not Eligible', eligibility.fsw.reason))
+  if (!eligibility.cec.eligible) gapItems.push(gc('HIGH', 'CEC Not Eligible', eligibility.cec.reason))
   if (!p.hasEca && p.education !== 'secondary' && p.education !== 'less_than_secondary') gapItems.push(gc('MEDIUM', 'ECA Not Confirmed', 'Educational Credential Assessment required for foreign credentials to count in CRS scoring.'))
   if (gapItems.length === 0) gapItems.push(gc('MEDIUM', 'No Critical Gaps Identified', 'Profile meets primary thresholds. Focus on CRS score maximization.'))
 
@@ -1628,12 +1628,7 @@ export default function CanVisaProTool() {
           <div className="cvp-disclaimer">
             <h4>Professional Disclaimer</h4>
             <p>
-              This assessment has been prepared by Prashant Thirthingoth, a Visa Documentation Consultant
-              with over 20 years of practitioner experience in the Canadian immigration documentation domain.
-              It is provided for informational and documentation reference purposes only. Prashant Thirthingoth
-              is not a Regulated Canadian Immigration Consultant (RCIC), lawyer, or authorized representative
-              as defined under the Immigration and Refugee Protection Act (IRPA). Accordingly, nothing
-              contained in this report constitutes immigration advice, legal advice, or representation of any kind.
+              This assessment has been prepared by Prashant Thirthingoth, a specialist in Canadian immigration documentation analysis with 20+ years of practitioner experience. It is provided for informational reference purposes only to clarify your profile against current IRCC criteria and document-level requirements. The analysis contained herein is expert consulting in the documentation domain—not immigration law advice, legal representation, regulated consulting, or formal eligibility determination.
             </p>
             <p style={{ marginTop: '10px' }}>
               All eligibility assessments, CRS score calculations, and program pathway observations are based

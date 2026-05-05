@@ -27,3 +27,13 @@ Thumbs.db
 
 # Editor
 .vscode/settings.json
+
+# Claude Code local session files
+.claude/
+*.log
+
+# MCP runtime state
+.playwright-mcp/
+
+# Generated output directories
+graphify-out/

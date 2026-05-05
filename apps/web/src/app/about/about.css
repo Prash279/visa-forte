@@ -354,7 +354,16 @@
 }
 
 @media (max-width: 640px) {
-  .about-hero { padding: 9rem 1.25rem 5rem; }
-  .about-hero::after { display: none; }
-  .about-cta-section { padding: 6rem 1.25rem; }
+  .about-hero                  { padding: 9rem 1.25rem 5rem; }
+  .about-hero::after           { display: none; }
+  .about-cta-section           { padding: 6rem 1.25rem; }
+  .profile-layout              { gap: 1.5rem; }
+  .profile-credential          { padding: 0.9rem 0.75rem; }
+  .profile-credential-label    { font-size: 0.52rem; }
+  .approach-card               { padding: 1.8rem 1.2rem; }
+  .approach-card-title         { font-size: 0.7rem; }
+  .approach-card-body          { font-size: 0.8rem; }
+  .scope-list li               { font-size: 0.85rem; padding-left: 0.85rem; }
+  .scope-disclaimer-block      { padding: 1rem 1.2rem; margin-top: 1.5rem; }
+  .about-cta-headline          { font-size: clamp(1.5rem, 3.5vw, 2.5rem); }
 }

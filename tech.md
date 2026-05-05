@@ -14,7 +14,7 @@
 | Validation | Zod (TypeScript) · Pydantic (Python) | Mandatory at ALL external I/O boundaries. See §5. |
 | Backend | Python 3.12+ · FastAPI | Async-first, type-safe, Pydantic-native. Runs AI tooling and background jobs. |
 | Database | PostgreSQL 16 · Drizzle ORM | Drizzle: type-safe queries, migration files version-controlled. See §6. |
-| Storage | Cloudflare R2 | Client documents only. Near-zero egress cost. S3-compatible API. |
+| Storage | Vercel Blob | Client documents only. Private blobs, Mumbai region. Zero extra accounts — same Vercel dashboard. |
 | Payments | Paddle (MoR/digital) · Wise Business (SWIFT/wire) | Paddle handles tax/compliance globally. Wise for wire transfers. |
 | Auth | Better Auth | Open-source, zero SaaS fees, handles sessions, OAuth, 2FA. |
 | Testing | Vitest (TypeScript) · PyTest (Python) | Co-located tests. See §8. |
@@ -171,9 +171,7 @@ DATABASE_URL=
 PADDLE_SECRET_KEY=
 PADDLE_WEBHOOK_SECRET=
 BETTER_AUTH_SECRET=
-CLOUDFLARE_R2_ACCESS_KEY=
-CLOUDFLARE_R2_SECRET_KEY=
-CLOUDFLARE_R2_BUCKET=
+BLOB_READ_WRITE_TOKEN=
 ANTHROPIC_API_KEY=        ← Server-side only. Never exposed to the browser.
 ```
 

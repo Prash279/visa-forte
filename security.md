@@ -316,40 +316,48 @@ export function ConsentCheckbox({ onConsent }: { onConsent: (given: boolean) => 
 Enforce at the schema level. Every column in the `clients` table must have a documented justification. If a field cannot be tied to a specific visa documentation requirement, it is not collected.
 
 ### 8.3 Automated Deletion Cron
-```python
-# jobs/data_retention.py
-# Runs daily via cron at 02:00 IST
 
-import asyncio
-from datetime import datetime, timedelta
-from db import get_db
-from storage import r2_client
+**Implementation:** TypeScript Next.js API route (`GET /api/cron/data-retention`) called by Vercel Cron daily at 02:00 IST (20:30 UTC). No FastAPI or Render required — all operations use existing Drizzle + `@vercel/blob` + Resend integrations already in the stack.
 
-RETENTION_DAYS = 730  # 2 years — adjust per DPDP guidance [VERIFY]
+**Batch cap:** Processes max 20 clients per run to stay within Vercel's serverless timeout limit. Any overflow is handled on the next nightly run.
 
-async def delete_expired_client_data():
-    """
-    Deletes client records and associated R2 objects where:
-    - Case status is 'Archived'
-    - AND last_active_at is older than RETENTION_DAYS
-    """
-    cutoff = datetime.utcnow() - timedelta(days=RETENTION_DAYS)
+```typescript
+// app/api/cron/data-retention/route.ts
+// Secured by CRON_SECRET header — Vercel passes this automatically
+const RETENTION_DAYS = 730  // 2 years — adjust per DPDP guidance [VERIFY]
+const BATCH_SIZE = 20
 
-    async with get_db() as db:
-        expired_clients = await db.fetch_expired_clients(cutoff)
+export async function GET(request: Request) {
+  if (request.headers.get('Authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+    return new Response('Forbidden', { status: 401 })
+  }
 
-        for client in expired_clients:
-            # Delete R2 documents
-            await r2_client.delete_folder(f"clients/{client.id}/")
-            # Delete DB record (cascades to messages, bookings, notes)
-            await db.delete_client(client.id)
-            # Log the deletion event
-            await db.log_deletion_event(client.id, datetime.utcnow())
+  const cutoff = new Date(Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000)
 
-    print(f"[{datetime.utcnow()}] Data retention: deleted {len(expired_clients)} expired records")
+  const expired = await db.select().from(clients)
+    .where(and(eq(clients.stage, 'Archived'), lt(clients.updatedAt, cutoff)))
+    .limit(BATCH_SIZE)
 
-if __name__ == "__main__":
-    asyncio.run(delete_expired_client_data())
+  for (const client of expired) {
+    await del(`clients/${client.id}/`)          // Vercel Blob folder delete
+    await db.delete(clients).where(eq(clients.id, client.id))  // DB cascade
+    await db.insert(auditLog).values({
+      event: 'client_deleted',
+      actorId: 'cron',
+      targetClientId: client.id,
+      metadata: { reason: 'retention_policy' },
+    })
+  }
+
+  if (expired.length > 0) {
+    // Send summary email to Prash via Resend
+  }
+
+  log({ level: 'info', service: 'cron', action: 'data_retention', result: 'success',
+        metadata: { deleted: expired.length } })
+
+  return Response.json({ deleted: expired.length })
+}
 ```
 
 ---

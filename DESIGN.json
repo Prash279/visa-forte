@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-02T00:00:00Z",
+  "title": "Design System: Visa Forte",
+  "extensions": {
+    "colorMeta": {
+      "prussian":  { "role": "primary",   "displayName": "Prussian",  "canonical": "oklch(19% 0.07 250)", "tonalRamp": ["oklch(12% 0.05 250)","oklch(19% 0.07 250)","oklch(28% 0.08 250)","oklch(38% 0.08 250)","oklch(50% 0.07 250)","oklch(63% 0.06 250)","oklch(78% 0.04 250)","oklch(92% 0.02 250)"] },
+      "saffron":   { "role": "accent",    "displayName": "Saffron",   "canonical": "oklch(62% 0.14 62)",  "tonalRamp": ["oklch(18% 0.07 62)","oklch(28% 0.10 62)","oklch(38% 0.12 62)","oklch(48% 0.14 62)","oklch(58% 0.15 62)","oklch(68% 0.13 62)","oklch(80% 0.09 62)","oklch(93% 0.04 62)"] },
+      "pearl":     { "role": "neutral-bg","displayName": "Pearl",     "canonical": "oklch(97% 0.01 80)",  "tonalRamp": ["oklch(22% 0.01 80)","oklch(35% 0.01 80)","oklch(50% 0.01 80)","oklch(65% 0.01 80)","oklch(78% 0.01 80)","oklch(87% 0.01 80)","oklch(93% 0.01 80)","oklch(97% 0.01 80)"] },
+      "teal":      { "role": "secondary", "displayName": "Teal",      "canonical": "oklch(40% 0.09 215)", "tonalRamp": ["oklch(15% 0.06 215)","oklch(24% 0.08 215)","oklch(33% 0.09 215)","oklch(43% 0.09 215)","oklch(54% 0.09 215)","oklch(66% 0.08 215)","oklch(80% 0.05 215)","oklch(93% 0.02 215)"] },
+      "ink":       { "role": "neutral-text","displayName": "Ink",     "canonical": "oklch(22% 0.06 250)", "tonalRamp": ["oklch(10% 0.04 250)","oklch(18% 0.05 250)","oklch(26% 0.06 250)","oklch(36% 0.07 250)","oklch(48% 0.07 250)","oklch(62% 0.06 250)","oklch(78% 0.04 250)","oklch(92% 0.02 250)"] },
+      "sand":      { "role": "neutral-border","displayName": "Sand",  "canonical": "oklch(88% 0.02 75)",  "tonalRamp": ["oklch(30% 0.02 75)","oklch(45% 0.02 75)","oklch(58% 0.02 75)","oklch(68% 0.02 75)","oklch(76% 0.02 75)","oklch(82% 0.02 75)","oklch(88% 0.02 75)","oklch(95% 0.01 75)"] },
+      "amber":     { "role": "tertiary",  "displayName": "Amber",     "canonical": "oklch(90% 0.06 75)",  "tonalRamp": ["oklch(25% 0.05 75)","oklch(38% 0.06 75)","oklch(50% 0.07 75)","oklch(62% 0.08 75)","oklch(72% 0.08 75)","oklch(80% 0.07 75)","oklch(87% 0.06 75)","oklch(94% 0.04 75)"] }
+    },
+    "typographyMeta": {
+      "display":  { "displayName": "Display",  "purpose": "Hero headlines and section titles. Cormorant Garamond carries the authority of the practice name itself. Reserve for the single most significant statement on a page." },
+      "headline": { "displayName": "Headline", "purpose": "Sub-section headers, card titles, portal section headings. Still Cormorant; more intimate than Display scale." },
+      "body":     { "displayName": "Body",     "purpose": "All body copy. DM Sans at comfortable reading size. Capped at 65–75ch via --text-w: 740px. Comfortable reading is a non-negotiable system commitment." },
+      "label":    { "displayName": "Label",    "purpose": "Eyebrow labels, navigation links, button text, status badges. DM Sans, uppercase, wide letter-spacing — the voice of official process." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "reveal",          "value": "opacity 0.65s ease, transform 0.65s ease", "purpose": "Staggered scroll-reveal on .r elements. translateY(18px) → translateY(0), opacity 0 → 1. Five delay steps: 0.08s increments up to 0.40s." },
+      { "name": "color-transition","value": "0.22s ease",                               "purpose": "Default easing for color, background, and border-color state changes (hover, active). Never transition layout properties." }
+    ],
+    "breakpoints": [
+      { "name": "lg",  "value": "1024px", "purpose": "Desktop to tablet: nav link padding reduces, some two-column layouts adjust." },
+      { "name": "md",  "value": "768px",  "purpose": "Tablet to mobile: navigation hamburger appears, desktop nav links and actions hidden." },
+      { "name": "sm",  "value": "640px",  "purpose": "Mobile: section padding reduces to 5rem/1.25rem, footer stacks and centre-aligns." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The primary call to action. Saffron background, square corners, uppercase label. Used for booking, intake submission, and any irreversible forward action.",
+      "html": "<button class=\"ds-btn-primary\">GET STARTED</button>",
+      "css": ".ds-btn-primary { display: inline-block; background: #C97B1E; color: #0C2340; font-family: 'DM Sans', 'Helvetica Neue', Helvetica, sans-serif; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 1.05rem 2.6rem; border: none; border-radius: 0; cursor: pointer; transition: background 0.22s ease; } .ds-btn-primary:hover { background: #F8F4EE; } .ds-btn-primary:focus-visible { outline: 2px solid #0C2340; outline-offset: 2px; }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action on Prussian or dark backgrounds only. Transparent with a low-opacity Pearl border. Never used on Pearl surfaces.",
+      "html": "<button class=\"ds-btn-outline\">LEARN MORE</button>",
+      "css": ".ds-btn-outline { display: inline-block; background: transparent; color: #F8F4EE; font-family: 'DM Sans', 'Helvetica Neue', Helvetica, sans-serif; font-size: 0.82rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; padding: 1rem 2.4rem; border: 1px solid rgba(248,244,238,0.22); border-radius: 0; cursor: pointer; transition: border-color 0.22s ease, color 0.22s ease; } .ds-btn-outline:hover { border-color: rgba(248,244,238,0.55); color: #F8F4EE; } .ds-btn-outline:focus-visible { outline: 2px solid #F8F4EE; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Link",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Tertiary action on dark backgrounds. Pearl text at reduced opacity with a faint bottom border. Used for secondary choices when a full button would be too heavy.",
+      "html": "<a class=\"ds-link-ghost\">VIEW DETAILS</a>",
+      "css": ".ds-link-ghost { font-family: 'DM Sans', 'Helvetica Neue', Helvetica, sans-serif; font-size: 0.75rem; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(248,244,238,0.42); border-bottom: 1px solid rgba(248,244,238,0.18); padding-bottom: 2px; text-decoration: none; cursor: pointer; transition: color 0.22s ease, border-color 0.22s ease; } .ds-link-ghost:hover { color: #F8F4EE; border-bottom-color: rgba(248,244,238,0.5); }"
+    },
+    {
+      "name": "Nav CTA",
+      "kind": "button",
+      "refersTo": "nav-cta",
+      "description": "The compact Saffron call-to-action in the fixed navigation bar. Same visual language as Primary Button, scaled for the nav context.",
+      "html": "<button class=\"ds-nav-cta\">BOOK CONSULTATION</button>",
+      "css": ".ds-nav-cta { background: #C97B1E; color: #0C2340; font-family: 'DM Sans', 'Helvetica Neue', Helvetica, sans-serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.6rem 1.4rem; border: none; border-radius: 0; cursor: pointer; transition: background 0.22s ease, color 0.22s ease; white-space: nowrap; } .ds-nav-cta:hover { background: #F8F4EE; } .ds-nav-cta:focus-visible { outline: 2px solid #F8F4EE; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "button-primary",
+      "description": "Form text field. Square corners, Sand border at rest, Prussian border on focus. No box-shadow at any state.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-label\">FULL NAME</label><input class=\"ds-input\" type=\"text\" placeholder=\"Enter your name\" /></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 0.5rem; } .ds-label { font-family: 'DM Sans', 'Helvetica Neue', Helvetica, sans-serif; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.20em; text-transform: uppercase; color: #1A2B3C; } .ds-input { background: #fff; border: 1px solid #E2DBD1; border-radius: 0; font-family: 'DM Sans', 'Helvetica Neue', Helvetica, sans-serif; font-size: 0.875rem; color: #1A2B3C; padding: 0.75rem 1rem; width: 100%; transition: border-color 0.22s ease; } .ds-input:focus { outline: none; border-color: #0C2340; } .ds-input::placeholder { color: rgba(26,43,60,0.35); } .ds-input.ds-input-error { border-color: #b91c1c; }"
+    },
+    {
+      "name": "Eyebrow + Headline + Rule",
+      "kind": "custom",
+      "description": "The signature section header pattern. Saffron eyebrow label, Cormorant Garamond display headline, 40px × 2px Saffron rule. Appears on nearly every major section of the public site and portal.",
+      "html": "<div class=\"ds-section-header\"><p class=\"ds-eyebrow\">OUR APPROACH</p><h2 class=\"ds-headline\">Precision-built for your passage</h2><div class=\"ds-rule\"></div></div>",
+      "css": ".ds-section-header { } .ds-eyebrow { font-family: 'DM Sans', 'Helvetica Neue', Helvetica, sans-serif; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase; color: #C97B1E; margin-bottom: 1.4rem; } .ds-headline { font-family: 'Cormorant Garamond', Georgia, serif; font-size: clamp(2rem, 4vw, 3.6rem); font-weight: 400; line-height: 1.12; letter-spacing: -0.012em; color: #1A2B3C; } .ds-rule { width: 40px; height: 2px; background: #C97B1E; margin: 1.6rem 0 2.4rem; }"
+    },
+    {
+      "name": "Navigation Bar",
+      "kind": "nav",
+      "description": "Fixed top bar with Prussian background and backdrop blur. Three zones: brand (left), links (center), actions (right). The tagline 'Engineered for Passage.' is a fixed asset.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-brand\" href=\"#\"><span class=\"ds-nav-wordmark\">VISA FORTE</span><span class=\"ds-nav-tagline\">Engineered for Passage.</span></a><ul class=\"ds-nav-links\"><li><a class=\"ds-nav-link\" href=\"#\">Services</a></li><li><a class=\"ds-nav-link\" href=\"#\">About</a></li><li><a class=\"ds-nav-link\" href=\"#\">Contact</a></li></ul><div class=\"ds-nav-actions\"><button class=\"ds-nav-cta-inner\">Book Consultation</button></div></nav>",
+      "css": ".ds-nav { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 2.5rem; background: rgba(12,35,64,0.97); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(201,123,30,0.18); gap: 1rem; } .ds-nav-brand { display: flex; flex-direction: column; gap: 0.08rem; text-decoration: none; flex-shrink: 0; } .ds-nav-wordmark { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.2rem; font-weight: 600; letter-spacing: 0.14em; color: #F8F4EE; text-transform: uppercase; } .ds-nav-tagline { font-family: 'DM Sans', sans-serif; font-size: 0.6rem; font-weight: 400; letter-spacing: 0.22em; color: #C97B1E; text-transform: uppercase; } .ds-nav-links { display: flex; align-items: center; list-style: none; flex: 1; justify-content: center; gap: 0; margin: 0; padding: 0; } .ds-nav-link { font-family: 'DM Sans', sans-serif; font-size: 0.7rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(248,244,238,0.5); padding: 0.45rem 0.85rem; text-decoration: none; transition: color 0.22s ease; } .ds-nav-link:hover { color: #F8F4EE; } .ds-nav-actions { flex-shrink: 0; } .ds-nav-cta-inner { background: #C97B1E; color: #0C2340; font-family: 'DM Sans', sans-serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.6rem 1.4rem; border: none; border-radius: 0; cursor: pointer; transition: background 0.22s ease; } .ds-nav-cta-inner:hover { background: #F8F4EE; }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "description": "Pipeline stage and status indicators in the admin CRM and client portal. Square corners, subtle background tints, uppercase label text.",
+      "html": "<span class=\"ds-badge ds-badge-active\">ACTIVE</span> <span class=\"ds-badge ds-badge-pending\">PENDING</span> <span class=\"ds-badge ds-badge-complete\">COMPLETE</span>",
+      "css": ".ds-badge { display: inline-block; font-family: 'DM Sans', sans-serif; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; padding: 0.2rem 0.6rem; border-radius: 0; } .ds-badge-active { background: rgba(201,123,30,0.12); color: #C97B1E; } .ds-badge-pending { background: rgba(26,92,114,0.1); color: #1A5C72; } .ds-badge-complete { background: rgba(26,122,74,0.1); color: #1a7a4a; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Chartered Practice",
+    "overview": "This is a serious professional firm. Every element carries the weight of documented process and legal precision. The design communicates that a real expert operates here — not a platform, not a portal, not a startup with a gradient — a practice that has guided hundreds of clients through the same procedural journey and knows every obstacle. When a referred prospect lands on any Visa Forte surface, the design's job is not to convince from zero; it is to confirm what they already believe.\n\nThe visual language is grounded in restraint. Prussian blue anchors every surface in authority. Saffron appears as a precision instrument — sparingly, on the most credible, the most actionable, the most important. Pearl grounds the experience in warmth, far from clinical white. Nothing is rounded; nothing floats; nothing animates for its own sake. This is the design equivalent of a firm handshake.\n\nThe system explicitly rejects generic SaaS aesthetics, cheap immigration portal styling, over-designed agency excess, and old-school legal firm stiffness. It also refuses anything that causes visual fatigue — comfortable reading is a design feature, not an afterthought.",
+    "keyCharacteristics": [
+      "Zero border-radius throughout: square corners signal seriousness, not consumer softness",
+      "Flat elevation: authority comes from color and type, never from shadow depth",
+      "Saffron as a precision instrument: used on ≤10% of any screen; its rarity is the point",
+      "Pearl canvas: warm off-white, never clinical white, always approachable",
+      "Cormorant Garamond for display only: the serif carries authority; DM Sans carries clarity",
+      "Uppercase labels and buttons: the visual language of official process and documentation"
+    ],
+    "rules": [
+      { "name": "The Saffron Scarcity Rule",  "body": "Saffron appears on ≤10% of any given screen. Its rarity is precisely why it commands attention. Over-use collapses the contrast hierarchy and makes CTAs invisible in noise.", "section": "colors" },
+      { "name": "The No-White Rule",           "body": "Never use pure #fff or #000. Pearl (#F8F4EE) is the lightest neutral; Prussian (#0C2340) is the darkest. Every color is tinted toward the brand hue.", "section": "colors" },
+      { "name": "The Serif Ceiling Rule",      "body": "Cormorant Garamond is reserved for display and headline roles exclusively. Never use it for body copy, navigation, or any UI element at or below 1rem.", "section": "typography" },
+      { "name": "The Uppercase Protocol",      "body": "Labels, navigation, buttons, and eyebrow text are always uppercase with wide letter-spacing (0.10–0.28em). The visual language of official documentation. Do not undercut it with mixed case in UI contexts.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule",    "body": "Surfaces are flat at rest. No box-shadow on buttons, cards, inputs, or containers. Depth is earned through color contrast, not shadow illusion.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use Cormorant Garamond for display (≥1.5rem) and DM Sans for everything else. The serif ceiling is strict and non-negotiable.",
+      "Do place the Saffron Rule (40px × 2px, #C97B1E) between the eyebrow/headline and body content in every major section.",
+      "Do display 'Engineered for Passage.' as the permanent nav tagline in Saffron (#C97B1E). Never alter, never omit.",
+      "Do keep border-radius at 0px on all interactive elements: buttons, inputs, cards, badges, chips.",
+      "Do use uppercase with letter-spacing (≥0.10em) for all navigation links, button labels, and eyebrow text.",
+      "Do set body copy on Pearl (#F8F4EE) with Ink (#1A2B3C) text at comfortable line lengths (max 65–75ch).",
+      "Do keep Saffron usage to ≤10% of any given screen.",
+      "Do use the flat elevation model throughout. No box-shadow on buttons, cards, or containers.",
+      "Do include prefers-reduced-motion overrides on all .r reveal animations. WCAG 2.1 AA compliance is required."
+    ],
+    "donts": [
+      "Don't use gradient hero sections, gradient text (background-clip: text), or hero-metric templates (big number + small label + gradient accent).",
+      "Don't apply cheap immigration portal patterns: blue-and-white government-adjacent styling, stock flag photography, poor contrast, typographic negligence.",
+      "Don't add parallax effects, decorative floating blobs, neon splashes, excessive motion, or cursor effects.",
+      "Don't use old-school legal firm aesthetics: gold serif wordmarks on dark navy, tombstone-style layouts, Latin language, cold formality.",
+      "Don't use any border-radius on interactive elements. Not 4px. Not 2px. Not 1px. Zero.",
+      "Don't add box-shadow to buttons, cards, or containers. Flat is a deliberate system choice.",
+      "Don't use Saffron as a large-surface background color. It belongs on rules, highlights, badges, CTAs, and hover states only.",
+      "Don't use pure #fff or #000. Pearl is the lightest neutral. Prussian is the darkest.",
+      "Don't set body copy in Cormorant Garamond. The Serif Ceiling Rule is absolute.",
+      "Don't design anything that causes visual fatigue. If a user squints or fights the layout, it has failed.",
+      "Don't use border-left or border-right greater than 1px as a decorative colored stripe on cards or alerts.",
+      "Don't use glassmorphism decoratively. The nav blur is a structural necessity; everywhere else it is prohibited."
+    ]
+  }
+}
