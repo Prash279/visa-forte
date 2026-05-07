@@ -40,6 +40,7 @@ export async function POST(
         phone: lead.phone ?? null,
         serviceTier: lead.serviceInterest,
         stage: 'Lead',
+        notes: lead.notes ?? null,
       })
       .returning()
 
