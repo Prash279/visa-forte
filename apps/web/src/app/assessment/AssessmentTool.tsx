@@ -149,6 +149,7 @@ export default function AssessmentTool() {
   const [leadEmail, setLeadEmail]     = useState('')
   const [leadConsent, setLeadConsent] = useState(false)
   const [leadStatus, setLeadStatus]   = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
+  const [resumeFile, setResumeFile]   = useState<File | null>(null)
 
   const firstClb  = scoresToClb(profile.firstLanguageScores)
   const secondClb = profile.hasSecondLanguage && profile.secondLanguageScores
@@ -189,16 +190,13 @@ export default function AssessmentTool() {
     if (!leadName.trim() || !leadEmail.trim() || !leadConsent || !result) return
     setLeadStatus('submitting')
     try {
-      const res = await fetch('/api/assessment-lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: leadName.trim(),
-          email: leadEmail.trim(),
-          crsScore: result.breakdown.total,
-          consentGiven: true,
-        }),
-      })
+      const fd = new FormData()
+      fd.append('name', leadName.trim())
+      fd.append('email', leadEmail.trim())
+      fd.append('crsScore', String(result.breakdown.total))
+      fd.append('consentGiven', 'true')
+      if (resumeFile) fd.append('resume', resumeFile)
+      const res = await fetch('/api/assessment-lead', { method: 'POST', body: fd })
       setLeadStatus(res.ok ? 'success' : 'error')
     } catch {
       setLeadStatus('error')
@@ -217,6 +215,7 @@ export default function AssessmentTool() {
     setMaritalStatus('single')
     setResult(null)
     setView('form')
+    setResumeFile(null)
     setTimeout(() => window.scrollTo({ top: 0 }), 50)
   }
 
@@ -1110,6 +1109,55 @@ export default function AssessmentTool() {
                     onChange={e => setLeadEmail(e.target.value)}
                     disabled={leadStatus === 'submitting'}
                   />
+                </div>
+                <div className="asx-field" style={{ marginTop: '0.75rem' }}>
+                  <label className="asx-label" htmlFor="lead-resume">Resume / CV (Optional)</label>
+                  <label
+                    htmlFor="lead-resume"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      border: '1.5px solid var(--sand)',
+                      borderRadius: '3px',
+                      padding: '0.6rem 0.85rem',
+                      background: '#fff',
+                      cursor: leadStatus === 'submitting' ? 'not-allowed' : 'pointer',
+                      fontSize: '0.9rem',
+                      opacity: leadStatus === 'submitting' ? 0.45 : 1,
+                    }}
+                  >
+                    <span style={{
+                      background: 'var(--prussian)',
+                      color: '#fff',
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '2px',
+                      fontSize: '0.76rem',
+                      fontWeight: 500,
+                      letterSpacing: '0.04em',
+                      flexShrink: 0,
+                    }}>
+                      Choose file
+                    </span>
+                    <span style={{
+                      color: resumeFile ? 'var(--ink)' : '#999',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      fontSize: '0.88rem',
+                    }}>
+                      {resumeFile ? resumeFile.name : 'No file chosen'}
+                    </span>
+                    <input
+                      id="lead-resume"
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={e => setResumeFile(e.target.files?.[0] ?? null)}
+                      disabled={leadStatus === 'submitting'}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                  <span className="asx-hint">PDF or Word document · Max 5 MB</span>
                 </div>
                 <label className="asx-checkbox-row" style={{ marginTop: '0.75rem' }}>
                   <input

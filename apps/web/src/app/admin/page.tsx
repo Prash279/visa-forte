@@ -283,13 +283,18 @@ export default async function AdminPage() {
             <table className="admin-table">
               <thead>
                 <tr>
-                  {["Name", "Email", "Service Interest", "Submitted", "Status", "Action"].map((h) => (
+                  {["Name", "Email", "Service Interest", "CRS Score", "Resume", "Submitted", "Status", "Action"].map((h) => (
                     <th key={h}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {allLeads.map((lead) => (
+                {allLeads.map((lead) => {
+                  const crsMatch = lead.notes?.match(/CRS Score:\s*(\d+)/);
+                  const crsScore = crsMatch ? crsMatch[1] : null;
+                  const resumeMatch = lead.notes?.match(/Resume:\s*(https?:\/\/\S+)/);
+                  const resumeUrl = resumeMatch ? resumeMatch[1] : null;
+                  return (
                   <tr key={lead.id}>
                     <td><span className="admin-td-name">{lead.name}</span></td>
                     <td>
@@ -301,6 +306,17 @@ export default async function AdminPage() {
                       <span className="admin-td-service" title={lead.serviceInterest}>
                         {lead.serviceInterest}
                       </span>
+                    </td>
+                    <td>
+                      <span className="admin-td-date" title={lead.notes ?? undefined}>
+                        {crsScore ?? <span style={{ color: 'var(--muted, #aaa)' }}>—</span>}
+                      </span>
+                    </td>
+                    <td>
+                      {resumeUrl
+                        ? <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="admin-td-email">Download →</a>
+                        : <span style={{ color: 'var(--muted, #aaa)' }}>—</span>
+                      }
                     </td>
                     <td>
                       <span className="admin-td-date">
@@ -323,7 +339,8 @@ export default async function AdminPage() {
                       />
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
