@@ -145,6 +145,9 @@ export default function AssessmentTool() {
   const secondClb = profile.hasSecondLanguage && profile.secondLanguageScores
     ? scoresToClb(profile.secondLanguageScores)
     : null
+  const spouseClb = profile.hasSpouse && profile.spouseLanguageScores
+    ? scoresToClb(profile.spouseLanguageScores)
+    : null
 
   const set = useCallback(<K extends keyof ApplicantProfile>(
     key: K, value: ApplicantProfile[K],
@@ -158,6 +161,16 @@ export default function AssessmentTool() {
       setProfile(prev => ({
         ...prev,
         [key]: { ...(prev[key] ?? DEFAULT_LANG), [field]: value },
+      }))
+    },
+    [],
+  )
+
+  const setSpouseLangScore = useCallback(
+    (field: keyof LanguageScores, value: string | number) => {
+      setProfile(prev => ({
+        ...prev,
+        spouseLanguageScores: { ...(prev.spouseLanguageScores ?? DEFAULT_LANG), [field]: value },
       }))
     },
     [],
@@ -242,34 +255,13 @@ export default function AssessmentTool() {
                   placeholder="India / USA / etc."
                 />
               </div>
-              <div className="asx-field">
-                <label className="asx-label">NOC Code</label>
-                <input
-                  className="asx-input"
-                  value={profile.nocCode}
-                  onChange={e => set('nocCode', e.target.value)}
-                  placeholder="e.g. 21211"
-                />
-              </div>
-              <div className="asx-field">
-                <label className="asx-label">NOC TEER</label>
-                <select
-                  className="asx-select"
-                  value={profile.nocTeer}
-                  onChange={e => set('nocTeer', parseInt(e.target.value) as ApplicantProfile['nocTeer'])}
-                >
-                  {[0, 1, 2, 3, 4, 5].map(t => (
-                    <option key={t} value={t}>TEER {t}</option>
-                  ))}
-                </select>
-              </div>
               <div className="asx-field asx-full">
-                <label className="asx-label">Occupation Title</label>
+                <label className="asx-label">Occupation / Job Title</label>
                 <input
                   className="asx-input"
                   value={profile.occupationTitle}
                   onChange={e => set('occupationTitle', e.target.value)}
-                  placeholder="e.g. Software Engineer"
+                  placeholder="e.g. Software Engineer, Registered Nurse, Electrician"
                 />
               </div>
             </div>
@@ -428,8 +420,126 @@ export default function AssessmentTool() {
               </div>
             </div>
 
-            {/* Section 6: Additional Factors */}
-            <p className="asx-section-label">6 — Additional Factors</p>
+            {/* Section 6: Partner / Spouse */}
+            <p className="asx-section-label">6 — Partner / Spouse</p>
+            <label className="asx-checkbox-row" style={{ marginBottom: '1rem' }}>
+              <input
+                type="checkbox"
+                checked={profile.hasSpouse}
+                onChange={e => {
+                  set('hasSpouse', e.target.checked)
+                  if (!e.target.checked) {
+                    setProfile(prev => ({
+                      ...prev,
+                      hasSpouse: false,
+                      spouseEducation: undefined,
+                      spouseLanguageScores: undefined,
+                      spouseCanadianExperience: undefined,
+                    }))
+                  }
+                }}
+              />
+              <span className="asx-checkbox-label">
+                I have a spouse or common-law partner coming with me to Canada
+              </span>
+            </label>
+
+            {profile.hasSpouse && (
+              <>
+                <div className="asx-grid-2">
+                  <div className="asx-field">
+                    <label className="asx-label">Partner&apos;s Highest Education</label>
+                    <select
+                      className="asx-select"
+                      value={profile.spouseEducation ?? 'secondary'}
+                      onChange={e => set('spouseEducation', e.target.value as EducationLevel)}
+                    >
+                      {(Object.entries(EDU_LABELS) as [EducationLevel, string][]).map(([k, v]) => (
+                        <option key={k} value={k}>{v}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="asx-field">
+                    <label className="asx-label">Partner&apos;s Canadian Work Experience (years)</label>
+                    <input
+                      className="asx-input"
+                      type="number"
+                      step="0.25"
+                      min={0}
+                      value={profile.spouseCanadianExperience || ''}
+                      onChange={e => set('spouseCanadianExperience', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                </div>
+
+                <p className="asx-section-label" style={{ marginTop: '1.25rem' }}>
+                  Partner&apos;s Language Test (if available)
+                </p>
+                <label className="asx-checkbox-row" style={{ marginBottom: '1rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={!!profile.spouseLanguageScores}
+                    onChange={e => {
+                      setProfile(prev => ({
+                        ...prev,
+                        spouseLanguageScores: e.target.checked ? { ...DEFAULT_LANG } : undefined,
+                      }))
+                    }}
+                  />
+                  <span className="asx-checkbox-label">
+                    Partner has a language test result (English or French)
+                  </span>
+                </label>
+
+                {profile.spouseLanguageScores && (
+                  <>
+                    <div className="asx-grid-2" style={{ marginBottom: '0.75rem' }}>
+                      <div className="asx-field asx-full">
+                        <label className="asx-label">Test Type</label>
+                        <select
+                          className="asx-select"
+                          value={profile.spouseLanguageScores.testType}
+                          onChange={e => setSpouseLangScore('testType', e.target.value as LanguageScores['testType'])}
+                        >
+                          <option value="IELTS_GT">IELTS General Training</option>
+                          <option value="IELTS_Academic">IELTS Academic</option>
+                          <option value="CELPIP">CELPIP-General</option>
+                          <option value="TEF">TEF Canada</option>
+                          <option value="TCF">TCF Canada</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="asx-grid-4">
+                      {(['listening', 'reading', 'writing', 'speaking'] as const).map(skill => (
+                        <div className="asx-field" key={skill}>
+                          <label className="asx-label">{skill.charAt(0).toUpperCase() + skill.slice(1)}</label>
+                          <input
+                            className="asx-input"
+                            type="number"
+                            step="0.5"
+                            min={0}
+                            max={9}
+                            value={profile.spouseLanguageScores?.[skill] || ''}
+                            onChange={e => setSpouseLangScore(skill, parseFloat(e.target.value) || 0)}
+                          />
+                          {spouseClb && (
+                            <span
+                              className="asx-clb-tag"
+                              data-level={spouseClb[skill] >= 9 ? 'high' : spouseClb[skill] >= 7 ? 'mid' : 'low'}
+                            >
+                              CLB {spouseClb[skill]}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+
+            {/* Section 7: Additional Factors */}
+            <p className="asx-section-label">7 — Additional Factors</p>
             <div className="asx-grid-2">
               <div className="asx-field">
                 <label className="asx-label">Settlement Funds Available (CAD)</label>
@@ -459,14 +569,6 @@ export default function AssessmentTool() {
               <label className="asx-checkbox-row">
                 <input
                   type="checkbox"
-                  checked={profile.hasSpouse}
-                  onChange={e => set('hasSpouse', e.target.checked)}
-                />
-                <span className="asx-checkbox-label">Has spouse or common-law partner</span>
-              </label>
-              <label className="asx-checkbox-row">
-                <input
-                  type="checkbox"
                   checked={profile.hasProvincialNomination}
                   onChange={e => set('hasProvincialNomination', e.target.checked)}
                 />
@@ -490,8 +592,8 @@ export default function AssessmentTool() {
               </label>
             </div>
 
-            {/* Section 7: Risk & Disclosure */}
-            <p className="asx-section-label">7 — Disclosure</p>
+            {/* Section 8: Risk & Disclosure */}
+            <p className="asx-section-label">8 — Disclosure</p>
             <div className="asx-grid-3">
               <div className="asx-field">
                 <label className="asx-label">Criminal Record</label>
