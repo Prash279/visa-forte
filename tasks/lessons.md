@@ -40,7 +40,20 @@ If the lesson contains words like "useEffect", "state mismatch", "hydration erro
 
 ## Category: Immigration Domain
 
-*No entries yet. Add here when a correction involves CRS calculations, IRCC data sourcing, regulatory rules, or scope boundary violations.*
+**Lesson 1 — Factor B (spouse points) must use its own IRCC tables, not the applicant's tables**
+- **What went wrong:** The spouse scoring block called the applicant's education constant (`EDU_SINGLE`) and applicant's full language function (`firstLanguagePoints`). A spouse with a Master's received 135 education points instead of 10, and 109 language points instead of 14 — inflating every with-spouse score by ~177 points.
+- **Why it happened:** IRCC has two completely separate scoring systems. Factor A (applicant core) and Factor B (spouse contribution) both score education and language, but with different maximum values and different tables. The initial build used the same functions for both, treating them as identical.
+- **The rule going forward:** Any time a spouse/partner score is calculated, it must use the Factor B constants and functions (`SPOUSE_EDU`, `spouseLangPointsPerBand`, `spouseCwePoints`). Never pass spouse data into Factor A functions. Factor B education max is 10, language max is 5 per ability, CWE max is 10 — completely different from Factor A.
+
+**Lesson 2 — Education constants must be checked against the specific WITH/WITHOUT SPOUSE column**
+- **What went wrong:** `EDU_SINGLE` (no spouse) contained the WITH-spouse values, and `EDU_WITH_SPOUSE` contained values lower than either official table. All entries were wrong.
+- **Why it happened:** The tables were built without cross-checking each value against the correct column header on the IRCC CRS grid page.
+- **The rule going forward:** Whenever setting up or reviewing any CRS lookup table, explicitly label which IRCC column each row corresponds to, then verify a minimum of 3 spot-check values against canada.ca before declaring the table correct.
+
+**Lesson 3 — Skill transferability CWE combinations have a 2-tier structure (1yr vs 2+yr)**
+- **What went wrong:** `eduCanadianExpTransfer` and `foreignExpCanadianExpTransfer` returned a flat value (25 or 13) regardless of whether the applicant had 1 year or 2+ years of Canadian experience. The IRCC tables have a higher tier for 2+ years (50 and 25 respectively).
+- **Why it happened:** The functions were written as if each combination had only one point value, missing the two-row structure on the official IRCC transferability table.
+- **The rule going forward:** Every skill transferability function must handle both the 1-year CWE tier and the 2+-year CWE tier as separate return values. Always cross-check the function's maximum output against the official IRCC cap for that combination.
 
 ---
 

@@ -57,13 +57,15 @@ describe('scoresToClb — IELTS GT conversion', () => {
     expect(bands.speaking).toBe(9)
   })
 
-  it('converts CLB 7 boundary correctly', () => {
+  it('converts CLB 7 boundary correctly — minimum scores for CLB 7 in all abilities', () => {
+    // Per IRCC IELTS GT table: CLB 7 = L≥6.0, R≥6.0, W≥6.0, S≥6.0.
+    // W/S=5.5 maps to CLB 6, not 7. 6.0 is the true CLB 7 floor.
     const scores: LanguageScores = {
       testType: 'IELTS_GT',
       listening: 6.0,
       reading: 6.0,
-      writing: 5.5,
-      speaking: 5.5,
+      writing: 6.0,
+      speaking: 6.0,
     }
     const bands = scoresToClb(scores)
     expect(bands.listening).toBe(7)
@@ -237,5 +239,93 @@ describe('calculate — age boundary cases', () => {
   it('age 30 returns 105 age points', () => {
     const result = calculate({ ...kishoreProfile, age: 30 })
     expect(result.breakdown.agePoints).toBe(105)
+  })
+})
+
+// Harish Naik — with-spouse profile used to verify Factor B is scored on the correct
+// IRCC Factor B tables (not the applicant's Factor A tables).
+// Expected: A=290, B=24, C=50, total=364. Source: canada.ca CRS criteria grid.
+const harishProfile: ApplicantProfile = {
+  name: 'Harish Naik',
+  age: 38,
+  nocCode: '21211',
+  nocTeer: 1,
+  occupationTitle: 'Data Scientist',
+  countryOfCitizenship: 'India',
+  countryOfResidence: 'India',
+  reportDate: '2026-05-07',
+  education: 'masters',
+  hasEca: true,
+  firstLanguageScores: {
+    testType: 'IELTS_GT',
+    listening: 8.0,
+    reading: 6.5,
+    writing: 7.0,
+    speaking: 7.0,
+  },
+  hasSecondLanguage: false,
+  foreignWorkExperienceYears: 6,
+  canadianWorkExperienceYears: 0,
+  hasSpouse: true,
+  spouseEducation: 'masters',
+  spouseLanguageScores: {
+    testType: 'IELTS_GT',
+    listening: 7.0,
+    reading: 7.0,
+    writing: 6.0,
+    speaking: 6.0,
+  },
+  spouseCanadianExperience: 0,
+  hasProvincialNomination: false,
+  hasCanadianEducation: false,
+  hasFamilyInCanada: false,
+  settlementFunds: 25000,
+  familySize: 2,
+  hasCriminalRecord: false,
+  hasMedicalCondition: false,
+  hasPriorRefusal: false,
+}
+
+describe('calculate — Harish Naik with-spouse Factor B verification', () => {
+  const result = calculate(harishProfile)
+
+  it('age 38 with spouse = 55 points', () => {
+    expect(result.breakdown.agePoints).toBe(55)
+  })
+
+  it("education Master's with spouse = 126 points (Factor A WITH SPOUSE table)", () => {
+    expect(result.breakdown.educationPoints).toBe(126)
+  })
+
+  it('first language CLB 9/8/9/9 with spouse = 109 points', () => {
+    expect(result.breakdown.firstLanguagePoints).toBe(109)
+  })
+
+  it('Factor B spouse total = 24 (edu=10, lang=14, cwe=0)', () => {
+    expect(result.breakdown.spousePoints).toBe(24)
+  })
+
+  it('Factor B is capped at reasonable levels (not inflated via Factor A tables)', () => {
+    expect(result.breakdown.spousePoints).toBeLessThanOrEqual(40)
+  })
+
+  it('core total (A+B) = 314', () => {
+    expect(result.breakdown.coreTotal).toBe(314)
+  })
+
+  it('Section C: edu+language transferability (Master + minCLB 8) = 25', () => {
+    expect(result.breakdown.eduLanguageTransfer).toBe(25)
+  })
+
+  it('Section C: foreign exp + language (6yr + minCLB 8) = 25', () => {
+    expect(result.breakdown.foreignExpLanguageTransfer).toBe(25)
+  })
+
+  it('Section C: transferability total = 50', () => {
+    expect(result.breakdown.transferTotal).toBe(50)
+  })
+
+  it('CRS grand total = 364', () => {
+    expect(result.breakdown.total).toBe(364)
   })
 })

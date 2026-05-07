@@ -274,7 +274,7 @@ export function scoresToClb(scores: LanguageScores): LanguageBands {
 // ── Section A: Core / Human Capital ─────────────────────────────────────────
 
 // Age points without spouse (single applicant).
-// Verified: age 26 = 110 ✓
+// Source: canada.ca CRS criteria grid
 const AGE_SINGLE: Record<number, number> = {
   17: 0, 18: 99, 19: 105,
   20: 110, 21: 110, 22: 110, 23: 110, 24: 110, 25: 110,
@@ -292,7 +292,7 @@ function agePoints(age: number, hasSpouse: boolean): number {
       18: 90, 19: 95, 20: 100, 21: 100, 22: 100, 23: 100, 24: 100, 25: 100,
       26: 100, 27: 100, 28: 100, 29: 100,
       30: 95, 31: 90, 32: 85, 33: 80, 34: 75,
-      35: 70, 36: 65, 37: 60, 38: 55, 39: 49,
+      35: 70, 36: 65, 37: 60, 38: 55, 39: 50,
       40: 45, 41: 35, 42: 25, 43: 15, 44: 5,
     }
     if (age < 18 || age >= 45) return 0
@@ -302,29 +302,28 @@ function agePoints(age: number, hasSpouse: boolean): number {
   return AGE_SINGLE[age] ?? 0
 }
 
-// Education points without spouse.
-// Verified: Master's = 135 ✓
+// Factor A — Education without spouse. Source: canada.ca CRS criteria grid.
 const EDU_SINGLE: Record<EducationLevel, number> = {
+  less_than_secondary: 0,
+  secondary: 30,
+  one_year_post_secondary: 90,
+  two_year_post_secondary: 98,
+  bachelors: 120,
+  two_or_more_degrees: 128,
+  masters: 135,
+  doctoral: 150,
+}
+
+// Factor A — Education with spouse. Source: canada.ca CRS criteria grid.
+const EDU_WITH_SPOUSE: Record<EducationLevel, number> = {
   less_than_secondary: 0,
   secondary: 28,
   one_year_post_secondary: 84,
   two_year_post_secondary: 91,
   bachelors: 112,
   two_or_more_degrees: 119,
-  masters: 135,
-  doctoral: 150,
-}
-
-// Education points with spouse (lower table).
-const EDU_WITH_SPOUSE: Record<EducationLevel, number> = {
-  less_than_secondary: 0,
-  secondary: 22,
-  one_year_post_secondary: 68,
-  two_year_post_secondary: 74,
-  bachelors: 91,
-  two_or_more_degrees: 97,
-  masters: 110,
-  doctoral: 122,
+  masters: 126,
+  doctoral: 140,
 }
 
 function educationPoints(level: EducationLevel, hasSpouse: boolean): number {
@@ -385,7 +384,7 @@ function canadianExpPoints(years: number, hasSpouse: boolean): number {
   if (hasSpouse) {
     if (wholeYears >= 5) return 70
     if (wholeYears === 4) return 63
-    if (wholeYears === 3) return 57
+    if (wholeYears === 3) return 56
     if (wholeYears === 2) return 46
     if (wholeYears === 1) return 35
     return 0
@@ -429,9 +428,11 @@ function eduLanguageTransfer(edu: EducationLevel, langBands: LanguageBands): num
   return 0
 }
 
-// Education + Canadian work experience transferability (max 25, requires ≥1yr CWE).
+// Education + Canadian work experience transferability (max 50).
+// Source: canada.ca CRS criteria — 1yr CWE and 2+yr CWE are separate tiers.
 function eduCanadianExpTransfer(edu: EducationLevel, canadianYears: number): number {
-  if (Math.floor(canadianYears) < 1) return 0
+  const cWhole = Math.floor(canadianYears)
+  if (cWhole < 1) return 0
   const isBachelorsPlus =
     edu === 'bachelors' ||
     edu === 'two_or_more_degrees' ||
@@ -439,8 +440,8 @@ function eduCanadianExpTransfer(edu: EducationLevel, canadianYears: number): num
     edu === 'doctoral'
   const isPostSecondary12 =
     edu === 'one_year_post_secondary' || edu === 'two_year_post_secondary'
-  if (isBachelorsPlus) return 25
-  if (isPostSecondary12) return 13
+  if (isBachelorsPlus) return cWhole >= 2 ? 50 : 25
+  if (isPostSecondary12) return cWhole >= 2 ? 25 : 13
   return 0
 }
 
@@ -462,13 +463,14 @@ function foreignExpLanguageTransfer(foreignYears: number, langBands: LanguageBan
   return 0
 }
 
-// Foreign work experience + Canadian work experience transferability (max 25).
+// Foreign work experience + Canadian work experience transferability (max 50).
+// Source: canada.ca CRS criteria — 1yr CWE and 2+yr CWE are separate tiers.
 function foreignExpCanadianExpTransfer(foreignYears: number, canadianYears: number): number {
   const fWhole = Math.floor(foreignYears)
   const cWhole = Math.floor(canadianYears)
   if (cWhole < 1) return 0
-  if (fWhole >= 3) return 25
-  if (fWhole >= 1) return 13
+  if (fWhole >= 3) return cWhole >= 2 ? 50 : 25
+  if (fWhole >= 1) return cWhole >= 2 ? 25 : 13
   return 0
 }
 
@@ -715,6 +717,41 @@ function buildScenarios(
   return scenarios
 }
 
+// ── Section B: Spouse / Common-Law Partner Factors ──────────────────────────
+
+// Factor B — Spouse education (max 10 pts). Source: canada.ca CRS criteria grid.
+const SPOUSE_EDU: Record<EducationLevel, number> = {
+  less_than_secondary: 0,
+  secondary: 2,
+  one_year_post_secondary: 6,
+  two_year_post_secondary: 7,
+  bachelors: 8,
+  two_or_more_degrees: 9,
+  masters: 10,
+  doctoral: 10,
+}
+
+// Factor B — Spouse language points per CLB band (max 5 per ability = 20 pts total).
+// Source: canada.ca CRS criteria grid.
+function spouseLangPointsPerBand(clb: number): number {
+  if (clb >= 9) return 5
+  if (clb >= 7) return 3
+  if (clb >= 5) return 1
+  return 0
+}
+
+// Factor B — Spouse Canadian work experience (max 10 pts).
+// Source: canada.ca CRS criteria grid.
+function spouseCwePoints(years: number): number {
+  const w = Math.floor(years)
+  if (w >= 5) return 10
+  if (w === 4) return 9
+  if (w === 3) return 8
+  if (w === 2) return 7
+  if (w === 1) return 5
+  return 0
+}
+
 // ── Main calculate function ──────────────────────────────────────────────────
 
 export function calculate(profile: ApplicantProfile): CrsResult {
@@ -730,18 +767,22 @@ export function calculate(profile: ApplicantProfile): CrsResult {
   const secondLangPoints = secondBands ? secondLanguagePoints(secondBands) : 0
   const canadianExp = canadianExpPoints(profile.canadianWorkExperienceYears, profile.hasSpouse)
 
-  // Spouse contribution — simplified (education + language + CWE)
+  // Factor B — Spouse/partner contribution using correct IRCC Factor B tables (max 40 pts).
+  // These are NOT the same as the applicant's Factor A tables — spouse points are much lower.
   let spousePoints = 0
   if (profile.hasSpouse) {
     if (profile.spouseEducation) {
-      spousePoints += EDU_SINGLE[profile.spouseEducation] ?? 0
+      spousePoints += SPOUSE_EDU[profile.spouseEducation] ?? 0
     }
     if (profile.spouseLanguageScores) {
       const spBands = scoresToClb(profile.spouseLanguageScores)
-      spousePoints += firstLanguagePoints(spBands, false)
+      spousePoints += spouseLangPointsPerBand(spBands.listening)
+        + spouseLangPointsPerBand(spBands.reading)
+        + spouseLangPointsPerBand(spBands.writing)
+        + spouseLangPointsPerBand(spBands.speaking)
     }
     if (profile.spouseCanadianExperience) {
-      spousePoints += canadianExpPoints(profile.spouseCanadianExperience, false)
+      spousePoints += spouseCwePoints(profile.spouseCanadianExperience)
     }
   }
 
