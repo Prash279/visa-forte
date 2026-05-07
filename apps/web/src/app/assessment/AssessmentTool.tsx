@@ -952,7 +952,7 @@ export default function AssessmentTool() {
                 </div>
               ))}
             </div>
-            <p className="asx-fsw-verdict">
+            <p className="asx-fsw-verdict" data-pass={fsw.eligible ? 'yes' : 'no'}>
               {fsw.eligible
                 ? `FSW pass mark reached (${fsw.total}/100). Profile qualifies for the Federal Skilled Worker stream.`
                 : `FSW pass mark not reached (${fsw.total}/100 — 67 required). FSW pathway currently unavailable.`}
@@ -1066,11 +1066,11 @@ export default function AssessmentTool() {
               and confirming current eligibility requirements before taking any action.
             </p>
             <p className="asx-disclaimer-body">
-              Visa Forte provides documentation consulting services only. Prashant Thirthingoth
-              is not a Registered Canadian Immigration Consultant (RCIC) and does not provide
-              legal immigration representation. All CRS scoring reflects current IRCC rules as
-              published at canada.ca. Scoring methodology is updated whenever IRCC announces
-              regulatory changes — verify the latest rules before acting on any assessment.
+              All CRS scoring reflects current IRCC rules as published at canada.ca. Visa Forte
+              specialises in documentation consulting and eligibility guidance — helping applicants
+              prepare complete, accurate profiles and understand their pathways with clarity.
+              Scoring methodology is updated whenever IRCC announces regulatory changes; verify
+              the latest rules before acting on any assessment.
             </p>
           </div>
 

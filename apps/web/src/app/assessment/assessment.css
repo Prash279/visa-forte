@@ -353,7 +353,7 @@
 
 .asx-score-date {
   font-size: 0.72rem;
-  color: rgba(248,244,238,0.3);
+  color: rgba(248,244,238,0.75);
   letter-spacing: 0.04em;
 }
 
@@ -532,6 +532,8 @@
   padding: 0.7rem 1rem;
   border-radius: 0 3px 3px 0;
 }
+.asx-fsw-verdict[data-pass="yes"] { border-left-color: #22C55E; }
+.asx-fsw-verdict[data-pass="no"]  { border-left-color: #EF4444; }
 
 /* Funds card */
 .asx-funds-card { border-top: 3px solid var(--saffron); }

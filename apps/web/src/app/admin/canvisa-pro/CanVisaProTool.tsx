@@ -615,7 +615,7 @@ style: |
       Immigration regulations, program requirements, processing times, and CRS cutoff scores are subject to frequent change without notice. You are responsible for verifying all information with official IRCC sources at <span style="color:${TEAL};">www.canada.ca/immigration</span> and confirming current eligibility requirements before taking any action.
     </div>
     <div style="color:${MUTED};font-size:13px;line-height:1.9;max-width:820px;">
-      Visa Forte provides documentation consulting services only. Prashant Thirthingoth is not a Registered Canadian Immigration Consultant (RCIC) and does not provide legal immigration representation.
+      All CRS scoring reflects current IRCC rules as published at canada.ca. Visa Forte specialises in documentation consulting and eligibility guidance — helping applicants prepare complete, accurate profiles and understand their pathways with clarity. Scoring methodology is updated whenever IRCC announces regulatory changes; verify the latest rules before acting on any assessment.
     </div>
   </div>
 
