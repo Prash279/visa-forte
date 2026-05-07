@@ -102,6 +102,44 @@ describe('scoresToClb — CELPIP conversion', () => {
   })
 })
 
+describe('scoresToClb — TCF Canada conversion', () => {
+  it('converts CLB 10 boundary scores correctly (L/R: 549, W/S: 16)', () => {
+    const scores: LanguageScores = {
+      testType: 'TCF',
+      listening: 549, reading: 549, writing: 16, speaking: 16,
+    }
+    const bands = scoresToClb(scores)
+    expect(bands.listening).toBe(10)
+    expect(bands.reading).toBe(10)
+    expect(bands.writing).toBe(10)
+    expect(bands.speaking).toBe(10)
+  })
+
+  it('converts CLB 7 boundary scores correctly (L: 458, R: 453, W/S: 10)', () => {
+    const scores: LanguageScores = {
+      testType: 'TCF',
+      listening: 458, reading: 453, writing: 10, speaking: 10,
+    }
+    const bands = scoresToClb(scores)
+    expect(bands.listening).toBe(7)
+    expect(bands.reading).toBe(7)
+    expect(bands.writing).toBe(7)
+    expect(bands.speaking).toBe(7)
+  })
+
+  it('returns CLB 0 for scores below CLB 4 threshold', () => {
+    const scores: LanguageScores = {
+      testType: 'TCF',
+      listening: 100, reading: 100, writing: 1, speaking: 1,
+    }
+    const bands = scoresToClb(scores)
+    expect(bands.listening).toBe(0)
+    expect(bands.reading).toBe(0)
+    expect(bands.writing).toBe(0)
+    expect(bands.speaking).toBe(0)
+  })
+})
+
 describe('calculate — Kishore Sai ground-truth verification', () => {
   const result = calculate(kishoreProfile)
 

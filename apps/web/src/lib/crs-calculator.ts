@@ -246,6 +246,40 @@ function tefToClb(ability: 'L' | 'R' | 'W' | 'S', score: number): number {
   return 0
 }
 
+// TCF Canada to CLB/NCLC. Source: canada.ca language test equivalency charts (modified 2024-03-04).
+// Listening/Reading scale: 100-699. Writing/Speaking scale: 0-20.
+function tcfToClb(ability: 'L' | 'R' | 'W' | 'S', score: number): number {
+  if (ability === 'L') {
+    if (score >= 549) return 10
+    if (score >= 523) return 9
+    if (score >= 503) return 8
+    if (score >= 458) return 7
+    if (score >= 398) return 6
+    if (score >= 369) return 5
+    if (score >= 331) return 4
+    return 0
+  }
+  if (ability === 'R') {
+    if (score >= 549) return 10
+    if (score >= 524) return 9
+    if (score >= 499) return 8
+    if (score >= 453) return 7
+    if (score >= 406) return 6
+    if (score >= 375) return 5
+    if (score >= 342) return 4
+    return 0
+  }
+  // Writing and Speaking share the same 0-20 scale thresholds.
+  if (score >= 16) return 10
+  if (score >= 14) return 9
+  if (score >= 12) return 8
+  if (score >= 10) return 7
+  if (score >= 7) return 6
+  if (score >= 6) return 5
+  if (score >= 4) return 4
+  return 0
+}
+
 export function scoresToClb(scores: LanguageScores): LanguageBands {
   const abilities = ['L', 'R', 'W', 'S'] as const
   const rawScores = [scores.listening, scores.reading, scores.writing, scores.speaking]
@@ -261,6 +295,8 @@ export function scoresToClb(scores: LanguageScores): LanguageBands {
         return celpipToClb(s)
       case 'TEF':
         return tefToClb(a, s)
+      case 'TCF':
+        return tcfToClb(a, s)
       default:
         return 0
     }

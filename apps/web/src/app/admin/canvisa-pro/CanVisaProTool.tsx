@@ -786,6 +786,7 @@ export default function CanVisaProTool() {
                 <option value="IELTS_Academic">IELTS Academic</option>
                 <option value="CELPIP">CELPIP-General</option>
                 <option value="TEF">TEF Canada</option>
+                <option value="TCF">TCF Canada</option>
               </select>
             </div>
           </div>
@@ -1107,6 +1108,8 @@ export default function CanVisaProTool() {
                 <strong style={{ color: 'var(--cvp-text)' }}>Language Test:</strong>{' '}
                 {profile.firstLanguageScores.testType === 'IELTS_GT' ? 'IELTS General Training' :
                   profile.firstLanguageScores.testType === 'IELTS_Academic' ? 'IELTS Academic' :
+                  profile.firstLanguageScores.testType === 'TEF' ? 'TEF Canada' :
+                  profile.firstLanguageScores.testType === 'TCF' ? 'TCF Canada' :
                   profile.firstLanguageScores.testType} — L:{profile.firstLanguageScores.listening}{' '}
                 R:{profile.firstLanguageScores.reading} W:{profile.firstLanguageScores.writing}{' '}
                 S:{profile.firstLanguageScores.speaking} → CLB {clbDisplay(result.firstLanguageBands)}

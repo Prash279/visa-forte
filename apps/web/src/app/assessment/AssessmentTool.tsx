@@ -144,6 +144,12 @@ export default function AssessmentTool() {
   const [result, setResult]   = useState<CrsResult | null>(null)
   const [maritalStatus, setMaritalStatus] = useState<'single' | 'married' | 'separated'>('single')
 
+  // Lead capture state — shown in the result view
+  const [leadName, setLeadName]       = useState('')
+  const [leadEmail, setLeadEmail]     = useState('')
+  const [leadConsent, setLeadConsent] = useState(false)
+  const [leadStatus, setLeadStatus]   = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
+
   const firstClb  = scoresToClb(profile.firstLanguageScores)
   const secondClb = profile.hasSecondLanguage && profile.secondLanguageScores
     ? scoresToClb(profile.secondLanguageScores)
@@ -178,6 +184,26 @@ export default function AssessmentTool() {
     },
     [],
   )
+
+  async function submitLead() {
+    if (!leadName.trim() || !leadEmail.trim() || !leadConsent || !result) return
+    setLeadStatus('submitting')
+    try {
+      const res = await fetch('/api/assessment-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: leadName.trim(),
+          email: leadEmail.trim(),
+          crsScore: result.breakdown.total,
+          consentGiven: true,
+        }),
+      })
+      setLeadStatus(res.ok ? 'success' : 'error')
+    } catch {
+      setLeadStatus('error')
+    }
+  }
 
   function runAssessment() {
     const r = calculate(profile)
@@ -313,6 +339,7 @@ export default function AssessmentTool() {
                   <option value="IELTS_Academic">IELTS Academic</option>
                   <option value="CELPIP">CELPIP-General</option>
                   <option value="TEF">TEF Canada</option>
+                  <option value="TCF">TCF Canada</option>
                 </select>
               </div>
             </div>
@@ -1041,6 +1068,77 @@ export default function AssessmentTool() {
             <p className="asx-cta-sub">
               Pre-Application Eligibility Assessment · From $99 / ₹4,999
             </p>
+          </div>
+
+          {/* ── Lead Capture ─────────────────────────────────────── */}
+          <div className="asx-lead-capture">
+            {leadStatus === 'success' ? (
+              <div className="asx-lead-success">
+                <span className="asx-lead-success-icon">✓</span>
+                <div>
+                  <p className="asx-lead-success-title">We&apos;ll be in touch within 24 hours.</p>
+                  <p className="asx-lead-success-sub">
+                    Prash will review your CRS score and profile personally.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="asx-lead-eyebrow">Get a Personalised Roadmap</p>
+                <h3 className="asx-lead-headline">
+                  Leave your details — Prash will review your profile personally.
+                </h3>
+                <p className="asx-lead-sub">
+                  No templates. No automated responses. Your CRS score and profile reviewed by
+                  a consultant with 20+ years of Canadian immigration documentation experience.
+                  Responds within 24 hours.
+                </p>
+                <div className="asx-lead-fields">
+                  <input
+                    className="asx-input"
+                    type="text"
+                    placeholder="Your name"
+                    value={leadName}
+                    onChange={e => setLeadName(e.target.value)}
+                    disabled={leadStatus === 'submitting'}
+                  />
+                  <input
+                    className="asx-input"
+                    type="email"
+                    placeholder="Email address"
+                    value={leadEmail}
+                    onChange={e => setLeadEmail(e.target.value)}
+                    disabled={leadStatus === 'submitting'}
+                  />
+                </div>
+                <label className="asx-checkbox-row" style={{ marginTop: '0.75rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={leadConsent}
+                    onChange={e => setLeadConsent(e.target.checked)}
+                    disabled={leadStatus === 'submitting'}
+                  />
+                  <span className="asx-checkbox-label">
+                    I consent to Visa Forte contacting me about my immigration assessment.
+                  </span>
+                </label>
+                {leadStatus === 'error' && (
+                  <p className="asx-lead-error">
+                    Something went wrong. Please try again or email prashant@visaforte.com directly.
+                  </p>
+                )}
+                <button
+                  className="asx-lead-btn"
+                  onClick={submitLead}
+                  disabled={
+                    !leadName.trim() || !leadEmail.trim() || !leadConsent ||
+                    leadStatus === 'submitting'
+                  }
+                >
+                  {leadStatus === 'submitting' ? 'Sending…' : 'Send My Results →'}
+                </button>
+              </>
+            )}
           </div>
 
           {/* ── Legal Disclaimer ─────────────────────────────────── */}
