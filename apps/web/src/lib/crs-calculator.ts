@@ -61,6 +61,8 @@ export interface ApplicantProfile {
   spouseCanadianExperience?: number
   // Additional
   hasProvincialNomination: boolean
+  hasSiblingInCanada?: boolean       // CRS Section D: +15 pts
+  hasJobOffer?: 'lmia' | 'exempt' | 'none'  // FSW adaptability: +5 pts (arranged employment)
   // Adaptability (FSW-specific)
   hasCanadianEducation: boolean
   hasFamilyInCanada: boolean
@@ -92,6 +94,7 @@ export interface CrsBreakdown {
   transferTotal: number
   // D: Additional
   provincialNomination: number
+  siblingPoints: number
   additionalTotal: number
   // Grand total
   total: number
@@ -552,16 +555,18 @@ function fswAgePoints(age: number): number {
   return 0
 }
 
-// FSW adaptability: Canadian study (5), prior Canadian work (5), family in Canada (5), max 10.
+// FSW adaptability: Canadian study (5), prior Canadian work (5), family in Canada (5), arranged employment (5), max 10.
 function fswAdaptabilityPoints(
   hasCanadianEducation: boolean,
   hasFamilyInCanada: boolean,
-  canadianWorkYears: number
+  canadianWorkYears: number,
+  hasJobOffer?: boolean
 ): number {
   let pts = 0
   if (hasCanadianEducation) pts += 5
   if (hasFamilyInCanada) pts += 5
   if (Math.floor(canadianWorkYears) >= 1) pts += 5
+  if (hasJobOffer) pts += 5
   return Math.min(10, pts)
 }
 
@@ -800,7 +805,8 @@ export function calculate(profile: ApplicantProfile): CrsResult {
 
   // Section D — Additional
   const provinceNom = profile.hasProvincialNomination ? PROVINCIAL_NOMINATION : 0
-  const additionalTotal = provinceNom
+  const siblingPts = profile.hasSiblingInCanada ? 15 : 0
+  const additionalTotal = provinceNom + siblingPts
 
   const total = coreTotal + transferTotal + additionalTotal
 
@@ -818,6 +824,7 @@ export function calculate(profile: ApplicantProfile): CrsResult {
     foreignExpCanadianExpTransfer: foreignCanTr,
     transferTotal,
     provincialNomination: provinceNom,
+    siblingPoints: siblingPts,
     additionalTotal,
     total,
   }
@@ -830,7 +837,8 @@ export function calculate(profile: ApplicantProfile): CrsResult {
   const fswAdapt = fswAdaptabilityPoints(
     profile.hasCanadianEducation,
     profile.hasFamilyInCanada,
-    profile.canadianWorkExperienceYears
+    profile.canadianWorkExperienceYears,
+    profile.hasJobOffer === 'lmia' || profile.hasJobOffer === 'exempt'
   )
   const fswTotal = fswLang + fswEdu + fswExp + fswAge + fswAdapt
   const fswGrid: FswGrid = {

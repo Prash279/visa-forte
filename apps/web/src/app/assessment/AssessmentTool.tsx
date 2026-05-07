@@ -123,6 +123,8 @@ const INITIAL: ApplicantProfile = {
   canadianWorkExperienceYears: 0,
   hasSpouse: false,
   hasProvincialNomination: false,
+  hasSiblingInCanada: false,
+  hasJobOffer: 'none',
   hasCanadianEducation: false,
   hasFamilyInCanada: false,
   settlementFunds: 0,
@@ -140,6 +142,7 @@ export default function AssessmentTool() {
   const [view, setView]       = useState<'form' | 'result'>('form')
   const [profile, setProfile] = useState<ApplicantProfile>(INITIAL)
   const [result, setResult]   = useState<CrsResult | null>(null)
+  const [maritalStatus, setMaritalStatus] = useState<'single' | 'married' | 'separated'>('single')
 
   const firstClb  = scoresToClb(profile.firstLanguageScores)
   const secondClb = profile.hasSecondLanguage && profile.secondLanguageScores
@@ -185,6 +188,7 @@ export default function AssessmentTool() {
 
   function resetAssessment() {
     setProfile({ ...INITIAL, reportDate: new Date().toISOString().split('T')[0] ?? '' })
+    setMaritalStatus('single')
     setResult(null)
     setView('form')
     setTimeout(() => window.scrollTo({ top: 0 }), 50)
@@ -422,6 +426,38 @@ export default function AssessmentTool() {
 
             {/* Section 6: Partner / Spouse */}
             <p className="asx-section-label">6 — Partner / Spouse</p>
+            <div className="asx-field" style={{ marginBottom: '1rem' }}>
+              <label className="asx-label">What is your marital status?</label>
+              <div className="asx-radio-group">
+                {([
+                  ['single', 'Single'],
+                  ['married', 'Married or common-law partner'],
+                  ['separated', 'Separated, divorced, or widowed'],
+                ] as const).map(([value, label]) => (
+                  <label key={value} className="asx-radio-row">
+                    <input
+                      type="radio"
+                      name="maritalStatus"
+                      checked={maritalStatus === value}
+                      onChange={() => {
+                        setMaritalStatus(value)
+                        if (value !== 'married') {
+                          setProfile(prev => ({
+                            ...prev,
+                            hasSpouse: false,
+                            spouseEducation: undefined,
+                            spouseLanguageScores: undefined,
+                            spouseCanadianExperience: undefined,
+                          }))
+                        }
+                      }}
+                    />
+                    <span>{label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            {maritalStatus === 'married' && (
             <label className="asx-checkbox-row" style={{ marginBottom: '1rem' }}>
               <input
                 type="checkbox"
@@ -440,11 +476,12 @@ export default function AssessmentTool() {
                 }}
               />
               <span className="asx-checkbox-label">
-                I have a spouse or common-law partner coming with me to Canada
+                My spouse or common-law partner will come with me to Canada
               </span>
             </label>
+            )}
 
-            {profile.hasSpouse && (
+            {maritalStatus === 'married' && profile.hasSpouse && (
               <>
                 <div className="asx-grid-2">
                   <div className="asx-field">
@@ -588,8 +625,50 @@ export default function AssessmentTool() {
                   checked={profile.hasFamilyInCanada}
                   onChange={e => set('hasFamilyInCanada', e.target.checked)}
                 />
-                <span className="asx-checkbox-label">Has family in Canada (citizen or PR)</span>
+                <span className="asx-checkbox-label">Has a relative in Canada (citizen or PR) — for FSW adaptability</span>
               </label>
+              <label className="asx-checkbox-row">
+                <input
+                  type="checkbox"
+                  checked={profile.hasSiblingInCanada ?? false}
+                  onChange={e => set('hasSiblingInCanada', e.target.checked)}
+                />
+                <span className="asx-checkbox-label">Has a brother or sister (sibling) in Canada who is a citizen or PR (+15 CRS)</span>
+              </label>
+            </div>
+
+            <div className="asx-field" style={{ marginTop: '1.25rem' }}>
+              <label className="asx-label">Valid job offer in Canada?</label>
+              <div className="asx-radio-group">
+                <label className="asx-radio-row">
+                  <input
+                    type="radio"
+                    name="jobOffer"
+                    checked={(profile.hasJobOffer ?? 'none') === 'none'}
+                    onChange={() => set('hasJobOffer', 'none')}
+                  />
+                  <span>No job offer</span>
+                </label>
+                <label className="asx-radio-row">
+                  <input
+                    type="radio"
+                    name="jobOffer"
+                    checked={profile.hasJobOffer === 'lmia'}
+                    onChange={() => set('hasJobOffer', 'lmia')}
+                  />
+                  <span>Yes — supported by an LMIA</span>
+                </label>
+                <label className="asx-radio-row">
+                  <input
+                    type="radio"
+                    name="jobOffer"
+                    checked={profile.hasJobOffer === 'exempt'}
+                    onChange={() => set('hasJobOffer', 'exempt')}
+                  />
+                  <span>Yes — LMIA-exempt (e.g. intra-company transfer, CUSMA/USMCA)</span>
+                </label>
+              </div>
+              <span className="asx-hint">Counts toward FSW 67-point adaptability grid (+5 pts)</span>
             </div>
 
             {/* Section 8: Risk & Disclosure */}
