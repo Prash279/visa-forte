@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { eq, sql } from 'drizzle-orm'
 import { Resend } from 'resend'
 import { db } from '@/lib/db'
-import { clients, clientDocuments } from '../../../../../../drizzle/schema'
+import { clients, clientDocuments, leads } from '../../../../../../drizzle/schema'
 import { getCurrentAuthSession } from '@/lib/auth-server'
 import { UpdateClientSchema } from '@/lib/crm-stages'
 import { deleteFile } from '@/lib/storage'
@@ -137,6 +137,12 @@ export async function DELETE(
   if (!deleted) {
     return NextResponse.json({ error: 'Client not found' }, { status: 404 })
   }
+
+  // Also remove any lead submissions that match the deleted client's email
+  // so the Dashboard stays in sync with the CRM.
+  await db.delete(leads).where(eq(leads.email, deleted.email)).catch((err) =>
+    console.error('Lead cascade delete failed:', err)
+  )
 
   return NextResponse.json({ success: true })
 }
