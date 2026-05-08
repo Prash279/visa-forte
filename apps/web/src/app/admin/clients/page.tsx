@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
-import { desc, eq, count } from 'drizzle-orm'
+import { desc, eq, count, and, min } from 'drizzle-orm'
 import { getCurrentAuthSession } from '@/lib/auth-server'
 import { db } from '@/lib/db'
-import { clients, clientDocuments } from '../../../../drizzle/schema'
+import { clients, clientDocuments, messages } from '../../../../drizzle/schema'
 import { PRICING } from '@/lib/pricing'
 import CrmTable from './CrmTable'
 import '../admin.css'
@@ -26,6 +26,32 @@ export default async function CrmPage() {
   const initialDocCounts: Record<string, number> = {}
   for (const row of docCountRows) {
     initialDocCounts[row.clientId] = row.count
+  }
+
+  // Count unread client messages per client (for Step 14 saffron dot).
+  const unreadClientMsgRows = await db
+    .select({ clientId: messages.clientId, count: count() })
+    .from(messages)
+    .where(and(eq(messages.senderRole, 'client'), eq(messages.isRead, false)))
+    .groupBy(messages.clientId)
+
+  const initialUnreadFromClient: Record<string, number> = {}
+  for (const row of unreadClientMsgRows) {
+    initialUnreadFromClient[row.clientId] = row.count
+  }
+
+  // Oldest unread client message timestamp per client (for Step 17 SLA indicators).
+  const oldestUnreadRows = await db
+    .select({ clientId: messages.clientId, oldestAt: min(messages.createdAt) })
+    .from(messages)
+    .where(and(eq(messages.senderRole, 'client'), eq(messages.isRead, false)))
+    .groupBy(messages.clientId)
+
+  const oldestUnreadClientMsgTs: Record<string, number> = {}
+  for (const row of oldestUnreadRows) {
+    if (row.oldestAt) {
+      oldestUnreadClientMsgTs[row.clientId] = new Date(row.oldestAt).getTime()
+    }
   }
 
   return (
@@ -60,6 +86,8 @@ export default async function CrmPage() {
           initialClients={allClients}
           serviceTiers={serviceTiers}
           initialDocCounts={initialDocCounts}
+          initialUnreadFromClient={initialUnreadFromClient}
+          oldestUnreadClientMsgTs={oldestUnreadClientMsgTs}
         />
 
         <div className="admin-footer">

@@ -63,27 +63,44 @@ describe('ClientReplySchema', () => {
   })
 })
 
-describe('One-reply-per-thread logic', () => {
-  it('correctly identifies whether a client has already replied', () => {
-    const thread = [
-      { senderRole: 'admin', body: 'Please send your docs.' },
-      { senderRole: 'client', body: 'Done, uploaded.' },
-    ]
-    const hasClientReply = thread.some((m) => m.senderRole === 'client')
-    expect(hasClientReply).toBe(true)
+// Mirrors isSlaBreached() in CrmTable.tsx — inline so no import needed
+const SLA_ITA_MS = 12 * 60 * 60 * 1000
+const SLA_STD_MS = 24 * 60 * 60 * 1000
+
+function isSlaBreached(clientId: string, stage: string, oldestTs: Record<string, number>): boolean {
+  const ts = oldestTs[clientId]
+  if (!ts) return false
+  const threshold = stage === 'ITA Window' ? SLA_ITA_MS : SLA_STD_MS
+  return Date.now() - ts > threshold
+}
+
+describe('SLA threshold logic', () => {
+  it('returns false when no timestamp exists for client', () => {
+    expect(isSlaBreached('c1', 'Pre-Assessment', {})).toBe(false)
   })
 
-  it('correctly identifies a thread with no client reply', () => {
-    const thread = [
-      { senderRole: 'admin', body: 'Please send your docs.' },
-    ]
-    const hasClientReply = thread.some((m) => m.senderRole === 'client')
-    expect(hasClientReply).toBe(false)
+  it('returns false when message is within 24h for a standard stage', () => {
+    const ts = Date.now() - 20 * 60 * 60 * 1000 // 20h ago
+    expect(isSlaBreached('c1', 'Pre-Assessment', { c1: ts })).toBe(false)
   })
 
-  it('empty thread has no client reply', () => {
-    const thread: { senderRole: string; body: string }[] = []
-    const hasClientReply = thread.some((m) => m.senderRole === 'client')
-    expect(hasClientReply).toBe(false)
+  it('returns true when message exceeds 24h for a standard stage', () => {
+    const ts = Date.now() - 25 * 60 * 60 * 1000 // 25h ago
+    expect(isSlaBreached('c1', 'Pre-Assessment', { c1: ts })).toBe(true)
+  })
+
+  it('returns false when message is within 12h for ITA Window', () => {
+    const ts = Date.now() - 10 * 60 * 60 * 1000 // 10h ago
+    expect(isSlaBreached('c1', 'ITA Window', { c1: ts })).toBe(false)
+  })
+
+  it('returns true when message exceeds 12h for ITA Window', () => {
+    const ts = Date.now() - 13 * 60 * 60 * 1000 // 13h ago
+    expect(isSlaBreached('c1', 'ITA Window', { c1: ts })).toBe(true)
+  })
+
+  it('applies standard 24h threshold to non-ITA stages', () => {
+    const ts = Date.now() - 23 * 60 * 60 * 1000 // 23h ago — within 24h
+    expect(isSlaBreached('c2', 'Document Collection', { c2: ts })).toBe(false)
   })
 })

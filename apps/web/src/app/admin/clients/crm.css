@@ -755,7 +755,23 @@
 /* ── Message column + button ─────────────────────────────── */
 .crm-msg-col { white-space: nowrap; }
 
+/* Wrapper so the SLA ⚠ and ✉ button sit inline */
+.crm-msg-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Step 17 — SLA breach indicator */
+.crm-sla-warn {
+  color: #c0392b;
+  font-size: 0.8rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 .crm-msg-btn {
+  position: relative;
   background: transparent;
   border: 1px solid rgba(12, 35, 64, 0.25);
   border-radius: 5px;
@@ -769,6 +785,21 @@
 .crm-msg-btn:hover {
   background: rgba(12, 35, 64, 0.06);
   border-color: var(--prussian);
+}
+
+/* Step 14 — unread client message badge */
+.crm-msg-btn-unread {
+  border-color: var(--saffron);
+}
+.crm-unread-dot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--saffron);
+  border: 1px solid white;
 }
 
 /* ── Message modal ───────────────────────────────────────── */
@@ -860,3 +891,82 @@
   border-color: var(--prussian);
   background: #fff;
 }
+
+/* ── Message modal header actions row ────────────────────── */
+.crm-msg-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Step 16 — Transcript download button */
+.crm-transcript-btn {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--prussian);
+  background: none;
+  border: 1px solid var(--sand);
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+.crm-transcript-btn:hover { border-color: var(--prussian); }
+.crm-transcript-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Step 15 — Attachment download link in thread bubble */
+.crm-msg-attachment-btn {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--saffron);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  opacity: 0.8;
+  align-self: flex-start;
+}
+.crm-msg-attachment-btn:hover { opacity: 1; }
+
+/* Step 15 — Attach file row in compose area */
+.crm-msg-attach-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.crm-msg-attach-label {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--prussian);
+  border: 1px dashed rgba(12, 35, 64, 0.25);
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 20rem;
+}
+.crm-msg-attach-label:hover { border-color: var(--prussian); opacity: 1; }
+
+.crm-msg-attach-clear {
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  color: var(--ink);
+  opacity: 0.4;
+  cursor: pointer;
+  padding: 0.2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.crm-msg-attach-clear:hover { opacity: 0.9; color: #b53d00; }

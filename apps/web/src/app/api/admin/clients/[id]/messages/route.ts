@@ -4,6 +4,7 @@ import { eq, asc } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { messages, clients } from '../../../../../../../drizzle/schema';
 import { getCurrentAuthSession } from '@/lib/auth-server';
+import { uploadFile } from '@/lib/storage';
 
 const ADMIN_EMAIL = 'prashant@visaforte.com';
 
@@ -38,7 +39,8 @@ export async function GET(
   return NextResponse.json({ messages: thread });
 }
 
-// POST /api/admin/clients/[id]/messages — admin sends a new message to a client.
+// POST /api/admin/clients/[id]/messages — admin sends a message, optionally with a file attachment.
+// Accepts multipart/form-data: body (text, required) + file (optional).
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -58,14 +60,40 @@ export async function POST(
     return NextResponse.json({ error: 'Client not found' }, { status: 404 });
   }
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+  let bodyText: string;
+  let attachmentUrl: string | undefined;
+
+  const contentType = req.headers.get('content-type') ?? '';
+  if (contentType.includes('multipart/form-data')) {
+    let formData: FormData;
+    try {
+      formData = await req.formData();
+    } catch {
+      return NextResponse.json({ error: 'Invalid multipart body' }, { status: 400 });
+    }
+    bodyText = (formData.get('body') as string | null) ?? '';
+
+    const file = formData.get('file') as File | null;
+    if (file && file.size > 0) {
+      if (file.size > 20 * 1024 * 1024) {
+        return NextResponse.json({ error: 'Attachment must be under 20 MB' }, { status: 400 });
+      }
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const pathname = `clients/${clientId}/messages/${Date.now()}-${file.name}`;
+      const { url } = await uploadFile(pathname, buffer, file.type || 'application/octet-stream');
+      attachmentUrl = url;
+    }
+  } else {
+    let parsed: unknown;
+    try {
+      parsed = await req.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
+    bodyText = (parsed as Record<string, unknown>)?.body as string ?? '';
   }
 
-  const result = SendSchema.safeParse(body);
+  const result = SendSchema.safeParse({ body: bodyText });
   if (!result.success) {
     return NextResponse.json({ error: result.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 });
   }
@@ -77,6 +105,7 @@ export async function POST(
       senderRole: 'admin',
       senderId: ADMIN_EMAIL,
       body: result.data.body,
+      ...(attachmentUrl ? { attachmentUrl } : {}),
     })
     .returning();
 

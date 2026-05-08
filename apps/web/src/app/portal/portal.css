@@ -684,3 +684,20 @@
   color: #5a3800;
   line-height: 1.6;
 }
+
+/* Step 15 — message attachment download button */
+.portal-msg-attachment-btn {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--saffron);
+  background: none;
+  border: none;
+  padding: 0.1rem 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  opacity: 0.85;
+  align-self: flex-start;
+}
+.portal-msg-attachment-btn:hover { opacity: 1; }

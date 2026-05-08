@@ -20,16 +20,29 @@ interface MsgRow {
   body: string
   isRead: boolean
   readAt: string | Date | null
+  attachmentUrl?: string | null
   createdAt: string | Date
+}
+
+const SLA_ITA_MS = 12 * 60 * 60 * 1000  // 12 hours for ITA Window
+const SLA_STD_MS = 24 * 60 * 60 * 1000  // 24 hours for all other stages
+
+function isSlaBreached(clientId: string, stage: string, oldestTs: Record<string, number>): boolean {
+  const ts = oldestTs[clientId]
+  if (!ts) return false
+  const threshold = stage === 'ITA Window' ? SLA_ITA_MS : SLA_STD_MS
+  return Date.now() - ts > threshold
 }
 
 interface Props {
   initialClients: Client[]
   serviceTiers: string[]
   initialDocCounts: Record<string, number>
+  initialUnreadFromClient: Record<string, number>
+  oldestUnreadClientMsgTs: Record<string, number>
 }
 
-export default function CrmTable({ initialClients, serviceTiers, initialDocCounts }: Props) {
+export default function CrmTable({ initialClients, serviceTiers, initialDocCounts, initialUnreadFromClient, oldestUnreadClientMsgTs }: Props) {
   const [clients, setClients] = useState<Client[]>(initialClients)
   const [search, setSearch] = useState('')
   const [stageFilter, setStageFilter] = useState<string>('all')
@@ -56,14 +69,20 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
   const [deletePassword, setDeletePassword] = useState('')
   const [deleteError, setDeleteError] = useState('')
 
+  // Unread client message counts (Steps 13, 14) — tracks state locally so badge clears on open
+  const [unreadFromClient, setUnreadFromClient] = useState<Record<string, number>>(initialUnreadFromClient)
+
   // Message modal state
   const [msgModal, setMsgModal] = useState<{ clientId: string; clientName: string } | null>(null)
   const [msgThread, setMsgThread] = useState<MsgRow[]>([])
   const [msgThreadLoading, setMsgThreadLoading] = useState(false)
   const [msgBody, setMsgBody] = useState('')
+  const [msgAttachFile, setMsgAttachFile] = useState<File | null>(null)
   const [msgSending, setMsgSending] = useState(false)
   const [msgError, setMsgError] = useState('')
   const [msgSent, setMsgSent] = useState(false)
+  const [transcriptLoading, setTranscriptLoading] = useState(false)
+  const msgAttachRef = useRef<HTMLInputElement>(null)
 
   // Link-to-portal modal state
   const [linkModal, setLinkModal] = useState<{ clientId: string; email: string } | null>(null)
@@ -278,6 +297,7 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
   async function openMsgModal(clientId: string, clientName: string) {
     setMsgModal({ clientId, clientName })
     setMsgBody('')
+    setMsgAttachFile(null)
     setMsgError('')
     setMsgSent(false)
     setMsgThread([])
@@ -286,6 +306,11 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
       const res = await fetch(`/api/admin/clients/${clientId}/messages`)
       const data = (await res.json()) as { messages?: MsgRow[] }
       setMsgThread(data.messages ?? [])
+      // Step 13: mark all client messages for this client as read
+      if ((data.messages ?? []).some((m) => m.senderRole === 'client' && !m.isRead)) {
+        fetch(`/api/admin/clients/${clientId}/messages/read`, { method: 'PATCH' }).catch(() => {})
+        setUnreadFromClient((prev) => ({ ...prev, [clientId]: 0 }))
+      }
     } finally {
       setMsgThreadLoading(false)
     }
@@ -295,6 +320,7 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
     setMsgModal(null)
     setMsgThread([])
     setMsgBody('')
+    setMsgAttachFile(null)
     setMsgError('')
     setMsgSent(false)
   }
@@ -305,11 +331,22 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
     setMsgError('')
     setMsgSending(true)
     try {
-      const res = await fetch(`/api/admin/clients/${msgModal.clientId}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ body: msgBody.trim() }),
-      })
+      let res: Response
+      if (msgAttachFile) {
+        const form = new FormData()
+        form.append('body', msgBody.trim())
+        form.append('file', msgAttachFile)
+        res = await fetch(`/api/admin/clients/${msgModal.clientId}/messages`, {
+          method: 'POST',
+          body: form,
+        })
+      } else {
+        res = await fetch(`/api/admin/clients/${msgModal.clientId}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ body: msgBody.trim() }),
+        })
+      }
       const data = (await res.json()) as { message?: MsgRow; error?: string }
       if (!res.ok) {
         setMsgError(data.error ?? 'Failed to send message. Try again.')
@@ -319,6 +356,8 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
         setMsgThread((prev) => [...prev, data.message as MsgRow])
       }
       setMsgBody('')
+      setMsgAttachFile(null)
+      if (msgAttachRef.current) msgAttachRef.current.value = ''
       setMsgSent(true)
       setTimeout(() => setMsgSent(false), 3000)
     } catch {
@@ -326,6 +365,30 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
     } finally {
       setMsgSending(false)
     }
+  }
+
+  async function handleDownloadTranscript() {
+    if (!msgModal) return
+    setTranscriptLoading(true)
+    try {
+      const res = await fetch(`/api/admin/clients/${msgModal.clientId}/messages/transcript`)
+      const data = (await res.json()) as { url?: string; error?: string }
+      if (data.url) {
+        window.open(data.url, '_blank')
+      } else {
+        setMsgError(data.error ?? 'Failed to generate transcript.')
+      }
+    } catch {
+      setMsgError('Network error. Please try again.')
+    } finally {
+      setTranscriptLoading(false)
+    }
+  }
+
+  async function handleDownloadMsgAttachment(msgId: string, clientId: string) {
+    const res = await fetch(`/api/admin/clients/${clientId}/messages/${msgId}/attachment`)
+    const data = (await res.json()) as { url?: string }
+    if (data.url) window.open(data.url, '_blank')
   }
 
   function handleDeleteClient(id: string, name: string) {
@@ -436,6 +499,8 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                 const isIta = client.stage === 'ITA Window'
                 const isEditingNotes = editingNotes?.id === client.id
                 const count = docCounts[client.id] ?? 0
+                const hasUnread = (unreadFromClient[client.id] ?? 0) > 0
+                const slaBreached = isSlaBreached(client.id, client.stage, oldestUnreadClientMsgTs)
 
                 return (
                   <tr key={client.id} className={isIta ? 'crm-row-ita' : ''}>
@@ -551,15 +616,21 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                       </button>
                     </td>
 
-                    {/* Message */}
+                    {/* Message — Step 14: saffron dot if client has unread; Step 17: SLA ⚠ */}
                     <td className="crm-msg-col">
-                      <button
-                        className="crm-msg-btn"
-                        onClick={() => openMsgModal(client.id, client.name)}
-                        title="Send message to client"
-                      >
-                        ✉
-                      </button>
+                      <div className="crm-msg-cell">
+                        {slaBreached && (
+                          <span className="crm-sla-warn" title="Unanswered client message past SLA">⚠</span>
+                        )}
+                        <button
+                          className={`crm-msg-btn ${hasUnread ? 'crm-msg-btn-unread' : ''}`}
+                          onClick={() => openMsgModal(client.id, client.name)}
+                          title={hasUnread ? 'New message from client' : 'Send message to client'}
+                        >
+                          ✉
+                          {hasUnread && <span className="crm-unread-dot" />}
+                        </button>
+                      </div>
                     </td>
 
                     {/* Portal link status */}
@@ -821,13 +892,25 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
           <div className="crm-modal crm-msg-modal">
             <div className="crm-modal-header">
               <div>
-                <p className="crm-docs-modal-eyebrow">Message</p>
+                <p className="crm-docs-modal-eyebrow">Message Thread</p>
                 <h2 className="crm-modal-title">{msgModal.clientName}</h2>
               </div>
-              <button className="crm-modal-close" onClick={closeMsgModal}>✕</button>
+              <div className="crm-msg-modal-actions">
+                {msgThread.length > 0 && (
+                  <button
+                    className="crm-transcript-btn"
+                    onClick={handleDownloadTranscript}
+                    disabled={transcriptLoading}
+                    title="Download full transcript"
+                  >
+                    {transcriptLoading ? '…' : '↓ Transcript'}
+                  </button>
+                )}
+                <button className="crm-modal-close" onClick={closeMsgModal}>✕</button>
+              </div>
             </div>
 
-            {/* Thread */}
+            {/* Thread — Step 12: full back-and-forth, Step 15: attachment links */}
             <div className="crm-msg-thread">
               {msgThreadLoading ? (
                 <p className="crm-doc-empty">Loading…</p>
@@ -843,6 +926,14 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                       {m.senderRole === 'admin' ? 'You (Prashant)' : 'Client'}
                     </p>
                     <p className="crm-msg-bubble-body">{m.body}</p>
+                    {m.attachmentUrl && (
+                      <button
+                        className="crm-msg-attachment-btn"
+                        onClick={() => handleDownloadMsgAttachment(m.id, msgModal.clientId)}
+                      >
+                        ↓ Attachment
+                      </button>
+                    )}
                     <p className="crm-msg-bubble-time">
                       {new Date(m.createdAt).toLocaleString('en-IN', {
                         day: 'numeric', month: 'short', year: 'numeric',
@@ -854,7 +945,7 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
               )}
             </div>
 
-            {/* Compose */}
+            {/* Compose — Step 15: optional file attachment */}
             <form className="crm-msg-compose" onSubmit={handleSendMessage}>
               <textarea
                 className="crm-msg-textarea"
@@ -865,6 +956,28 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                 maxLength={4000}
                 required
               />
+              <div className="crm-msg-attach-row">
+                <input
+                  ref={msgAttachRef}
+                  type="file"
+                  id="crm-msg-attach-input"
+                  className="crm-upload-input"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.csv"
+                  onChange={(e) => setMsgAttachFile(e.target.files?.[0] ?? null)}
+                />
+                <label htmlFor="crm-msg-attach-input" className="crm-msg-attach-label">
+                  {msgAttachFile ? `📎 ${msgAttachFile.name}` : '+ Attach file'}
+                </label>
+                {msgAttachFile && (
+                  <button
+                    type="button"
+                    className="crm-msg-attach-clear"
+                    onClick={() => { setMsgAttachFile(null); if (msgAttachRef.current) msgAttachRef.current.value = '' }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
               {msgError && <p className="crm-form-error">{msgError}</p>}
               <div className="crm-modal-footer" style={{ paddingTop: 0 }}>
                 <button type="button" className="crm-modal-cancel-btn" onClick={closeMsgModal}>

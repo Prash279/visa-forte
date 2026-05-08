@@ -7,6 +7,7 @@ interface MsgRow {
   id: string
   senderRole: string
   body: string
+  attachmentUrl?: string | null
   createdAt: string | Date
 }
 
@@ -50,7 +51,6 @@ export default function PortalDashboard({ client, checklist, uploadedMap, monito
   const [replyBody, setReplyBody] = useState('')
   const [replySending, setReplySending] = useState(false)
   const [replyError, setReplyError] = useState('')
-  const [replied, setReplied] = useState(false)
 
   // Data deletion state
   const [deletionStatus, setDeletionStatus] = useState<'idle' | 'pending' | 'confirming' | 'submitting' | 'done'>('idle')
@@ -62,7 +62,10 @@ export default function PortalDashboard({ client, checklist, uploadedMap, monito
       .then((data: { messages?: MsgRow[] }) => {
         const thread = data.messages ?? []
         setMsgThread(thread)
-        setReplied(thread.some((m) => m.senderRole === 'client'))
+        // Step 13: mark all admin messages as read now that the client has viewed them
+        if (thread.some((m) => m.senderRole === 'admin')) {
+          fetch('/api/portal/messages/read', { method: 'PATCH' }).catch(() => {})
+        }
       })
       .catch(() => {})
       .finally(() => setMsgLoading(false))
@@ -103,12 +106,17 @@ export default function PortalDashboard({ client, checklist, uploadedMap, monito
         setMsgThread((prev) => [...prev, data.message as MsgRow])
       }
       setReplyBody('')
-      setReplied(true)
     } catch {
       setReplyError('Network error. Please try again.')
     } finally {
       setReplySending(false)
     }
+  }
+
+  async function handleDownloadMsgAttachment(msgId: string) {
+    const res = await fetch(`/api/portal/messages/${msgId}/attachment`)
+    const data = (await res.json()) as { url?: string }
+    if (data.url) window.open(data.url, '_blank')
   }
 
   function triggerUpload(docTypeId: string) {
@@ -299,7 +307,7 @@ export default function PortalDashboard({ client, checklist, uploadedMap, monito
         onChange={handleFileChange}
       />
 
-      {/* Messages */}
+      {/* Messages — Step 12: full threading, Step 13: read receipts on mount, Step 15: attachments */}
       <div className="portal-section">
         <div className="portal-section-header">
           <h2 className="portal-section-title">Messages</h2>
@@ -320,6 +328,14 @@ export default function PortalDashboard({ client, checklist, uploadedMap, monito
                   {m.senderRole === 'admin' ? 'Prashant' : 'You'}
                 </p>
                 <p className="portal-msg-bubble-body">{m.body}</p>
+                {m.attachmentUrl && (
+                  <button
+                    className="portal-msg-attachment-btn"
+                    onClick={() => handleDownloadMsgAttachment(m.id)}
+                  >
+                    ↓ Download attachment
+                  </button>
+                )}
                 <p className="portal-msg-bubble-time">
                   {new Date(m.createdAt).toLocaleString('en-IN', {
                     day: 'numeric', month: 'short', year: 'numeric',
@@ -329,31 +345,27 @@ export default function PortalDashboard({ client, checklist, uploadedMap, monito
               </div>
             ))}
 
-            {/* Reply form — shown only if there's an admin message and client hasn't replied yet */}
+            {/* Reply form — shown whenever there is at least one admin message */}
             {msgThread.some((m) => m.senderRole === 'admin') && (
-              replied ? (
-                <p className="portal-msg-replied">Replied ✓ — Prashant will get back to you soon.</p>
-              ) : (
-                <form className="portal-msg-reply-form" onSubmit={handleReply}>
-                  <textarea
-                    className="portal-msg-textarea"
-                    placeholder="Type your reply…"
-                    value={replyBody}
-                    onChange={(e) => setReplyBody(e.target.value)}
-                    rows={3}
-                    maxLength={4000}
-                    required
-                  />
-                  {replyError && <p className="portal-upload-error">{replyError}</p>}
-                  <button
-                    type="submit"
-                    className="portal-msg-reply-btn"
-                    disabled={replySending || !replyBody.trim()}
-                  >
-                    {replySending ? 'Sending…' : 'Send Reply'}
-                  </button>
-                </form>
-              )
+              <form className="portal-msg-reply-form" onSubmit={handleReply}>
+                <textarea
+                  className="portal-msg-textarea"
+                  placeholder="Type your reply…"
+                  value={replyBody}
+                  onChange={(e) => setReplyBody(e.target.value)}
+                  rows={3}
+                  maxLength={4000}
+                  required
+                />
+                {replyError && <p className="portal-upload-error">{replyError}</p>}
+                <button
+                  type="submit"
+                  className="portal-msg-reply-btn"
+                  disabled={replySending || !replyBody.trim()}
+                >
+                  {replySending ? 'Sending…' : 'Send Reply'}
+                </button>
+              </form>
             )}
           </div>
         )}

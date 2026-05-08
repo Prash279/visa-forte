@@ -156,6 +156,7 @@ export const messages = pgTable('messages', {
   body: text('body').notNull(),
   isRead: boolean('is_read').notNull().default(false),
   readAt: timestamp('read_at'),              // nullable — set when the recipient opens the thread
+  attachmentUrl: text('attachment_url'),     // nullable — private Vercel Blob URL for file attachments
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 

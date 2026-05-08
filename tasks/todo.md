@@ -883,7 +883,7 @@ Per `spec.md §8`, DPDP consent interface and automated deletion cron are Phase 
 | Task 4 | Razorpay payment — pay-first flow, HMAC verify, INR/USD toggle, admin payment columns | April 2026 |
 | Task 8 | CI/CD (GitHub Actions), structured logger, /api/health, GlitchTip error tracking | April 2026 |
 | Task 5 | Vercel Blob storage — uploadFile, deleteFile, generateDownloadUrl + 3 unit tests | April 2026 |
-| Task P3-1 | Messaging System MVP — admin compose + portal reply + thread view | April 2026 |
+| Task P3-1 | Messaging System (Full) — threading, read receipts, unread dot, attachments, transcript, SLA indicators | May 2026 |
 | Task P3-2 | Automated Email Notifications — 24h reminders + SLA breach alerts | April 2026 |
 | Task P3-3 | DPDP Consent Interface + Deletion Cron — consent forms + portal deletion request + admin approve/reject + nightly purge cron | May 2026 |
 | Task P3-4 | Post-Submission Monitoring — AOR tracking, IRCC queries, portal status view, deadline cron alerts | May 2026 |
@@ -915,7 +915,7 @@ Per `spec.md §8`, DPDP consent interface and automated deletion cron are Phase 
 
 ### TASK P3-1: Messaging System
 
-**Status:** ✅ COMPLETE (MVP v1) — April 2026
+**Status:** ✅ COMPLETE (Full — Steps 1–17) — May 2026
 **Stack:** Next.js + Drizzle + Vercel (no FastAPI needed)
 
 **What this delivers (MVP v1):**
@@ -983,12 +983,27 @@ TypeScript clean. Committed and pushed — Vercel auto-deploys.
 
 **Full messaging additions (after MVP is live and tested):**
 
-- [ ] Step 12 — Threading: group messages chronologically per client; admin can reply to a client's reply; remove one-reply limit
-- [ ] Step 13 — Read receipts: when client opens the portal and the Messages card renders, call `PATCH /api/portal/messages/read` to mark all admin messages as read; return 204 — admin CRM shows unread count badge per client row
-- [ ] Step 14 — Unread badge: `CrmTable` row shows a saffron dot next to the client name if they have an unread message from the client waiting
-- [ ] Step 15 — File attachments: extend `POST /api/admin/clients/[id]/messages` to accept multipart with optional file; upload to Vercel Blob at `clients/{id}/messages/{filename}`; store `attachmentUrl` on message row; render download link in thread
-- [ ] Step 16 — Transcript download: implement `GET /api/admin/clients/[id]/messages/transcript` per security.md §5 — assembles thread, writes to temp Vercel Blob object, returns signed URL (15-min expiry), logs event to `auditLog`
-- [ ] Step 17 — SLA indicators: add `slaBreachedAt` computed field — in admin CRM view, if oldest unanswered client message is older than 24 hours (or 12 hours for ITA Window clients), flag the row with a red ⚠ indicator
+- [x] Step 12 — Threading: group messages chronologically per client; admin can reply to a client's reply; remove one-reply limit
+- [x] Step 13 — Read receipts: when client opens the portal and the Messages card renders, call `PATCH /api/portal/messages/read` to mark all admin messages as read; return 204 — admin CRM shows unread count badge per client row
+- [x] Step 14 — Unread badge: `CrmTable` row shows a saffron dot next to the client name if they have an unread message from the client waiting
+- [x] Step 15 — File attachments: extend `POST /api/admin/clients/[id]/messages` to accept multipart with optional file; upload to Vercel Blob at `clients/{id}/messages/{filename}`; store `attachmentUrl` on message row; render download link in thread
+- [x] Step 16 — Transcript download: implement `GET /api/admin/clients/[id]/messages/transcript` per security.md §5 — assembles thread, writes to temp Vercel Blob object, returns signed URL (15-min expiry), logs event to `auditLog`
+- [x] Step 17 — SLA indicators: add `slaBreachedAt` computed field — in admin CRM view, if oldest unanswered client message is older than 24 hours (or 12 hours for ITA Window clients), flag the row with a red ⚠ indicator
+
+---
+
+**Review (P3-1 Full Messaging — Steps 12–17):**
+One-reply limit removed from `POST /api/portal/messages` (Step 12 — clients can now send multiple messages).
+Read receipts: `PATCH /api/portal/messages/read` marks all admin messages as read on portal mount;
+`PATCH /api/admin/clients/[id]/messages/read` marks all client messages as read when admin opens the modal (Step 13).
+Unread dot: `CrmTable` row shows saffron dot on the ✉ button when the client has unread messages waiting; dot clears on modal open (Step 14).
+File attachments: `POST /api/admin/clients/[id]/messages` accepts multipart/form-data with optional file (Step 15);
+`attachmentUrl` column added to `messages` table (migration 0013); admin and portal thread bubbles render a download link;
+`GET /api/admin/clients/[id]/messages/[msgId]/attachment` and `GET /api/portal/messages/[msgId]/attachment` return signed download URLs.
+Transcript: `GET /api/admin/clients/[id]/messages/transcript` assembles full thread as `.txt`, writes to Vercel Blob, returns signed URL, logs to `auditLog` (Step 16).
+SLA indicators: `isSlaBreached()` in `CrmTable.tsx` compares `oldestUnreadClientMsgTs` against 12h (ITA Window) or 24h (all other stages); red ⚠ appears left of the ✉ button when breached (Step 17).
+`messages.test.ts` updated: one-reply tests removed, `SLA threshold logic` describe block added with 6 tests.
+TypeScript clean. Migration 0013 generated (apply with `npx drizzle-kit migrate`).
 
 ---
 

@@ -43,8 +43,8 @@ export async function GET(): Promise<NextResponse> {
   return NextResponse.json({ messages: thread });
 }
 
-// POST /api/portal/messages — client sends a reply.
-// MVP: one reply per admin message thread. If a client message already exists, reject.
+// POST /api/portal/messages — client sends a message or reply.
+// Threading: no limit — clients can send multiple messages (full back-and-forth).
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const ctx = await getClientForSession();
   if (!ctx) {
@@ -61,26 +61,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const result = ReplySchema.safeParse(body);
   if (!result.success) {
     return NextResponse.json({ error: result.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 });
-  }
-
-  // MVP: enforce one-reply-per-thread limit — client cannot send another message
-  // if they have already replied.
-  const [existingReply] = await db
-    .select({ id: messages.id })
-    .from(messages)
-    .where(
-      and(
-        eq(messages.clientId, ctx.clientId),
-        eq(messages.senderRole, 'client')
-      )
-    )
-    .limit(1);
-
-  if (existingReply) {
-    return NextResponse.json(
-      { error: 'You have already replied. Wait for a response from Prashant.' },
-      { status: 409 }
-    );
   }
 
   const [message] = await db
