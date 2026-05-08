@@ -313,9 +313,16 @@ export default function AssessmentTool() {
                     if (age > 0) set('age', age)
                   }}
                 />
-                {dateOfBirth && profile.age > 0 && (
-                  <span className="asx-hint">Age: {profile.age} years</span>
-                )}
+              </div>
+              <div className="asx-field">
+                <label className="asx-label">Age</label>
+                <input
+                  className="asx-input asx-input-readonly"
+                  type="text"
+                  value={dateOfBirth && profile.age > 0 ? `${profile.age} years` : ''}
+                  readOnly
+                  placeholder="Auto-filled from date of birth"
+                />
               </div>
               <div className="asx-field">
                 <label className="asx-label">Country of Citizenship</label>
