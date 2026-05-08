@@ -513,7 +513,7 @@ footer.site-footer {
   .footer-wordmark    { font-size: 0.9rem; }
   .footer-nav a       { font-size: 0.62rem; }
   .footer-disclaimer  { font-size: 0.62rem; line-height: 1.65; padding: 1.25rem 0.5rem 0; text-align: center; }
-  .footer-copyright   { font-size: 0.6rem; padding: 0 0.5rem; }
+  .footer-copyright   { font-size: 0.6rem; padding: 1.25rem 0.5rem; }
 }
 
 /* ── CONSENT CHECKBOX (shared across intake, booking, activate) ─────────── */
