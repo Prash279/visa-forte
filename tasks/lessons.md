@@ -101,6 +101,30 @@ If the lesson contains words like "useEffect", "state mismatch", "hydration erro
 
 ---
 
+## Category: UI & Brand Standards
+
+**Lesson 1 — All small text must meet the 12px digital minimum, always**
+- **What went wrong:** The nav tagline ("ENGINEERED FOR PASSAGE."), all three footer text elements (nav links, disclaimer, copyright), and the assessment form labels were all set below 12px — some as small as 9.6px.
+- **Why it happened:** Small utility text was styled in rem units that looked fine on a large monitor but translated to sub-12px values at the base 16px font size. No one checked the computed pixel value.
+- **The rule going forward:** The Visa Forte brand guideline sets a hard floor of 12px for all digital text. In rem terms that is 0.75rem. Every font-size below 0.75rem in any CSS file is a brand violation. Before finishing any UI work, scan for `font-size` values below `0.75rem` and raise them.
+
+**Lesson 2 — Eyebrows on dark (Prussian) backgrounds need a local colour override**
+- **What went wrong:** The contact page hero eyebrow "GET IN TOUCH" rendered with "GET" in white and "IN TOUCH" in saffron — a visible two-colour split on the dark background.
+- **Why it happened:** The global `.eyebrow { color: var(--saffron); }` rule can be lost in the CSS cascade when the element sits inside a dark-background section. The home page already had a fix for this (`.forensic .eyebrow { color: var(--saffron); }` in home.css) but the contact page was missing the equivalent.
+- **The rule going forward:** Whenever a `.eyebrow` element is placed inside a Prussian-background section, add a scoped override in that page's CSS: `.section-name .eyebrow { color: var(--saffron); }`. This matches the pattern already established in home.css and prevents cascade from silently stripping the saffron colour.
+
+**Lesson 3 — The nav hamburger must fire at 860px, not 768px**
+- **What went wrong:** On an iPad portrait (768px), the full desktop nav was still showing — five links plus Login plus the CTA button — all crammed into ~500px of available space at tiny font sizes.
+- **Why it happened:** The hamburger breakpoint was set at `max-width: 768px`, which means exactly 768px is still treated as desktop. iPad portrait is exactly 768px, so it fell just outside the mobile trigger.
+- **The rule going forward:** The nav hamburger breakpoint in `globals.css` lives at `max-width: 860px`. Never move it below that. iPad portrait (768px) must always get the mobile drawer, not the cramped desktop bar.
+
+**Lesson 4 — Run a brand audit screenshot review before declaring any UI complete**
+- **What went wrong:** Seven issues (font sizes below brand floor, a split-colour eyebrow, a wrong breakpoint) were all present at the same time and only caught together in a formal audit with screenshots at three viewports.
+- **Why it happened:** Each issue was small and invisible during normal development on a large desktop monitor. None were caught by tests.
+- **The rule going forward:** Before marking any UI milestone complete, capture screenshots at desktop (1280px), tablet (768px), and mobile (375px) for every page and visually check: (1) no text below 0.75rem, (2) all eyebrows are saffron on dark backgrounds, (3) the hamburger shows on tablet, (4) footer and nav tagline are legible.
+
+---
+
 ## Category: Workflow
 
 **Lesson 1 — Verify the fix works on the live site, not just in code**

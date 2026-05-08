@@ -107,7 +107,7 @@ nav#nav.scrolled { padding: 0.75rem 2.5rem; }
 
 .nav-tagline {
   font-family: var(--font-body);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 400;
   letter-spacing: 0.22em;
   color: var(--saffron);
@@ -333,7 +333,7 @@ footer.site-footer {
 
 .footer-nav a {
   font-family: var(--font-body);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 400;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -349,7 +349,7 @@ footer.site-footer {
   padding-top: 1.25rem;
   border-top: 1px solid rgba(226, 219, 209, 0.15);
   font-family: var(--font-body);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 300;
   line-height: 1.7;
   color: rgba(248, 244, 238, 0.55);
@@ -362,7 +362,7 @@ footer.site-footer {
   border-top: 1px solid rgba(226, 219, 209, 0.15);
   text-align: center;
   font-family: var(--font-body);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 300;
   letter-spacing: 0.08em;
   color: rgba(248, 244, 238, 0.5);
@@ -485,7 +485,7 @@ footer.site-footer {
   .nav-links a { padding: 0.45rem 0.55rem; font-size: 0.65rem; }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 860px) {
   nav#nav { padding: 0.9rem 1.5rem; }
   nav#nav.scrolled { padding: 0.75rem 1.5rem; }
 
@@ -511,9 +511,9 @@ footer.site-footer {
   .footer-nav         { align-items: center; }
   .footer-contact     { white-space: normal; }
   .footer-wordmark    { font-size: 0.9rem; }
-  .footer-nav a       { font-size: 0.62rem; }
-  .footer-disclaimer  { font-size: 0.62rem; line-height: 1.65; padding: 1.25rem 0.5rem 0; text-align: center; }
-  .footer-copyright   { font-size: 0.6rem; padding: 1.25rem 0.5rem; }
+  .footer-nav a       { font-size: 0.75rem; }
+  .footer-disclaimer  { font-size: 0.72rem; line-height: 1.65; padding: 1.25rem 0.5rem 0; text-align: center; }
+  .footer-copyright   { font-size: 0.72rem; padding: 1.25rem 0.5rem; }
 }
 
 /* ── CONSENT CHECKBOX (shared across intake, booking, activate) ─────────── */

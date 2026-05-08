@@ -24,6 +24,8 @@
   z-index: 1;
 }
 
+.contact-hero .eyebrow { color: var(--saffron); }
+
 .contact-hero-headline {
   font-family: var(--font-display);
   font-size: clamp(2.8rem, 5.5vw, 5.2rem);
