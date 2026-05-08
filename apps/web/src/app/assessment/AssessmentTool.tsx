@@ -309,8 +309,12 @@ export default function AssessmentTool() {
                   onChange={e => {
                     const dob = e.target.value
                     setDateOfBirth(dob)
-                    const age = calcAgeFromDob(dob)
-                    if (age > 0) set('age', age)
+                    if (dob) {
+                      const age = calcAgeFromDob(dob)
+                      if (age > 0) set('age', age)
+                    } else {
+                      set('age', 0)
+                    }
                   }}
                 />
               </div>
