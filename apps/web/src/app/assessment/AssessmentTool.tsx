@@ -106,7 +106,14 @@ function getDobBounds(): { min: string; max: string } {
     max: fmt(new Date(today.getFullYear() - 18, today.getMonth(), today.getDate())),
   }
 }
-const DOB_BOUNDS = getDobBounds()
+const DOB_BOUNDS   = getDobBounds()
+const DOB_YEAR_MAX = parseInt(DOB_BOUNDS.max.slice(0, 4))
+const DOB_YEAR_MIN = parseInt(DOB_BOUNDS.min.slice(0, 4))
+const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+function daysInMonth(month: string, year: string): number {
+  if (!month || !year) return 31
+  return new Date(parseInt(year), parseInt(month), 0).getDate()
+}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -183,7 +190,11 @@ export default function AssessmentTool() {
   const [result, setResult]   = useState<CrsResult | null>(null)
   const [maritalStatus, setMaritalStatus] = useState<'single' | 'married' | 'separated'>('single')
   const [numberOfChildren, setNumberOfChildren] = useState(0)
-  const [dateOfBirth, setDateOfBirth] = useState('')
+  const [dobDay, setDobDay]     = useState('')
+  const [dobMonth, setDobMonth] = useState('')
+  const [dobYear, setDobYear]   = useState('')
+  const dateOfBirth = dobDay && dobMonth && dobYear
+    ? `${dobYear}-${dobMonth}-${dobDay}` : ''
 
   // Lead capture state — shown in the result view
   const [leadName, setLeadName]       = useState('')
@@ -258,7 +269,9 @@ export default function AssessmentTool() {
     setResult(null)
     setView('form')
     setResumeFile(null)
-    setDateOfBirth('')
+    setDobDay('')
+    setDobMonth('')
+    setDobYear('')
     setTimeout(() => window.scrollTo({ top: 0 }), 50)
   }
 
@@ -300,23 +313,62 @@ export default function AssessmentTool() {
               </div>
               <div className="asx-field">
                 <label className="asx-label">Date of Birth</label>
-                <input
-                  className="asx-input"
-                  type="date"
-                  value={dateOfBirth}
-                  min={DOB_BOUNDS.min}
-                  max={DOB_BOUNDS.max}
-                  onChange={e => {
-                    const dob = e.target.value
-                    setDateOfBirth(dob)
-                    if (dob) {
-                      const age = calcAgeFromDob(dob)
-                      if (age > 0) set('age', age)
-                    } else {
-                      set('age', 0)
-                    }
-                  }}
-                />
+                <div className="asx-dob-selects">
+                  <select
+                    className="asx-select"
+                    value={dobDay}
+                    onChange={e => {
+                      const day = e.target.value
+                      setDobDay(day)
+                      if (day && dobMonth && dobYear) {
+                        const age = calcAgeFromDob(`${dobYear}-${dobMonth}-${day}`)
+                        set('age', age > 0 ? age : 0)
+                      } else { set('age', 0) }
+                    }}
+                  >
+                    <option value="">DD</option>
+                    {Array.from({ length: daysInMonth(dobMonth, dobYear) }, (_, i) => {
+                      const d = String(i + 1).padStart(2, '0')
+                      return <option key={d} value={d}>{d}</option>
+                    })}
+                  </select>
+                  <select
+                    className="asx-select"
+                    value={dobMonth}
+                    onChange={e => {
+                      const month = e.target.value
+                      setDobMonth(month)
+                      if (dobDay && month && dobYear) {
+                        const age = calcAgeFromDob(`${dobYear}-${month}-${dobDay}`)
+                        set('age', age > 0 ? age : 0)
+                      } else { set('age', 0) }
+                    }}
+                  >
+                    <option value="">MMM</option>
+                    {MONTH_LABELS.map((m, i) => {
+                      const val = String(i + 1).padStart(2, '0')
+                      return <option key={val} value={val}>{m}</option>
+                    })}
+                  </select>
+                  <select
+                    className="asx-select"
+                    value={dobYear}
+                    onChange={e => {
+                      const year = e.target.value
+                      setDobYear(year)
+                      if (dobDay && dobMonth && year) {
+                        const age = calcAgeFromDob(`${year}-${dobMonth}-${dobDay}`)
+                        set('age', age > 0 ? age : 0)
+                      } else { set('age', 0) }
+                    }}
+                  >
+                    <option value="">YYYY</option>
+                    {Array.from({ length: DOB_YEAR_MAX - DOB_YEAR_MIN + 1 }, (_, i) => {
+                      const y = DOB_YEAR_MAX - i
+                      return <option key={y} value={String(y)}>{y}</option>
+                    })}
+                  </select>
+                </div>
               </div>
               <div className="asx-field">
                 <label className="asx-label">Age</label>

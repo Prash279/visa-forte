@@ -125,6 +125,11 @@
   box-shadow: none;
 }
 
+.asx-dob-selects {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .asx-input[type="date"],
 .asx-input[type="date"]::-webkit-datetime-edit {
   font-family: var(--font-body);
