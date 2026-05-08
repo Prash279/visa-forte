@@ -281,7 +281,7 @@ export default function AssessmentTool() {
                   type="number"
                   min={18}
                   max={80}
-                  value={profile.age}
+                  value={profile.age || ''}
                   onChange={e => set('age', parseInt(e.target.value) || 0)}
                 />
               </div>

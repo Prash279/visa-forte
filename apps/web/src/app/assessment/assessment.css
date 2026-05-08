@@ -988,6 +988,14 @@
   .asx-disclaimer { padding: 1.25rem 1.25rem; }
 }
 
+/* ── Number input spinners — ensure visible on mobile WebKit ── */
+.asx-input[type="number"]::-webkit-inner-spin-button,
+.asx-input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: inner-spin-button;
+  opacity: 1;
+  height: auto;
+}
+
 /* ── Print ──────────────────────────────────────────────────── */
 @media print {
   .asx-toolbar,
