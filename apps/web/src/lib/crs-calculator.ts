@@ -126,6 +126,17 @@ export interface ScenarioProjection {
   competitive: boolean // vs approximate general draw cutoff of 500+
 }
 
+// Used when the applicant is not yet Express Entry pool-eligible.
+// Each entry describes one concrete FSW 67-point grid improvement.
+export interface FswImprovementSuggestion {
+  name: string
+  action: string
+  currentFswTotal: number
+  projectedFswTotal: number
+  pointsGained: number
+  wouldQualify: boolean // projectedFswTotal >= 67
+}
+
 export interface CrsResult {
   firstLanguageBands: LanguageBands
   secondLanguageBands?: LanguageBands
@@ -133,6 +144,9 @@ export interface CrsResult {
   fswGrid: FswGrid
   eligibility: StreamEligibility
   scenarios: ScenarioProjection[]
+  // Populated only when applicant is NOT Express Entry pool-eligible.
+  // Shows how to close the gap to the 67-point FSW minimum.
+  fswImprovements: FswImprovementSuggestion[]
   proofOfFundsRequired: number // CAD
   proofOfFundsSufficient: boolean
 }
@@ -758,6 +772,133 @@ function buildScenarios(
   return scenarios
 }
 
+// ── FSW Improvement Suggestions (for non-pool-eligible applicants) ────────────
+// Tells the applicant how to improve their FSW 67-point selection factor score,
+// NOT their CRS. Showing CRS scenarios when the applicant can't enter the pool
+// is misleading — they must first clear 67 pts before CRS is relevant.
+
+function buildFswImprovementSuggestions(
+  profile: ApplicantProfile,
+  fswGrid: FswGrid,
+  firstBands: LanguageBands,
+  secondBands?: LanguageBands
+): FswImprovementSuggestion[] {
+  const suggestions: FswImprovementSuggestion[] = []
+  const current = fswGrid.total
+
+  // Language: improve all abilities to CLB 9 (IELTS GT L8.5/R8.0/W7.5/S7.5)
+  if (fswGrid.language < 24) {
+    const targetBands: LanguageBands = { listening: 9, reading: 9, writing: 9, speaking: 9 }
+    const improvedLang = fswLanguagePoints(targetBands, secondBands)
+    const gain = improvedLang - fswGrid.language
+    if (gain > 0) {
+      suggestions.push({
+        name: 'Improve Language to CLB 9 (All Abilities)',
+        action:
+          'Retake your language test targeting CLB 9 across all four abilities ' +
+          '(IELTS GT: L 8.5 / R 8.0 / W 7.5 / S 7.5 or equivalent CELPIP / TEF / TCF)',
+        currentFswTotal: current,
+        projectedFswTotal: current + gain,
+        pointsGained: gain,
+        wouldQualify: current + gain >= 67,
+      })
+    }
+  }
+
+  // Adaptability: gain Canadian work experience (+5 pts, capped at 10 total)
+  const currentHasJobOffer = profile.hasJobOffer === 'lmia' || profile.hasJobOffer === 'exempt'
+  if (Math.floor(profile.canadianWorkExperienceYears) === 0 && fswGrid.adaptability < 10) {
+    const newAdapt = fswAdaptabilityPoints(
+      profile.hasCanadianEducation,
+      profile.hasFamilyInCanada,
+      1,
+      currentHasJobOffer
+    )
+    const gain = newAdapt - fswGrid.adaptability
+    if (gain > 0) {
+      suggestions.push({
+        name: 'Gain Canadian Work Experience',
+        action:
+          'Obtain at least 1 year of authorized work in Canada in a NOC TEER 0–3 occupation ' +
+          '— adds 5 FSW adaptability points',
+        currentFswTotal: current,
+        projectedFswTotal: current + gain,
+        pointsGained: gain,
+        wouldQualify: current + gain >= 67,
+      })
+    }
+  }
+
+  // Adaptability: secure a valid job offer (+5 pts, capped at 10 total)
+  if (!currentHasJobOffer && fswGrid.adaptability < 10) {
+    const newAdapt = fswAdaptabilityPoints(
+      profile.hasCanadianEducation,
+      profile.hasFamilyInCanada,
+      profile.canadianWorkExperienceYears,
+      true
+    )
+    const gain = newAdapt - fswGrid.adaptability
+    if (gain > 0) {
+      suggestions.push({
+        name: 'Secure a Valid Job Offer in Canada',
+        action:
+          'Obtain a qualifying arranged employment offer (LMIA-supported or LMIA-exempt) ' +
+          'from a Canadian employer — adds 5 FSW adaptability points',
+        currentFswTotal: current,
+        projectedFswTotal: current + gain,
+        pointsGained: gain,
+        wouldQualify: current + gain >= 67,
+      })
+    }
+  }
+
+  // Adaptability: Canadian post-secondary education (+5 pts, capped at 10 total)
+  if (!profile.hasCanadianEducation && fswGrid.adaptability < 10) {
+    const newAdapt = fswAdaptabilityPoints(
+      true,
+      profile.hasFamilyInCanada,
+      profile.canadianWorkExperienceYears,
+      currentHasJobOffer
+    )
+    const gain = newAdapt - fswGrid.adaptability
+    if (gain > 0) {
+      suggestions.push({
+        name: 'Complete a Canadian Study Program',
+        action:
+          'Study full-time in Canada in a post-secondary program of at least 2 academic years ' +
+          '— adds 5 FSW adaptability points',
+        currentFswTotal: current,
+        projectedFswTotal: current + gain,
+        pointsGained: gain,
+        wouldQualify: current + gain >= 67,
+      })
+    }
+  }
+
+  // Work experience: more years toward the 6-year cap (if not already at max 15 pts)
+  if (fswGrid.workExperience < 15) {
+    const targetExp = fswWorkExpPoints(6)
+    const gain = targetExp - fswGrid.workExperience
+    if (gain > 0) {
+      suggestions.push({
+        name: 'Accumulate More Foreign Work Experience',
+        action:
+          'Continue accruing qualifying work experience to reach the 6-year tier ' +
+          '(maximum 15 FSW work experience points)',
+        currentFswTotal: current,
+        projectedFswTotal: current + gain,
+        pointsGained: gain,
+        wouldQualify: current + gain >= 67,
+      })
+    }
+  }
+
+  // Sort by impact descending so the highest-gain action appears first
+  suggestions.sort((a, b) => b.pointsGained - a.pointsGained)
+
+  return suggestions
+}
+
 // ── Section B: Spouse / Common-Law Partner Factors ──────────────────────────
 
 // Factor B — Spouse education (max 10 pts). Source: canada.ca CRS criteria grid.
@@ -890,6 +1031,12 @@ export function calculate(profile: ApplicantProfile): CrsResult {
   const eligibility = assessStreamEligibility(profile, fswGrid, firstBands)
   const scenarios = buildScenarios(profile, total, firstBands)
 
+  // Only compute FSW improvement suggestions when the applicant cannot enter the pool.
+  // When pool-eligible, CRS scenarios are what matter — not the 67-point grid.
+  const fswImprovements = !eligibility.expressEntryPool.eligible
+    ? buildFswImprovementSuggestions(profile, fswGrid, firstBands, secondBands)
+    : []
+
   const fundsRequired = proofOfFundsRequired(profile.familySize)
 
   return {
@@ -899,6 +1046,7 @@ export function calculate(profile: ApplicantProfile): CrsResult {
     fswGrid,
     eligibility,
     scenarios,
+    fswImprovements,
     proofOfFundsRequired: fundsRequired,
     proofOfFundsSufficient: profile.settlementFunds >= fundsRequired,
   }

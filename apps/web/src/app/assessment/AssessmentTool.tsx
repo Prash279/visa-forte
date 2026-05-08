@@ -11,6 +11,7 @@ import {
   type EducationLevel,
   type StreamEligibility,
   type LanguageBands,
+  type FswImprovementSuggestion,
 } from '@/lib/crs-calculator'
 import drawData from '@/lib/crs-draw-history.json'
 import './assessment.css'
@@ -1003,8 +1004,58 @@ export default function AssessmentTool() {
             </div>
           </div>
 
-          {/* ── Improvement Scenarios ────────────────────────────── */}
-          {scenarios.length > 0 && (
+          {/* ── Improvement Guidance ─────────────────────────────── */}
+          {/* Case A: Not pool-eligible — show how to reach the FSW 67-point minimum */}
+          {!result.eligibility.expressEntryPool.eligible && result.fswImprovements.length > 0 && (
+            <div className="asx-card">
+              <h2 className="asx-card-title">How to Qualify for Express Entry</h2>
+              <p className="asx-card-sub">
+                Your FSW selection factor score is <strong>{result.fswGrid.total}/100</strong>.
+                You need at least <strong>67 points</strong> to submit an Express Entry profile
+                — your CRS score is not relevant until this threshold is cleared.
+                The steps below show how to close the gap.
+              </p>
+              {result.fswImprovements.every((s: FswImprovementSuggestion) => !s.wouldQualify) && (
+                <p className="asx-scenarios-note" style={{ marginBottom: '1rem' }}>
+                  No single change below will reach 67 on its own — you will need to combine
+                  two or more of these improvements.
+                </p>
+              )}
+              <div className="asx-scenarios">
+                {result.fswImprovements.map((s: FswImprovementSuggestion, i: number) => {
+                  const label = String.fromCharCode(65 + i)
+                  return (
+                    <div key={i} className="asx-scenario-row">
+                      <div className="asx-scenario-delta positive">+{s.pointsGained}</div>
+                      <div className="asx-scenario-info">
+                        <p className="asx-scenario-name">{label}: {s.name}</p>
+                        <p className="asx-scenario-desc">{s.action}</p>
+                      </div>
+                      <div className="asx-scenario-projected">
+                        <span className="asx-projected-label">FSW Score</span>
+                        <span className="asx-projected-val">{s.projectedFswTotal}</span>
+                        <span
+                          className="asx-competitive-tag"
+                          data-meets={s.wouldQualify ? 'yes' : 'no'}
+                        >
+                          {s.wouldQualify ? '▲ Qualifies' : '▼ Below 67'}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <p className="asx-scenarios-note">
+                FSW scoring rules sourced from{' '}
+                <a href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/eligibility/federal-skilled-workers/six-selection-factors-federal-skilled-workers.html"
+                  target="_blank" rel="noopener noreferrer">canada.ca</a>.
+                Verify current requirements before acting on any scenario.
+              </p>
+            </div>
+          )}
+
+          {/* Case B: Pool-eligible — show CRS improvement scenarios */}
+          {result.eligibility.expressEntryPool.eligible && scenarios.length > 0 && (
             <div className="asx-card">
               <h2 className="asx-card-title">How to Improve Your Score</h2>
               <p className="asx-card-sub">
@@ -1017,7 +1068,7 @@ export default function AssessmentTool() {
                   const meetsReal = cutoff !== null
                     ? s.projectedCrs >= cutoff
                     : s.competitive
-                  const label = String.fromCharCode(65 + i) // A, B, C… always sequential
+                  const label = String.fromCharCode(65 + i)
                   return (
                     <div key={i} className="asx-scenario-row">
                       <div className={`asx-scenario-delta${s.delta > 0 ? ' positive' : ''}`}>
