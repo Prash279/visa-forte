@@ -875,6 +875,77 @@ function buildFswImprovementSuggestions(
     }
   }
 
+  // Adaptability: spouse/partner language CLB 4+ in all four abilities (+5 pts, capped at 10)
+  // Source: canada.ca FSW adaptability — "spouse or common-law partner's language level"
+  if (profile.hasSpouse && fswGrid.adaptability < 10) {
+    const spouseLang = profile.spouseLanguageScores
+    const spouseAlreadyHasCLB4 = spouseLang !== undefined && (() => {
+      const b = scoresToClb(spouseLang)
+      return Math.min(b.listening, b.reading, b.writing, b.speaking) >= 4
+    })()
+    if (!spouseAlreadyHasCLB4) {
+      const newAdapt = Math.min(10, fswGrid.adaptability + 5)
+      const gain = newAdapt - fswGrid.adaptability
+      if (gain > 0) {
+        suggestions.push({
+          name: "Spouse/Partner Language Test (CLB 4+ in All Four Abilities)",
+          action:
+            'Have your accompanying spouse or partner take an approved language test ' +
+            '(IELTS GT, CELPIP, TEF Canada, or TCF Canada) and achieve CLB 4 in ' +
+            'Listening, Reading, Writing, and Speaking — adds 5 FSW adaptability points',
+          currentFswTotal: current,
+          projectedFswTotal: current + gain,
+          pointsGained: gain,
+          wouldQualify: current + gain >= 67,
+        })
+      }
+    }
+  }
+
+  // Adaptability: spouse/partner's past work in Canada (1+ year) (+5 pts, capped at 10)
+  // Source: canada.ca FSW adaptability — "spouse or common-law partner's past work in Canada"
+  if (profile.hasSpouse && fswGrid.adaptability < 10) {
+    const spouseCwe = Math.floor(profile.spouseCanadianExperience ?? 0)
+    if (spouseCwe < 1) {
+      const newAdapt = Math.min(10, fswGrid.adaptability + 5)
+      const gain = newAdapt - fswGrid.adaptability
+      if (gain > 0) {
+        suggestions.push({
+          name: "Spouse/Partner Canadian Work Experience (1+ Year)",
+          action:
+            'Your accompanying spouse or partner can earn 5 FSW adaptability points by ' +
+            'completing at least 1 year of full-time authorized work in Canada on a valid ' +
+            'work permit',
+          currentFswTotal: current,
+          projectedFswTotal: current + gain,
+          pointsGained: gain,
+          wouldQualify: current + gain >= 67,
+        })
+      }
+    }
+  }
+
+  // Adaptability: spouse/partner's past studies in Canada (2+ years) (+5 pts, capped at 10)
+  // Source: canada.ca FSW adaptability — "spouse or common-law partner's past studies in Canada"
+  // No profile field captures this — always surface for married applicants with room in adaptability.
+  if (profile.hasSpouse && fswGrid.adaptability < 10) {
+    const newAdapt = Math.min(10, fswGrid.adaptability + 5)
+    const gain = newAdapt - fswGrid.adaptability
+    if (gain > 0) {
+      suggestions.push({
+        name: "Spouse/Partner Past Studies in Canada (2+ Years)",
+        action:
+          'Your accompanying spouse or partner can earn 5 FSW adaptability points by ' +
+          'completing at least 2 academic years of full-time study at a secondary or ' +
+          'post-secondary school in Canada',
+        currentFswTotal: current,
+        projectedFswTotal: current + gain,
+        pointsGained: gain,
+        wouldQualify: current + gain >= 67,
+      })
+    }
+  }
+
   // Work experience: more years toward the 6-year cap (if not already at max 15 pts)
   if (fswGrid.workExperience < 15) {
     const targetExp = fswWorkExpPoints(6)
