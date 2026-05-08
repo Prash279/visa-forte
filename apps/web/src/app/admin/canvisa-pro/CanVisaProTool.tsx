@@ -484,7 +484,7 @@ style: |
         </div>`).join('')}
       <div style="display:flex;justify-content:space-between;padding:10px 0;">
         <span style="color:${TEXT};font-size:14px;font-weight:700;">Total</span>
-        <span style="color:${fswGrid.eligible ? GREEN : RED};font-size:14px;font-weight:700;">${fswGrid.total} / 90</span>
+        <span style="color:${fswGrid.eligible ? GREEN : RED};font-size:14px;font-weight:700;">${fswGrid.total} / 100</span>
       </div>
     </div>
 
@@ -492,7 +492,7 @@ style: |
       <div style="background:${CARD};padding:24px;text-align:center;border-top:3px solid ${fswGrid.eligible ? GREEN : RED};">
         <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:12px;">FSW Score</div>
         <div style="color:${fswGrid.eligible ? GREEN : RED};font-size:56px;font-weight:700;line-height:1;">${fswGrid.total}</div>
-        <div style="color:${MUTED};font-size:12px;margin:8px 0;">out of 90</div>
+        <div style="color:${MUTED};font-size:12px;margin:8px 0;">out of 100</div>
         ${badge(fswGrid.eligible)}
         <div style="color:${DIM};font-size:10px;margin-top:8px;">Threshold: 67 points</div>
       </div>
