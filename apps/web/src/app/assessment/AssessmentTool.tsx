@@ -860,60 +860,92 @@ export default function AssessmentTool() {
           {hasDrawData && (
             <div className="asx-card asx-draws-card">
               <h2 className="asx-card-title">Pool Draw Context</h2>
-              <p className="asx-card-sub">
-                Your score compared to recent Express Entry draws from canada.ca.
-              </p>
 
-              {relevantDraw ? (
-                <div className={`asx-gap-row${gap !== null && gap >= 0 ? ' asx-gap-above' : ' asx-gap-below'}`}>
-                  <div className="asx-gap-score">
-                    <span className="asx-gap-label">Most Recent {topCategory} Draw</span>
-                    <span className="asx-gap-val">{relevantDraw.cutoffScore}</span>
-                    <span className="asx-gap-meta">{fmtDate(relevantDraw.date)}</span>
-                  </div>
-                  <div className="asx-gap-vs">
-                    <span className="asx-gap-your-label">Your Score</span>
-                    <span className="asx-gap-your-val">{total}</span>
-                    {gap !== null && (
-                      <span className="asx-gap-diff">
-                        {gap >= 0
-                          ? `+${gap} pts above cutoff`
-                          : `${gap} pts below cutoff`}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="asx-no-eligible-state">
-                  <p className="asx-no-eligible-heading">No active draw category matched</p>
-                  <p className="asx-no-eligible-body">
-                    Your profile does not currently match an active draw category. Your primary
-                    pathway to Canadian PR is the Provincial Nominee Program (PNP) — enter the
-                    Express Entry pool and watch for Notifications of Interest from provinces like
-                    OINP, AINP, and others. Once nominated, your effective CRS becomes{' '}
-                    <strong>{pnpScore}</strong>, placing you well above PNP draw cutoffs.
+              {!poolEligible ? (
+                // Not pool-eligible: draw cutoffs and CRS comparisons are meaningless.
+                // Show the FSW gap instead and redirect attention to the improvement section.
+                <>
+                  <p className="asx-card-sub">
+                    Draw cutoffs and CRS comparisons do not apply yet — you must first clear
+                    the FSW 67-point minimum to enter the Express Entry pool.
                   </p>
-                </div>
-              )}
-
-              <div className="asx-draws-table">
-                <div className="asx-draws-header">
-                  <span>Date</span><span>Type</span><span>Cutoff</span><span>ITAs</span>
-                </div>
-                {allDraws.slice(0, 5).map((d, i) => (
-                  <div key={i} className="asx-draw-row">
-                    <span className="asx-draw-date">{fmtDate(d.date)}</span>
-                    <span className="asx-draw-type">{shortType(d.type)}</span>
-                    <span className="asx-draw-score">{d.cutoffScore}</span>
-                    <span className="asx-draw-itas">{d.invitationsIssued.toLocaleString()}</span>
+                  <div className="asx-gap-row asx-gap-below">
+                    <div className="asx-gap-score">
+                      <span className="asx-gap-label">Your FSW Score</span>
+                      <span className="asx-gap-val">{fsw.total}</span>
+                      <span className="asx-gap-meta">out of 100</span>
+                    </div>
+                    <div className="asx-gap-vs">
+                      <span className="asx-gap-your-label">Minimum Required</span>
+                      <span className="asx-gap-your-val">67</span>
+                      <span className="asx-gap-diff">{fsw.total - 67} pts below threshold</span>
+                    </div>
                   </div>
-                ))}
-              </div>
-              <p className="asx-draws-source">
-                Data synced from{' '}
-                <a href={drawData.url} target="_blank" rel="noopener noreferrer">canada.ca rounds of invitations</a>
-                {drawData.lastUpdated ? ` · ${fmtDate(drawData.lastUpdated)}` : ''}.
-              </p>
+                  <p className="asx-draws-source">
+                    Once you reach 67 FSW points, your CRS score and draw cutoff comparisons
+                    will appear here. See the <strong>How to Qualify for Express Entry</strong>{' '}
+                    section below for the highest-impact steps to close this gap.
+                  </p>
+                </>
+              ) : (
+                // Pool-eligible: show normal draw cutoff comparison
+                <>
+                  <p className="asx-card-sub">
+                    Your score compared to recent Express Entry draws from canada.ca.
+                  </p>
+
+                  {relevantDraw ? (
+                    <div className={`asx-gap-row${gap !== null && gap >= 0 ? ' asx-gap-above' : ' asx-gap-below'}`}>
+                      <div className="asx-gap-score">
+                        <span className="asx-gap-label">Most Recent {topCategory} Draw</span>
+                        <span className="asx-gap-val">{relevantDraw.cutoffScore}</span>
+                        <span className="asx-gap-meta">{fmtDate(relevantDraw.date)}</span>
+                      </div>
+                      <div className="asx-gap-vs">
+                        <span className="asx-gap-your-label">Your Score</span>
+                        <span className="asx-gap-your-val">{total}</span>
+                        {gap !== null && (
+                          <span className="asx-gap-diff">
+                            {gap >= 0
+                              ? `+${gap} pts above cutoff`
+                              : `${gap} pts below cutoff`}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="asx-no-eligible-state">
+                      <p className="asx-no-eligible-heading">No active draw category matched</p>
+                      <p className="asx-no-eligible-body">
+                        Your profile does not currently match an active draw category. Your primary
+                        pathway to Canadian PR is the Provincial Nominee Program (PNP) — enter the
+                        Express Entry pool and watch for Notifications of Interest from provinces like
+                        OINP, AINP, and others. Once nominated, your effective CRS becomes{' '}
+                        <strong>{pnpScore}</strong>, placing you well above PNP draw cutoffs.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="asx-draws-table">
+                    <div className="asx-draws-header">
+                      <span>Date</span><span>Type</span><span>Cutoff</span><span>ITAs</span>
+                    </div>
+                    {allDraws.slice(0, 5).map((d, i) => (
+                      <div key={i} className="asx-draw-row">
+                        <span className="asx-draw-date">{fmtDate(d.date)}</span>
+                        <span className="asx-draw-type">{shortType(d.type)}</span>
+                        <span className="asx-draw-score">{d.cutoffScore}</span>
+                        <span className="asx-draw-itas">{d.invitationsIssued.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="asx-draws-source">
+                    Data synced from{' '}
+                    <a href={drawData.url} target="_blank" rel="noopener noreferrer">canada.ca rounds of invitations</a>
+                    {drawData.lastUpdated ? ` · ${fmtDate(drawData.lastUpdated)}` : ''}.
+                  </p>
+                </>
+              )}
             </div>
           )}
 
