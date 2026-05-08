@@ -1019,6 +1019,9 @@
 
   .asx-cta-card { padding: 2rem 1.5rem; }
   .asx-disclaimer { padding: 1.25rem 1.25rem; }
+
+  .asx-funds-row { align-items: flex-start; }
+  .asx-funds-value { flex-shrink: 0; }
 }
 
 /* ── Number input spinners — ensure visible on mobile WebKit ── */
