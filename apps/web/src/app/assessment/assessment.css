@@ -18,14 +18,6 @@
   overflow: hidden;
 }
 
-.asx-hero::after {
-  content: '';
-  position: absolute;
-  left: 2.5rem;
-  top: 0; bottom: 0;
-  width: 1px;
-  background: linear-gradient(to bottom, transparent 10%, rgba(201,123,30,0.4) 30%, rgba(201,123,30,0.4) 70%, transparent 90%);
-}
 
 .asx-hero-inner {
   max-width: var(--max-w);

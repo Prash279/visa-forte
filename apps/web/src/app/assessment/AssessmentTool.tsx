@@ -14,6 +14,7 @@ import {
   type FswImprovementSuggestion,
 } from '@/lib/crs-calculator'
 import drawData from '@/lib/crs-draw-history.json'
+import fundsData from '@/lib/proof-of-funds.json'
 import './assessment.css'
 
 // ── Draw history helpers ───────────────────────────────────────────────────────
@@ -137,6 +138,19 @@ const INITIAL: ApplicantProfile = {
   fundsSource: '',
 }
 
+// ── Family composition helpers ────────────────────────────────────────────────
+
+function computeFamilySize(children: number, spouseComing: boolean): number {
+  return Math.max(1, 1 + (spouseComing ? 1 : 0) + children)
+}
+
+function minSettlementFunds(familySize: number): number {
+  const size = Math.max(1, familySize)
+  const table = fundsData.byFamilySize as Record<string, number>
+  if (size <= 7) return table[String(size)] ?? 0
+  return (table['7'] ?? 40392) + (size - 7) * fundsData.extraPerMember
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function AssessmentTool() {
@@ -144,6 +158,7 @@ export default function AssessmentTool() {
   const [profile, setProfile] = useState<ApplicantProfile>(INITIAL)
   const [result, setResult]   = useState<CrsResult | null>(null)
   const [maritalStatus, setMaritalStatus] = useState<'single' | 'married' | 'separated'>('single')
+  const [numberOfChildren, setNumberOfChildren] = useState(0)
 
   // Lead capture state — shown in the result view
   const [leadName, setLeadName]       = useState('')
@@ -214,6 +229,7 @@ export default function AssessmentTool() {
   function resetAssessment() {
     setProfile({ ...INITIAL, reportDate: new Date().toISOString().split('T')[0] ?? '' })
     setMaritalStatus('single')
+    setNumberOfChildren(0)
     setResult(null)
     setView('form')
     setResumeFile(null)
@@ -467,14 +483,28 @@ export default function AssessmentTool() {
                       name="maritalStatus"
                       checked={maritalStatus === value}
                       onChange={() => {
-                        setMaritalStatus(value)
-                        if (value !== 'married') {
+                        const newStatus = value
+                        setMaritalStatus(newStatus)
+                        const resetChildren = newStatus === 'single'
+                        const newChildren = resetChildren ? 0 : numberOfChildren
+                        if (resetChildren) setNumberOfChildren(0)
+                        const spouseComing = newStatus === 'married' ? profile.hasSpouse : false
+                        const size = computeFamilySize(newChildren, spouseComing)
+                        if (newStatus !== 'married') {
                           setProfile(prev => ({
                             ...prev,
                             hasSpouse: false,
                             spouseEducation: undefined,
                             spouseLanguageScores: undefined,
                             spouseCanadianExperience: undefined,
+                            familySize: size,
+                            settlementFunds: minSettlementFunds(size),
+                          }))
+                        } else {
+                          setProfile(prev => ({
+                            ...prev,
+                            familySize: size,
+                            settlementFunds: minSettlementFunds(size),
                           }))
                         }
                       }}
@@ -484,26 +514,55 @@ export default function AssessmentTool() {
                 ))}
               </div>
             </div>
+            {(maritalStatus === 'married' || maritalStatus === 'separated') && (
+              <div className="asx-field" style={{ marginBottom: '1rem', maxWidth: '220px' }}>
+                <label className="asx-label">Number of Children</label>
+                <select
+                  className="asx-select"
+                  value={numberOfChildren}
+                  onChange={e => {
+                    const children = parseInt(e.target.value) || 0
+                    setNumberOfChildren(children)
+                    const spouseComing = maritalStatus === 'married' && profile.hasSpouse
+                    const size = computeFamilySize(children, spouseComing)
+                    setProfile(prev => ({
+                      ...prev,
+                      familySize: size,
+                      settlementFunds: minSettlementFunds(size),
+                    }))
+                  }}
+                >
+                  {Array.from({ length: 11 }, (_, i) => (
+                    <option key={i} value={i}>
+                      {i === 0 ? 'No children' : i === 1 ? '1 child' : `${i} children`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             {maritalStatus === 'married' && (
             <label className="asx-checkbox-row" style={{ marginBottom: '1rem' }}>
               <input
                 type="checkbox"
                 checked={profile.hasSpouse}
                 onChange={e => {
-                  set('hasSpouse', e.target.checked)
-                  if (!e.target.checked) {
-                    setProfile(prev => ({
-                      ...prev,
-                      hasSpouse: false,
+                  const spouseComing = e.target.checked
+                  const size = computeFamilySize(numberOfChildren, spouseComing)
+                  setProfile(prev => ({
+                    ...prev,
+                    hasSpouse: spouseComing,
+                    familySize: size,
+                    settlementFunds: minSettlementFunds(size),
+                    ...(!spouseComing ? {
                       spouseEducation: undefined,
                       spouseLanguageScores: undefined,
                       spouseCanadianExperience: undefined,
-                    }))
-                  }
+                    } : {}),
+                  }))
                 }}
               />
               <span className="asx-checkbox-label">
-                My spouse or common-law partner will come with me to Canada
+                My spouse or common-law partner and children will come with me to Canada
               </span>
             </label>
             )}
