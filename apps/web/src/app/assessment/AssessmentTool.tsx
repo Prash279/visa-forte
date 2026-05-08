@@ -140,8 +140,10 @@ const INITIAL: ApplicantProfile = {
 
 // ── Family composition helpers ────────────────────────────────────────────────
 
-function computeFamilySize(children: number, spouseComing: boolean): number {
-  return Math.max(1, 1 + (spouseComing ? 1 : 0) + children)
+// IRCC counts all family members for settlement funds, including non-accompanying spouse.
+// isMarried = maritalStatus is 'married'; separated/single do not have a spouse to count.
+function computeFamilySize(children: number, isMarried: boolean): number {
+  return Math.max(1, 1 + (isMarried ? 1 : 0) + children)
 }
 
 function minSettlementFunds(familySize: number): number {
@@ -488,8 +490,7 @@ export default function AssessmentTool() {
                         const resetChildren = newStatus === 'single'
                         const newChildren = resetChildren ? 0 : numberOfChildren
                         if (resetChildren) setNumberOfChildren(0)
-                        const spouseComing = newStatus === 'married' ? profile.hasSpouse : false
-                        const size = computeFamilySize(newChildren, spouseComing)
+                        const size = computeFamilySize(newChildren, newStatus === 'married')
                         if (newStatus !== 'married') {
                           setProfile(prev => ({
                             ...prev,
@@ -523,8 +524,7 @@ export default function AssessmentTool() {
                   onChange={e => {
                     const children = parseInt(e.target.value) || 0
                     setNumberOfChildren(children)
-                    const spouseComing = maritalStatus === 'married' && profile.hasSpouse
-                    const size = computeFamilySize(children, spouseComing)
+                    const size = computeFamilySize(children, maritalStatus === 'married')
                     setProfile(prev => ({
                       ...prev,
                       familySize: size,
@@ -547,7 +547,7 @@ export default function AssessmentTool() {
                 checked={profile.hasSpouse}
                 onChange={e => {
                   const spouseComing = e.target.checked
-                  const size = computeFamilySize(numberOfChildren, spouseComing)
+                  const size = computeFamilySize(numberOfChildren, maritalStatus === 'married')
                   setProfile(prev => ({
                     ...prev,
                     hasSpouse: spouseComing,
