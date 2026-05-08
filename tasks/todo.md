@@ -115,7 +115,7 @@ and confirm it arrives at prashant@visaforte.com.
 ---
 
 ### TASK 3: CanVisa Pro Integration
-**Status:** In Progress — May 2026
+**Status:** ✅ COMPLETE — May 2026
 **Approved:** Yes (Prash directed build)
 **What this delivers:** The PR assessment tool is accessible to clients at visaforte.com/assessment.
 
@@ -143,6 +143,16 @@ The MARP download remains in the admin tool only. Staying on Vercel.
 3. Click "Check My Eligibility →" — confirm the result view appears with a CRS score
 4. Scroll down — confirm the legal disclaimer block is visible at the bottom
 5. Click "Book a Consultation →" — confirm it links to /booking
+
+**Review:**
+Public CRS assessment live at visaforte.com/assessment — no login required. Visa Forte brand
+(Prussian/Saffron/Pearl light theme). Full form: marital status, date of birth (age auto-calculated),
+education, first/second language (IELTS GT/Academic, CELPIP, TEF, TCF), Canadian work experience,
+foreign work experience, certificate of qualification, job offer, sibling in Canada, spouse sub-section.
+Result view: CRS score card, FSW eligibility verdict (green/red border), gap analysis, scenario
+improvements, pool draw context, legal disclaimer. Post-launch polish: DOB picker replacing age input,
+children section, family size and settlement funds auto-population, FSW ineligibility improvement path,
+Settlement Funds card mobile alignment. FSW grid total corrected to /100. All tests passing. TypeScript clean.
 
 ---
 
@@ -867,6 +877,7 @@ Per `spec.md §8`, DPDP consent interface and automated deletion cron are Phase 
 |---|---|---|
 | Task 1 | Landing page — live at visaforte.com | April 2026 |
 | Task 2 | Authentication — Better Auth + Neon PostgreSQL | April 2026 |
+| Task 3 | CanVisa Pro Integration — public CRS assessment at /assessment | May 2026 |
 | Task 3A | Client Intake Form — leads table + /intake + admin dashboard | April 2026 |
 | Task 3B | Booking Engine — availability toggle, /booking, /admin/availability, Resend email | April 2026 |
 | Task 4 | Razorpay payment — pay-first flow, HMAC verify, INR/USD toggle, admin payment columns | April 2026 |
