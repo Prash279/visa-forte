@@ -86,6 +86,28 @@ function getEligibleDrawCategories(
   return cats
 }
 
+// ── Date-of-birth helpers ─────────────────────────────────────────────────────
+
+function calcAgeFromDob(dob: string): number {
+  const birth = new Date(dob + 'T00:00:00')
+  const today = new Date()
+  let age = today.getFullYear() - birth.getFullYear()
+  const m = today.getMonth() - birth.getMonth()
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
+  return Math.max(0, age)
+}
+
+function getDobBounds(): { min: string; max: string } {
+  const today = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  return {
+    min: fmt(new Date(today.getFullYear() - 80, today.getMonth(), today.getDate())),
+    max: fmt(new Date(today.getFullYear() - 18, today.getMonth(), today.getDate())),
+  }
+}
+const DOB_BOUNDS = getDobBounds()
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const EDU_LABELS: Record<EducationLevel, string> = {
@@ -161,6 +183,7 @@ export default function AssessmentTool() {
   const [result, setResult]   = useState<CrsResult | null>(null)
   const [maritalStatus, setMaritalStatus] = useState<'single' | 'married' | 'separated'>('single')
   const [numberOfChildren, setNumberOfChildren] = useState(0)
+  const [dateOfBirth, setDateOfBirth] = useState('')
 
   // Lead capture state — shown in the result view
   const [leadName, setLeadName]       = useState('')
@@ -235,6 +258,7 @@ export default function AssessmentTool() {
     setResult(null)
     setView('form')
     setResumeFile(null)
+    setDateOfBirth('')
     setTimeout(() => window.scrollTo({ top: 0 }), 50)
   }
 
@@ -275,15 +299,23 @@ export default function AssessmentTool() {
                 />
               </div>
               <div className="asx-field">
-                <label className="asx-label">Age</label>
+                <label className="asx-label">Date of Birth</label>
                 <input
                   className="asx-input"
-                  type="number"
-                  min={18}
-                  max={80}
-                  value={profile.age || ''}
-                  onChange={e => set('age', parseInt(e.target.value) || 0)}
+                  type="date"
+                  value={dateOfBirth}
+                  min={DOB_BOUNDS.min}
+                  max={DOB_BOUNDS.max}
+                  onChange={e => {
+                    const dob = e.target.value
+                    setDateOfBirth(dob)
+                    const age = calcAgeFromDob(dob)
+                    if (age > 0) set('age', age)
+                  }}
                 />
+                {dateOfBirth && profile.age > 0 && (
+                  <span className="asx-hint">Age: {profile.age} years</span>
+                )}
               </div>
               <div className="asx-field">
                 <label className="asx-label">Country of Citizenship</label>
