@@ -1,0 +1,325 @@
+{
+  "meta": {
+    "source": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/eligibility/criteria-comprehensive-ranking-system/grid.html",
+    "lastVerified": "2026-05-09",
+    "lastUpdated": "2026-05-09",
+    "note": "Post-March 2025 rules. Job offer points removed per IRCC update March 2025."
+  },
+  "sectionA": {
+    "ageSingle": {
+      "17": 0,
+      "18": 99, "19": 105,
+      "20": 110, "21": 110, "22": 110, "23": 110, "24": 110, "25": 110,
+      "26": 110, "27": 110, "28": 110, "29": 110,
+      "30": 105, "31": 99, "32": 94, "33": 88, "34": 83,
+      "35": 77, "36": 72, "37": 66, "38": 61, "39": 55,
+      "40": 50, "41": 39, "42": 28, "43": 17, "44": 6
+    },
+    "ageWithSpouse": {
+      "18": 90, "19": 95,
+      "20": 100, "21": 100, "22": 100, "23": 100, "24": 100, "25": 100,
+      "26": 100, "27": 100, "28": 100, "29": 100,
+      "30": 95, "31": 90, "32": 85, "33": 80, "34": 75,
+      "35": 70, "36": 65, "37": 60, "38": 55, "39": 50,
+      "40": 45, "41": 35, "42": 25, "43": 15, "44": 5
+    },
+    "educationSingle": {
+      "less_than_secondary": 0,
+      "secondary": 30,
+      "one_year_post_secondary": 90,
+      "two_year_post_secondary": 98,
+      "bachelors": 120,
+      "two_or_more_degrees": 128,
+      "masters": 135,
+      "doctoral": 150
+    },
+    "educationWithSpouse": {
+      "less_than_secondary": 0,
+      "secondary": 28,
+      "one_year_post_secondary": 84,
+      "two_year_post_secondary": 91,
+      "bachelors": 112,
+      "two_or_more_degrees": 119,
+      "masters": 126,
+      "doctoral": 140
+    },
+    "firstLanguageSingle": [
+      { "minClb": 10, "points": 34 },
+      { "minClb": 9,  "points": 31 },
+      { "minClb": 8,  "points": 23 },
+      { "minClb": 7,  "points": 17 },
+      { "minClb": 6,  "points": 9  },
+      { "minClb": 5,  "points": 6  }
+    ],
+    "firstLanguageWithSpouse": [
+      { "minClb": 10, "points": 32 },
+      { "minClb": 9,  "points": 29 },
+      { "minClb": 8,  "points": 22 },
+      { "minClb": 7,  "points": 16 },
+      { "minClb": 6,  "points": 8  },
+      { "minClb": 5,  "points": 6  }
+    ],
+    "secondLanguage": [
+      { "minClb": 9, "points": 6 },
+      { "minClb": 7, "points": 3 },
+      { "minClb": 5, "points": 1 }
+    ],
+    "canadianExpSingle": [
+      { "minYears": 5, "points": 80 },
+      { "minYears": 4, "points": 72 },
+      { "minYears": 3, "points": 64 },
+      { "minYears": 2, "points": 53 },
+      { "minYears": 1, "points": 40 }
+    ],
+    "canadianExpWithSpouse": [
+      { "minYears": 5, "points": 70 },
+      { "minYears": 4, "points": 63 },
+      { "minYears": 3, "points": 56 },
+      { "minYears": 2, "points": 46 },
+      { "minYears": 1, "points": 35 }
+    ]
+  },
+  "sectionB": {
+    "spouseEducation": {
+      "less_than_secondary": 0,
+      "secondary": 2,
+      "one_year_post_secondary": 6,
+      "two_year_post_secondary": 7,
+      "bachelors": 8,
+      "two_or_more_degrees": 9,
+      "masters": 10,
+      "doctoral": 10
+    },
+    "spouseLanguage": [
+      { "minClb": 9, "points": 5 },
+      { "minClb": 7, "points": 3 },
+      { "minClb": 5, "points": 1 }
+    ],
+    "spouseCwe": [
+      { "minYears": 5, "points": 10 },
+      { "minYears": 4, "points": 9  },
+      { "minYears": 3, "points": 8  },
+      { "minYears": 2, "points": 7  },
+      { "minYears": 1, "points": 5  }
+    ]
+  },
+  "sectionC": {
+    "maxTotal": 100,
+    "eduLanguage": {
+      "postSecondary12": { "clb9": 25, "clb7": 13 },
+      "bachelorsPlus":   { "clb9": 50, "clb7": 25 }
+    },
+    "eduCanadianExp": {
+      "bachelorsPlus":   { "cwe2plus": 50, "cwe1": 25 },
+      "postSecondary12": { "cwe2plus": 25, "cwe1": 13 }
+    },
+    "foreignExpLanguage": {
+      "fwe3plus": { "clb9": 50, "clb7": 25 },
+      "fwe1plus":  { "clb9": 25, "clb7": 13 }
+    },
+    "foreignExpCanadianExp": {
+      "fwe3plus": { "cwe2plus": 50, "cwe1": 25 },
+      "fwe1plus":  { "cwe2plus": 25, "cwe1": 13 }
+    }
+  },
+  "sectionD": {
+    "provincialNomination": 600,
+    "sibling": 15
+  },
+  "fsw": {
+    "passmark": 67,
+    "minFirstLanguageClb": 7,
+    "education": {
+      "less_than_secondary": 0,
+      "secondary": 5,
+      "one_year_post_secondary": 15,
+      "two_year_post_secondary": 19,
+      "bachelors": 21,
+      "two_or_more_degrees": 22,
+      "masters": 23,
+      "doctoral": 25
+    },
+    "languagePerBand": [
+      { "minClb": 9, "points": 6 },
+      { "minClb": 8, "points": 5 },
+      { "minClb": 7, "points": 4 }
+    ],
+    "secondLanguageCapBands": 4,
+    "secondLanguageMinClb": 5,
+    "maxLanguageTotal": 28,
+    "workExp": [
+      { "minYears": 6, "points": 15 },
+      { "minYears": 3, "points": 13 },
+      { "minYears": 2, "points": 11 },
+      { "minYears": 1, "points": 9  }
+    ],
+    "agePoints": {
+      "18": 12, "19": 12, "20": 12, "21": 12, "22": 12, "23": 12, "24": 12,
+      "25": 12, "26": 12, "27": 12, "28": 12, "29": 12, "30": 12, "31": 12,
+      "32": 12, "33": 12, "34": 12, "35": 12,
+      "36": 11, "37": 10, "38": 9, "39": 8, "40": 7, "41": 6, "42": 5
+    },
+    "adaptabilityPerFactor": 5,
+    "adaptabilityMax": 10
+  },
+  "languageConversion": {
+    "IELTS_GT": {
+      "L": [
+        { "min": 8.5, "clb": 10 },
+        { "min": 8.0, "clb": 9  },
+        { "min": 7.5, "clb": 8  },
+        { "min": 6.0, "clb": 7  },
+        { "min": 5.5, "clb": 6  },
+        { "min": 5.0, "clb": 5  },
+        { "min": 4.5, "clb": 4  }
+      ],
+      "R": [
+        { "min": 8.0, "clb": 10 },
+        { "min": 7.0, "clb": 9  },
+        { "min": 6.5, "clb": 8  },
+        { "min": 6.0, "clb": 7  },
+        { "min": 5.0, "clb": 6  },
+        { "min": 4.0, "clb": 5  },
+        { "min": 3.5, "clb": 4  }
+      ],
+      "W": [
+        { "min": 7.5, "clb": 10 },
+        { "min": 7.0, "clb": 9  },
+        { "min": 6.5, "clb": 8  },
+        { "min": 6.0, "clb": 7  },
+        { "min": 5.5, "clb": 6  },
+        { "min": 5.0, "clb": 5  },
+        { "min": 4.0, "clb": 4  }
+      ],
+      "S": [
+        { "min": 7.5, "clb": 10 },
+        { "min": 7.0, "clb": 9  },
+        { "min": 6.5, "clb": 8  },
+        { "min": 6.0, "clb": 7  },
+        { "min": 5.5, "clb": 6  },
+        { "min": 5.0, "clb": 5  },
+        { "min": 4.0, "clb": 4  }
+      ]
+    },
+    "IELTS_Academic": {
+      "_note": "IRCC treats Academic and GT identically for Express Entry conversions.",
+      "L": [
+        { "min": 8.5, "clb": 10 },
+        { "min": 8.0, "clb": 9  },
+        { "min": 7.5, "clb": 8  },
+        { "min": 6.0, "clb": 7  },
+        { "min": 5.5, "clb": 6  },
+        { "min": 5.0, "clb": 5  },
+        { "min": 4.5, "clb": 4  }
+      ],
+      "R": [
+        { "min": 8.0, "clb": 10 },
+        { "min": 7.0, "clb": 9  },
+        { "min": 6.5, "clb": 8  },
+        { "min": 6.0, "clb": 7  },
+        { "min": 5.0, "clb": 6  },
+        { "min": 4.0, "clb": 5  },
+        { "min": 3.5, "clb": 4  }
+      ],
+      "W": [
+        { "min": 7.5, "clb": 10 },
+        { "min": 7.0, "clb": 9  },
+        { "min": 6.5, "clb": 8  },
+        { "min": 6.0, "clb": 7  },
+        { "min": 5.5, "clb": 6  },
+        { "min": 5.0, "clb": 5  },
+        { "min": 4.0, "clb": 4  }
+      ],
+      "S": [
+        { "min": 7.5, "clb": 10 },
+        { "min": 7.0, "clb": 9  },
+        { "min": 6.5, "clb": 8  },
+        { "min": 6.0, "clb": 7  },
+        { "min": 5.5, "clb": 6  },
+        { "min": 5.0, "clb": 5  },
+        { "min": 4.0, "clb": 4  }
+      ]
+    },
+    "CELPIP": {
+      "_note": "Direct 1:1 per IRCC table. Same scale applies to all four abilities.",
+      "all": [
+        { "min": 10, "clb": 10 },
+        { "min": 9,  "clb": 9  },
+        { "min": 8,  "clb": 8  },
+        { "min": 7,  "clb": 7  },
+        { "min": 6,  "clb": 6  },
+        { "min": 5,  "clb": 5  },
+        { "min": 4,  "clb": 4  }
+      ]
+    },
+    "TEF": {
+      "_note": "TEF Canada to CLB/NCLC. Source: canada.ca language test equivalency charts.",
+      "L": [
+        { "min": 316, "clb": 10 },
+        { "min": 298, "clb": 9  },
+        { "min": 280, "clb": 8  },
+        { "min": 249, "clb": 7  },
+        { "min": 217, "clb": 6  },
+        { "min": 181, "clb": 5  },
+        { "min": 145, "clb": 4  }
+      ],
+      "R": [
+        { "min": 263, "clb": 10 },
+        { "min": 248, "clb": 9  },
+        { "min": 233, "clb": 8  },
+        { "min": 207, "clb": 7  },
+        { "min": 181, "clb": 6  },
+        { "min": 151, "clb": 5  },
+        { "min": 121, "clb": 4  }
+      ],
+      "W": [
+        { "min": 393, "clb": 10 },
+        { "min": 371, "clb": 9  },
+        { "min": 349, "clb": 8  },
+        { "min": 310, "clb": 7  },
+        { "min": 271, "clb": 6  },
+        { "min": 226, "clb": 5  },
+        { "min": 181, "clb": 4  }
+      ],
+      "S": [
+        { "min": 393, "clb": 10 },
+        { "min": 371, "clb": 9  },
+        { "min": 349, "clb": 8  },
+        { "min": 310, "clb": 7  },
+        { "min": 271, "clb": 6  },
+        { "min": 226, "clb": 5  },
+        { "min": 181, "clb": 4  }
+      ]
+    },
+    "TCF": {
+      "_note": "TCF Canada. L/R: 100-699 scale. W/S: 0-20 scale. Source: canada.ca (modified 2024-03-04).",
+      "L": [
+        { "min": 549, "clb": 10 },
+        { "min": 523, "clb": 9  },
+        { "min": 503, "clb": 8  },
+        { "min": 458, "clb": 7  },
+        { "min": 398, "clb": 6  },
+        { "min": 369, "clb": 5  },
+        { "min": 331, "clb": 4  }
+      ],
+      "R": [
+        { "min": 549, "clb": 10 },
+        { "min": 524, "clb": 9  },
+        { "min": 499, "clb": 8  },
+        { "min": 453, "clb": 7  },
+        { "min": 406, "clb": 6  },
+        { "min": 375, "clb": 5  },
+        { "min": 342, "clb": 4  }
+      ],
+      "WS": [
+        { "min": 16, "clb": 10 },
+        { "min": 14, "clb": 9  },
+        { "min": 12, "clb": 8  },
+        { "min": 10, "clb": 7  },
+        { "min": 7,  "clb": 6  },
+        { "min": 6,  "clb": 5  },
+        { "min": 4,  "clb": 4  }
+      ]
+    }
+  }
+}

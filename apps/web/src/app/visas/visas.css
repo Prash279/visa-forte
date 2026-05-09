@@ -8,15 +8,6 @@
   overflow: hidden;
 }
 
-.visas-hero::before {
-  content: '';
-  position: absolute;
-  left: 2.5rem;
-  top: 0; bottom: 0;
-  width: 1px;
-  background: linear-gradient(to bottom, transparent 10%, rgba(201,123,30,0.25) 35%, rgba(201,123,30,0.25) 65%, transparent 90%);
-  pointer-events: none;
-}
 
 .visas-hero-inner {
   max-width: var(--max-w);
@@ -871,7 +862,6 @@
 
 @media (max-width: 640px) {
   .visas-hero                 { padding: 9rem 1.25rem 5rem; }
-  .visas-hero::before         { display: none; }
   .visas-docs-grid            { grid-template-columns: 1fr; }
   .visas-crs-grid             { grid-template-columns: 1fr; gap: 1.25rem; }
   .visas-step                 { grid-template-columns: 50px 1fr; gap: 1.25rem; padding: 1.75rem 1.25rem; }

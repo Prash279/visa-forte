@@ -1,10 +1,10 @@
 name: Update IRCC Settlement Funds
 
-# Runs every Monday at 06:00 UTC (11:30 IST).
+# Runs every day at 01:00 UTC (06:30 IST).
 # Also triggerable manually from the Actions tab.
 on:
   schedule:
-    - cron: '0 6 * * 1'
+    - cron: '0 1 * * *'
   workflow_dispatch:
 
 jobs:

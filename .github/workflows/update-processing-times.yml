@@ -1,6 +1,6 @@
-name: Update Express Entry Draw History
+name: Update IRCC Processing Times
 
-# Runs every day at 01:00 UTC (06:30 IST) to catch draws as soon as they are published.
+# Runs every day at 01:00 UTC (06:30 IST).
 # Also triggerable manually from the Actions tab.
 on:
   schedule:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   sync:
-    name: Sync draw history from canada.ca
+    name: Sync processing times from canada.ca
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -29,8 +29,8 @@ jobs:
           npm install
           npx playwright install chromium --with-deps
 
-      - name: Fetch and update draw history
-        run: node scripts/update-draw-history.mjs
+      - name: Fetch and update processing times
+        run: node scripts/update-processing-times.mjs
 
       - name: Commit if changed
         run: |
@@ -39,8 +39,8 @@ jobs:
           else
             git config user.name "VisaForte Data Bot"
             git config user.email "bot@visaforte.com"
-            git add apps/web/src/lib/crs-draw-history.json
-            git commit -m "data: update EE draw history from canada.ca ($(date +%Y-%m-%d))"
+            git add apps/web/src/lib/processing-times.json
+            git commit -m "data: update IRCC processing times from canada.ca ($(date +%Y-%m-%d))"
             git push
-            echo "Committed and pushed updated crs-draw-history.json"
+            echo "Committed and pushed updated processing-times.json"
           fi

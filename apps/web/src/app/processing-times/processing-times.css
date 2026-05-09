@@ -1,0 +1,334 @@
+/* processing-times.css — styles for /processing-times only */
+
+/* ── PAGE WRAPPER ────────────────────────────────────────── */
+.pt-page {
+  background: var(--pearl);
+}
+
+/* ── HERO ────────────────────────────────────────────────── */
+.pt-hero {
+  background: var(--prussian);
+  padding: 11rem 2.5rem 7rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.pt-hero-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.pt-eyebrow {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  margin-bottom: 1.5rem;
+}
+
+.pt-headline {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 6vw, 5.6rem);
+  font-weight: 300;
+  line-height: 1.05;
+  color: var(--pearl);
+  margin-bottom: 2rem;
+  max-width: 700px;
+}
+
+.pt-headline em {
+  font-style: italic;
+  color: var(--saffron);
+}
+
+.pt-sub {
+  font-size: 1.05rem;
+  color: rgba(248, 244, 238, 0.72);
+  max-width: 560px;
+  line-height: 1.75;
+  margin-bottom: 1.5rem;
+}
+
+.pt-updated {
+  font-size: 0.78rem;
+  color: rgba(248, 244, 238, 0.4);
+  font-family: var(--font-body);
+  letter-spacing: 0.04em;
+}
+
+/* ── DISCLAIMER BANNER ───────────────────────────────────── */
+.pt-disclaimer-section {
+  background: var(--amber);
+  border-bottom: 1px solid rgba(201, 123, 30, 0.25);
+}
+
+.pt-disclaimer-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 1.25rem 2.5rem;
+}
+
+.pt-disclaimer-text {
+  font-size: 0.82rem;
+  color: var(--ink);
+  line-height: 1.7;
+}
+
+.pt-disclaimer-text a {
+  color: var(--saffron);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── CARDS SECTION ───────────────────────────────────────── */
+.pt-cards-section {
+  padding: 5rem 2.5rem 4rem;
+}
+
+.pt-cards-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+}
+
+.pt-group {}
+
+.pt-group-heading {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 1.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--sand);
+}
+
+.pt-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+/* ── INDIVIDUAL CARD ─────────────────────────────────────── */
+.pt-card {
+  background: #fff;
+  border: 1px solid var(--sand);
+  border-radius: 4px;
+  padding: 2rem 1.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.pt-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+
+.pt-card.pt-fast::before     { background: #2a8a4a; }
+.pt-card.pt-moderate::before { background: var(--saffron); }
+.pt-card.pt-slow::before     { background: #c0392b; }
+.pt-card.pt-unknown::before  { background: var(--sand); }
+
+.pt-card-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.pt-card-label {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.pt-card-time {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0.25rem;
+}
+
+.pt-months {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 300;
+  color: var(--prussian);
+  line-height: 1;
+}
+
+.pt-months-label {
+  font-size: 0.88rem;
+  color: rgba(26, 43, 60, 0.6);
+  font-weight: 400;
+}
+
+.pt-pending {
+  font-size: 0.88rem;
+  color: rgba(26, 43, 60, 0.45);
+  font-style: italic;
+}
+
+/* Progress bar */
+.pt-bar-track {
+  height: 4px;
+  background: var(--sand);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.pt-fast     .pt-bar-fill { background: #2a8a4a; }
+.pt-moderate .pt-bar-fill { background: var(--saffron); }
+.pt-slow     .pt-bar-fill { background: #c0392b; }
+.pt-unknown  .pt-bar-fill { background: var(--sand); }
+
+.pt-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.pt-card-note {
+  font-size: 0.72rem;
+  color: rgba(26, 43, 60, 0.45);
+  line-height: 1.5;
+  margin-top: 0.25rem;
+}
+
+/* ── FACTORS SECTION ─────────────────────────────────────── */
+.pt-factors-section {
+  background: var(--prussian);
+  padding: 6rem 2.5rem;
+}
+
+.pt-factors-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+}
+
+.pt-eyebrow-dark {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  margin-bottom: 1rem;
+}
+
+.pt-factors-heading {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3vw, 2.6rem);
+  font-weight: 300;
+  color: var(--pearl);
+  margin-bottom: 3rem;
+  max-width: 560px;
+}
+
+.pt-factors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 2rem;
+}
+
+.pt-factor {
+  border-top: 1px solid rgba(248, 244, 238, 0.12);
+  padding-top: 1.5rem;
+}
+
+.pt-factor h3 {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--pearl);
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.01em;
+}
+
+.pt-factor p {
+  font-size: 0.88rem;
+  color: rgba(248, 244, 238, 0.6);
+  line-height: 1.75;
+}
+
+/* ── CTA SECTION ─────────────────────────────────────────── */
+.pt-cta-section {
+  padding: 7rem 2.5rem;
+  background: var(--pearl);
+  text-align: center;
+}
+
+.pt-cta-inner {
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.pt-cta-heading {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 300;
+  color: var(--prussian);
+  margin-bottom: 1rem;
+}
+
+.pt-cta-sub {
+  font-size: 1rem;
+  color: rgba(26, 43, 60, 0.65);
+  line-height: 1.75;
+  margin-bottom: 2.5rem;
+}
+
+.pt-cta-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+/* ── LEGAL SECTION ───────────────────────────────────────── */
+.pt-legal-section {
+  background: var(--prussian);
+  padding: 2.5rem 2.5rem;
+}
+
+.pt-legal-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+}
+
+.pt-legal-text {
+  font-size: 0.75rem;
+  color: rgba(248, 244, 238, 0.35);
+  line-height: 1.75;
+}
+
+.pt-legal-text a {
+  color: rgba(248, 244, 238, 0.5);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .pt-hero          { padding: 9rem 1.25rem 5rem; }
+  .pt-cards-section { padding: 3rem 1.25rem 2rem; }
+  .pt-factors-section { padding: 4rem 1.25rem; }
+  .pt-cta-section   { padding: 5rem 1.25rem; }
+  .pt-legal-section { padding: 2rem 1.25rem; }
+  .pt-disclaimer-inner { padding: 1rem 1.25rem; }
+  .pt-cards-grid    { grid-template-columns: 1fr; }
+  .pt-cta-actions   { flex-direction: column; align-items: center; gap: 1.25rem; }
+}
