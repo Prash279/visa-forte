@@ -1,0 +1,892 @@
+/* visas.css — styles for /visas only */
+
+/* ── HERO ─────────────────────────────────────────────────── */
+.visas-hero {
+  background: var(--prussian);
+  padding: 11rem 2.5rem 7rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.visas-hero::before {
+  content: '';
+  position: absolute;
+  left: 2.5rem;
+  top: 0; bottom: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent 10%, rgba(201,123,30,0.25) 35%, rgba(201,123,30,0.25) 65%, transparent 90%);
+  pointer-events: none;
+}
+
+.visas-hero-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.visas-hero-headline {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 6vw, 5.6rem);
+  font-weight: 400;
+  line-height: 1.06;
+  color: var(--pearl);
+  letter-spacing: -0.015em;
+}
+
+.visas-hero-headline em {
+  font-style: italic;
+  color: var(--saffron);
+}
+
+.visas-hero-lead {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 300;
+  line-height: 1.85;
+  color: rgba(248, 244, 238, 0.58);
+  max-width: 620px;
+}
+
+.visas-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-top: 2.75rem;
+  flex-wrap: wrap;
+}
+
+/* ── PROGRAM NAVIGATOR ────────────────────────────────────── */
+.visas-nav-section { background: var(--pearl); }
+
+.visas-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--sand);
+  border: 1px solid var(--sand);
+  margin-top: 0.5rem;
+}
+
+.visas-nav-card {
+  background: var(--pearl);
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  text-decoration: none;
+  transition: background 0.25s ease;
+  cursor: pointer;
+}
+
+.visas-nav-card:hover { background: #f4f0ea; }
+
+.visas-nav-tag {
+  font-family: var(--font-body);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  padding: 0.22rem 0.65rem;
+  border: 1px solid rgba(201, 123, 30, 0.3);
+  width: fit-content;
+}
+
+.visas-nav-name {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: var(--prussian);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.visas-nav-streams {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(26, 43, 60, 0.45);
+}
+
+.visas-nav-summary {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 300;
+  line-height: 1.78;
+  color: var(--ink);
+  flex: 1;
+  margin-top: 0.35rem;
+}
+
+.visas-nav-link {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--teal);
+  border-bottom: 1px solid rgba(26, 92, 114, 0.28);
+  padding-bottom: 2px;
+  width: fit-content;
+  margin-top: 0.5rem;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.visas-nav-card:hover .visas-nav-link {
+  color: var(--prussian);
+  border-color: var(--prussian);
+}
+
+/* ── PROGRAM SECTION (EXPRESS ENTRY) ─────────────────────── */
+.visas-program-section { background: var(--pearl); }
+
+.visas-program-lead {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.88;
+  color: var(--ink);
+  max-width: 740px;
+  opacity: 0.78;
+}
+
+/* Three-stream comparison */
+.visas-streams-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--sand);
+  border: 1px solid var(--sand);
+  margin-top: 3rem;
+}
+
+.visas-stream {
+  background: var(--pearl);
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.visas-stream-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.visas-stream-code {
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  padding: 0.2rem 0.6rem;
+  border: 1px solid rgba(201, 123, 30, 0.32);
+  width: fit-content;
+}
+
+.visas-stream-name {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--prussian);
+  line-height: 1.25;
+  letter-spacing: -0.008em;
+}
+
+.visas-stream-who {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: rgba(26, 43, 60, 0.55);
+  font-style: italic;
+}
+
+.visas-stream-reqs {
+  flex: 1;
+}
+
+.visas-stream-req-label {
+  font-family: var(--font-body);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  margin-bottom: 0.75rem;
+}
+
+.visas-stream-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.visas-stream-list li {
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  font-weight: 300;
+  line-height: 1.62;
+  color: var(--ink);
+  padding-left: 1.1rem;
+  position: relative;
+}
+
+.visas-stream-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 5px;
+  height: 1px;
+  background: var(--saffron);
+}
+
+.visas-stream-note {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 300;
+  line-height: 1.68;
+  color: rgba(26, 43, 60, 0.52);
+  padding-top: 1rem;
+  border-top: 1px solid var(--sand);
+}
+
+/* CRS scoring box */
+.visas-crs-box {
+  background: var(--prussian);
+  padding: 3rem;
+  margin-top: 3rem;
+}
+
+.visas-crs-label {
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  margin-bottom: 1.75rem;
+}
+
+.visas-crs-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+}
+
+.visas-crs-factor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.visas-crs-factor-name {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pearl);
+}
+
+.visas-crs-factor-desc {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 300;
+  line-height: 1.68;
+  color: rgba(248, 244, 238, 0.5);
+}
+
+.visas-crs-note {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.6;
+  color: rgba(248, 244, 238, 0.42);
+  padding-top: 1.75rem;
+  margin-top: 1.75rem;
+  border-top: 1px solid rgba(248, 244, 238, 0.08);
+}
+
+/* ── APPLICATION PROCESS ──────────────────────────────────── */
+.visas-process-section { background: var(--prussian); }
+
+.visas-process-section .eyebrow { color: var(--saffron); }
+.visas-process-section .headline { color: var(--pearl); }
+.visas-process-section .rule { background: var(--saffron); }
+
+.visas-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid rgba(248, 244, 238, 0.06);
+}
+
+.visas-step {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 2rem;
+  padding: 2.25rem 2.5rem;
+  border-bottom: 1px solid rgba(248, 244, 238, 0.06);
+  transition: background 0.22s ease;
+}
+
+.visas-step:last-child { border-bottom: none; }
+.visas-step:hover { background: rgba(248, 244, 238, 0.03); }
+
+.visas-step-n {
+  font-family: var(--font-display);
+  font-size: 2.8rem;
+  font-weight: 300;
+  color: rgba(248, 244, 238, 0.07);
+  line-height: 1;
+  align-self: start;
+  padding-top: 0.15rem;
+}
+
+.visas-step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.visas-step-title {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--saffron);
+}
+
+.visas-step-body {
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 300;
+  line-height: 1.82;
+  color: rgba(248, 244, 238, 0.55);
+  max-width: 680px;
+}
+
+/* ── DOCUMENTS ────────────────────────────────────────────── */
+.visas-docs-section { background: var(--pearl); }
+
+.visas-docs-lead {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 300;
+  line-height: 1.85;
+  color: var(--ink);
+  max-width: 680px;
+  opacity: 0.75;
+}
+
+.visas-docs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--sand);
+  border: 1px solid var(--sand);
+  margin-top: 3rem;
+}
+
+.visas-doc-category {
+  background: var(--pearl);
+  padding: 2rem 2.25rem;
+}
+
+.visas-doc-cat-name {
+  font-family: var(--font-body);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--sand);
+}
+
+.visas-doc-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.visas-doc-list li {
+  font-family: var(--font-body);
+  font-size: 0.83rem;
+  font-weight: 300;
+  line-height: 1.62;
+  color: var(--ink);
+  padding-left: 1rem;
+  position: relative;
+}
+
+.visas-doc-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 4px;
+  height: 1px;
+  background: var(--saffron);
+}
+
+.visas-docs-callout {
+  background: var(--amber);
+  border-left: 3px solid var(--saffron);
+  padding: 1.75rem 2rem;
+  margin-top: 3rem;
+}
+
+.visas-docs-callout p {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 400;
+  line-height: 1.72;
+  color: var(--ink);
+}
+
+.visas-docs-callout strong {
+  font-weight: 600;
+  color: var(--prussian);
+}
+
+/* ── FEES & PROCESSING TIMES ──────────────────────────────── */
+.visas-fees-section { background: var(--prussian); }
+
+.visas-fees-section .eyebrow { color: var(--saffron); }
+.visas-fees-section .headline { color: var(--pearl); }
+.visas-fees-section .rule { background: var(--saffron); }
+
+.visas-fees-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5rem;
+  align-items: start;
+}
+
+.visas-fees-sublabel {
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(248, 244, 238, 0.35);
+  margin-bottom: 1.25rem;
+}
+
+.visas-fees-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.visas-fees-table thead tr {
+  border-bottom: 1px solid rgba(201, 123, 30, 0.3);
+}
+
+.visas-fees-table th {
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(248, 244, 238, 0.35);
+  padding: 0 0 0.75rem;
+  text-align: left;
+}
+
+.visas-fees-table th:last-child { text-align: right; }
+
+.visas-fees-table tbody tr {
+  border-bottom: 1px solid rgba(248, 244, 238, 0.06);
+}
+
+.visas-fees-table tbody tr:last-child { border-bottom: none; }
+
+.visas-fees-table td {
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  font-weight: 300;
+  color: rgba(248, 244, 238, 0.65);
+  padding: 0.9rem 0;
+  line-height: 1.5;
+}
+
+.visas-fee-amount {
+  text-align: right;
+  font-weight: 500;
+  color: var(--pearl) !important;
+  white-space: nowrap;
+}
+
+.visas-fees-note {
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  font-weight: 300;
+  line-height: 1.68;
+  color: rgba(248, 244, 238, 0.35);
+  margin-top: 1.25rem;
+}
+
+.visas-fees-note a {
+  color: rgba(201, 123, 30, 0.75);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(201, 123, 30, 0.3);
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.visas-fees-note a:hover {
+  color: var(--saffron);
+  border-color: var(--saffron);
+}
+
+.visas-times-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: rgba(248, 244, 238, 0.06);
+  border: 1px solid rgba(248, 244, 238, 0.06);
+}
+
+.visas-time-card {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1.25rem 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 0.2rem 1rem;
+}
+
+.visas-time-program {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(248, 244, 238, 0.55);
+  grid-column: 1;
+  grid-row: 1;
+  align-self: end;
+}
+
+.visas-time-target {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: var(--pearl);
+  grid-column: 2;
+  grid-row: 1 / 3;
+  align-self: center;
+  white-space: nowrap;
+}
+
+.visas-time-basis {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 300;
+  color: rgba(248, 244, 238, 0.32);
+  grid-column: 1;
+  grid-row: 2;
+  line-height: 1.5;
+}
+
+/* ── PROVINCIAL NOMINEE PROGRAMS ──────────────────────────── */
+.visas-pnp-section { background: var(--pearl); }
+
+.visas-pnp-lead {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.85;
+  color: var(--ink);
+  max-width: 700px;
+  opacity: 0.75;
+}
+
+.visas-pnp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--sand);
+  border: 1px solid var(--sand);
+  margin-top: 3rem;
+}
+
+.visas-pnp-type {
+  background: var(--pearl);
+  padding: 2.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.visas-pnp-type-tag {
+  font-family: var(--font-body);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  padding: 0.22rem 0.65rem;
+  border: 1px solid rgba(201, 123, 30, 0.3);
+  width: fit-content;
+}
+
+.visas-pnp-type-name {
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  font-weight: 500;
+  color: var(--prussian);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.visas-pnp-type-body {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 300;
+  line-height: 1.82;
+  color: var(--ink);
+  opacity: 0.75;
+}
+
+.visas-pnp-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--sand);
+}
+
+.visas-pnp-list li {
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  font-weight: 400;
+  color: var(--ink);
+  padding-left: 1rem;
+  position: relative;
+  line-height: 1.5;
+}
+
+.visas-pnp-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 5px;
+  height: 1px;
+  background: var(--saffron);
+}
+
+.visas-pnp-callout {
+  background: var(--amber);
+  border-left: 3px solid var(--saffron);
+  padding: 1.75rem 2rem;
+  margin-top: 3rem;
+}
+
+.visas-pnp-callout p {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 400;
+  line-height: 1.78;
+  color: var(--ink);
+}
+
+/* ── OTHER PATHWAYS ───────────────────────────────────────── */
+.visas-other-section { background: var(--prussian); }
+
+.visas-other-section .eyebrow { color: var(--saffron); }
+.visas-other-section .headline { color: var(--pearl); }
+.visas-other-section .rule { background: var(--saffron); }
+
+.visas-other-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: rgba(248, 244, 238, 0.06);
+  border: 1px solid rgba(248, 244, 238, 0.06);
+}
+
+.visas-other-card {
+  background: rgba(248, 244, 238, 0.025);
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition: background 0.22s ease;
+}
+
+.visas-other-card:hover { background: rgba(248, 244, 238, 0.045); }
+
+.visas-other-tag {
+  font-family: var(--font-body);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  opacity: 0.7;
+}
+
+.visas-other-name {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+  color: var(--pearl);
+  line-height: 1.22;
+  letter-spacing: -0.008em;
+}
+
+.visas-other-body {
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  font-weight: 300;
+  line-height: 1.78;
+  color: rgba(248, 244, 238, 0.5);
+  margin-top: 0.25rem;
+}
+
+.visas-other-note {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 300;
+  line-height: 1.65;
+  color: rgba(248, 244, 238, 0.3);
+  padding-top: 2rem;
+  margin-top: 1rem;
+  border-top: 1px solid rgba(248, 244, 238, 0.06);
+}
+
+/* ── DISCLAIMER ───────────────────────────────────────────── */
+.visas-disclaimer-section {
+  background: var(--pearl);
+  padding: 3rem 2.5rem;
+}
+
+.visas-disclaimer {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  background: var(--amber);
+  border-left: 3px solid rgba(201, 123, 30, 0.5);
+  padding: 1.5rem 2rem;
+}
+
+.visas-disclaimer-label {
+  font-family: var(--font-body);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  margin-bottom: 0.75rem;
+}
+
+.visas-disclaimer p:not(.visas-disclaimer-label) {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 300;
+  line-height: 1.72;
+  color: var(--ink);
+  opacity: 0.7;
+}
+
+.visas-disclaimer a {
+  color: var(--teal);
+  border-bottom: 1px solid rgba(26, 92, 114, 0.3);
+  text-decoration: none;
+}
+
+/* ── CTA ──────────────────────────────────────────────────── */
+.visas-cta-section {
+  background: var(--prussian);
+  padding: 9rem 2.5rem;
+  position: relative;
+}
+
+.visas-cta-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 2.5rem; right: 2.5rem;
+  height: 1px;
+  background: rgba(201, 123, 30, 0.18);
+}
+
+.visas-cta-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.visas-cta-headline {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 400;
+  color: var(--pearl);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.5rem;
+}
+
+.visas-cta-body {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.78;
+  color: rgba(248, 244, 238, 0.5);
+  max-width: 560px;
+  margin-bottom: 2.75rem;
+}
+
+.visas-cta-actions {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .visas-crs-grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+}
+
+@media (max-width: 960px) {
+  .visas-nav-grid       { grid-template-columns: 1fr; }
+  .visas-streams-grid   { grid-template-columns: 1fr; }
+  .visas-docs-grid      { grid-template-columns: repeat(2, 1fr); }
+  .visas-fees-layout    { grid-template-columns: 1fr; gap: 3.5rem; }
+  .visas-pnp-grid       { grid-template-columns: 1fr; }
+  .visas-other-grid     { grid-template-columns: 1fr; }
+  .visas-crs-grid       { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .visas-hero                 { padding: 9rem 1.25rem 5rem; }
+  .visas-hero::before         { display: none; }
+  .visas-docs-grid            { grid-template-columns: 1fr; }
+  .visas-crs-grid             { grid-template-columns: 1fr; gap: 1.25rem; }
+  .visas-step                 { grid-template-columns: 50px 1fr; gap: 1.25rem; padding: 1.75rem 1.25rem; }
+  .visas-step-n               { font-size: 2rem; }
+  .visas-crs-box              { padding: 2rem 1.5rem; }
+  .visas-pnp-type             { padding: 2rem 1.5rem; }
+  .visas-other-card           { padding: 1.75rem 1.5rem; }
+  .visas-stream               { padding: 2rem 1.5rem; }
+  .visas-nav-card             { padding: 1.75rem 1.5rem; }
+  .visas-cta-section          { padding: 6rem 1.25rem; }
+  .visas-cta-section::before  { left: 1.25rem; right: 1.25rem; }
+  .visas-cta-actions          { flex-direction: column; align-items: flex-start; gap: 1.25rem; }
+  .visas-disclaimer-section   { padding: 2rem 1.25rem; }
+  .visas-time-card            { grid-template-columns: 1fr; grid-template-rows: auto auto auto; }
+  .visas-time-target          { grid-column: 1; grid-row: 2; font-size: 1.2rem; }
+  .visas-time-basis           { grid-row: 3; }
+  .visas-fees-table td        { font-size: 0.78rem; }
+}
