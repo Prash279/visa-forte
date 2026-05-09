@@ -113,10 +113,8 @@ export default function PortalDashboard({ client, checklist, uploadedMap, monito
     }
   }
 
-  async function handleDownloadMsgAttachment(msgId: string) {
-    const res = await fetch(`/api/portal/messages/${msgId}/attachment`)
-    const data = (await res.json()) as { url?: string }
-    if (data.url) window.open(data.url, '_blank')
+  function handleDownloadMsgAttachment(msgId: string) {
+    window.open(`/api/portal/messages/${msgId}/attachment`, '_blank')
   }
 
   function triggerUpload(docTypeId: string) {

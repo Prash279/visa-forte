@@ -3,7 +3,6 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { messages, clients } from '../../../../../../../drizzle/schema';
 import { getCurrentAuthSession } from '@/lib/auth-server';
-import { generateDownloadUrl } from '@/lib/storage';
 
 const ADMIN_EMAIL = 'prashant@visaforte.com';
 
@@ -22,8 +21,7 @@ async function getClientForSession(): Promise<string | null> {
 }
 
 // GET /api/portal/messages/[msgId]/attachment
-// Returns a download URL for a message attachment.
-// IDOR prevention: clientId derived from session, not request params.
+// Streams the private blob through the server — IDOR: clientId derived from session.
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ msgId: string }> }
@@ -45,5 +43,21 @@ export async function GET(
     return NextResponse.json({ error: 'Attachment not found' }, { status: 404 });
   }
 
-  return NextResponse.json({ url: generateDownloadUrl(message.attachmentUrl) });
+  const blobRes = await fetch(message.attachmentUrl, {
+    headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
+  });
+
+  if (!blobRes.ok) {
+    return NextResponse.json({ error: 'Failed to fetch attachment' }, { status: 502 });
+  }
+
+  const contentType = blobRes.headers.get('content-type') ?? 'application/octet-stream';
+  const filename = decodeURIComponent(message.attachmentUrl.split('/').pop() ?? 'attachment');
+
+  return new NextResponse(blobRes.body, {
+    headers: {
+      'Content-Type': contentType,
+      'Content-Disposition': `attachment; filename="${filename}"`,
+    },
+  });
 }

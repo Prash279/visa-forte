@@ -385,10 +385,8 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
     }
   }
 
-  async function handleDownloadMsgAttachment(msgId: string, clientId: string) {
-    const res = await fetch(`/api/admin/clients/${clientId}/messages/${msgId}/attachment`)
-    const data = (await res.json()) as { url?: string }
-    if (data.url) window.open(data.url, '_blank')
+  function handleDownloadMsgAttachment(msgId: string, clientId: string) {
+    window.open(`/api/admin/clients/${clientId}/messages/${msgId}/attachment`, '_blank')
   }
 
   function handleDeleteClient(id: string, name: string) {
