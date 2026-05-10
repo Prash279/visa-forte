@@ -66,7 +66,8 @@ export const leads = pgTable('leads', {
   phone: text('phone'),                                       // optional
   serviceInterest: text('service_interest').notNull(),        // one of the 8 service tier names
   notes: text('notes'),                                       // optional free-text from the prospect
-  resumeUrl: text('resume_url'),                             // Vercel Blob URL for uploaded resume
+  resumeUrl: text('resume_url'),                             // base64 data URI of uploaded resume
+  resumeFilename: text('resume_filename'),                   // original filename of uploaded resume
   status: text('status').notNull().default('new'),            // 'new' | 'contacted' | 'converted'
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });

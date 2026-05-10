@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { leads } from '../../../../drizzle/schema';
-import { put } from '@vercel/blob';
 
 const FieldSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
@@ -39,8 +38,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const { name, email, crsScore } = result.data;
 
-  // Upload resume to Vercel Blob if provided (non-fatal — lead is saved either way).
+  // Encode resume as a base64 data URI and store directly in the database.
+  // This approach has no external service dependency and works reliably in all environments.
   let resumeUrl: string | null = null;
+  let resumeFilename: string | null = null;
   const resumeEntry = formData.get('resume');
   if (resumeEntry instanceof File && resumeEntry.size > 0) {
     const mimeType = resumeEntry.type || 'application/octet-stream';
@@ -53,20 +54,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (resumeEntry.size > MAX_FILE_BYTES) {
       return NextResponse.json({ error: 'Resume must be under 5 MB.' }, { status: 400 });
     }
-    try {
-      // Convert File → Buffer for reliable upload in serverless environments.
-      const arrayBuffer = await resumeEntry.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      const blob = await put(
-        `resumes/${Date.now()}-${resumeEntry.name}`,
-        buffer,
-        { access: 'public', contentType: mimeType }
-      );
-      resumeUrl = blob.url;
-    } catch (err) {
-      console.error('Resume upload failed:', err);
-      // Continue without resume URL rather than failing the lead capture.
-    }
+    const arrayBuffer = await resumeEntry.arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString('base64');
+    resumeUrl = `data:${mimeType};base64,${base64}`;
+    resumeFilename = resumeEntry.name;
   }
 
   const notes =
@@ -80,6 +71,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       serviceInterest: 'Pre-Application Eligibility Assessment',
       notes,
       resumeUrl,
+      resumeFilename,
     });
   } catch (err) {
     console.error('Assessment lead insert failed:', err);

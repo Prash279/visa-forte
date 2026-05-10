@@ -27,7 +27,21 @@ export default async function AdminPage() {
   const userName = userEmail.split("@")[0] ?? "there";
 
   // Fetch all intake leads, most recent first.
-  const allLeads = await db.select().from(leads).orderBy(desc(leads.createdAt));
+  // Explicitly exclude resumeUrl (base64 data) to keep the payload small — the
+  // download route serves it on demand.
+  const allLeads = await db
+    .select({
+      id: leads.id,
+      name: leads.name,
+      email: leads.email,
+      serviceInterest: leads.serviceInterest,
+      notes: leads.notes,
+      resumeFilename: leads.resumeFilename,
+      status: leads.status,
+      createdAt: leads.createdAt,
+    })
+    .from(leads)
+    .orderBy(desc(leads.createdAt));
 
   // Fetch all bookings, most recent first.
   const allBookings = await db.select().from(bookings).orderBy(desc(bookings.createdAt));
@@ -292,7 +306,9 @@ export default async function AdminPage() {
                 {allLeads.map((lead) => {
                   const crsMatch = lead.notes?.match(/CRS Score:\s*(\d+)/);
                   const crsScore = crsMatch ? crsMatch[1] : null;
-                  const resumeUrl = lead.resumeUrl ?? null;
+                  const resumeDownloadUrl = lead.resumeFilename
+                    ? `/api/admin/resume/${lead.id}`
+                    : null;
                   return (
                   <tr key={lead.id}>
                     <td><span className="admin-td-name">{lead.name}</span></td>
@@ -312,8 +328,8 @@ export default async function AdminPage() {
                       </span>
                     </td>
                     <td>
-                      {resumeUrl
-                        ? <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="admin-td-email">Download →</a>
+                      {resumeDownloadUrl
+                        ? <a href={resumeDownloadUrl} className="admin-td-email">Download →</a>
                         : <span style={{ color: 'var(--muted, #aaa)' }}>—</span>
                       }
                     </td>

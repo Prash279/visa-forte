@@ -106,6 +106,13 @@
       "when": 1778391595396,
       "tag": "0014_certain_namorita",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1778397025631,
+      "tag": "0015_tiresome_multiple_man",
+      "breakpoints": true
     }
   ]
 }
