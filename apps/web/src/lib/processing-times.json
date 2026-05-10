@@ -1,7 +1,7 @@
 {
   "source": "canada.ca",
   "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html",
-  "lastUpdated": "2026-05-09",
+  "lastUpdated": "2026-05-10",
   "note": "80% of complete applications. Seed values — overwritten daily by GitHub Actions.",
   "programs": [
     {
@@ -37,8 +37,8 @@
     {
       "id": "sponsorship_spouse",
       "label": "Spousal / Partner Sponsorship (inland)",
-      "months": 12,
-      "rawText": "12 months"
+      "months": 4,
+      "rawText": "Add 3 to 4 months to account for mailing time if you"
     }
   ]
 }
