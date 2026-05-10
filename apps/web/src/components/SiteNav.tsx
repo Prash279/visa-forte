@@ -13,12 +13,11 @@ import { useState, useEffect } from "react";
 const HIDDEN_PREFIXES = ["/admin", "/portal", "/login", "/signup", "/logout"];
 
 const NAV_LINKS = [
-  { href: "/about",              label: "About"             },
-  { href: "/services",           label: "Services"          },
-  { href: "/visas",              label: "Visas"             },
-  { href: "/processing-times",   label: "Processing Times"  },
-  { href: "/assessment",         label: "Assessment"        },
-  { href: "/contact",            label: "Contact"           },
+  { href: "/about",        label: "About"      },
+  { href: "/services",     label: "Services"   },
+  { href: "/visas",        label: "Visas"      },
+  { href: "/assessment",   label: "Assessment" },
+  { href: "/contact",      label: "Contact"    },
 ];
 
 // Built as a constant so it is never recalculated on render

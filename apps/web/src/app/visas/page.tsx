@@ -4,12 +4,28 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./visas.css";
+import timesData from "@/lib/processing-times.json";
 
 export const metadata: Metadata = {
   title: "Canadian Immigration Programs — Visa Forte | Express Entry · PNP · Pathways",
   description:
     "Every Canadian PR pathway explained — eligibility, steps, documents, fees, and processing times. Express Entry (FSWP, CEC, FSTP), Provincial Nominee Programs, and more.",
 };
+
+const SHORT_LABELS: Record<string, string> = {
+  ee_fswp:            "Express Entry — FSWP",
+  ee_cec:             "Express Entry — CEC",
+  ee_fstp:            "Express Entry — FSTP",
+  pnp_enhanced:       "PNP — Enhanced Stream",
+  pnp_base:           "PNP — Base Stream",
+  sponsorship_spouse: "Spousal Sponsorship",
+};
+
+function urgencyClass(months: number): string {
+  if (months <= 6) return "time-fast";
+  if (months <= 12) return "time-moderate";
+  return "time-slow";
+}
 
 const PROGRAMS = [
   {
@@ -355,7 +371,7 @@ export default function VisasPage() {
       </section>
 
       {/* ── FEES & PROCESSING TIMES ────────────────────────── */}
-      <section className="sec visas-fees-section">
+      <section className="sec visas-fees-section" id="processing-times">
         <div className="sec-inner">
           <p className="eyebrow r">Government Fees &amp; Processing Times</p>
           <h2 className="headline r d1">What you pay. How long it takes.</h2>
@@ -400,33 +416,26 @@ export default function VisasPage() {
             <div>
               <p className="visas-fees-sublabel">Processing Times</p>
               <div className="visas-times-cards">
-                <div className="visas-time-card">
-                  <span className="visas-time-program">Express Entry</span>
-                  <span className="visas-time-target">6 months</span>
-                  <span className="visas-time-basis">IRCC target for 80% of complete applications</span>
-                </div>
-                <div className="visas-time-card">
-                  <span className="visas-time-program">PNP (EE-linked)</span>
-                  <span className="visas-time-target">12–21 months</span>
-                  <span className="visas-time-basis">Provincial nomination + federal processing combined</span>
-                </div>
-                <div className="visas-time-card">
-                  <span className="visas-time-program">PNP (Base stream)</span>
-                  <span className="visas-time-target">18–24 months</span>
-                  <span className="visas-time-basis">Varies significantly by province and stream</span>
-                </div>
+                {timesData.programs.map((p) => (
+                  <div key={p.id} className={`visas-time-card ${urgencyClass(p.months)}`}>
+                    <span className="visas-time-program">
+                      {SHORT_LABELS[p.id] ?? p.label}
+                    </span>
+                    <span className="visas-time-target">{p.months} mo</span>
+                    <span className="visas-time-basis">80% of complete applications</span>
+                  </div>
+                ))}
               </div>
+              <span className="visas-time-synced">
+                Live from canada.ca · Synced {timesData.lastUpdated}
+              </span>
               <p className="visas-fees-note">
-                Timelines reflect complete, well-prepared applications. Incomplete documentation
-                packages and IRCC information requests add time. Check live processing times at{" "}
-                <a
-                  href="https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html"
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                Times reflect 80% of complete applications and change frequently with IRCC
+                volumes. Incomplete packages extend timelines. Verify current times at{" "}
+                <a href={timesData.url} target="_blank" rel="noreferrer">
                   canada.ca
-                </a>
-                .
+                </a>{" "}
+                before taking any action.
               </p>
             </div>
           </div>
