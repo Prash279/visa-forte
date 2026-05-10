@@ -93,7 +93,7 @@ export default function LeadsTable({ leads: initialLeads }: Props) {
                   </td>
                   <td>
                     {resumeDownloadUrl
-                      ? <a href={resumeDownloadUrl} className="admin-td-email" style={{ whiteSpace: 'nowrap' }}>Download <span style={{ fontSize: '0.625rem', fontWeight: 600, letterSpacing: '0.12em' }}>↓</span></a>
+                      ? <a href={resumeDownloadUrl} className="admin-td-email" style={{ whiteSpace: 'nowrap' }}>Download <span style={{ fontSize: '0.5rem', fontWeight: 600, letterSpacing: '0.12em', verticalAlign: 'middle' }}>↓</span></a>
                       : <span style={{ color: 'var(--muted, #aaa)' }}>—</span>
                     }
                   </td>
