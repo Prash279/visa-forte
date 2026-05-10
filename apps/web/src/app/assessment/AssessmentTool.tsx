@@ -158,7 +158,7 @@ const INITIAL: ApplicantProfile = {
   hasJobOffer: 'none',
   hasCanadianEducation: false,
   hasFamilyInCanada: false,
-  settlementFunds: 0,
+  settlementFunds: minSettlementFunds(1),
   familySize: 1,
   hasCriminalRecord: false,
   hasMedicalCondition: false,

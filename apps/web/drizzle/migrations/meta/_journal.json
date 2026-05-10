@@ -99,6 +99,13 @@
       "when": 1778281827294,
       "tag": "0013_late_killmonger",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1778391595396,
+      "tag": "0014_certain_namorita",
+      "breakpoints": true
     }
   ]
 }

@@ -43,7 +43,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   let resumeUrl: string | null = null;
   const resumeEntry = formData.get('resume');
   if (resumeEntry instanceof File && resumeEntry.size > 0) {
-    if (!ALLOWED_MIME.has(resumeEntry.type)) {
+    const mimeType = resumeEntry.type || 'application/octet-stream';
+    if (!ALLOWED_MIME.has(mimeType)) {
       return NextResponse.json(
         { error: 'Resume must be a PDF or Word document.' },
         { status: 400 }
@@ -53,10 +54,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Resume must be under 5 MB.' }, { status: 400 });
     }
     try {
+      // Convert File → Buffer for reliable upload in serverless environments.
+      const arrayBuffer = await resumeEntry.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
       const blob = await put(
         `resumes/${Date.now()}-${resumeEntry.name}`,
-        resumeEntry,
-        { access: 'public', contentType: resumeEntry.type }
+        buffer,
+        { access: 'public', contentType: mimeType }
       );
       resumeUrl = blob.url;
     } catch (err) {
@@ -67,7 +71,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const notes =
     `CRS Score: ${crsScore}.` +
-    (resumeUrl ? `\nResume: ${resumeUrl}` : '') +
     `\nCaptured from /assessment self-assessment tool.`;
 
   try {
@@ -76,6 +79,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       email,
       serviceInterest: 'Pre-Application Eligibility Assessment',
       notes,
+      resumeUrl,
     });
   } catch (err) {
     console.error('Assessment lead insert failed:', err);

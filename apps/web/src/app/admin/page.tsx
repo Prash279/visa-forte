@@ -292,8 +292,7 @@ export default async function AdminPage() {
                 {allLeads.map((lead) => {
                   const crsMatch = lead.notes?.match(/CRS Score:\s*(\d+)/);
                   const crsScore = crsMatch ? crsMatch[1] : null;
-                  const resumeMatch = lead.notes?.match(/Resume:\s*(https?:\/\/\S+)/);
-                  const resumeUrl = resumeMatch ? resumeMatch[1] : null;
+                  const resumeUrl = lead.resumeUrl ?? null;
                   return (
                   <tr key={lead.id}>
                     <td><span className="admin-td-name">{lead.name}</span></td>
