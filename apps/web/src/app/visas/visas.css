@@ -48,7 +48,7 @@
 }
 
 /* ── PROGRAM NAVIGATOR ────────────────────────────────────── */
-.visas-nav-section { background: var(--pearl); }
+.visas-nav-section { background: var(--pearl); padding-bottom: 0; }
 
 .visas-nav-grid {
   display: grid;
