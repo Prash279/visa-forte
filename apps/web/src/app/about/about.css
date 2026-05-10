@@ -40,7 +40,7 @@
   font-size: 1.05rem;
   font-weight: 300;
   line-height: 1.82;
-  color: rgba(248, 244, 238, 0.62);
+  color: rgba(248, 244, 238, 0.78);
   max-width: 600px;
 }
 
@@ -179,7 +179,7 @@
   font-size: 1.05rem;
   font-weight: 300;
   line-height: 1.85;
-  color: rgba(248, 244, 238, 0.6);
+  color: rgba(248, 244, 238, 0.75);
   max-width: 680px;
   margin-bottom: 4rem;
 }
@@ -208,7 +208,7 @@
   font-family: var(--font-display);
   font-size: 3.5rem;
   font-weight: 300;
-  color: rgba(248, 244, 238, 0.06);
+  color: rgba(248, 244, 238, 0.20);
   line-height: 1;
   margin-bottom: 1.5rem;
 }

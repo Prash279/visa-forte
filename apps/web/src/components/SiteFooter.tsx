@@ -30,6 +30,8 @@ export default function SiteFooter() {
         <nav className="footer-nav" aria-label="Footer navigation">
           <Link href="/about">About</Link>
           <Link href="/services">Services</Link>
+          <Link href="/visas">Visas</Link>
+          <Link href="/assessment">Assessment</Link>
           <Link href="/contact">Contact</Link>
           <Link href="/login">Client Login</Link>
           <Link href="/refund-policy">Refund Policy</Link>

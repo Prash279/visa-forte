@@ -39,7 +39,7 @@
   font-size: 1.05rem;
   font-weight: 300;
   line-height: 1.82;
-  color: rgba(248, 244, 238, 0.58);
+  color: rgba(248, 244, 238, 0.78);
   max-width: 580px;
 }
 
@@ -215,7 +215,7 @@
   font-family: var(--font-display);
   font-size: 3rem;
   font-weight: 300;
-  color: rgba(248, 244, 238, 0.07);
+  color: rgba(248, 244, 238, 0.20);
   line-height: 1;
   margin-bottom: 0.75rem;
 }

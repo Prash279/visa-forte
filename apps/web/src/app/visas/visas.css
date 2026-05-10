@@ -35,7 +35,7 @@
   font-size: 1.05rem;
   font-weight: 300;
   line-height: 1.85;
-  color: rgba(248, 244, 238, 0.58);
+  color: rgba(248, 244, 238, 0.78);
   max-width: 620px;
 }
 
@@ -335,7 +335,7 @@
   font-family: var(--font-display);
   font-size: 2.8rem;
   font-weight: 300;
-  color: rgba(248, 244, 238, 0.07);
+  color: rgba(248, 244, 238, 0.20);
   line-height: 1;
   align-self: start;
   padding-top: 0.15rem;
