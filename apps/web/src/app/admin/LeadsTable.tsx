@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import PromoteButton from './PromoteButton'
+import '../clients/crm.css'
 
 interface SerializedLead {
   id: string
@@ -93,7 +94,7 @@ export default function LeadsTable({ leads: initialLeads }: Props) {
                   </td>
                   <td>
                     {resumeDownloadUrl
-                      ? <a href={resumeDownloadUrl} className="admin-td-email">Download →</a>
+                      ? <a href={resumeDownloadUrl} className="admin-td-email" style={{ whiteSpace: 'nowrap' }}>Download ↓</a>
                       : <span style={{ color: 'var(--muted, #aaa)' }}>—</span>
                     }
                   </td>
