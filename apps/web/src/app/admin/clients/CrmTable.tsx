@@ -40,9 +40,10 @@ interface Props {
   initialDocCounts: Record<string, number>
   initialUnreadFromClient: Record<string, number>
   oldestUnreadClientMsgTs: Record<string, number>
+  resumeMap: Record<string, { leadId: string; filename: string }>
 }
 
-export default function CrmTable({ initialClients, serviceTiers, initialDocCounts, initialUnreadFromClient, oldestUnreadClientMsgTs }: Props) {
+export default function CrmTable({ initialClients, serviceTiers, initialDocCounts, initialUnreadFromClient, oldestUnreadClientMsgTs, resumeMap }: Props) {
   const [clients, setClients] = useState<Client[]>(initialClients)
   const [search, setSearch] = useState('')
   const [stageFilter, setStageFilter] = useState<string>('all')
@@ -487,7 +488,7 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
           <table className="admin-table crm-table">
             <thead>
               <tr>
-                {['Name', 'Email', 'Service Tier', 'Stage', 'Added', 'Notes', 'Docs', 'Msg', 'Portal', ''].map((h) => (
+                {['Name', 'Email', 'Service Tier', 'Stage', 'Added', 'Notes', 'Docs', 'Resume', 'Msg', 'Portal', ''].map((h) => (
                   <th key={h}>{h}</th>
                 ))}
               </tr>
@@ -612,6 +613,21 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                       >
                         Docs{count > 0 ? ` (${count})` : ''}
                       </button>
+                    </td>
+
+                    {/* Resume — download the original resume from assessment, if available */}
+                    <td className="crm-docs-col">
+                      {resumeMap[client.email] ? (
+                        <a
+                          href={`/api/admin/resume/${resumeMap[client.email].leadId}`}
+                          className="crm-docs-btn"
+                          style={{ textDecoration: 'none', display: 'inline-block' }}
+                        >
+                          ↓ Resume
+                        </a>
+                      ) : (
+                        <span className="crm-notes-empty">—</span>
+                      )}
                     </td>
 
                     {/* Message — Step 14: saffron dot if client has unread; Step 17: SLA ⚠ */}

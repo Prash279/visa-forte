@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
-import { desc, eq, count, and, min } from 'drizzle-orm'
+import { desc, eq, count, and, min, inArray } from 'drizzle-orm'
 import { getCurrentAuthSession } from '@/lib/auth-server'
 import { db } from '@/lib/db'
-import { clients, clientDocuments, messages } from '../../../../drizzle/schema'
+import { clients, clientDocuments, messages, leads } from '../../../../drizzle/schema'
 import { PRICING } from '@/lib/pricing'
 import CrmTable from './CrmTable'
 import '../admin.css'
@@ -16,6 +16,22 @@ export default async function CrmPage() {
 
   const allClients = await db.select().from(clients).orderBy(desc(clients.createdAt))
   const serviceTiers = Object.keys(PRICING)
+
+  // Build a map from client email → { leadId, filename } for resume download links.
+  // Resumes live in the leads table (base64 data URI); we serve them via /api/admin/resume/[leadId].
+  const clientEmails = allClients.map((c) => c.email)
+  const resumeMap: Record<string, { leadId: string; filename: string }> = {}
+  if (clientEmails.length > 0) {
+    const resumeLeads = await db
+      .select({ id: leads.id, email: leads.email, resumeFilename: leads.resumeFilename })
+      .from(leads)
+      .where(inArray(leads.email, clientEmails))
+    for (const lead of resumeLeads) {
+      if (lead.resumeFilename) {
+        resumeMap[lead.email] = { leadId: lead.id, filename: lead.resumeFilename }
+      }
+    }
+  }
 
   // Count documents per client for the initial "Docs (N)" button label.
   const docCountRows = await db
@@ -88,6 +104,7 @@ export default async function CrmPage() {
           initialDocCounts={initialDocCounts}
           initialUnreadFromClient={initialUnreadFromClient}
           oldestUnreadClientMsgTs={oldestUnreadClientMsgTs}
+          resumeMap={resumeMap}
         />
 
         <div className="admin-footer">

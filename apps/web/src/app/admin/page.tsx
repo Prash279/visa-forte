@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { and, eq, gte, lte, lt, desc, sql } from "drizzle-orm";
 import { getCurrentAuthSession } from "@/lib/auth-server";
 import SignOutButton from "./SignOutButton";
-import PromoteButton from "./PromoteButton";
+import LeadsTable from "./LeadsTable";
 import BookingCalendar from "./BookingCalendar";
 import DeletionRequestsPanel from "./DeletionRequestsPanel";
 import { db } from "@/lib/db";
@@ -149,6 +149,12 @@ export default async function AdminPage() {
     lastRetentionCount = countRow?.count ?? 0;
   }
 
+  // Serialize leads for the LeadsTable client component (Date → ISO string).
+  const leadsForTable = allLeads.map((l) => ({
+    ...l,
+    createdAt: l.createdAt.toISOString(),
+  }));
+
   // Strip bookings to serializable scalar fields only before passing to the client calendar component.
   // Excludes createdAt (Date object) — not needed for calendar display.
   const bookingsForCalendar = allBookings.map(b => ({
@@ -293,72 +299,7 @@ export default async function AdminPage() {
             <a href="/intake" className="admin-empty-link">Share the intake form →</a>
           </div>
         ) : (
-          <div className="admin-table-wrap">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  {["Name", "Email", "Service Interest", "CRS Score", "Resume", "Submitted", "Status", "Action"].map((h) => (
-                    <th key={h}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {allLeads.map((lead) => {
-                  const crsMatch = lead.notes?.match(/CRS Score:\s*(\d+)/);
-                  const crsScore = crsMatch ? crsMatch[1] : null;
-                  const resumeDownloadUrl = lead.resumeFilename
-                    ? `/api/admin/resume/${lead.id}`
-                    : null;
-                  return (
-                  <tr key={lead.id}>
-                    <td><span className="admin-td-name">{lead.name}</span></td>
-                    <td>
-                      <a href={`mailto:${lead.email}`} className="admin-td-email">
-                        {lead.email}
-                      </a>
-                    </td>
-                    <td>
-                      <span className="admin-td-service" title={lead.serviceInterest}>
-                        {lead.serviceInterest}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="admin-td-date" title={lead.notes ?? undefined}>
-                        {crsScore ?? <span style={{ color: 'var(--muted, #aaa)' }}>—</span>}
-                      </span>
-                    </td>
-                    <td>
-                      {resumeDownloadUrl
-                        ? <a href={resumeDownloadUrl} className="admin-td-email">Download →</a>
-                        : <span style={{ color: 'var(--muted, #aaa)' }}>—</span>
-                      }
-                    </td>
-                    <td>
-                      <span className="admin-td-date">
-                        {new Date(lead.createdAt).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`admin-badge ${lead.status === "new" ? "admin-badge-new" : lead.status === "converted" ? "admin-badge-paid" : "admin-badge-other"}`}>
-                        {lead.status}
-                      </span>
-                    </td>
-                    <td>
-                      <PromoteButton
-                        leadId={lead.id}
-                        alreadyPromoted={lead.status === "converted"}
-                      />
-                    </td>
-                  </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <LeadsTable leads={leadsForTable} />
         )}
 
         {/* ── Bookings Calendar ── */}
