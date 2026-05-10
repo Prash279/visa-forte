@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import PromoteButton from './PromoteButton'
-import '../clients/crm.css'
 
 interface SerializedLead {
   id: string
@@ -137,7 +136,16 @@ export default function LeadsTable({ leads: initialLeads }: Props) {
 
       {deleteTarget && (
         <div
-          className="crm-modal-overlay"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(12, 35, 64, 0.55)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1.5rem',
+          }}
           onClick={(e) => {
             if (e.target === e.currentTarget) { setDeleteTarget(null); setDeletePassword('') }
           }}

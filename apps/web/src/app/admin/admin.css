@@ -880,6 +880,136 @@
   margin: 0;
 }
 
+/* ── Leads table delete button ───────────────────────────── */
+.crm-delete-col {
+  width: 2.5rem;
+  text-align: center;
+  padding: 0 0.5rem !important;
+}
+.crm-delete-btn {
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  color: var(--ink);
+  opacity: 0.25;
+  cursor: pointer;
+  padding: 0.25rem 0.4rem;
+  line-height: 1;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+.crm-delete-btn:hover { color: #b53d00; opacity: 1; }
+.crm-delete-btn:disabled { opacity: 0.15; cursor: not-allowed; }
+
+/* ── Delete confirmation modal (leads table) ─────────────── */
+.crm-modal {
+  background: white;
+  width: 100%;
+  max-width: 32rem;
+  border-top: 3px solid var(--saffron);
+}
+.crm-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem 0;
+}
+.crm-modal-title {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--prussian);
+}
+.crm-modal-close {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: var(--ink);
+  opacity: 0.4;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+}
+.crm-modal-close:hover { opacity: 0.9; }
+.crm-field-label {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.crm-field-input {
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  color: var(--prussian);
+  background: white;
+  border: 1px solid var(--sand);
+  padding: 0.625rem 0.875rem;
+  outline: none;
+  width: 100%;
+  appearance: none;
+  opacity: 1;
+}
+.crm-field-input:focus { border-color: var(--prussian); }
+.crm-field-input::placeholder { color: var(--ink); opacity: 0.3; }
+.crm-form-error {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: #b53d00;
+}
+.crm-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+.crm-modal-cancel-btn {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ink);
+  background: none;
+  border: 1px solid var(--sand);
+  padding: 0.625rem 1.25rem;
+  cursor: pointer;
+  opacity: 0.55;
+}
+.crm-modal-cancel-btn:hover { opacity: 0.9; }
+.crm-delete-modal-body {
+  padding: 1.5rem 1.75rem 0;
+}
+.crm-delete-warning {
+  font-size: 0.875rem;
+  color: var(--ink);
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+.crm-delete-warning strong { color: var(--prussian); font-weight: 700; }
+.crm-delete-modal-body + .crm-modal-footer {
+  padding: 1rem 1.75rem 1.75rem;
+  align-items: center;
+}
+.crm-delete-confirm-btn {
+  background: #b53d00;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.crm-delete-confirm-btn:hover { opacity: 0.85; }
+.crm-delete-confirm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {
   .admin-tools { grid-template-columns: 1fr; }
