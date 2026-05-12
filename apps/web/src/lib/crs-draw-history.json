@@ -1,32 +1,157 @@
 {
   "source": "canada.ca",
   "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/submit-profile/rounds-invitations.html",
-  "lastUpdated": "2026-05-04",
+  "lastUpdated": "2026-05-12",
   "draws": [
-    { "date": "2026-04-29", "type": "French-Language proficiency 2026-Version 2", "cutoffScore": 400, "invitationsIssued": 4000 },
-    { "date": "2026-04-28", "type": "Canadian Experience Class", "cutoffScore": 514, "invitationsIssued": 2000 },
-    { "date": "2026-04-27", "type": "Provincial Nominee Program", "cutoffScore": 795, "invitationsIssued": 473 },
-    { "date": "2026-04-15", "type": "French-Language proficiency 2026-Version 2", "cutoffScore": 419, "invitationsIssued": 4000 },
-    { "date": "2026-04-14", "type": "Canadian Experience Class", "cutoffScore": 515, "invitationsIssued": 2000 },
-    { "date": "2026-04-13", "type": "Provincial Nominee Program", "cutoffScore": 786, "invitationsIssued": 324 },
-    { "date": "2026-04-02", "type": "Trades Occupations, 2026-Version 3", "cutoffScore": 477, "invitationsIssued": 3000 },
-    { "date": "2026-03-31", "type": "Canadian Experience Class", "cutoffScore": 509, "invitationsIssued": 2250 },
-    { "date": "2026-03-30", "type": "Provincial Nominee Program", "cutoffScore": 802, "invitationsIssued": 356 },
-    { "date": "2026-03-18", "type": "French-Language proficiency 2026-Version 2", "cutoffScore": 393, "invitationsIssued": 4000 },
-    { "date": "2026-03-17", "type": "Canadian Experience Class", "cutoffScore": 507, "invitationsIssued": 4000 },
-    { "date": "2026-03-16", "type": "Provincial Nominee Program", "cutoffScore": 742, "invitationsIssued": 362 },
-    { "date": "2026-03-05", "type": "Senior managers with Canadian Work Experience, 2026-Version 1", "cutoffScore": 429, "invitationsIssued": 250 },
-    { "date": "2026-03-04", "type": "French-Language proficiency 2026-Version 2", "cutoffScore": 397, "invitationsIssued": 5500 },
-    { "date": "2026-03-03", "type": "Canadian Experience Class", "cutoffScore": 508, "invitationsIssued": 4000 },
-    { "date": "2026-03-02", "type": "Provincial Nominee Program", "cutoffScore": 710, "invitationsIssued": 264 },
-    { "date": "2026-02-20", "type": "Healthcare and Social Services Occupations, 2026-Version 3", "cutoffScore": 467, "invitationsIssued": 4000 },
-    { "date": "2026-02-19", "type": "Physicians with Canadian Work Experience, 2026-Version 1", "cutoffScore": 169, "invitationsIssued": 391 },
-    { "date": "2026-02-17", "type": "Canadian Experience Class", "cutoffScore": 508, "invitationsIssued": 6000 },
-    { "date": "2026-02-16", "type": "Provincial Nominee Program", "cutoffScore": 789, "invitationsIssued": 279 },
-    { "date": "2026-02-06", "type": "French-Language proficiency 2026-Version 2", "cutoffScore": 400, "invitationsIssued": 8500 },
-    { "date": "2026-02-03", "type": "Provincial Nominee Program", "cutoffScore": 749, "invitationsIssued": 423 },
-    { "date": "2026-01-21", "type": "Canadian Experience Class", "cutoffScore": 509, "invitationsIssued": 6000 },
-    { "date": "2026-01-20", "type": "Provincial Nominee Program", "cutoffScore": 746, "invitationsIssued": 681 },
-    { "date": "2026-01-07", "type": "Canadian Experience Class", "cutoffScore": 511, "invitationsIssued": 8000 }
+    {
+      "date": "2026-05-11",
+      "type": "Provincial Nominee Program",
+      "cutoffScore": 798,
+      "invitationsIssued": 380
+    },
+    {
+      "date": "2026-04-29",
+      "type": "French-Language proficiency 2026-Version 2",
+      "cutoffScore": 400,
+      "invitationsIssued": 4000
+    },
+    {
+      "date": "2026-04-28",
+      "type": "Canadian Experience Class",
+      "cutoffScore": 514,
+      "invitationsIssued": 2000
+    },
+    {
+      "date": "2026-04-27",
+      "type": "Provincial Nominee Program",
+      "cutoffScore": 795,
+      "invitationsIssued": 473
+    },
+    {
+      "date": "2026-04-15",
+      "type": "French-Language proficiency 2026-Version 2",
+      "cutoffScore": 419,
+      "invitationsIssued": 4000
+    },
+    {
+      "date": "2026-04-14",
+      "type": "Canadian Experience Class",
+      "cutoffScore": 515,
+      "invitationsIssued": 2000
+    },
+    {
+      "date": "2026-04-13",
+      "type": "Provincial Nominee Program",
+      "cutoffScore": 786,
+      "invitationsIssued": 324
+    },
+    {
+      "date": "2026-04-02",
+      "type": "Trades Occupations, 2026-Version 3",
+      "cutoffScore": 477,
+      "invitationsIssued": 3000
+    },
+    {
+      "date": "2026-03-31",
+      "type": "Canadian Experience Class",
+      "cutoffScore": 509,
+      "invitationsIssued": 2250
+    },
+    {
+      "date": "2026-03-30",
+      "type": "Provincial Nominee Program",
+      "cutoffScore": 802,
+      "invitationsIssued": 356
+    },
+    {
+      "date": "2026-03-18",
+      "type": "French-Language proficiency 2026-Version 2",
+      "cutoffScore": 393,
+      "invitationsIssued": 4000
+    },
+    {
+      "date": "2026-03-17",
+      "type": "Canadian Experience Class",
+      "cutoffScore": 507,
+      "invitationsIssued": 4000
+    },
+    {
+      "date": "2026-03-16",
+      "type": "Provincial Nominee Program",
+      "cutoffScore": 742,
+      "invitationsIssued": 362
+    },
+    {
+      "date": "2026-03-05",
+      "type": "Senior managers with Canadian Work Experience, 2026-Version 1",
+      "cutoffScore": 429,
+      "invitationsIssued": 250
+    },
+    {
+      "date": "2026-03-04",
+      "type": "French-Language proficiency 2026-Version 2",
+      "cutoffScore": 397,
+      "invitationsIssued": 5500
+    },
+    {
+      "date": "2026-03-03",
+      "type": "Canadian Experience Class",
+      "cutoffScore": 508,
+      "invitationsIssued": 4000
+    },
+    {
+      "date": "2026-03-02",
+      "type": "Provincial Nominee Program",
+      "cutoffScore": 710,
+      "invitationsIssued": 264
+    },
+    {
+      "date": "2026-02-20",
+      "type": "Healthcare and Social Services Occupations, 2026-Version 3",
+      "cutoffScore": 467,
+      "invitationsIssued": 4000
+    },
+    {
+      "date": "2026-02-19",
+      "type": "Physicians with Canadian Work Experience, 2026-Version 1",
+      "cutoffScore": 169,
+      "invitationsIssued": 391
+    },
+    {
+      "date": "2026-02-17",
+      "type": "Canadian Experience Class",
+      "cutoffScore": 508,
+      "invitationsIssued": 6000
+    },
+    {
+      "date": "2026-02-16",
+      "type": "Provincial Nominee Program",
+      "cutoffScore": 789,
+      "invitationsIssued": 279
+    },
+    {
+      "date": "2026-02-06",
+      "type": "French-Language proficiency 2026-Version 2",
+      "cutoffScore": 400,
+      "invitationsIssued": 8500
+    },
+    {
+      "date": "2026-02-03",
+      "type": "Provincial Nominee Program",
+      "cutoffScore": 749,
+      "invitationsIssued": 423
+    },
+    {
+      "date": "2026-01-21",
+      "type": "Canadian Experience Class",
+      "cutoffScore": 509,
+      "invitationsIssued": 6000
+    },
+    {
+      "date": "2026-01-20",
+      "type": "Provincial Nominee Program",
+      "cutoffScore": 746,
+      "invitationsIssued": 681
+    }
   ]
 }
