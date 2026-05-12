@@ -23,15 +23,6 @@
   z-index: 0;
 }
 
-.hero::after {
-  content: '';
-  position: absolute;
-  left: 2.5rem;
-  top: 0; bottom: 0;
-  width: 1px;
-  background: linear-gradient(to bottom, transparent 10%, rgba(201,123,30,0.5) 30%, rgba(201,123,30,0.5) 70%, transparent 90%);
-  z-index: 0;
-}
 
 .hero-watermark {
   position: absolute;
