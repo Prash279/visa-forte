@@ -14,6 +14,13 @@ def _get_conn() -> "psycopg2.connection":
     url = os.environ.get("DATABASE_URL")
     if not url:
         raise RuntimeError("DATABASE_URL environment variable is not set")
+    # psycopg2 requires the postgresql:// scheme; Neon supplies postgres://
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+    # Neon requires SSL — append if the URL doesn't already specify it
+    if "sslmode=" not in url:
+        sep = "&" if "?" in url else "?"
+        url = f"{url}{sep}sslmode=require"
     return psycopg2.connect(url)
 
 
