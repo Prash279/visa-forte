@@ -5,6 +5,11 @@
 # Large files
 Visa Forte Landing Page Design.docx
 
+# Screenshots / visual review assets (not app code)
+*.png
+*.jpg
+*.jpeg
+
 # Dependencies
 node_modules/
 scripts/package-lock.json
