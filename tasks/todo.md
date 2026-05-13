@@ -1301,4 +1301,58 @@ Run `npx drizzle-kit migrate` from `apps/web/` with `DATABASE_URL` set in `.env.
 
 ---
 
+---
+
+## P4-1 — canada.ca Monitoring Pipeline
+
+**Status:** COMPLETE (local build verified; live end-to-end test via GitHub Actions `workflow_dispatch` required — see Prashant Proof)
+
+**Delivers:** A scheduled Python pipeline (`pipeline/`) that scrapes four canada.ca data sources every 6 hours via GitHub Actions and writes results to the Neon DB. Enables the frontend to read live IRCC data from the DB instead of static JSON files.
+
+**Scrapers:**
+- `ee_draws` — Express Entry draw history (JSON feed, append-only)
+- `processing_times` — PR processing times (SPA page, graceful skip)
+- `proof_of_funds` — LICO/proof-of-funds table (HTML, upsert snapshot)
+- `fee_schedule` — IRCC fee schedule (HTML, upsert snapshot)
+
+**Plan:**
+- [x] Step 1 — `pipeline/scraper/base.py`: abstract base with httpx client, 60s timeout, 3-retry exponential backoff, context manager
+- [x] Step 2 — `pipeline/scraper/ee_draws.py`: JSON feed parser, `_clean_int` strips commas, draws → list of dicts
+- [x] Step 3 — `pipeline/scraper/processing_times.py`: HTML parser, returns None gracefully (SPA page)
+- [x] Step 4 — `pipeline/scraper/proof_of_funds.py`: HTML parser, extracts LICO by family size
+- [x] Step 5 — `pipeline/scraper/fee_schedule.py`: HTML parser, section-keyed fee dict; URL corrected to `ircc.canada.ca/english/information/fees/fees.asp`; `_clean_amount` uses regex to extract first numeric token (handles annotations like "increased April 30, 2026")
+- [x] Step 6 — `pipeline/db.py`: `upsert_ee_draws` (ON CONFLICT DO NOTHING) + `upsert_snapshot` (ON CONFLICT DO UPDATE); psycopg2-binary + `psycopg2.extras.Json`
+- [x] Step 7 — `pipeline/main.py`: orchestrator; loads `.env.local` from repo root then `pipeline/.env`; exits 1 on any failure
+- [x] Step 8 — `pipeline/requirements.txt`: httpx, beautifulsoup4, lxml, psycopg2-binary, python-dotenv
+- [x] Step 9 — `.github/workflows/canada-monitor.yml`: runs every 6 hours + `workflow_dispatch`; `DATABASE_URL` from GitHub Secrets
+- [x] Step 10 — `pipeline/.env.example`: angle-bracket placeholder only, never committed with real value
+
+**Key constraints learned:**
+- Pipeline uses httpx + BeautifulSoup only (no Playwright, no MCPs — those belong to ProScrape/AXIOM)
+- canada.ca rate-limits local IPs after ~6 requests; live tests must run via GitHub Actions
+- `python -m pipeline.main` (not `python pipeline/main.py`) — required for absolute imports from repo root
+- Fee schedule URL lives at `ircc.canada.ca`, not `canada.ca`
+
+---
+
+**Prashant Proof:**
+1. Go to `github.com/[your-repo]/actions` → find "canada.ca Monitor" workflow → click "Run workflow" → confirm it triggers
+2. Wait ~2 minutes for the run to complete → click the run → confirm all 4 steps show green (ee_draws, proof_of_funds, fee_schedule succeed; processing_times logs a warning but does NOT fail)
+3. Connect to Neon DB and run: `SELECT data_key, last_scraped FROM content_snapshots ORDER BY last_scraped DESC LIMIT 5;` — confirm `proof_of_funds` and `fee_schedule` rows appear with today's timestamp
+4. Run: `SELECT COUNT(*) FROM ee_draws;` — confirm row count matches (or exceeds) the prior static JSON draw count
+
+---
+
+**Review (P4-1):**
+`pipeline/scraper/base.py`: abstract `BaseCanadaScraper` with httpx, retry, context manager.
+`pipeline/scraper/ee_draws.py`: JSON feed at `canada.ca/content/dam/ircc/documents/json/ee_rounds_123_en.json`.
+`pipeline/scraper/proof_of_funds.py`: LICO by family size from proof-of-funds HTML page.
+`pipeline/scraper/fee_schedule.py`: section-keyed fee dict; URL corrected to `ircc.canada.ca/english/information/fees/fees.asp`; `_clean_amount` regex-extracts first numeric token.
+`pipeline/db.py`: `upsert_ee_draws` (DO NOTHING on conflict) + `upsert_snapshot` (DO UPDATE on conflict) using psycopg2-binary.
+`pipeline/main.py`: loads `.env.local` at repo root first; exits 1 on failure; processing_times is warn-only.
+`.github/workflows/canada-monitor.yml`: 6-hour cron + manual dispatch; DATABASE_URL from GitHub Secrets.
+No Playwright, no MCPs, no hardcoded credentials.
+
+---
+
 *todo.md is the single source of task truth. If it's not here, it's not in scope.*

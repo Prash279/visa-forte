@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, uuid, integer, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, uuid, integer, jsonb, uniqueIndex } from 'drizzle-orm/pg-core';
 
 // Better Auth requires these exact fields on the user table.
 // The 'id' column uses text (not uuid) because Better Auth generates its own random string IDs.
@@ -221,3 +221,32 @@ export const irccQueries = pgTable('ircc_queries', {
 });
 
 export type IrccQuery = typeof irccQueries.$inferSelect;
+
+// Express Entry draw history scraped from canada.ca.
+// Append-only — new draws are inserted; existing rows are never updated.
+// Unique constraint on (draw_date, draw_type) prevents duplicate inserts on re-scrapes.
+export const eeDraws = pgTable('ee_draws', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  drawDate: text('draw_date').notNull(),            // ISO date string YYYY-MM-DD
+  drawType: text('draw_type').notNull(),            // e.g. "Canadian Experience Class"
+  cutoffScore: integer('cutoff_score').notNull(),
+  invitations: integer('invitations').notNull(),
+  scrapedAt: timestamp('scraped_at').notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex('ee_draws_date_type_idx').on(table.drawDate, table.drawType),
+]);
+
+export type EeDraw = typeof eeDraws.$inferSelect;
+
+// Latest-value snapshots for canada.ca data that changes infrequently.
+// One row per data_key. The scraper does an upsert — payload is always the current value.
+// Keys: 'processing_times' | 'proof_of_funds' | 'fee_schedule'
+export const canadaDataSnapshots = pgTable('canada_data_snapshots', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  dataKey: text('data_key').notNull().unique(),     // stable machine key identifying the data type
+  payload: jsonb('payload').notNull(),              // full structured payload (matches existing JSON shapes)
+  sourceUrl: text('source_url').notNull(),
+  lastScraped: timestamp('last_scraped').notNull().defaultNow(),
+});
+
+export type CanadaDataSnapshot = typeof canadaDataSnapshots.$inferSelect;
