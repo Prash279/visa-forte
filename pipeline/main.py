@@ -21,7 +21,7 @@ try:
 except ImportError:
     pass
 
-from pipeline.db import upsert_ee_draws, upsert_snapshot
+from pipeline.db import ensure_schema, upsert_ee_draws, upsert_snapshot
 from pipeline.scraper.ee_draws import EeDrawsScraper
 from pipeline.scraper.fee_schedule import FeeScheduleScraper
 from pipeline.scraper.processing_times import ProcessingTimesScraper
@@ -37,6 +37,12 @@ logger = logging.getLogger("pipeline.main")
 
 def run() -> bool:
     """Run all scrapers. Returns True if every enabled scraper succeeded."""
+    try:
+        ensure_schema()
+    except Exception as exc:
+        logger.error("DB setup failed — cannot continue: %s", exc)
+        return False
+
     failures: list[str] = []
 
     # --- EE draws (append-only) ---

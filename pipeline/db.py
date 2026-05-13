@@ -10,6 +10,40 @@ import psycopg2.extras
 logger = logging.getLogger(__name__)
 
 
+def ensure_schema() -> None:
+    """Create pipeline tables if they don't already exist.
+    Matches migration 0016_majestic_warbird.sql exactly. Idempotent."""
+    logger.info("Ensuring pipeline schema...")
+    with _get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS canada_data_snapshots (
+                    id           uuid      PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+                    data_key     text      NOT NULL,
+                    payload      jsonb     NOT NULL,
+                    source_url   text      NOT NULL,
+                    last_scraped timestamp NOT NULL DEFAULT now(),
+                    CONSTRAINT canada_data_snapshots_data_key_unique UNIQUE (data_key)
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS ee_draws (
+                    id           uuid      PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+                    draw_date    text      NOT NULL,
+                    draw_type    text      NOT NULL,
+                    cutoff_score integer   NOT NULL,
+                    invitations  integer   NOT NULL,
+                    scraped_at   timestamp NOT NULL DEFAULT now()
+                )
+            """)
+            cur.execute("""
+                CREATE UNIQUE INDEX IF NOT EXISTS ee_draws_date_type_idx
+                    ON ee_draws (draw_date, draw_type)
+            """)
+        conn.commit()
+    logger.info("Schema OK — ee_draws and canada_data_snapshots ready")
+
+
 def _get_conn() -> "psycopg2.connection":
     url = os.environ.get("DATABASE_URL")
     if not url:

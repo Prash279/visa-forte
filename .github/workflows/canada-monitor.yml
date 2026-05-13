@@ -24,6 +24,27 @@ jobs:
       - name: Install dependencies
         run: pip install -r pipeline/requirements.txt
 
+      - name: Test DB connection
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          python - <<'EOF'
+          import os, psycopg2
+          url = os.environ.get("DATABASE_URL", "")
+          if not url:
+              raise SystemExit("ERROR: DATABASE_URL secret is not set in GitHub Actions")
+          if url.startswith("postgres://"):
+              url = url.replace("postgres://", "postgresql://", 1)
+          if "sslmode=" not in url:
+              url += ("&" if "?" in url else "?") + "sslmode=require"
+          conn = psycopg2.connect(url)
+          cur = conn.cursor()
+          cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public' ORDER BY table_name")
+          tables = [r[0] for r in cur.fetchall()]
+          conn.close()
+          print(f"DB connection OK. Public tables: {tables}")
+          EOF
+
       - name: Run pipeline
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
