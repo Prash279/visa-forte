@@ -73,6 +73,7 @@ export default function BookingForm({ availableDates }: Props) {
 
   // Set currency from browser locale after mount (avoids SSR mismatch).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrency(detectCurrency());
   }, []);
 

@@ -166,7 +166,7 @@ export default function VisasPage() {
         <div className="visas-hero-inner">
           <p className="eyebrow r">Canadian Immigration Pathways</p>
           <h1 className="visas-hero-headline r d1">
-            Canada's permanent residency system<br />
+            Canada&apos;s permanent residency system<br />
             has one rule: <em>qualify, then document.</em>
           </h1>
           <div className="rule r d2" />
@@ -208,7 +208,7 @@ export default function VisasPage() {
         <div className="sec-inner">
           <p className="eyebrow r">Express Entry</p>
           <h2 className="headline r d1">
-            Canada's primary managed migration system.<br />Three streams. One pool.
+            Canada&apos;s primary managed migration system.<br />Three streams. One pool.
           </h2>
           <div className="rule r d2" />
           <p className="visas-program-lead r d2">
@@ -344,8 +344,8 @@ export default function VisasPage() {
           <p className="visas-docs-lead r d2">
             The categories below cover the standard Express Entry documentation package. Every
             document is reviewed against the regulatory criteria current at the time of submission —
-            not when it was originally drafted. Documents prepared for last year's framework may
-            fail this year's review.
+            not when it was originally drafted. Documents prepared for last year&apos;s framework may
+            fail this year&apos;s review.
           </p>
           <div className="visas-docs-grid r d3">
             {DOCUMENT_CATEGORIES.map(({ category, items }) => (

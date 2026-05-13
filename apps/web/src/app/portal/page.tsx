@@ -4,6 +4,7 @@ import { getCurrentAuthSession } from '@/lib/auth-server'
 import { db } from '@/lib/db'
 import { clients, clientDocuments, applicationMonitoring, irccQueries } from '../../../drizzle/schema'
 import { getChecklist } from '@/lib/document-checklist'
+import Link from 'next/link'
 import PortalDashboard from './PortalDashboard'
 import './portal.css'
 
@@ -30,11 +31,11 @@ export default async function PortalPage() {
       <div className="portal-wrap">
         <header className="portal-header">
           <div className="portal-header-left">
-            <a href="/" className="portal-wordmark">Visa Forte</a>
+            <Link href="/" className="portal-wordmark">Visa Forte</Link>
           </div>
           <div className="portal-header-right">
             <span className="portal-header-email">{authSession.user?.email}</span>
-            <a href="/api/auth/sign-out" className="portal-signout">Sign Out</a>
+            <Link href="/api/auth/sign-out" className="portal-signout">Sign Out</Link>
           </div>
         </header>
         <div className="portal-accent" />
@@ -118,13 +119,13 @@ export default async function PortalPage() {
     <div className="portal-wrap">
       <header className="portal-header">
         <div className="portal-header-left">
-          <a href="/" className="portal-wordmark">Visa Forte</a>
+          <Link href="/" className="portal-wordmark">Visa Forte</Link>
           <span className="portal-header-divider" />
           <span className="portal-header-label">Client Portal</span>
         </div>
         <div className="portal-header-right">
           <span className="portal-header-email">{authSession.user?.email}</span>
-          <a href="/api/auth/sign-out" className="portal-signout">Sign Out</a>
+          <Link href="/api/auth/sign-out" className="portal-signout">Sign Out</Link>
         </div>
       </header>
 

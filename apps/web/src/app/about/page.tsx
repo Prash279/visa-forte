@@ -97,7 +97,7 @@ export default function AboutPage() {
           <div className="rule r d2" />
           <p className="about-approach-lead r d2">
             Every document in your file is reviewed against the criteria IRCC is applying today —
-            not last year's checklist, not a template from the previous draw cycle.
+            not last year&apos;s checklist, not a template from the previous draw cycle.
             This is the discipline that separates documentation consulting from form-filling.
           </p>
           <div className="approach-grid">

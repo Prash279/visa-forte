@@ -10,7 +10,60 @@
       "Bash(python -c ':*)",
       "Bash(python -c \"import pikepdf; print\\('pikepdf', pikepdf.__version__\\)\")",
       "Bash(python -c \"import pypdf; print\\('pypdf', pypdf.__version__\\)\")",
-      "Bash(python -c \"import pdfrw; print\\('pdfrw', pdfrw.__version__\\)\")"
+      "Bash(python -c \"import pdfrw; print\\('pdfrw', pdfrw.__version__\\)\")",
+      "Bash(npx drizzle-kit *)",
+      "Bash(npx vitest *)",
+      "Bash(npx tsc *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/secrets_blocker.py",
+            "timeout": 10,
+            "statusMessage": "Scanning for secrets..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/bash_audit.py 2>/dev/null || true",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/rtk_gain_hook.py 2>/dev/null || true",
+            "timeout": 15,
+            "statusMessage": "Fetching RTK savings..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import json; print(json.dumps({'systemMessage': 'REMINDER: Did you run tests before stopping? Required gate: cd apps/web && npx vitest run'}))\"",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   }
 }

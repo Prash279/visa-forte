@@ -99,7 +99,7 @@ export default function PrivacyPolicyPage() {
           <p>We use the following third-party services to operate visaforte.com:</p>
           <ul className="policy-list">
             <li>
-              <strong>Razorpay</strong> — payment processing. Razorpay's privacy policy
+              <strong>Razorpay</strong> — payment processing. Razorpay&apos;s privacy policy
               governs how they handle payment credentials.
             </li>
             <li>

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { and, eq, gte, lte, lt, desc, sql } from "drizzle-orm";
 import { getCurrentAuthSession } from "@/lib/auth-server";
 import SignOutButton from "./SignOutButton";
@@ -373,7 +374,7 @@ export default async function AdminPage() {
         {/* Footer */}
         <div className="admin-footer">
           <p className="admin-footer-text">Visa Forte · Engineered for Passage.</p>
-          <a href="/" className="admin-footer-link">View Site →</a>
+          <Link href="/" className="admin-footer-link">View Site →</Link>
           <p className="admin-retention-note">
             {lastRetentionRun
               ? `Last retention run: ${new Date(lastRetentionRun).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} — ${lastRetentionCount} record${lastRetentionCount === 1 ? '' : 's'} deleted`

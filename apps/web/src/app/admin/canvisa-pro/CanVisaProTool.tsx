@@ -1582,7 +1582,7 @@ export default function CanVisaProTool() {
                 <span className="cvp-pill eligible">Enhanced (EE-Linked)</span>
                 <div className="cvp-prov-divider" />
                 <p className="cvp-prov-body">
-                  Ontario's tech sector selects directly from the Express Entry pool. OINP regularly
+                  Ontario&apos;s tech sector selects directly from the Express Entry pool. OINP regularly
                   draws at significantly lower CRS cutoffs for in-demand NOCs. Zero job offer required.
                 </p>
                 <div className="cvp-prov-condition">
@@ -1608,7 +1608,7 @@ export default function CanVisaProTool() {
                 <span className="cvp-pill borderline">Enhanced (EE-Linked)</span>
                 <div className="cvp-prov-divider" />
                 <p className="cvp-prov-body">
-                  Alberta's Accelerated Tech Pathway directly selects from the Express Entry pool,
+                  Alberta&apos;s Accelerated Tech Pathway directly selects from the Express Entry pool,
                   frequently below standard CRS cutoffs. High disposable income; zero provincial sales tax.
                 </p>
                 <div className="cvp-prov-condition">
