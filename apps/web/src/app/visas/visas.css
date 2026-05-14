@@ -893,7 +893,7 @@
 .visas-draw-card:hover {
   transform: translateY(-6px);
   background: rgba(248, 244, 238, 0.06);
-  border-top-color: var(--saffron);
+  border-top: 3px solid var(--saffron);
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
 }
 
