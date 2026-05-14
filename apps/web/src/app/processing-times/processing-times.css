@@ -47,7 +47,7 @@
 
 .pt-sub {
   font-size: 1.05rem;
-  color: rgba(248, 244, 238, 0.72);
+  color: rgba(248, 244, 238, 0.78);
   max-width: 560px;
   line-height: 1.75;
   margin-bottom: 1.5rem;
@@ -55,7 +55,7 @@
 
 .pt-updated {
   font-size: 0.78rem;
-  color: rgba(248, 244, 238, 0.4);
+  color: rgba(248, 244, 238, 0.55);
   font-family: var(--font-body);
   letter-spacing: 0.04em;
 }
@@ -259,7 +259,7 @@
 
 .pt-factor p {
   font-size: 0.88rem;
-  color: rgba(248, 244, 238, 0.6);
+  color: rgba(248, 244, 238, 0.75);
   line-height: 1.75;
 }
 
@@ -311,12 +311,12 @@
 
 .pt-legal-text {
   font-size: 0.75rem;
-  color: rgba(248, 244, 238, 0.35);
+  color: rgba(248, 244, 238, 0.55);
   line-height: 1.75;
 }
 
 .pt-legal-text a {
-  color: rgba(248, 244, 238, 0.5);
+  color: rgba(248, 244, 238, 0.65);
   text-decoration: underline;
   text-underline-offset: 3px;
 }

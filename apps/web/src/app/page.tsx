@@ -133,8 +133,7 @@ export default function Home() {
       </section>
 
       <section className="sec forensic">
-        <div className="forensic-bg-line" aria-hidden="true" />
-        <div className="sec-inner">
+<div className="sec-inner">
           <p className="eyebrow r">The Visa Forte Method</p>
           <h2 className="headline r d1">Forensic Documentation Review. Not a Checklist. Not a Form-Fill Service.</h2>
           <div className="rule r d2" />

@@ -152,7 +152,7 @@
   font-weight: 400;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(248, 244, 238, 0.38);
+  color: rgba(248, 244, 238, 0.55);
 }
 
 /* ── STAKES ───────────────────────────────────────────────── */
@@ -221,13 +221,6 @@
   background: var(--prussian);
   position: relative;
   overflow: hidden;
-}
-
-.forensic-bg-line {
-  position: absolute;
-  right: 0; top: 0; bottom: 0;
-  width: 1px;
-  background: linear-gradient(to bottom, transparent, rgba(201,123,30,0.15) 40%, rgba(201,123,30,0.15) 60%, transparent);
 }
 
 .forensic .headline { color: var(--pearl); max-width: 820px; }
@@ -328,7 +321,7 @@
   font-size: 0.88rem;
   font-weight: 300;
   line-height: 1.8;
-  color: rgba(248, 244, 238, 0.58);
+  color: rgba(248, 244, 238, 0.75);
 }
 
 /* ── EVIDENCE ─────────────────────────────────────────────── */
@@ -485,7 +478,7 @@
   font-size: 1rem;
   font-weight: 300;
   line-height: 1.85;
-  color: rgba(248, 244, 238, 0.6);
+  color: rgba(248, 244, 238, 0.75);
   max-width: 740px;
 }
 
@@ -593,7 +586,7 @@
   font-size: 0.78rem;
   font-weight: 300;
   line-height: 1.55;
-  color: rgba(248, 244, 238, 0.45);
+  color: rgba(248, 244, 238, 0.62);
 }
 
 /* ── FINAL CTA ────────────────────────────────────────────── */
@@ -644,7 +637,7 @@
   font-size: 1.02rem;
   font-weight: 300;
   line-height: 1.8;
-  color: rgba(248, 244, 238, 0.55);
+  color: rgba(248, 244, 238, 0.75);
   margin-bottom: 3rem;
 }
 
@@ -660,11 +653,11 @@
   font-weight: 300;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(248, 244, 238, 0.3);
+  color: rgba(248, 244, 238, 0.52);
 }
 
 .final-contact a {
-  color: rgba(248, 244, 238, 0.45);
+  color: rgba(248, 244, 238, 0.65);
   transition: color 0.22s ease;
 }
 

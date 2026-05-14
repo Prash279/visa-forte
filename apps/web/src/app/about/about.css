@@ -8,15 +8,6 @@
   overflow: hidden;
 }
 
-.about-hero::after {
-  content: '';
-  position: absolute;
-  left: 2.5rem;
-  top: 0; bottom: 0;
-  width: 1px;
-  background: linear-gradient(to bottom, transparent 10%, rgba(201,123,30,0.4) 30%, rgba(201,123,30,0.4) 70%, transparent 90%);
-}
-
 .about-hero-inner {
   max-width: var(--max-w);
   margin: 0 auto;
@@ -228,7 +219,7 @@
   font-size: 0.9rem;
   font-weight: 300;
   line-height: 1.8;
-  color: rgba(248, 244, 238, 0.55);
+  color: rgba(248, 244, 238, 0.75);
 }
 
 /* ── SCOPE ────────────────────────────────────────────────── */
@@ -342,7 +333,7 @@
   font-size: 1rem;
   font-weight: 300;
   line-height: 1.78;
-  color: rgba(248, 244, 238, 0.5);
+  color: rgba(248, 244, 238, 0.75);
   margin-bottom: 2.5rem;
 }
 

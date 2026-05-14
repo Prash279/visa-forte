@@ -8,15 +8,6 @@
   overflow: hidden;
 }
 
-.contact-hero::before {
-  content: '';
-  position: absolute;
-  top: 0; bottom: 0;
-  right: 2.5rem;
-  width: 1px;
-  background: linear-gradient(to bottom, transparent 10%, rgba(201,123,30,0.3) 35%, rgba(201,123,30,0.3) 65%, transparent 90%);
-}
-
 .contact-hero-inner {
   max-width: var(--max-w);
   margin: 0 auto;
@@ -41,7 +32,7 @@
   font-size: 1.05rem;
   font-weight: 300;
   line-height: 1.82;
-  color: rgba(248, 244, 238, 0.58);
+  color: rgba(248, 244, 238, 0.78);
   max-width: 560px;
 }
 
