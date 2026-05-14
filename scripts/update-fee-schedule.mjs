@@ -4,8 +4,12 @@
 //
 // Strategy: navigate to the HTML fees page in a Playwright browser (handles
 // any redirect/bot protection), collect all table rows as text arrays, then
-// match target fees by description. Falls back to existing values for any row
+// match target fees by predicate. Falls back to existing values for any row
 // that cannot be confidently matched — it never silently zeroes a fee.
+//
+// As of April 30, 2026, IRCC restructured the fee page: fees are now shown
+// as bundled totals ("Your application" = processing + ROPRF). The ROPRF is
+// no longer a standalone row and is computed as: total − processing fee.
 //
 // Exit codes:
 //   0 — success (updated or unchanged)
@@ -22,24 +26,26 @@ const FEE_JSON = join(ROOT, 'apps/web/src/lib/fee-schedule.json')
 
 const IRCC_FEES_URL = 'https://ircc.canada.ca/english/information/fees/fees.asp'
 
-// Each target: a regex to find the fee row by description text, and the
-// canonical display label used in fee-schedule.json and on the Visas page.
+// Predicate-based targets: more flexible than regex for IRCC's restructured page.
+// Each `match` receives a row's cell array and returns true if that row is the target.
 const FEE_TARGETS = [
   {
-    match: /principal applicant/i,
+    // "Your application (without right of permanent residence fee)" — principal processing fee
+    match: cells =>
+      cells.some(c => /without right of permanent residence/i.test(c)) &&
+      !cells.some(c => /spouse|partner/i.test(c)),
     item: 'Principal applicant — processing fee',
   },
   {
-    match: /spouse|common.law/i,
+    // "Include your spouse or partner (without right of permanent residence fee)"
+    match: cells =>
+      cells.some(c => /spouse|partner/i.test(c)) &&
+      cells.some(c => /without right of permanent residence/i.test(c)),
     item: 'Spouse or common-law partner — processing fee',
   },
   {
-    match: /dependent child/i,
+    match: cells => cells.some(c => /dependent child/i.test(c)),
     item: 'Dependent child — processing fee (per child)',
-  },
-  {
-    match: /right of permanent residence/i,
-    item: 'Right of Permanent Residence Fee — per adult',
   },
 ]
 
@@ -71,17 +77,49 @@ async function scrapeFeePage() {
   }
 }
 
+// ROPRF is no longer a standalone row on the IRCC page (as of April 30, 2026).
+// Compute it as: "Your application" total − principal processing fee.
+function computeRoprf(rows, existing, processingFee) {
+  const item = 'Right of Permanent Residence Fee — per adult'
+
+  const totalRow = rows.find(cells =>
+    cells.some(c => /your application/i.test(c)) &&
+    !cells.some(c => /without/i.test(c)) &&
+    !cells.some(c => /spouse|partner/i.test(c))
+  )
+
+  if (!totalRow || !processingFee) {
+    console.warn(`WARNING: Could not find total row or processing fee to compute ROPRF — keeping existing value`)
+    return existing.fees.find(f => f.item === item) ?? { item, amount: 'CAD 0' }
+  }
+
+  // Amount cell starts with a digit or $, not text like "increased April 30, 2026"
+  const totalCell = totalRow.find(c => /^\$?\d/.test(c.trim()))
+  const total = totalCell ? parseInt(totalCell.replace(/[$\s,]/g, ''), 10) : NaN
+  const processing = parseInt(processingFee.replace(/[^0-9]/g, ''), 10)
+
+  if (isNaN(total) || isNaN(processing) || total <= processing) {
+    console.warn(`WARNING: ROPRF computation failed (total=${total}, processing=${processing}) — keeping existing value`)
+    return existing.fees.find(f => f.item === item) ?? { item, amount: 'CAD 0' }
+  }
+
+  const roprf = total - processing
+  const amount = `CAD ${roprf.toLocaleString('en-CA')}`
+  console.log(`Computed "${item}": ${total} (total) − ${processing} (processing) = ${roprf} → ${amount}`)
+  return { item, amount }
+}
+
 function matchFees(rows, existing) {
-  return FEE_TARGETS.map((target) => {
-    const row = rows.find(cells => cells.some(cell => target.match.test(cell)))
+  const matched = FEE_TARGETS.map((target) => {
+    const row = rows.find(cells => target.match(cells))
 
     if (!row) {
       console.warn(`WARNING: No row matched for "${target.item}" — keeping existing value`)
       return existing.fees.find(f => f.item === target.item) ?? { item: target.item, amount: 'CAD 0' }
     }
 
-    // Amount is the last cell that looks like a number
-    const amountCell = [...row].reverse().find(cell => /\d{2,}/.test(cell))
+    // Amount cell: starts with $ or digit — avoids "increased April 30, 2026" type badge cells
+    const amountCell = row.find(cell => /^\$?\d/.test(cell.trim()))
     const amount = amountCell ? parseAmount(amountCell) : null
 
     if (!amount) {
@@ -92,6 +130,11 @@ function matchFees(rows, existing) {
     console.log(`Matched "${target.item}" → ${amount}`)
     return { item: target.item, amount }
   })
+
+  const principalFee = matched.find(f => f.item === 'Principal applicant — processing fee')
+  const roprf = computeRoprf(rows, existing, principalFee?.amount)
+
+  return [...matched, roprf]
 }
 
 async function main() {
