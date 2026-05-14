@@ -543,7 +543,7 @@
 .visas-times-cards {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 4px;
   background: rgba(248, 244, 238, 0.06);
   border: 1px solid rgba(248, 244, 238, 0.06);
 }
