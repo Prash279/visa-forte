@@ -47,6 +47,10 @@ const FEE_TARGETS = [
     match: cells => cells.some(c => /dependent child/i.test(c)),
     item: 'Dependent child — processing fee (per child)',
   },
+  {
+    match: cells => cells.some(c => /biometrics.*individual/i.test(c)),
+    item: 'Biometrics — per individual',
+  },
 ]
 
 // Parses "$1,365.00", "1,365", "230", "$515.00" → "CAD 1,365" / "CAD 230"
