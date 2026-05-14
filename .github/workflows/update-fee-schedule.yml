@@ -1,0 +1,46 @@
+name: Update IRCC Fee Schedule
+
+# Runs every day at 02:00 UTC (07:30 IST) — staggered one hour after the draw
+# history pipeline (01:00 UTC) to avoid overlapping git pushes to main.
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: Sync fee schedule from ircc.canada.ca
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Playwright
+        working-directory: scripts
+        run: |
+          npm install
+          npx playwright install chromium --with-deps
+
+      - name: Fetch and update fee schedule
+        run: node scripts/update-fee-schedule.mjs
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet; then
+            echo "No changes — skipping commit."
+          else
+            git config user.name "VisaForte Data Bot"
+            git config user.email "bot@visaforte.com"
+            git add apps/web/src/lib/fee-schedule.json
+            git commit -m "data: update IRCC fee schedule from ircc.canada.ca ($(date +%Y-%m-%d))"
+            git push
+            echo "Committed and pushed updated fee-schedule.json"
+          fi

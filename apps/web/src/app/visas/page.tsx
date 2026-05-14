@@ -6,6 +6,7 @@ import Link from "next/link";
 import "./visas.css";
 import timesData from "@/lib/processing-times.json";
 import drawHistory from "@/lib/crs-draw-history.json";
+import feeData from "@/lib/fee-schedule.json";
 
 export const metadata: Metadata = {
   title: "Canadian Immigration Programs — Visa Forte | Express Entry · PNP · Pathways",
@@ -162,12 +163,6 @@ const DOCUMENT_CATEGORIES = [
   },
 ] as const;
 
-const FEE_ROWS = [
-  { item: "Principal applicant — processing fee", amount: "CAD 1,365" },
-  { item: "Spouse or common-law partner — processing fee", amount: "CAD 1,365" },
-  { item: "Dependent child — processing fee (per child)", amount: "CAD 230" },
-  { item: "Right of Permanent Residence Fee — per adult", amount: "CAD 515" },
-] as const;
 
 export default function VisasPage() {
   return (
@@ -438,7 +433,7 @@ export default function VisasPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {FEE_ROWS.map(({ item, amount }) => (
+                  {feeData.fees.map(({ item, amount }) => (
                     <tr key={item}>
                       <td>{item}</td>
                       <td className="visas-fee-amount">{amount}</td>
@@ -448,14 +443,10 @@ export default function VisasPage() {
               </table>
               <p className="visas-fees-note">
                 Government fees are subject to change. Verify current amounts at{" "}
-                <a
-                  href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/apply-permanent-residence/fee.html"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  canada.ca
-                </a>{" "}
-                before payment.
+                <a href={feeData.url} target="_blank" rel="noreferrer">
+                  ircc.canada.ca
+                </a>
+                {" "}before payment. Synced {feeData.lastUpdated}.
               </p>
               <p className="visas-fees-note">
                 The above are government processing fees only. Third-party costs — ECA (CAD 200–350),
