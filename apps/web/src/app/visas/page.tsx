@@ -5,12 +5,24 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import "./visas.css";
 import timesData from "@/lib/processing-times.json";
+import drawHistory from "@/lib/crs-draw-history.json";
 
 export const metadata: Metadata = {
   title: "Canadian Immigration Programs — Visa Forte | Express Entry · PNP · Pathways",
   description:
     "Every Canadian PR pathway explained — eligibility, steps, documents, fees, and processing times. Express Entry (FSWP, CEC, FSTP), Provincial Nominee Programs, and more.",
 };
+
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"] as const;
+
+function formatDrawDate(dateStr: string): string {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return `${MONTHS[month - 1]} ${day}, ${year}`;
+}
+
+function formatNumber(n: number): string {
+  return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
 
 const SHORT_LABELS: Record<string, string> = {
   ee_fswp:            "Express Entry — FSWP",
@@ -202,6 +214,45 @@ export default function VisasPage() {
           </div>
         </div>
       </section>
+
+      {/* ── LATEST CRS DRAW DATA ───────────────────────────── */}
+      {(() => {
+        const draw = drawHistory.draws[0];
+        return (
+          <section className="sec visas-draw-section">
+            <div className="sec-inner">
+              <p className="eyebrow r">Live Draw Data</p>
+              <h2 className="headline r d1">Latest Express Entry round.</h2>
+              <div className="rule r d2" />
+              <div className="visas-draw-grid">
+                <div className="visas-draw-card r d2">
+                  <span className="visas-draw-card-label">CRS Cutoff Score</span>
+                  <span className="visas-draw-card-value">{draw.cutoffScore}</span>
+                  <span className="visas-draw-card-sub">Minimum score to receive an invitation</span>
+                </div>
+                <div className="visas-draw-card r d3">
+                  <span className="visas-draw-card-label">Type of Draw</span>
+                  <span className="visas-draw-card-value visas-draw-card-value--text">{draw.type}</span>
+                  <span className="visas-draw-card-sub">Program stream targeted this round</span>
+                </div>
+                <div className="visas-draw-card r d4">
+                  <span className="visas-draw-card-label">Invitations Issued</span>
+                  <span className="visas-draw-card-value">{formatNumber(draw.invitationsIssued)}</span>
+                  <span className="visas-draw-card-sub">Total ITAs issued in this draw</span>
+                </div>
+                <div className="visas-draw-card r d5">
+                  <span className="visas-draw-card-label">Date of Draw</span>
+                  <span className="visas-draw-card-value visas-draw-card-value--date">{formatDrawDate(draw.date)}</span>
+                  <span className="visas-draw-card-sub">Most recent IRCC round</span>
+                </div>
+              </div>
+              <p className="visas-draw-synced r">
+                Source: canada.ca · Updated {drawHistory.lastUpdated}
+              </p>
+            </div>
+          </section>
+        );
+      })()}
 
       {/* ── EXPRESS ENTRY ──────────────────────────────────── */}
       <section className="sec visas-program-section" id="express-entry">

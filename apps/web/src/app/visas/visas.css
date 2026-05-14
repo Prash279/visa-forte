@@ -861,6 +861,86 @@
   flex-wrap: wrap;
 }
 
+/* ── LATEST CRS DRAW DATA ────────────────────────────────── */
+.visas-draw-section { background: var(--prussian); }
+
+.visas-draw-section .eyebrow { color: var(--saffron); }
+.visas-draw-section .headline { color: var(--pearl); }
+.visas-draw-section .rule { background: var(--saffron); }
+
+.visas-draw-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.visas-draw-card {
+  aspect-ratio: 1 / 1;
+  background: rgba(248, 244, 238, 0.03);
+  border: 1px solid rgba(248, 244, 238, 0.07);
+  border-top: 2px solid rgba(201, 123, 30, 0.22);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.32s ease, background 0.32s ease, border-top-color 0.32s ease, box-shadow 0.32s ease;
+  cursor: default;
+}
+
+.visas-draw-card:hover {
+  transform: translateY(-6px);
+  background: rgba(248, 244, 238, 0.06);
+  border-top-color: var(--saffron);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
+}
+
+.visas-draw-card-label {
+  font-family: var(--font-body);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--saffron);
+}
+
+.visas-draw-card-value {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 3.8vw, 3.4rem);
+  font-weight: 400;
+  color: var(--pearl);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.visas-draw-card-value--text {
+  font-size: clamp(1.05rem, 1.8vw, 1.45rem);
+  letter-spacing: -0.01em;
+  line-height: 1.28;
+}
+
+.visas-draw-card-value--date {
+  font-size: clamp(1.2rem, 2.2vw, 1.9rem);
+  line-height: 1.18;
+}
+
+.visas-draw-card-sub {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 300;
+  color: rgba(248, 244, 238, 0.32);
+  line-height: 1.55;
+}
+
+.visas-draw-synced {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  color: rgba(248, 244, 238, 0.22);
+  display: block;
+  margin-top: 1.5rem;
+  letter-spacing: 0.04em;
+}
+
 /* ── RESPONSIVE ───────────────────────────────────────────── */
 @media (max-width: 1100px) {
   .visas-crs-grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
@@ -874,6 +954,7 @@
   .visas-pnp-grid       { grid-template-columns: 1fr; }
   .visas-other-grid     { grid-template-columns: 1fr; }
   .visas-crs-grid       { grid-template-columns: repeat(2, 1fr); }
+  .visas-draw-grid      { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 640px) {
@@ -894,5 +975,7 @@
   .visas-time-card            { grid-template-columns: 1fr; grid-template-rows: auto auto auto; }
   .visas-time-target          { grid-column: 1; grid-row: 2; font-size: 1.2rem; }
   .visas-time-basis           { grid-row: 3; }
+  .visas-draw-grid            { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+  .visas-draw-card            { padding: 1.25rem; }
   .visas-fees-table td        { font-size: 0.78rem; }
 }
