@@ -291,7 +291,7 @@
   font-size: 0.82rem;
   font-weight: 300;
   line-height: 1.68;
-  color: rgba(248, 244, 238, 0.5);
+  color: rgba(248, 244, 238, 0.72);
 }
 
 .visas-crs-note {
@@ -299,7 +299,7 @@
   font-size: 0.78rem;
   font-weight: 400;
   line-height: 1.6;
-  color: rgba(248, 244, 238, 0.42);
+  color: rgba(248, 244, 238, 0.62);
   padding-top: 1.75rem;
   margin-top: 1.75rem;
   border-top: 1px solid rgba(248, 244, 238, 0.08);
@@ -361,7 +361,7 @@
   font-size: 0.92rem;
   font-weight: 300;
   line-height: 1.82;
-  color: rgba(248, 244, 238, 0.55);
+  color: rgba(248, 244, 238, 0.78);
   max-width: 680px;
 }
 
@@ -471,7 +471,7 @@
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(248, 244, 238, 0.35);
+  color: rgba(248, 244, 238, 0.60);
   margin-bottom: 1.25rem;
 }
 
@@ -490,7 +490,7 @@
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(248, 244, 238, 0.35);
+  color: rgba(248, 244, 238, 0.60);
   padding: 0 0 0.75rem;
   text-align: left;
 }
@@ -507,7 +507,7 @@
   font-family: var(--font-body);
   font-size: 0.86rem;
   font-weight: 300;
-  color: rgba(248, 244, 238, 0.65);
+  color: rgba(248, 244, 238, 0.82);
   padding: 0.9rem 0;
   line-height: 1.5;
 }
@@ -524,14 +524,14 @@
   font-size: 0.76rem;
   font-weight: 300;
   line-height: 1.68;
-  color: rgba(248, 244, 238, 0.35);
+  color: rgba(248, 244, 238, 0.62);
   margin-top: 1.25rem;
 }
 
 .visas-fees-note a {
-  color: rgba(201, 123, 30, 0.75);
+  color: rgba(201, 123, 30, 0.95);
   text-decoration: none;
-  border-bottom: 1px solid rgba(201, 123, 30, 0.3);
+  border-bottom: 1px solid rgba(201, 123, 30, 0.5);
   transition: color 0.2s, border-color 0.2s;
 }
 
@@ -563,7 +563,7 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(248, 244, 238, 0.55);
+  color: rgba(248, 244, 238, 0.82);
   grid-column: 1;
   grid-row: 1;
   align-self: end;
@@ -584,7 +584,7 @@
   font-family: var(--font-body);
   font-size: 0.72rem;
   font-weight: 300;
-  color: rgba(248, 244, 238, 0.32);
+  color: rgba(248, 244, 238, 0.60);
   grid-column: 1;
   grid-row: 2;
   line-height: 1.5;
@@ -599,7 +599,7 @@
 .visas-time-synced {
   font-family: var(--font-body);
   font-size: 0.65rem;
-  color: rgba(248, 244, 238, 0.25);
+  color: rgba(248, 244, 238, 0.52);
   display: block;
   margin-top: 0.75rem;
   margin-bottom: 0.25rem;
@@ -760,7 +760,7 @@
   font-size: 0.86rem;
   font-weight: 300;
   line-height: 1.78;
-  color: rgba(248, 244, 238, 0.5);
+  color: rgba(248, 244, 238, 0.75);
   margin-top: 0.25rem;
 }
 
@@ -769,7 +769,7 @@
   font-size: 0.78rem;
   font-weight: 300;
   line-height: 1.65;
-  color: rgba(248, 244, 238, 0.3);
+  color: rgba(248, 244, 238, 0.55);
   padding-top: 2rem;
   margin-top: 1rem;
   border-top: 1px solid rgba(248, 244, 238, 0.06);
@@ -849,7 +849,7 @@
   font-size: 1rem;
   font-weight: 300;
   line-height: 1.78;
-  color: rgba(248, 244, 238, 0.5);
+  color: rgba(248, 244, 238, 0.75);
   max-width: 560px;
   margin-bottom: 2.75rem;
 }
@@ -930,14 +930,14 @@
   font-family: var(--font-body);
   font-size: 0.72rem;
   font-weight: 400;
-  color: rgba(248, 244, 238, 0.62);
+  color: rgba(248, 244, 238, 0.78);
   line-height: 1.55;
 }
 
 .visas-draw-synced {
   font-family: var(--font-body);
   font-size: 0.65rem;
-  color: rgba(248, 244, 238, 0.52);
+  color: rgba(248, 244, 238, 0.65);
   display: block;
   margin-top: 1.5rem;
   letter-spacing: 0.04em;
