@@ -881,7 +881,6 @@
   background: rgba(248, 244, 238, 0.03);
   border: 1px solid rgba(248, 244, 238, 0.10);
   border-top: 2px solid rgba(201, 123, 30, 0.22);
-  position: relative;
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -890,34 +889,6 @@
   text-align: center;
   transition: transform 0.32s ease, background 0.32s ease, box-shadow 0.32s ease;
   cursor: default;
-}
-
-.visas-draw-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  padding: 1.5px;
-  background: conic-gradient(
-    from 0deg at 50% 50%,
-    transparent 0%,
-    transparent 62%,
-    rgba(255, 255, 255, 0.95) 76%,
-    rgba(255, 255, 255, 0.95) 82%,
-    transparent 96%,
-    transparent 100%
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.visas-draw-card:hover::before {
-  opacity: 1;
-  animation: card-shimmer 2s linear infinite;
 }
 
 .visas-draw-card:hover {
@@ -972,9 +943,6 @@
   letter-spacing: 0.04em;
 }
 
-@keyframes card-shimmer {
-  to { transform: rotate(360deg); }
-}
 
 /* ── RESPONSIVE ───────────────────────────────────────────── */
 @media (max-width: 1100px) {
