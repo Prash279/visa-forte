@@ -114,4 +114,15 @@ Do not infer Prash's preference in these areas. Stop and ask.
 
 ---
 
+## Account Gates — Verify Before Every Push or Deploy
+
+| Service | Expected account | How to verify |
+|---------|-----------------|---------------|
+| GitHub  | Prash279 / prash.279@gmail.com | `git remote -v` must show `github.com/Prash279/visa-forte` |
+| Vercel  | prash279 / prash.279@gmail.com | `vercel whoami` must return `prash279` |
+
+If either check fails, **stop and flag it to Prash** — do not push or deploy.
+
+---
+
 *CLAUDE.md v10.0 — Visa Forte Consulting*
