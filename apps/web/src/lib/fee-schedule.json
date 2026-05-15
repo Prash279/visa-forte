@@ -1,12 +1,27 @@
 {
   "source": "IRCC — Fees",
   "url": "https://ircc.canada.ca/english/information/fees/fees.asp",
-  "lastUpdated": "2026-04-30",
+  "lastUpdated": "2026-05-15",
   "fees": [
-    { "item": "Principal applicant — processing fee", "amount": "CAD 990" },
-    { "item": "Spouse or common-law partner — processing fee", "amount": "CAD 990" },
-    { "item": "Dependent child — processing fee (per child)", "amount": "CAD 270" },
-    { "item": "Right of Permanent Residence Fee — per adult", "amount": "CAD 600" },
-    { "item": "Biometrics — per individual", "amount": "CAD 85" }
+    {
+      "item": "Principal applicant — processing fee",
+      "amount": "CAD 990"
+    },
+    {
+      "item": "Spouse or common-law partner — processing fee",
+      "amount": "CAD 990"
+    },
+    {
+      "item": "Dependent child — processing fee (per child)",
+      "amount": "CAD 270"
+    },
+    {
+      "item": "Biometrics — per individual",
+      "amount": "CAD 85"
+    },
+    {
+      "item": "Right of Permanent Residence Fee — per adult",
+      "amount": "CAD 600"
+    }
   ]
 }
