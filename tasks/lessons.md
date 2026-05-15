@@ -1,7 +1,7 @@
 # tasks/lessons.md — Self-Improvement Log
 > Updated by Claude Code after every correction from Prash.
 > Reviewed at the START of every session before any work begins.
-> Last updated: April 2026
+> Last updated: May 2026
 
 ---
 
@@ -131,6 +131,16 @@ If the lesson contains words like "useEffect", "state mismatch", "hydration erro
 - **What went wrong:** The FOUC (flash of unstyled content) was reported as fixed twice before it was actually fixed.
 - **Why it happened:** The first two fixes addressed symptoms (body background, CSS variables) without identifying the root cause (styled-jsx in a client component is JS-injected, not render-blocking).
 - **The rule going forward:** Before telling Prash a visual bug is fixed: (1) identify the root cause in plain English, (2) explain why the fix prevents the root cause — not just the symptom. If the explanation sounds like "this should help," keep investigating.
+
+**Lesson 2 — Vercel CLI must be `prash279`; run deploy from repo root, not `apps/web`**
+- **What went wrong:** `vercel deploy --prod` was failing with "Could not retrieve Project Settings" because the Vercel CLI was authenticated to an old `amoghaa-properties7` account from a previous Antigravity build.
+- **Why it happened:** The primary CLI auth file (`C:\Users\hp\AppData\Roaming\com.vercel.cli\Data\auth.json`) was never cleaned up when the project moved to the `prash279` account. A second correct auth file existed but was not being used.
+- **The rule going forward:** At the start of any deploy task, check that `vercel whoami` returns `prash279`. If it does not, halt and fix the auth before touching anything else. Also: `vercel deploy --prod` must always be run from the **repo root** (`c:\Users\hp\visaforte`), never from inside `apps/web` — the Vercel project already has `rootDirectory: apps/web` in its settings, so running from inside that folder doubles the path and fails silently with a misleading error.
+
+**Lesson 3 — GitHub push must go through `gh` CLI auth, never an embedded PAT in the remote URL**
+- **What went wrong:** `git push` showed a GitHub login popup that placed the PAT token in the username field. The push never worked, and repeated attempts just re-triggered the popup.
+- **Why it happened:** Three things were wrong simultaneously: (1) the PAT embedded in the remote URL had expired, (2) the old `amoghaaproperties` account's credentials were still in Windows Credential Manager and were being sent for GitHub requests, (3) the GitHub CLI (`gh`) token was also invalid. Windows kept routing pushes through the wrong account's stale credentials.
+- **The rule going forward:** The GitHub remote URL must always be the clean form — `https://github.com/Prash279/visa-forte.git` — with no PAT embedded in it. Authentication is handled exclusively by the GitHub CLI (`gh`). Before any push, `gh auth status` must show `Prash279 (keyring)` with a valid token. If it does not, run `gh auth login -h github.com -p https -w` to re-authenticate via browser — takes 30 seconds, no PAT copy-paste required. Never store GitHub credentials in Windows Credential Manager manually; let `gh` manage the keyring. The `amoghaaproperties` account must never be present in any credential store.
 
 ---
 

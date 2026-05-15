@@ -118,10 +118,22 @@ Do not infer Prash's preference in these areas. Stop and ask.
 
 | Service | Expected account | How to verify |
 |---------|-----------------|---------------|
-| GitHub  | Prash279 / prash.279@gmail.com | `git remote -v` must show `github.com/Prash279/visa-forte` |
+| GitHub  | Prash279 / prash.279@gmail.com | `git remote -v` must show clean `https://github.com/Prash279/visa-forte.git` (no embedded token). `gh auth status` must show `Prash279 (keyring)` with a valid token. |
 | Vercel  | prash279 / prash.279@gmail.com | `vercel whoami` must return `prash279` |
 
-If either check fails, **stop and flag it to Prash** — do not push or deploy.
+If either check fails, **stop and fix auth before touching anything else** — do not push or deploy.
+
+**GitHub auth fix (if `gh auth status` shows invalid or wrong account):**
+```
+gh auth login -h github.com -p https -w
+```
+Opens browser, authenticate as Prash279 — done in 30 seconds. No PAT copy-paste required.
+
+**Vercel deploy commands (both work):**
+- `git push origin main` — GitHub integration auto-deploys to production
+- `vercel deploy --prod` — run from **repo root** `c:\Users\hp\visaforte`, never from inside `apps/web`
+
+The Vercel project has `rootDirectory: apps/web` in its settings. Running the CLI from inside `apps/web` doubles the path and fails. The `amoghaa-properties7` and `amoghaaproperties` accounts were permanently removed in May 2026 — leftover from an old Antigravity build and must never reappear in any credential store.
 
 ---
 
