@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!--
+    Visa Forte favicon — "The V"
+    Prussian navy field · Saffron gold tapered V mark
+    Two congruent tapered triangles whose outer edges taper to a shared 1px base.
+    At 16px the taper renders as a clean V; at 32px the craftsmanship reads clearly.
+    The open gateway inside the V: passage, Engineered for Passage.
+  -->
+
+  <!-- Field -->
+  <rect width="32" height="32" rx="5" fill="#0C2340"/>
+
+  <!-- Left arm — tapers from 5 px at crown to 1 px at base -->
+  <polygon points="5,7 10,7 16.5,26 15.5,26" fill="#C97B1E"/>
+
+  <!-- Right arm — mirror -->
+  <polygon points="27,7 22,7 15.5,26 16.5,26" fill="#C97B1E"/>
+</svg>
