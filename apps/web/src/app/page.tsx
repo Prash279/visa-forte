@@ -1,35 +1,8 @@
-/* eslint-disable react/no-unescaped-entities */
-"use client";
-
-// Homepage — visaforte.com/
-// Nav, footer, and scroll-reveal observer are provided by layout.tsx.
-// This component only owns: accordion interaction.
-
-import { useEffect } from "react";
 import "./home.css";
+import AccordionSection from "@/components/AccordionSection";
+import MailtoButton from "@/components/MailtoButton";
 
 export default function Home() {
-  useEffect(() => {
-    // Accordion for the FAQ/objections section
-    document.querySelectorAll<HTMLButtonElement>(".accord-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const item = btn.closest(".accord-item");
-        if (!item) return;
-        const isOpen = item.classList.contains("open");
-
-        document.querySelectorAll<HTMLElement>(".accord-item").forEach((i) => {
-          i.classList.remove("open");
-          i.querySelector<HTMLButtonElement>(".accord-btn")?.setAttribute("aria-expanded", "false");
-        });
-
-        if (!isOpen) {
-          item.classList.add("open");
-          btn.setAttribute("aria-expanded", "true");
-        }
-      });
-    });
-  }, []);
-
   return (
     <main>
       <section className="hero">
@@ -44,20 +17,7 @@ export default function Home() {
             Your CRS score qualified you. Your ITA arrived. Now <strong>the documentation phase determines everything</strong> — and it is precisely where 90% of otherwise eligible applications fail. Visa Forte exists at exactly that boundary.
           </p>
           <div className="hero-actions">
-            <a
-              href="#triage"
-              className="btn-primary"
-              onClick={(e) => {
-                e.preventDefault();
-                const subject = encodeURIComponent("Document Triage Assessment — [Your Name]");
-                const body = encodeURIComponent(
-                  "Dear Prashant,\n\nI am writing to request a Document Triage Assessment for my Express Entry application. I want to ensure my documentation is in order before I proceed.\n\nMy details:\n\nFull name:\nCurrent location (city, country):\nExpress Entry program: CEC / FSWP / FSTP\nCurrent CRS score:\nITA received: Yes / No\nPrimary documentation concern:\n\nI am ready to proceed and look forward to hearing from you.\n\n[Full name]\n[WhatsApp / Phone]"
-                );
-                window.location.href = `mailto:prashant@visaforte.com?subject=${subject}&body=${body}`;
-              }}
-            >
-              Request Document Triage →
-            </a>
+            <MailtoButton className="btn-primary">Request Document Triage →</MailtoButton>
             <a href="#evidence" className="link-ghost">See client outcomes</a>
           </div>
           <div className="hero-stats">
@@ -237,48 +197,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="sec objections">
-        <div className="sec-inner">
-          <p className="eyebrow r">Direct Answers</p>
-          <h2 className="headline r d1">The Questions Serious Applicants Ask</h2>
-          <div className="rule r d2" />
-          <div className="accord r d3">
-            <div className="accord-item">
-              <button className="accord-btn" aria-expanded="false">
-                <span className="accord-q">"Can't I just do this myself using free online forums and the IRCC website?"</span>
-                <span className="accord-icon" aria-hidden="true">+</span>
-              </button>
-              <div className="accord-panel" role="region">
-                <div className="accord-body">
-                  You can. The forums contain genuine, useful information contributed by people who have navigated the process themselves, and the IRCC website is authoritative. The limitation is not information availability — it is <strong>information currency and profile specificity</strong>. Forum advice may be six months out of date, written before the arranged employment points were removed, written before the most recent category-based draw changed which profiles IRCC is prioritising. It is written for generic profiles, not yours. And there is no one reviewing your actual documents to catch the discrepancy between your employment letter's duty description and the TEER code you've declared — the kind of structural error that is invisible until IRCC flags it with a rejection notice. The forums are an excellent orientation tool. They are not a substitute for a forensic review of your specific file against the current regulatory framework.
-                </div>
-              </div>
-            </div>
-            <div className="accord-item">
-              <button className="accord-btn" aria-expanded="false">
-                <span className="accord-q">"Why a solo consultant over a large, established immigration firm?"</span>
-                <span className="accord-icon" aria-hidden="true">+</span>
-              </button>
-              <div className="accord-panel" role="region">
-                <div className="accord-body">
-                  At a large firm, your file is assigned to a queue. A junior associate — often with fewer than two years of experience — reviews it against a standard checklist and flags anything that deviates from the template. The senior practitioner whose name appears on the website, whose credentials are cited, whose face is on the About page, may never read your documents. The checklist becomes the ceiling of what is found. <strong>At Visa Forte, every document in your file is personally reviewed by a practitioner with 20 years of domain experience</strong> — the same person who answers your questions, the same person who built your document checklist, the same person who reviewed your employer letters against current TEER criteria. There is no hand-off. There is no checklist substituting for judgment. What you engage is not a firm's brand — it is 20 years of accumulated edge-case experience, applied personally to your profile.
-                </div>
-              </div>
-            </div>
-            <div className="accord-item">
-              <button className="accord-btn" aria-expanded="false">
-                <span className="accord-q">"What if my application is delayed or rejected due to factors outside anyone's control?"</span>
-                <span className="accord-icon" aria-hidden="true">+</span>
-              </button>
-              <div className="accord-panel" role="region">
-                <div className="accord-body">
-                  Processing timelines, administrative decisions, and IRCC operational capacity are not within anyone's control — not mine, not a licensed RCIC's, not an immigration lawyer's. That is a truthful statement, and any practitioner who implies otherwise is misrepresenting the process. <strong>What I control — and what this engagement guarantees — is that your documentation is structurally sound, complete, and current at the moment it leaves your hands.</strong> Applications fail for two distinct reasons: documentation errors and processing variability. Forensic document triage eliminates the first category entirely. Processing variability is a systemic risk I prepare you to navigate: with pre-prepared IRCC correspondence templates, documented file status, and a communication structure that allows you to respond to any administrative request within 24 hours. You cannot eliminate processing risk. You can eliminate documentation risk. That is what this engagement delivers.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <AccordionSection />
 
       <section className="sec offer" id="triage">
         <div className="sec-inner">
@@ -342,20 +261,7 @@ export default function Home() {
           <p className="final-body r d2">
             Request a Document Triage Assessment to find out precisely where your file stands. This is a personal review, not an automated response. Capacity is limited to the files that can be reviewed with the attention they require.
           </p>
-          <a
-            href="#triage"
-            onClick={(e) => {
-              e.preventDefault();
-              const subject = encodeURIComponent("Document Triage Assessment — [Your Name]");
-              const body = encodeURIComponent(
-                "Dear Prashant,\n\nI am writing to request a Document Triage Assessment for my Express Entry application. I want to ensure my documentation is in order before I proceed.\n\nMy details:\n\nFull name:\nCurrent location (city, country):\nExpress Entry program: CEC / FSWP / FSTP\nCurrent CRS score:\nITA received: Yes / No\nPrimary documentation concern:\n\nI am ready to proceed and look forward to hearing from you.\n\n[Full name]\n[WhatsApp / Phone]"
-              );
-              window.location.href = `mailto:prashant@visaforte.com?subject=${subject}&body=${body}`;
-            }}
-            className="btn-primary r d3"
-          >
-            Request Triage Assessment →
-          </a>
+          <MailtoButton className="btn-primary r d3">Request Triage Assessment →</MailtoButton>
           <p className="final-contact r d4">
             <a href="mailto:prashant@visaforte.com">prashant@visaforte.com</a>
             &nbsp;·&nbsp;

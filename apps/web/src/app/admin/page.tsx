@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { and, eq, gte, lte, lt, desc, sql } from "drizzle-orm";
+import { and, eq, gte, lt, desc, sql } from "drizzle-orm";
 import { getCurrentAuthSession } from "@/lib/auth-server";
 import SignOutButton from "./SignOutButton";
 import LeadsTable from "./LeadsTable";
@@ -27,11 +27,32 @@ export default async function AdminPage() {
 
   const userName = userEmail.split("@")[0] ?? "there";
 
-  // Fetch all intake leads, most recent first.
-  // Explicitly exclude resumeUrl (base64 data) to keep the payload small — the
-  // download route serves it on demand.
-  const allLeads = await db
-    .select({
+  // IST date helpers — defined early, used for the upcoming-bookings filter and calendar seed.
+  const todayIST = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+  );
+  const in7Days = new Date(todayIST);
+  in7Days.setDate(todayIST.getDate() + 7);
+
+  const fmt = (d: Date): string => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+
+  // Run all independent queries in parallel — eliminates 400–1200 ms of serial DB round-trips.
+  const [
+    allLeads,
+    allBookings,
+    allClients,
+    pipelineRows,
+    openQueryRows,
+    pendingDeletionRows,
+    cronRows,
+  ] = await Promise.all([
+    // Exclude resumeUrl (base64 data) — the download route serves it on demand.
+    db.select({
       id: leads.id,
       name: leads.name,
       email: leads.email,
@@ -40,46 +61,41 @@ export default async function AdminPage() {
       resumeFilename: leads.resumeFilename,
       status: leads.status,
       createdAt: leads.createdAt,
+    }).from(leads).orderBy(desc(leads.createdAt)),
+    db.select().from(bookings).orderBy(desc(bookings.createdAt)),
+    db.select().from(clients).orderBy(desc(clients.createdAt)),
+    db.select({ stage: clients.stage, count: sql<number>`count(*)::int` })
+      .from(clients)
+      .groupBy(clients.stage),
+    db.select({ id: irccQueries.id })
+      .from(irccQueries)
+      .where(eq(irccQueries.status, 'Open')),
+    db.select({
+      requestId: deletionRequests.id,
+      clientId: clients.id,
+      clientName: clients.name,
+      clientEmail: clients.email,
+      requestedAt: deletionRequests.requestedAt,
     })
-    .from(leads)
-    .orderBy(desc(leads.createdAt));
+      .from(deletionRequests)
+      .innerJoin(clients, eq(deletionRequests.clientId, clients.id))
+      .where(eq(deletionRequests.status, 'pending'))
+      .orderBy(desc(deletionRequests.requestedAt)),
+    db.select({ createdAt: auditLog.createdAt })
+      .from(auditLog)
+      .where(and(eq(auditLog.event, 'client_deleted'), eq(auditLog.actorId, 'cron')))
+      .orderBy(desc(auditLog.createdAt))
+      .limit(1),
+  ]);
 
-  // Fetch all bookings, most recent first.
-  const allBookings = await db.select().from(bookings).orderBy(desc(bookings.createdAt));
+  const lastCronRow = cronRows[0];
 
-  // Count bookings in the next 7 days (IST-aware).
-  const todayIST = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+  // bookingDate is a YYYY-MM-DD text column — lexicographic string comparison is correct.
+  const upcomingBookings = allBookings.filter(
+    b => b.bookingDate >= fmt(todayIST) && b.bookingDate <= fmt(in7Days)
   );
-  const in7Days = new Date(todayIST);
-  in7Days.setDate(todayIST.getDate() + 7);
 
-  const fmt = (d: Date) => {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-  };
-
-  const upcomingBookings = await db
-    .select()
-    .from(bookings)
-    .where(
-      and(
-        gte(bookings.bookingDate, fmt(todayIST)),
-        lte(bookings.bookingDate, fmt(in7Days))
-      )
-    );
-
-  // Fetch all CRM clients for the metric card, ITA Window banner, and pipeline overview.
-  const allClients = await db.select().from(clients).orderBy(desc(clients.createdAt));
   const itaClients = allClients.filter(c => c.stage === 'ITA Window');
-
-  // Count clients per pipeline stage for the Pipeline Overview section.
-  const pipelineRows = await db
-    .select({ stage: clients.stage, count: sql<number>`count(*)::int` })
-    .from(clients)
-    .groupBy(clients.stage);
 
   // Map to all 9 stages so stages with zero clients still render (no missing card).
   const stageCountMap = Object.fromEntries(CRM_STAGES.map(s => [s, 0]));
@@ -87,44 +103,16 @@ export default async function AdminPage() {
     stageCountMap[row.stage] = row.count;
   }
 
-  // Count clients in Submitted / Decision Pending stages and their open IRCC queries.
   const monitoringClientCount = allClients.filter(
     c => c.stage === 'Submitted' || c.stage === 'Decision Pending'
   ).length;
-
-  const openQueryRows = await db
-    .select({ id: irccQueries.id })
-    .from(irccQueries)
-    .where(eq(irccQueries.status, 'Open'));
   const openQueryCount = openQueryRows.length;
-
-  // Fetch pending data deletion requests for the admin action panel.
-  const pendingDeletionRows = await db
-    .select({
-      requestId: deletionRequests.id,
-      clientId: clients.id,
-      clientName: clients.name,
-      clientEmail: clients.email,
-      requestedAt: deletionRequests.requestedAt,
-    })
-    .from(deletionRequests)
-    .innerJoin(clients, eq(deletionRequests.clientId, clients.id))
-    .where(eq(deletionRequests.status, 'pending'))
-    .orderBy(desc(deletionRequests.requestedAt));
 
   // Serialize Date → ISO string for the client component.
   const pendingDeletions = pendingDeletionRows.map(r => ({
     ...r,
     requestedAt: r.requestedAt.toISOString(),
   }));
-
-  // Find the most recent nightly data-retention cron run for the admin footer indicator.
-  const [lastCronRow] = await db
-    .select({ createdAt: auditLog.createdAt })
-    .from(auditLog)
-    .where(and(eq(auditLog.event, 'client_deleted'), eq(auditLog.actorId, 'cron')))
-    .orderBy(desc(auditLog.createdAt))
-    .limit(1);
 
   let lastRetentionRun: string | null = null;
   let lastRetentionCount = 0;

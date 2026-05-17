@@ -79,7 +79,6 @@ nav#nav {
   justify-content: space-between;
   padding: 1.2rem 2.5rem;
   background: rgba(12, 35, 64, 0.97);
-  backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(201, 123, 30, 0.18);
   transition: padding 0.3s ease;
   gap: 1rem;
@@ -225,7 +224,6 @@ nav#nav.scrolled { padding: 0.75rem 2.5rem; }
   top: 58px;
   left: 0; right: 0;
   background: rgba(10, 28, 52, 0.99);
-  backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(201, 123, 30, 0.12);
   padding: 0.5rem 1.5rem 1.25rem;
   z-index: 199;
@@ -417,10 +415,6 @@ footer.site-footer {
 .r.d4         { transition-delay: 0.32s; }
 .r.d5         { transition-delay: 0.40s; }
 
-@keyframes riseIn {
-  from { opacity: 0; transform: translateY(22px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
 
 /* ── 8. SHARED BUTTON STYLES ──────────────────────────────── */
 .btn-primary {
