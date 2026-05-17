@@ -6,16 +6,13 @@
 import type { NextConfig } from 'next';
 import { withSentryConfig } from '@sentry/nextjs';
 
-// TODO: add your GlitchTip DSN hostname to connect-src once known.
-// Extract it from NEXT_PUBLIC_SENTRY_DSN — e.g. "https://key@app.glitchtip.com/123"
-// → add "https://app.glitchtip.com" (or your self-hosted domain) to the connect-src line.
 const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self'",
+  "connect-src 'self' https://o4511213768540160.ingest.us.sentry.io",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
