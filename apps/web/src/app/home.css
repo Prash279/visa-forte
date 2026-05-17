@@ -678,7 +678,6 @@
 
 @media (max-width: 640px) {
   .hero                { padding: 8rem 1.25rem 5rem; }
-  .hero::after         { display: none; }
   .hero-stats          { gap: 2.5rem; }
   .stakes-grid         { grid-template-columns: 1fr; }
   .case                { padding: 2rem 1.5rem; }

@@ -229,7 +229,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
               <tbody>${rows}</tbody>
             </table>
             <p style="margin-top:20px;">
-              <a href="${siteUrl}/admin/crm" style="color:#c97b1e;">Go to CRM to reply →</a>
+              <a href="${siteUrl}/admin/clients" style="color:#c97b1e;">Go to CRM to reply →</a>
             </p>
           </div>
         `,

@@ -200,7 +200,6 @@ export default function BookingForm({ availableDates }: Props) {
         // Poll for modal close without a native dismiss event.
       };
 
-      rzp.on('payment.failed', () => { resolve(); });
       rzp.open();
     });
   }

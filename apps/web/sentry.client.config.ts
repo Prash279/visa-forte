@@ -10,7 +10,7 @@ if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
 
     tracesSampleRate: 0.1,
 
-    // Never send PII to GlitchTip from the browser
+    // Never send PII to Sentry.io from the browser
     sendDefaultPii: false,
 
     enabled: process.env.NODE_ENV === 'production',
