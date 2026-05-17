@@ -1,6 +1,6 @@
-// sentry.client.config.ts — GlitchTip error tracking, browser side.
+// sentry.client.config.ts — Sentry.io error tracking, browser side.
 // Captures unhandled JS errors that occur in the client (React components,
-// event handlers, etc.) and reports them to GlitchTip.
+// event handlers, etc.) and reports them to Sentry.
 
 import * as Sentry from '@sentry/nextjs';
 

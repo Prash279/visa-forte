@@ -1,6 +1,5 @@
 // next.config.ts — Next.js configuration.
-// Wrapped with withSentryConfig to enable GlitchTip error tracking.
-// GlitchTip is 100% Sentry-compatible — uses @sentry/nextjs SDK.
+// Wrapped with withSentryConfig to enable Sentry.io error tracking.
 // No SENTRY_AUTH_TOKEN needed — source map uploads are skipped.
 
 import type { NextConfig } from 'next';
