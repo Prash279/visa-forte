@@ -2,6 +2,11 @@
    Shared styles (nav, footer, section layout, buttons, animations)
    live in globals.css and are applied via layout.tsx.        */
 
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* ── HERO ─────────────────────────────────────────────────── */
 .hero {
   min-height: 100vh;
