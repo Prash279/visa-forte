@@ -150,8 +150,12 @@ section[id] { scroll-margin-top: 72px; }
 
 .hero {
   background-color: var(--color-primary);
-  background-image: radial-gradient(circle, rgba(207,91,0,.1) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-image:
+    radial-gradient(circle, rgba(207,91,0,.1) 1px, transparent 1px),
+    linear-gradient(rgba(30,37,38,.82),rgba(30,37,38,.82)),
+    url('https://images.pexels.com/photos/19757234/pexels-photo-19757234.jpeg?auto=compress&cs=tinysrgb&w=1600');
+  background-size: 24px 24px, cover, cover;
+  background-position: center, center, center;
   padding: var(--sp-xl) 0 var(--sp-lg);
   min-height: 100vh;
   min-height: 100svh;

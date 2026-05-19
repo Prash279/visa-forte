@@ -167,8 +167,12 @@ section[id] { scroll-margin-top: 72px; }
 
 .hero {
   background-color: var(--color-primary);
-  background-image: radial-gradient(circle, rgba(207,91,0,.1) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-image:
+    radial-gradient(circle, rgba(207,91,0,.1) 1px, transparent 1px),
+    linear-gradient(rgba(30,37,38,.82),rgba(30,37,38,.82)),
+    url('https://images.pexels.com/photos/19757234/pexels-photo-19757234.jpeg?auto=compress&cs=tinysrgb&w=1600');
+  background-size: 24px 24px, cover, cover;
+  background-position: center, center, center;
   padding: var(--sp-xl) 0 var(--sp-lg);
   min-height: 100vh;
   min-height: 100svh;
@@ -610,7 +614,7 @@ section[id] { scroll-margin-top: 72px; }
 
       <!-- EDIT: Project 1 — replace placeholder div with <img> when you have a photo -->
       <article class="project-card">
-        <div class="project-placeholder" role="img" aria-label="Project photo — replace with site image"></div>
+        <img src="https://images.pexels.com/photos/6127375/pexels-photo-6127375.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Metal staircase with handrail on concrete wall" class="project-thumb" loading="lazy">
         <div class="project-info">
           <!-- EDIT: Project title -->
           <h3>Industrial Staircase &amp; Railing</h3>
@@ -621,7 +625,7 @@ section[id] { scroll-margin-top: 72px; }
 
       <!-- EDIT: Project 2 -->
       <article class="project-card">
-        <div class="project-placeholder" role="img" aria-label="Project photo — replace with site image"></div>
+        <img src="https://images.pexels.com/photos/7540035/pexels-photo-7540035.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Decorated steel compound gate outdoors" class="project-thumb" loading="lazy">
         <div class="project-info">
           <h3>Custom Compound Gate</h3>
           <p>Heavy-gauge MS sliding gate with decorative ironwork for residential compound — 2024</p>
@@ -630,7 +634,7 @@ section[id] { scroll-margin-top: 72px; }
 
       <!-- EDIT: Project 3 -->
       <article class="project-card">
-        <div class="project-placeholder" role="img" aria-label="Project photo — replace with site image"></div>
+        <img src="https://images.pexels.com/photos/12771407/pexels-photo-12771407.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Empty steel warehouse with structural metal framework" class="project-thumb" loading="lazy">
         <div class="project-info">
           <h3>Warehouse Roofing Framework</h3>
           <p>Structural steel framework for 8,000 sq ft warehouse, delivered in 3 weeks — 2023</p>
@@ -639,7 +643,7 @@ section[id] { scroll-margin-top: 72px; }
 
       <!-- EDIT: Project 4 -->
       <article class="project-card">
-        <div class="project-placeholder" role="img" aria-label="Project photo — replace with site image"></div>
+        <img src="https://images.pexels.com/photos/3970340/pexels-photo-3970340.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Welder fabricating metal pipes and ductwork" class="project-thumb" loading="lazy">
         <div class="project-info">
           <h3>SS Kitchen Exhaust System</h3>
           <p>Stainless steel hood and duct fabrication for commercial restaurant kitchen — 2023</p>
@@ -648,7 +652,7 @@ section[id] { scroll-margin-top: 72px; }
 
       <!-- EDIT: Project 5 -->
       <article class="project-card">
-        <div class="project-placeholder" role="img" aria-label="Project photo — replace with site image"></div>
+        <img src="https://images.pexels.com/photos/28934608/pexels-photo-28934608.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Industrial metal storage tanks against clear sky" class="project-thumb" loading="lazy">
         <div class="project-info">
           <h3>Water Tank Fabrication</h3>
           <p>Custom MS water storage tank (25,000 litre) with ladder and vent assembly — 2023</p>
@@ -657,7 +661,7 @@ section[id] { scroll-margin-top: 72px; }
 
       <!-- EDIT: Project 6 -->
       <article class="project-card">
-        <div class="project-placeholder" role="img" aria-label="Project photo — replace with site image"></div>
+        <img src="https://images.pexels.com/photos/7655736/pexels-photo-7655736.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Close-up of decorative metal gate security grille" class="project-thumb" loading="lazy">
         <div class="project-info">
           <h3>Office Security Grilles</h3>
           <p>Ornamental window grilles and door frames for 3-storey office complex — 2022</p>
