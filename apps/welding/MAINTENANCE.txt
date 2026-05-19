@@ -1,0 +1,297 @@
+SRI LALITHA WELDING WORKS — WEBSITE MAINTENANCE GUIDE
+=====================================================
+This file explains how to update your website without breaking anything.
+Open index.html in any text editor (Notepad, TextEdit, VS Code, Notepad++).
+Save the file after every change. Refresh your browser to see the result.
+Every item you need to change is marked with <!-- EDIT: --> in the HTML.
+
+TABLE OF CONTENTS
+-----------------
+1. Update contact information (phone, email, WhatsApp, address)
+2. Add or remove services
+3. Add real project photos
+4. Change colours and fonts
+5. Connect the contact form (Formspree setup)
+6. Deploy your site live (Netlify / GitHub Pages)
+7. Troubleshooting
+8. RED FLAG WARNINGS — do not delete these lines
+
+
+=======================================================
+1. UPDATE CONTACT INFORMATION
+=======================================================
+
+PHONE NUMBER (appears in 2 places):
+  Search for: +91 98765 43210
+  Replace both occurrences with your real number.
+  Also update the href="tel:+919876543210" link —
+  the tel: number must have no spaces and start with the country code:
+    CORRECT:   href="tel:+919876543210"
+    INCORRECT: href="tel:+91 98765 43210"
+
+WHATSAPP (appears in 1 place):
+  Search for: wa.me/919876543210
+  Replace 919876543210 with your number in this exact format:
+    91 followed by your 10-digit mobile number, no spaces, no +
+  Example: if your number is 94000 12345, use: wa.me/919400012345
+
+EMAIL (appears in 2 places):
+  Search for: contact@srilalithawelding.com
+  Replace both occurrences with your real email address.
+  One is inside href="mailto:..." and one is the visible text.
+  They must match.
+
+ADDRESS (appears in 1 place):
+  Search for: Secunderabad, Telangana 500025
+  Replace with your real street address, area, and pin code.
+
+COMPANY NAME (appears in 3 places — title tag, main logo, footer logo):
+  Search for: Sri Lalitha Welding Works
+  Replace in all 3 locations.
+  The short logo "SLW_Works" appears in 2 places — update those too.
+
+
+=======================================================
+2. ADD OR REMOVE SERVICES
+=======================================================
+
+The site currently shows 4 services. You can have 2, 3, or 4.
+Each service is one <article class="service-card"> block in index.html.
+
+TO ADD A NEW SERVICE — copy and paste this block inside the
+<div class="services-grid"> container, then edit the text:
+
+  <!-- EDIT: New service -->
+  <article class="service-card">
+    <svg class="service-icon" viewBox="0 0 36 36" fill="none"
+         stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+      <!-- Replace with any simple SVG path or leave this generic shape: -->
+      <rect x="8" y="8" width="20" height="20"/>
+    </svg>
+    <h3>YOUR SERVICE TITLE</h3>
+    <p>Your 1–2 sentence description here.</p>
+  </article>
+
+TO REMOVE A SERVICE — delete the full block from
+  <article class="service-card">
+to the matching
+  </article>
+
+
+=======================================================
+3. ADD REAL PROJECT PHOTOS
+=======================================================
+
+STEP 1 — Prepare your photos:
+  - Format: JPEG (.jpg)
+  - Size: resize to 800 x 600 pixels (or any 4:3 aspect ratio)
+  - File size: compress to under 300 KB per photo
+  - Free resize/compress tool: squoosh.app (browser-based, no install)
+  - File names: use lowercase letters, numbers, hyphens only
+    GOOD:  compound-gate-2024.jpg
+    BAD:   Gate Photo (Final).JPG
+
+STEP 2 — Place the photo:
+  Put the file in the images/projects/ folder next to index.html.
+  (Create the folder if it does not exist.)
+
+STEP 3 — Replace the placeholder in index.html:
+  Find the project card you want to update.
+  Delete this entire line:
+    <div class="project-placeholder" role="img" ...></div>
+  Replace it with:
+    <img src="images/projects/your-file-name.jpg"
+         alt="Describe what is shown in the photo"
+         class="project-thumb" loading="lazy">
+
+  Example:
+    <img src="images/projects/compound-gate-2024.jpg"
+         alt="Heavy-gauge MS sliding gate installed in residential compound, Secunderabad"
+         class="project-thumb" loading="lazy">
+
+  The alt text is what screen readers and Google see — be specific.
+
+STEP 4 — Update the project title and description below the photo.
+
+FOLDER STRUCTURE for reference:
+  apps/welding/
+  ├── index.html          (the website)
+  ├── style.css           (the design)
+  ├── MAINTENANCE.txt     (this file)
+  └── images/
+      ├── projects/       (put project photos here)
+      └── team/           (put team/founder photos here, if desired)
+
+
+=======================================================
+4. CHANGE COLOURS AND FONTS
+=======================================================
+
+All colours and fonts are defined in ONE place in style.css.
+Open style.css and look for the :root block at the very top.
+Change only the values after the colon (:), nothing else.
+
+:root {
+  --color-primary: #1e2526;   Main dark colour (header, hero, footer background)
+  --color-accent:  #cf5b00;   Orange accent (borders, icons, hover effects)
+  --color-bg:      #f4f2ef;   Page background
+  --color-steel:   #5c6d6d;   Secondary text colour (descriptions, captions)
+
+  --font-display: 'IBM Plex Mono', 'Courier New', monospace;  (headings, logo, buttons)
+  --font-body:    'Fira Sans', 'Helvetica Neue', sans-serif;   (body text)
+}
+
+CHANGING A COLOUR:
+  Replace the hex code (the #xxxxxx value).
+  Use a tool like coolors.co or htmlcolorcodes.com to pick a colour.
+  Make sure your new accent colour is dark enough to see on white backgrounds.
+
+CHANGING A FONT:
+  1. Go to fonts.google.com and find a font you like.
+  2. In style.css, update the font name in --font-display or --font-body.
+  3. In index.html, find the Google Fonts <link> tag in the <head> section and
+     update the URL to include your new font name.
+  4. Keep it to 2 fonts total (one display, one body). More fonts = slower loading.
+
+
+=======================================================
+5. CONNECT THE CONTACT FORM (FORMSPREE)
+=======================================================
+
+The contact form currently shows YOUR_FORMSPREE_ID as a placeholder.
+Until you replace this, the form will NOT send emails.
+
+STEP 1 — Create a free account at formspree.io (no credit card required)
+
+STEP 2 — Create a new form in Formspree:
+  - Click "New Form"
+  - Give it a name (e.g., "Sri Lalitha Website Enquiry")
+  - Formspree will give you a Form ID that looks like: xrgjpkbn
+
+STEP 3 — Update index.html:
+  Search for: YOUR_FORMSPREE_ID
+  Replace with your actual Form ID
+  Example — change:
+    action="https://formspree.io/f/YOUR_FORMSPREE_ID"
+  to:
+    action="https://formspree.io/f/xrgjpkbn"
+
+STEP 4 — Test the form:
+  Fill in the form on your live site and submit it.
+  Check your email (and Formspree dashboard) for the test submission.
+
+OPTIONAL — Set a custom thank-you page:
+  Add this hidden field inside the <form> tag:
+    <input type="hidden" name="_next" value="https://your-website.com">
+  This redirects visitors to your homepage after submitting instead of
+  showing Formspree's default thank-you page.
+
+
+=======================================================
+6. DEPLOY YOUR SITE LIVE
+=======================================================
+
+OPTION A — Netlify (recommended, free, 5 minutes):
+  1. Go to netlify.com and sign up for a free account
+  2. On your dashboard, look for the "Deploy manually" drag-and-drop zone
+  3. Open the apps/welding/ folder on your computer
+  4. Drag and drop the ENTIRE welding/ folder onto the Netlify deploy zone
+  5. Netlify will give you a free URL like: https://random-name.netlify.app
+  6. Optional: buy a custom domain (e.g., srilalithawelding.com) and connect it
+     in Netlify Settings > Domain Management
+
+OPTION B — GitHub Pages (free):
+  1. Create a free account at github.com
+  2. Create a new repository (e.g., "srilalitha-welding")
+  3. Upload index.html, style.css, and your images/ folder
+  4. Go to Settings > Pages > Source: "Deploy from branch" > Branch: main > / (root)
+  5. Your site will be live at: https://yourusername.github.io/srilalitha-welding
+
+AFTER DEPLOYING — update the contact form:
+  Replace YOUR_FORMSPREE_ID with your real Formspree ID (see Step 5).
+  Re-upload or re-deploy after making any changes.
+
+
+=======================================================
+7. TROUBLESHOOTING
+=======================================================
+
+PROBLEM: Images are not showing (broken image icon)
+  Check 1: Is the image file in the images/projects/ folder?
+  Check 2: Does the src="..." in the <img> tag match the filename exactly?
+           Filenames are case-sensitive. gate.jpg is different from Gate.jpg
+  Check 3: No spaces in the filename. Use hyphens instead.
+  Check 4: Is the file a .jpg or .png? Other formats may not display in all browsers.
+
+PROBLEM: The contact form is not sending emails
+  Check 1: Have you replaced YOUR_FORMSPREE_ID with your real Formspree ID?
+  Check 2: Is the form action URL correct? It should look like:
+           action="https://formspree.io/f/abcdefgh"
+  Check 3: Check your Formspree dashboard for failed submissions.
+  Check 4: Check your spam folder for test submissions.
+  Check 5: The form does not work on file:// (local file). It only works on a
+           live hosted URL. Use Netlify or GitHub Pages to test it.
+
+PROBLEM: The layout looks broken or text is too big/small
+  Check 1: Did you accidentally delete a closing tag? (</div>, </section>, etc.)
+  Check 2: Try opening the page in a different browser.
+  Check 3: Clear your browser cache: Ctrl+Shift+Delete (Windows) or Cmd+Shift+Delete (Mac)
+  Check 4: Undo recent changes with Ctrl+Z and save again.
+
+PROBLEM: Fonts are not loading (headings look different)
+  Cause: You are opening the file directly (file://) without an internet connection.
+  Google Fonts require an internet connection to load.
+  On a live hosted website, fonts will always load correctly.
+
+PROBLEM: WhatsApp link is not working
+  Check the URL format: https://wa.me/91XXXXXXXXXX
+  No spaces, no +, no dashes. The number starts with 91 (India country code).
+  Test the link by clicking it yourself on a phone.
+
+
+=======================================================
+8. RED FLAG WARNINGS — DO NOT DELETE THESE LINES
+=======================================================
+
+The following items are critical. Deleting or changing them will break the site.
+
+DO NOT delete:
+  <!DOCTYPE html>
+  — This tells browsers the file is HTML5. Without it, layout will break.
+
+DO NOT delete:
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  — This makes the site work properly on phones. Without it, mobile layout breaks.
+
+DO NOT change:
+  method="POST" on the <form> tag
+  — Changing this to GET will stop the form from sending emails.
+
+DO NOT delete:
+  <link rel="stylesheet" href="style.css">
+  — This connects the design file. Without it the site will have no styling.
+
+DO NOT move:
+  The images/ folder must stay in the same folder as index.html.
+  If you move images/ somewhere else, all photos will stop displaying.
+
+DO NOT rename:
+  style.css must stay named style.css unless you also update the
+  href="style.css" link in the index.html <head> section to match.
+
+SAFE TO DELETE:
+  Any line starting with <!-- EDIT: ... --> is an instruction comment.
+  These comments are invisible to website visitors. You can leave them
+  in place or delete them — they will not affect how the site looks.
+
+
+=======================================================
+QUESTIONS OR HELP
+=======================================================
+If you get stuck, the two best free resources are:
+  - MDN Web Docs:  developer.mozilla.org  (official HTML/CSS reference)
+  - W3Schools:     w3schools.com          (beginner-friendly tutorials)
+
+For the contact form specifically: formspree.io/help
+
+Last updated: 2025
