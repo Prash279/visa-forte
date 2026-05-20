@@ -15,21 +15,6 @@
   overflow: hidden;
 }
 
-.booking-header::before {
-  content: '';
-  position: absolute;
-  top: 0; bottom: 0;
-  left: 50%;
-  width: 1px;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(201,123,30,0.2) 25%,
-    rgba(201,123,30,0.2) 75%,
-    transparent 100%
-  );
-}
-
 .booking-eyebrow {
   font-family: var(--font-body);
   font-size: 0.65rem;
