@@ -5,8 +5,10 @@ import { useEffect } from "react";
 
 export default function AccordionSection() {
   useEffect(() => {
+    const entries: Array<{ btn: HTMLButtonElement; fn: EventListener }> = [];
+
     document.querySelectorAll<HTMLButtonElement>(".accord-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
+      const fn: EventListener = () => {
         const item = btn.closest(".accord-item");
         if (!item) return;
         const isOpen = item.classList.contains("open");
@@ -20,8 +22,15 @@ export default function AccordionSection() {
           item.classList.add("open");
           btn.setAttribute("aria-expanded", "true");
         }
-      });
+      };
+
+      btn.addEventListener("click", fn);
+      entries.push({ btn, fn });
     });
+
+    return () => {
+      entries.forEach(({ btn, fn }) => btn.removeEventListener("click", fn));
+    };
   }, []);
 
   return (

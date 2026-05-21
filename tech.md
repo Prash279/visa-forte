@@ -34,9 +34,9 @@
 | **DigitalOcean App Platform** | If Render has availability issues in your region | Less mature Next.js support |
 | **VPS + Coolify** | Only when monthly cost becomes a constraint (Phase 2+) | Requires basic server management comfort |
 
-**Current hosting (April 2026):** Vercel (web) + Neon (PostgreSQL). `render.yaml` is written and ready for Phase 2 migration.
+**Current hosting (May 2026):** Vercel (web) + Supabase (PostgreSQL). `render.yaml` is written and ready for Phase 2 migration.
 
-**Database decision:** Neon is the permanent database host regardless of which platform runs the web server. Render's free PostgreSQL expires after 90 days — Neon's free tier does not. When hosting migrates to Render at Task 3, set `DATABASE_URL` in the Render dashboard to the existing Neon connection string. No data migration needed.
+**Database decision:** Supabase is the permanent database host regardless of which platform runs the web server. The postgres-js driver connects via `DATABASE_URL`; `prepare: false` and `max: 1` are required for Supabase's pgBouncer transaction pooling. When hosting migrates to Render, set `DATABASE_URL` in the Render dashboard to the existing Supabase connection string. No data migration needed.
 
 **Migration trigger:** Phase 1 is entirely Next.js — server actions, API routes, and Drizzle ORM cover all backend needs. No FastAPI is required in Phase 1. Migrate to Render at the start of Phase 2 when Python background jobs (data retention cron, pipeline automation) require a persistent process that Vercel cannot host.
 
