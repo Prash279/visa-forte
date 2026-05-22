@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import type { Client } from '../../../../drizzle/schema'
 import { CRM_STAGES, CRM_FILTER_STAGES } from '@/lib/crm-stages'
 
@@ -44,6 +45,7 @@ interface Props {
 }
 
 export default function CrmTable({ initialClients, serviceTiers, initialDocCounts, initialUnreadFromClient, oldestUnreadClientMsgTs, resumeMap }: Props) {
+  const router = useRouter()
   const [clients, setClients] = useState<Client[]>(initialClients)
   const [search, setSearch] = useState('')
   const [stageFilter, setStageFilter] = useState<string>('all')
@@ -660,6 +662,25 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                           Link Portal
                         </button>
                       )}
+                    </td>
+
+                    {/* CanDoc Review */}
+                    <td>
+                      <button
+                        style={{
+                          background: 'none',
+                          border: '1px solid var(--clr-accent)',
+                          color: 'var(--clr-accent)',
+                          borderRadius: '4px',
+                          padding: '0.25rem 0.6rem',
+                          fontSize: '0.75rem',
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                        }}
+                        onClick={() => router.push(`/admin/candoc?clientId=${client.id}&name=${encodeURIComponent(client.name)}`)}
+                      >
+                        CanDoc Review
+                      </button>
                     </td>
 
                     {/* Delete */}
