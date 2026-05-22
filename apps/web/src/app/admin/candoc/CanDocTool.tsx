@@ -87,7 +87,6 @@ export default function CanDocTool(): React.JSX.Element {
   return (
     <div className="candoc-wrap">
       <div className="candoc-header">
-        <button className="candoc-back" onClick={() => history.back()}>← Back</button>
         <h1>CanDoc Review — {clientName}</h1>
         <span className={`candoc-status-badge ${status}`}>{STATUS_LABEL[status]}</span>
       </div>
