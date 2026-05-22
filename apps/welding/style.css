@@ -94,12 +94,16 @@ p  { max-width: 65ch; }
 }
 .nav-logo {
   font-family: var(--font-display);
-  font-size: 1rem;
   font-weight: 700;
   color: var(--color-bg);
-  letter-spacing: .03em;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.1;
 }
 .nav-logo .dot { color: var(--color-accent); }
+.logo-name { font-size: 1rem; letter-spacing: .01em; }
+.logo-sub { font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: rgba(244,242,239,.42); font-weight: 400; }
 .nav-menu {
   display: flex;
   gap: 1.75rem;
@@ -152,7 +156,7 @@ section[id] { scroll-margin-top: 72px; }
   background-color: var(--color-primary);
   background-image:
     radial-gradient(circle, rgba(207,91,0,.1) 1px, transparent 1px),
-    linear-gradient(rgba(30,37,38,.82),rgba(30,37,38,.82)),
+    linear-gradient(rgba(30,37,38,.58),rgba(30,37,38,.58)),
     url('https://images.pexels.com/photos/19757234/pexels-photo-19757234.jpeg?auto=compress&cs=tinysrgb&w=1600');
   background-size: 24px 24px, cover, cover;
   background-position: center, center, center;
@@ -165,7 +169,7 @@ section[id] { scroll-margin-top: 72px; }
 .hero-inner {
   border-left: var(--bar);
   padding-left: 1.5rem;
-  max-width: 680px;
+  max-width: 420px;
 }
 .hero-eyebrow {
   font-family: var(--font-display);
