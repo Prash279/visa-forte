@@ -250,3 +250,30 @@ export const canadaDataSnapshots = pgTable('canada_data_snapshots', {
 });
 
 export type CanadaDataSnapshot = typeof canadaDataSnapshots.$inferSelect;
+
+// One review record per (client, version) pair. Version increments on each re-review.
+// status lifecycle: 'pending' → 'analyzing' → 'analyzed' → 'annotating' → 'complete' | 'error'
+// rawFindings: full FindingsJson from Claude, stored after AI analysis.
+// annotatedFindings: FindingsJson with Prash's prashAnnotation fields added per finding.
+// signoffChecklist: { [layerCode]: boolean } — Prash confirms each layer before sign-off.
+// reportBlobUrl: private Vercel Blob URL for the generated MARP PDF.
+export const candocReviews = pgTable('candoc_reviews', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  clientId: uuid('client_id').notNull().references(() => clients.id, { onDelete: 'cascade' }),
+  version: integer('version').notNull().default(1),
+  status: text('status').notNull().default('pending'),
+  triggeredAt: timestamp('triggered_at').notNull().defaultNow(),
+  analyzedAt: timestamp('analyzed_at'),
+  completedAt: timestamp('completed_at'),
+  rawFindings: jsonb('raw_findings'),
+  annotatedFindings: jsonb('annotated_findings'),
+  signoffChecklist: jsonb('signoff_checklist'),
+  reportBlobUrl: text('report_blob_url'),
+  errorMessage: text('error_message'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex('candoc_reviews_client_version_idx').on(table.clientId, table.version),
+])
+
+export type CandocReview = typeof candocReviews.$inferSelect
