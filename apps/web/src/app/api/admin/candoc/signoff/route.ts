@@ -4,6 +4,8 @@ import { db } from '@/lib/db'
 import { candocReviews, clients } from '../../../../../../drizzle/schema'
 import { getCurrentAuthSession } from '@/lib/auth-server'
 import { parseFindings, type FindingsJson } from '@/lib/candoc-types'
+import { buildCandocMarp, renderMarpToHtml } from '@/lib/candoc-marp'
+import { uploadFile } from '@/lib/storage'
 
 async function requireAdmin(): Promise<NextResponse | null> {
   const session = await getCurrentAuthSession()
@@ -15,7 +17,7 @@ async function requireAdmin(): Promise<NextResponse | null> {
 
 // POST /api/admin/candoc/signoff
 // Body: { reviewId, clientId, signoffChecklist, annotatedFindings }
-// Stub — MARP + Blob + Resend wired in Tasks 5 and 6.
+// Generates MARP HTML report, uploads to Vercel Blob, marks review complete.
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const deny = await requireAdmin()
   if (deny) return deny
@@ -40,12 +42,21 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       .where(eq(clients.id, clientId))
     if (!clientRow) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
 
+    const marpMarkdown = buildCandocMarp(parsed, clientRow.name)
+    const htmlBuffer = renderMarpToHtml(marpMarkdown, `CanDoc Review — ${clientRow.name}`)
+    const { url: reportBlobUrl } = await uploadFile(
+      `candoc/${clientId}/${reviewId}.html`,
+      htmlBuffer,
+      'text/html',
+    )
+
     await db
       .update(candocReviews)
       .set({
         status: 'complete',
         annotatedFindings: parsed,
         signoffChecklist,
+        reportBlobUrl,
         completedAt: new Date(),
         updatedAt: new Date(),
       })

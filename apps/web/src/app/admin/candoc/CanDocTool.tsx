@@ -186,7 +186,7 @@ function FindingsView({ findings, reviewId, clientId, status, onStatusChange, on
   }
 
   const handleDownload = async (): Promise<void> => {
-    const res = await fetch(`/api/admin/candoc/report?clientId=${clientId}`)
+    const res = await fetch(`/api/admin/candoc/report?reviewId=${reviewId}`)
     const { downloadUrl } = await res.json() as { downloadUrl?: string }
     if (downloadUrl) window.open(downloadUrl, '_blank')
   }
