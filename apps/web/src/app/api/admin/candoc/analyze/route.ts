@@ -4,7 +4,6 @@ import Anthropic from '@anthropic-ai/sdk'
 import { db } from '@/lib/db'
 import { candocReviews, clientDocuments } from '../../../../../../drizzle/schema'
 import { getCurrentAuthSession } from '@/lib/auth-server'
-import { generateDownloadUrl } from '@/lib/storage'
 import { parseFindings } from '@/lib/candoc-types'
 import { computeDiff } from '@/lib/candoc-diff'
 
@@ -120,8 +119,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const contentBlocks = await Promise.all(
       docs.map(async (doc): Promise<Anthropic.Messages.ImageBlockParam | Anthropic.Messages.DocumentBlockParam> => {
-        const signedUrl = generateDownloadUrl(doc.blobUrl)
-        const res = await fetch(signedUrl)
+        const res = await fetch(doc.blobUrl, {
+          headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
+        })
         if (!res.ok) throw new Error(`Failed to fetch ${doc.filename}: ${res.statusText}`)
         const contentType = res.headers.get('content-type') ?? inferContentType(doc.filename)
         const base64 = Buffer.from(await res.arrayBuffer()).toString('base64')
