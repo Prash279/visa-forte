@@ -1044,3 +1044,43 @@
   cursor: pointer;
   padding: 0;
 }
+
+/* ── ITA names tooltip ── */
+.crm-ita-names-trigger {
+  position: relative;
+  font-weight: 700;
+  cursor: default;
+  border-bottom: 1px dotted currentColor;
+}
+.crm-ita-names-tooltip {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--prussian);
+  color: var(--pearl);
+  padding: 0.5rem 0.875rem;
+  display: none;
+  flex-direction: column;
+  gap: 0.3rem;
+  z-index: 200;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px oklch(0 0 0 / 0.3);
+  pointer-events: none;
+}
+.crm-ita-names-trigger:hover .crm-ita-names-tooltip {
+  display: flex;
+}
+.crm-ita-names-tooltip-item {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* ── Actions column — portal slot fixed width for alignment ── */
+.crm-portal-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 6rem;
+}

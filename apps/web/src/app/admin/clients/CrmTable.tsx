@@ -480,7 +480,15 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
         <div className="crm-ita-banner">
           <span className="crm-ita-banner-icon">⚑</span>
           <span className="crm-ita-banner-text">
-            ITA Window — immediate action required: {itaClients.map((c) => c.name).join(', ')}.
+            ITA Window — immediate action required:{' '}
+            <span className="crm-ita-names-trigger">
+              {itaClients.length} {itaClients.length === 1 ? 'client' : 'clients'}
+              <span className="crm-ita-names-tooltip" aria-hidden="true">
+                {itaClients.map((c) => (
+                  <span key={c.id} className="crm-ita-names-tooltip-item">{c.name}</span>
+                ))}
+              </span>
+            </span>
           </span>
         </div>
       )}
@@ -701,18 +709,20 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                     {/* Actions — portal, CanDoc, delete */}
                     <td className="crm-actions-col">
                       <div className="crm-actions-cell">
-                        {client.userId ? (
-                          <span className="crm-portal-linked" title="Portal account linked">Portal ✓</span>
-                        ) : (
-                          <button
-                            className="crm-portal-link-btn"
-                            onClick={() => openLinkModal(client.id, client.email)}
-                            title="Link client to portal"
-                            aria-label={`Link portal for ${client.name}`}
-                          >
-                            Link Portal
-                          </button>
-                        )}
+                        <span className="crm-portal-slot">
+                          {client.userId ? (
+                            <span className="crm-portal-linked" title="Portal account linked">Portal ✓</span>
+                          ) : (
+                            <button
+                              className="crm-portal-link-btn"
+                              onClick={() => openLinkModal(client.id, client.email)}
+                              title="Link client to portal"
+                              aria-label={`Link portal for ${client.name}`}
+                            >
+                              Link Portal
+                            </button>
+                          )}
+                        </span>
                         <button
                           className="crm-candoc-btn"
                           onClick={() => router.push(`/admin/candoc?clientId=${client.id}&name=${encodeURIComponent(client.name)}`)}
