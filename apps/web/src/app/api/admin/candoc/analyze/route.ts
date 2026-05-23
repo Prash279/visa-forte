@@ -68,6 +68,19 @@ Return this exact JSON (no other text):
 }`
 }
 
+function inferContentType(filename: string): string {
+  const ext = filename.split('.').pop()?.toLowerCase() ?? ''
+  const map: Record<string, string> = {
+    pdf: 'application/pdf',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    gif: 'image/gif',
+    webp: 'image/webp',
+  }
+  return map[ext] ?? 'image/jpeg'
+}
+
 // POST /api/admin/candoc/analyze
 // Body: { reviewId: string }
 // Fetches all client documents, calls Claude Vision, stores rawFindings with diff markers.
@@ -105,13 +118,29 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       .from(clientDocuments)
       .where(eq(clientDocuments.clientId, review.clientId))
 
-    const imageBlocks: Anthropic.Messages.ImageBlockParam[] = docs.map((doc) => ({
-      type: 'image' as const,
-      source: {
-        type: 'url' as const,
-        url: generateDownloadUrl(doc.blobUrl),
-      },
-    }))
+    const contentBlocks = await Promise.all(
+      docs.map(async (doc): Promise<Anthropic.Messages.ImageBlockParam | Anthropic.Messages.DocumentBlockParam> => {
+        const signedUrl = generateDownloadUrl(doc.blobUrl)
+        const res = await fetch(signedUrl)
+        if (!res.ok) throw new Error(`Failed to fetch ${doc.filename}: ${res.statusText}`)
+        const contentType = res.headers.get('content-type') ?? inferContentType(doc.filename)
+        const base64 = Buffer.from(await res.arrayBuffer()).toString('base64')
+        if (contentType.includes('pdf')) {
+          return {
+            type: 'document' as const,
+            source: { type: 'base64' as const, media_type: 'application/pdf' as const, data: base64 },
+          }
+        }
+        return {
+          type: 'image' as const,
+          source: {
+            type: 'base64' as const,
+            media_type: contentType as Anthropic.Messages.Base64ImageSource['media_type'],
+            data: base64,
+          },
+        }
+      })
+    )
 
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
     const message = await anthropic.messages.create({
@@ -121,7 +150,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       messages: [{
         role: 'user',
         content: [
-          ...imageBlocks,
+          ...contentBlocks,
           { type: 'text' as const, text: buildSopPrompt(review.clientId, review.version) },
         ],
       }],
