@@ -63,7 +63,7 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
   const [docsModal, setDocsModal] = useState<{ clientId: string; clientName: string } | null>(null)
   const [docs, setDocs] = useState<ClientDoc[]>([])
   const [docsLoading, setDocsLoading] = useState(false)
-  const [uploadFile, setUploadFile] = useState<File | null>(null)
+  const [uploadFiles, setUploadFiles] = useState<File[]>([])
   const [uploadLoading, setUploadLoading] = useState(false)
   const [uploadError, setUploadError] = useState('')
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null)
@@ -174,7 +174,7 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
   async function openDocsModal(clientId: string, clientName: string) {
     setDocsModal({ clientId, clientName })
     setDocs([])
-    setUploadFile(null)
+    setUploadFiles([])
     setUploadError('')
     setDocsLoading(true)
     try {
@@ -189,34 +189,36 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
   function closeDocsModal() {
     setDocsModal(null)
     setDocs([])
-    setUploadFile(null)
+    setUploadFiles([])
     setUploadError('')
   }
 
   async function handleUpload() {
-    if (!docsModal || !uploadFile) return
+    if (!docsModal || uploadFiles.length === 0) return
     setUploadError('')
     setUploadLoading(true)
-    const form = new FormData()
-    form.append('file', uploadFile)
     try {
-      const res = await fetch(`/api/admin/clients/${docsModal.clientId}/documents`, {
-        method: 'POST',
-        body: form,
-      })
-      const data = (await res.json()) as { document?: ClientDoc; error?: string }
-      if (!res.ok) {
-        setUploadError(data.error ?? 'Upload failed. Try again.')
-        return
+      for (const file of uploadFiles) {
+        const form = new FormData()
+        form.append('file', file)
+        const res = await fetch(`/api/admin/clients/${docsModal.clientId}/documents`, {
+          method: 'POST',
+          body: form,
+        })
+        const data = (await res.json()) as { document?: ClientDoc; error?: string }
+        if (!res.ok) {
+          setUploadError(`"${file.name}": ${data.error ?? 'Upload failed.'}`)
+          return
+        }
+        if (data.document) {
+          setDocs((prev) => [data.document as ClientDoc, ...prev])
+          setDocCounts((prev) => ({
+            ...prev,
+            [docsModal.clientId]: (prev[docsModal.clientId] ?? 0) + 1,
+          }))
+        }
       }
-      if (data.document) {
-        setDocs((prev) => [data.document as ClientDoc, ...prev])
-        setDocCounts((prev) => ({
-          ...prev,
-          [docsModal.clientId]: (prev[docsModal.clientId] ?? 0) + 1,
-        }))
-      }
-      setUploadFile(null)
+      setUploadFiles([])
       if (fileInputRef.current) fileInputRef.current.value = ''
     } catch {
       setUploadError('Network error. Try again.')
@@ -1057,22 +1059,27 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                     type="file"
                     className="crm-upload-input"
                     id="crm-file-input"
-                    onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)}
+                    multiple
+                    onChange={(e) => setUploadFiles(Array.from(e.target.files ?? []))}
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.csv"
                   />
                   <label htmlFor="crm-file-input" className="crm-upload-trigger">
-                    {uploadFile ? uploadFile.name : 'Choose file…'}
+                    {uploadFiles.length === 0
+                      ? 'Choose file…'
+                      : uploadFiles.length === 1
+                      ? uploadFiles[0].name
+                      : `${uploadFiles.length} files selected`}
                   </label>
                   <button
                     className="crm-upload-submit"
                     onClick={handleUpload}
-                    disabled={!uploadFile || uploadLoading}
+                    disabled={uploadFiles.length === 0 || uploadLoading}
                   >
                     {uploadLoading ? 'Uploading…' : 'Upload'}
                   </button>
                 </div>
                 {uploadError && <p className="crm-form-error">{uploadError}</p>}
-                <p className="crm-upload-hint">PDF, Word, Excel, or image · Max 20 MB</p>
+                <p className="crm-upload-hint">PDF, Word, Excel, or image · Max 20 MB · Select multiple files at once</p>
               </div>
 
               {/* Document list */}
