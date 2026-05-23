@@ -89,7 +89,7 @@
   font-size: 0.9rem;
   font-weight: 300;
   color: var(--ink);
-  background: white;
+  background: var(--pearl);
   border: 1px solid var(--sand);
   padding: 0.85rem 1rem;
   outline: none;
@@ -236,7 +236,98 @@
   color: var(--ink);
 }
 
-/* ── RESPONSIVE ────────────────��──────────────────────────── */
+/* ── FORM ERRORS ───────────────────────────────────────────── */
+.form-input--error {
+  border-color: #b91c1c;
+}
+
+.form-input--error:focus {
+  border-color: #b91c1c;
+  box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.08);
+}
+
+.form-error {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #b91c1c;
+  line-height: 1.4;
+}
+
+/* ── SENT CONFIRMATION ──────────────────────────────────────── */
+.contact-sent {
+  max-width: 540px;
+  padding: 5rem 0 6rem;
+}
+
+.contact-sent-icon {
+  font-family: var(--font-body);
+  font-size: 2rem;
+  color: var(--saffron);
+  margin-bottom: 1.5rem;
+  font-weight: 300;
+}
+
+.contact-sent-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 400;
+  color: var(--prussian);
+  line-height: 1.15;
+  margin-bottom: 1rem;
+}
+
+.contact-sent-body {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.8;
+  color: var(--ink);
+  margin-bottom: 1.25rem;
+}
+
+.contact-sent-note {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 300;
+  line-height: 1.65;
+  color: rgba(26, 43, 60, 0.52);
+  margin-bottom: 2.5rem;
+}
+
+.contact-sent-link {
+  color: var(--prussian);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.contact-sent-link:hover { color: var(--saffron); }
+
+.contact-sent-reset {
+  background: none;
+  border: 1px solid var(--prussian);
+  color: var(--prussian);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.85rem 2rem;
+  cursor: pointer;
+  transition: background 0.22s ease, color 0.22s ease;
+}
+
+.contact-sent-reset:hover {
+  background: var(--prussian);
+  color: var(--pearl);
+}
+
+.contact-sent-reset:focus-visible {
+  outline: 2px solid var(--prussian);
+  outline-offset: 3px;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────── */
 @media (max-width: 900px) {
   .contact-layout {
     grid-template-columns: 1fr;

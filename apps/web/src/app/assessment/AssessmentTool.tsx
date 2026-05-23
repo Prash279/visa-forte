@@ -1330,22 +1330,32 @@ export default function AssessmentTool() {
                   Responds within 24 hours.
                 </p>
                 <div className="asx-lead-fields">
-                  <input
-                    className="asx-input"
-                    type="text"
-                    placeholder="Your name"
-                    value={leadName}
-                    onChange={e => setLeadName(e.target.value)}
-                    disabled={leadStatus === 'submitting'}
-                  />
-                  <input
-                    className="asx-input"
-                    type="email"
-                    placeholder="Email address"
-                    value={leadEmail}
-                    onChange={e => setLeadEmail(e.target.value)}
-                    disabled={leadStatus === 'submitting'}
-                  />
+                  <div className="asx-field">
+                    <label className="asx-label" htmlFor="lead-name">Your name</label>
+                    <input
+                      id="lead-name"
+                      className="asx-input"
+                      type="text"
+                      placeholder="Full name"
+                      value={leadName}
+                      onChange={e => setLeadName(e.target.value)}
+                      disabled={leadStatus === 'submitting'}
+                      autoComplete="name"
+                    />
+                  </div>
+                  <div className="asx-field">
+                    <label className="asx-label" htmlFor="lead-email">Email address</label>
+                    <input
+                      id="lead-email"
+                      className="asx-input"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={leadEmail}
+                      onChange={e => setLeadEmail(e.target.value)}
+                      disabled={leadStatus === 'submitting'}
+                      autoComplete="email"
+                    />
+                  </div>
                 </div>
                 <div className="asx-field" style={{ marginTop: '0.75rem' }}>
                   <label className="asx-label" htmlFor="lead-resume">Resume / CV (Optional)</label>
@@ -1356,9 +1366,8 @@ export default function AssessmentTool() {
                       alignItems: 'center',
                       gap: '0.75rem',
                       border: '1.5px solid var(--sand)',
-                      borderRadius: '3px',
                       padding: '0.6rem 0.85rem',
-                      background: '#fff',
+                      background: 'var(--pearl)',
                       cursor: leadStatus === 'submitting' ? 'not-allowed' : 'pointer',
                       fontSize: '0.9rem',
                       opacity: leadStatus === 'submitting' ? 0.45 : 1,
@@ -1366,9 +1375,8 @@ export default function AssessmentTool() {
                   >
                     <span style={{
                       background: 'var(--prussian)',
-                      color: '#fff',
+                      color: 'var(--pearl)',
                       padding: '0.25rem 0.75rem',
-                      borderRadius: '2px',
                       fontSize: '0.76rem',
                       fontWeight: 500,
                       letterSpacing: '0.04em',
@@ -1408,8 +1416,9 @@ export default function AssessmentTool() {
                   </span>
                 </label>
                 {leadStatus === 'error' && (
-                  <p className="asx-lead-error">
-                    Something went wrong. Please try again or email prashant@visaforte.com directly.
+                  <p className="asx-lead-error" role="alert">
+                    Your details could not be submitted. Check your connection and try again, or
+                    email <a href="mailto:prashant@visaforte.com" style={{ color: 'inherit', textDecoration: 'underline' }}>prashant@visaforte.com</a> directly with your results.
                   </p>
                 )}
                 <button

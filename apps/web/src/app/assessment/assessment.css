@@ -100,9 +100,8 @@
   font-family: var(--font-body);
   font-size: 0.95rem;
   color: var(--ink);
-  background: #fff;
+  background: var(--pearl);
   border: 1.5px solid var(--sand);
-  border-radius: 3px;
   padding: 0.65rem 0.85rem;
   transition: border-color 0.15s;
   width: 100%;
@@ -380,11 +379,9 @@
 
 /* Cards */
 .asx-card {
-  background: #fff;
+  background: var(--pearl);
   border: 1px solid var(--sand);
-  border-radius: 4px;
   padding: 2rem 2.25rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 
 .asx-card-title {
@@ -835,10 +832,9 @@
 
 /* Lead Capture card */
 .asx-lead-capture {
-  background: #fff;
+  background: var(--pearl);
   border: 1px solid var(--sand);
   border-top: 3px solid var(--saffron);
-  border-radius: 4px;
   padding: 2.5rem 2.5rem;
 }
 

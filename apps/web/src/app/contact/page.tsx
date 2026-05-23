@@ -20,6 +20,34 @@ const SERVICES = [
   "General Inquiry",
 ];
 
+interface FieldErrors {
+  name?: string;
+  email?: string;
+  message?: string;
+}
+
+type TouchedFields = Partial<Record<keyof FieldErrors, boolean>>;
+
+function validate(name: string, email: string, message: string): FieldErrors {
+  const errors: FieldErrors = {};
+
+  if (!name.trim()) {
+    errors.name = "Full name is required.";
+  }
+
+  if (!email.trim()) {
+    errors.email = "Email address is required.";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    errors.email = "Enter a valid email address (e.g. you@example.com).";
+  }
+
+  if (!message.trim()) {
+    errors.message = "Please describe your situation before submitting.";
+  }
+
+  return errors;
+}
+
 export default function ContactPage() {
   const [name,    setName]    = useState("");
   const [email,   setEmail]   = useState("");
@@ -27,8 +55,25 @@ export default function ContactPage() {
   const [service, setService] = useState("");
   const [message, setMessage] = useState("");
 
+  const [errors,  setErrors]  = useState<FieldErrors>({});
+  const [touched, setTouched] = useState<TouchedFields>({});
+  const [sent,    setSent]    = useState(false);
+
+  function handleBlur(field: keyof FieldErrors) {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    setErrors(validate(name, email, message));
+  }
+
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    const allTouched: TouchedFields = { name: true, email: true, message: true };
+    setTouched(allTouched);
+
+    const currentErrors = validate(name, email, message);
+    setErrors(currentErrors);
+
+    if (Object.keys(currentErrors).length > 0) return;
 
     const subject = encodeURIComponent(
       `Visa Forte Enquiry — ${service || "General Inquiry"} — ${name}`
@@ -49,12 +94,59 @@ export default function ContactPage() {
     );
 
     window.location.href = `mailto:prashant@visaforte.com?subject=${subject}&body=${body}`;
+    setSent(true);
+  }
+
+  if (sent) {
+    return (
+      <main className="contact-main">
+        <section className="contact-hero">
+          <div className="contact-hero-inner">
+            <p className="eyebrow r">Get in Touch</p>
+            <h1 className="contact-hero-headline r d1">
+              Every File Begins<br />with a Conversation.
+            </h1>
+            <div className="rule r d2" />
+          </div>
+        </section>
+
+        <section className="sec contact-body">
+          <div className="sec-inner">
+            <div className="contact-sent">
+              <p className="contact-sent-icon" aria-hidden="true">✓</p>
+              <h2 className="contact-sent-title">Your email client should be open.</h2>
+              <p className="contact-sent-body">
+                A pre-filled message addressed to prashant@visaforte.com is ready to send.
+                Review it, then hit Send — your enquiry is on its way.
+              </p>
+              <p className="contact-sent-note">
+                If the email client did not open,{" "}
+                <a href="mailto:prashant@visaforte.com" className="contact-sent-link">
+                  click here to email directly
+                </a>
+                . Responses arrive within 24 hours on business days.
+              </p>
+              <button
+                className="contact-sent-reset"
+                onClick={() => {
+                  setSent(false);
+                  setTouched({});
+                  setErrors({});
+                }}
+              >
+                Send another message
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
   }
 
   return (
     <main className="contact-main">
 
-      {/* ── HERO ───────────────────────────��───────────────── */}
+      {/* ── HERO ──────────────────────────────────────────── */}
       <section className="contact-hero">
         <div className="contact-hero-inner">
           <p className="eyebrow r">Get in Touch</p>
@@ -69,7 +161,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* ── FORM + INFO ────────────────────────────���───────── */}
+      {/* ── FORM + INFO ────────────────────────────────────── */}
       <section className="sec contact-body">
         <div className="sec-inner">
           <div className="contact-layout">
@@ -86,13 +178,20 @@ export default function ContactPage() {
                     <input
                       id="name"
                       type="text"
-                      className="form-input"
+                      className={`form-input${touched.name && errors.name ? " form-input--error" : ""}`}
                       placeholder="Your full name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      required
+                      onBlur={() => handleBlur("name")}
+                      aria-describedby={touched.name && errors.name ? "error-name" : undefined}
+                      aria-invalid={touched.name && !!errors.name}
                       autoComplete="name"
                     />
+                    {touched.name && errors.name && (
+                      <span id="error-name" className="form-error" role="alert">
+                        {errors.name}
+                      </span>
+                    )}
                   </div>
                   <div className="form-field">
                     <label className="form-label" htmlFor="email">
@@ -101,13 +200,20 @@ export default function ContactPage() {
                     <input
                       id="email"
                       type="email"
-                      className="form-input"
+                      className={`form-input${touched.email && errors.email ? " form-input--error" : ""}`}
                       placeholder="your@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      required
+                      onBlur={() => handleBlur("email")}
+                      aria-describedby={touched.email && errors.email ? "error-email" : undefined}
+                      aria-invalid={touched.email && !!errors.email}
                       autoComplete="email"
                     />
+                    {touched.email && errors.email && (
+                      <span id="error-email" className="form-error" role="alert">
+                        {errors.email}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -152,13 +258,20 @@ export default function ContactPage() {
                   </label>
                   <textarea
                     id="message"
-                    className="form-input form-textarea"
+                    className={`form-input form-textarea${touched.message && errors.message ? " form-input--error" : ""}`}
                     placeholder="Describe your profile, program stream, current CRS score, and the documentation concern you need addressed."
                     rows={6}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    required
+                    onBlur={() => handleBlur("message")}
+                    aria-describedby={touched.message && errors.message ? "error-message" : undefined}
+                    aria-invalid={touched.message && !!errors.message}
                   />
+                  {touched.message && errors.message && (
+                    <span id="error-message" className="form-error" role="alert">
+                      {errors.message}
+                    </span>
+                  )}
                 </div>
 
                 <button type="submit" className="form-submit">

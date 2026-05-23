@@ -117,9 +117,8 @@
 
 /* ── INDIVIDUAL CARD ─────────────────────────────────────── */
 .pt-card {
-  background: #fff;
+  background: var(--pearl);
   border: 1px solid var(--sand);
-  border-radius: 4px;
   padding: 2rem 1.75rem 1.5rem;
   display: flex;
   flex-direction: column;

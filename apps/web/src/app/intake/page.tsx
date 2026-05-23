@@ -18,23 +18,50 @@ const SERVICE_TIERS = [
 
 type FormState = 'idle' | 'submitting' | 'success' | 'error';
 
+interface FieldErrors {
+  name?: string;
+  email?: string;
+  serviceInterest?: string;
+}
+
 export default function IntakePage() {
   const [formState, setFormState] = useState<FormState>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [consentGiven, setConsentGiven] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!consentGiven) return;
+
+    const form = e.currentTarget;
+    const name = (form.elements.namedItem('name') as HTMLInputElement).value.trim();
+    const email = (form.elements.namedItem('email') as HTMLInputElement).value.trim();
+    const serviceInterest = (form.elements.namedItem('serviceInterest') as HTMLSelectElement).value;
+
+    const errors: FieldErrors = {};
+    if (!name) errors.name = 'Full name is required.';
+    if (!email) {
+      errors.email = 'Email address is required.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = 'Enter a valid email address (e.g. you@example.com).';
+    }
+    if (!serviceInterest) errors.serviceInterest = 'Please select a service tier.';
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
     setFormState('submitting');
     setErrorMessage('');
 
-    const form = e.currentTarget;
     const data = {
-      name: (form.elements.namedItem('name') as HTMLInputElement).value.trim(),
-      email: (form.elements.namedItem('email') as HTMLInputElement).value.trim(),
+      name,
+      email,
       phone: (form.elements.namedItem('phone') as HTMLInputElement).value.trim() || undefined,
-      serviceInterest: (form.elements.namedItem('serviceInterest') as HTMLSelectElement).value,
+      serviceInterest,
       notes: (form.elements.namedItem('notes') as HTMLTextAreaElement).value.trim() || undefined,
       consentGiven: true,
     };
@@ -98,15 +125,21 @@ export default function IntakePage() {
                   Full Name <span className="intake-required">*</span>
                 </label>
                 <input
-                  className="intake-input"
+                  className={`intake-input${fieldErrors.name ? ' intake-input--error' : ''}`}
                   id="name"
                   name="name"
                   type="text"
                   autoComplete="name"
-                  required
                   placeholder="Your full name"
+                  aria-describedby={fieldErrors.name ? 'error-name' : undefined}
+                  aria-invalid={!!fieldErrors.name}
                   disabled={formState === 'submitting'}
                 />
+                {fieldErrors.name && (
+                  <span id="error-name" className="intake-field-error" role="alert">
+                    {fieldErrors.name}
+                  </span>
+                )}
               </div>
 
               {/* Email */}
@@ -115,15 +148,21 @@ export default function IntakePage() {
                   Email Address <span className="intake-required">*</span>
                 </label>
                 <input
-                  className="intake-input"
+                  className={`intake-input${fieldErrors.email ? ' intake-input--error' : ''}`}
                   id="email"
                   name="email"
                   type="email"
                   autoComplete="email"
-                  required
                   placeholder="you@example.com"
+                  aria-describedby={fieldErrors.email ? 'error-email' : undefined}
+                  aria-invalid={!!fieldErrors.email}
                   disabled={formState === 'submitting'}
                 />
+                {fieldErrors.email && (
+                  <span id="error-email" className="intake-field-error" role="alert">
+                    {fieldErrors.email}
+                  </span>
+                )}
               </div>
 
               {/* Phone (optional) */}
@@ -148,11 +187,12 @@ export default function IntakePage() {
                   Service of Interest <span className="intake-required">*</span>
                 </label>
                 <select
-                  className="intake-select"
+                  className={`intake-select${fieldErrors.serviceInterest ? ' intake-input--error' : ''}`}
                   id="serviceInterest"
                   name="serviceInterest"
-                  required
                   defaultValue=""
+                  aria-describedby={fieldErrors.serviceInterest ? 'error-service' : undefined}
+                  aria-invalid={!!fieldErrors.serviceInterest}
                   disabled={formState === 'submitting'}
                 >
                   <option value="" disabled>Select a service tier</option>
@@ -160,6 +200,11 @@ export default function IntakePage() {
                     <option key={tier} value={tier}>{tier}</option>
                   ))}
                 </select>
+                {fieldErrors.serviceInterest && (
+                  <span id="error-service" className="intake-field-error" role="alert">
+                    {fieldErrors.serviceInterest}
+                  </span>
+                )}
               </div>
 
               {/* Notes (optional) */}

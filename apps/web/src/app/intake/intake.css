@@ -98,7 +98,7 @@
   font-size: 0.9rem;
   font-weight: 300;
   color: var(--ink);
-  background: white;
+  background: var(--pearl);
   border: 1px solid var(--sand);
   padding: 0.9rem 1rem;
   outline: none;
@@ -141,7 +141,25 @@
   cursor: not-allowed;
 }
 
-/* Error message */
+/* Per-field inline error */
+.intake-input--error {
+  border-color: #b91c1c;
+}
+
+.intake-input--error:focus {
+  border-color: #b91c1c;
+  box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.08);
+}
+
+.intake-field-error {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #b91c1c;
+  line-height: 1.4;
+}
+
+/* Global error message */
 .intake-error {
   font-family: var(--font-body);
   font-size: 0.82rem;

@@ -284,24 +284,10 @@
   border: 1px solid rgba(201, 123, 30, 0.15);
   padding: 2.2rem;
   position: relative;
-  overflow: hidden;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.3s ease, background 0.3s ease;
 }
 
-.f-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 2px;
-  height: 100%;
-  background: var(--saffron);
-  transform: scaleY(0);
-  transform-origin: top;
-  transition: transform 0.35s ease;
-}
-
-.f-card:hover { border-color: rgba(201, 123, 30, 0.35); }
-.f-card:hover::before { transform: scaleY(1); }
+.f-card:hover { border-color: rgba(201, 123, 30, 0.5); background: rgba(201, 123, 30, 0.04); }
 
 .f-card-bar {
   width: 32px;
