@@ -17,7 +17,7 @@ export default function Home() {
             Your CRS score qualified you. Your ITA arrived. Now <strong>the documentation phase determines everything</strong> — and it is precisely where 90% of otherwise eligible applications fail. Visa Forte exists at exactly that boundary.
           </p>
           <div className="hero-actions">
-            <MailtoButton className="btn-primary">Request Document Triage →</MailtoButton>
+            <MailtoButton className="btn-primary">Get Reviewed →</MailtoButton>
             <a href="#evidence" className="link-ghost">See client outcomes</a>
           </div>
           <div className="hero-stats">

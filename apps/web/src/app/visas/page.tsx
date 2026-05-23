@@ -631,7 +631,7 @@ export default function VisasPage() {
           </p>
           <div className="visas-cta-actions r d3">
             <Link href="/intake" className="btn-primary">
-              Request a Triage Assessment →
+              Get Reviewed →
             </Link>
             <Link href="/assessment" className="link-ghost">
               Check your CRS score
