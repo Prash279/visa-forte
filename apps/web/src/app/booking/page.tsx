@@ -35,7 +35,7 @@ export default async function BookingPage() {
 
       {/* ── Page header ── */}
       <section className="booking-header">
-        <p className="booking-eyebrow">Book a Consultation</p>
+        <p className="booking-eyebrow">Get Reviewed</p>
         <h1 className="booking-title">Schedule Your Session</h1>
         <p className="booking-subtitle">
           Select an available date and your service of interest. Prashant will confirm

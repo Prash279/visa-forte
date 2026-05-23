@@ -3,7 +3,7 @@
 // SiteNav — universal navigation bar rendered via root layout.
 // Appears on all public pages. Hidden on /admin, /login, /signup, /logout.
 // Handles: scroll compaction, mobile hamburger menu, active link state,
-// and the "Request Triage" mailto CTA.
+// and the "Book a Consultation" mailto CTA.
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -81,7 +81,7 @@ export default function SiteNav() {
         <div className="nav-actions">
           <Link href="/login" className="nav-login">Log In</Link>
           <button className="nav-cta" onClick={handleTriage}>
-            Request Triage
+            Get Reviewed
           </button>
         </div>
 
@@ -117,7 +117,7 @@ export default function SiteNav() {
           Log In
         </Link>
         <button className="nav-mobile-link nav-mobile-triage" onClick={handleTriage}>
-          Request Triage →
+          Get Reviewed →
         </button>
       </div>
     </>

@@ -1299,7 +1299,7 @@ export default function AssessmentTool() {
               No templates. One consultant. Your file, personally reviewed.
             </p>
             <Link href="/booking" className="asx-cta-btn">
-              Book a Consultation →
+              Get Reviewed →
             </Link>
             <p className="asx-cta-sub">
               Pre-Application Eligibility Assessment · From $99 / ₹4,999

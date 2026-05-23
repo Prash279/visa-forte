@@ -154,7 +154,7 @@ export default function ServicesPage() {
                   href="/booking"
                   className="service-card-cta"
                 >
-                  Book a Consultation →
+                  Get Reviewed →
                 </Link>
               </div>
             ))}
@@ -173,7 +173,7 @@ export default function ServicesPage() {
           <div className="process-steps r d3">
             <div className="process-step">
               <div className="process-step-n">01</div>
-              <h3 className="process-step-title">Request Triage</h3>
+              <h3 className="process-step-title">Get Reviewed</h3>
               <p className="process-step-body">
                 Submit a brief profile — your program stream, current CRS score, and the
                 primary documentation concern. This takes under five minutes.
@@ -214,7 +214,7 @@ export default function ServicesPage() {
           </p>
           <div className="services-cta-actions r d3">
             <Link href="/intake" className="btn-primary">
-              Request Triage Assessment →
+              Get Reviewed →
             </Link>
             <Link href="/about" className="btn-outline">
               About the Practice

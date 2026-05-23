@@ -261,7 +261,7 @@ export default function Home() {
           <p className="final-body r d2">
             Request a Document Triage Assessment to find out precisely where your file stands. This is a personal review, not an automated response. Capacity is limited to the files that can be reviewed with the attention they require.
           </p>
-          <MailtoButton className="btn-primary r d3">Request Triage Assessment →</MailtoButton>
+          <MailtoButton className="btn-primary r d3">Get Reviewed →</MailtoButton>
           <p className="final-contact r d4">
             <a href="mailto:prashant@visaforte.com">prashant@visaforte.com</a>
             &nbsp;·&nbsp;

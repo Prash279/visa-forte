@@ -187,7 +187,7 @@ export default function AboutPage() {
             href="mailto:prashant@visaforte.com?subject=Document%20Triage%20Assessment%20%E2%80%94%20%5BYour%20Name%5D"
             className="btn-primary r d3"
           >
-            Request Triage Assessment →
+            Get Reviewed →
           </a>
         </div>
       </section>

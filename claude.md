@@ -58,6 +58,9 @@ Any claim involving an API version, library syntax, CVE status, pricing, complia
 
 Asserting a stale technical fact is structurally equivalent to introducing a bug. There are no exceptions for facts that "seem obviously still current."
 
+**IRCC Immigration Policy — Unconditional Verification Rule:**
+Training data confidence is not verification for immigration policy facts. The verification check is triggered by the *category* of the fact — not by how uncertain it feels. Every IRCC policy claim — CRS point allocations, document validity windows, photo specifications, fee amounts, form numbers, biometrics rules, language test eligibility and timing, proof of funds minimums, programme eligibility criteria — must be verified against canada.ca in the current session before being written into any Visa Forte artifact. If a canada.ca citation cannot be provided, the claim cannot be stated.
+
 ---
 
 ## Session Context Hygiene

@@ -67,7 +67,7 @@
 
 .form-label {
   font-family: var(--font-body);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -81,7 +81,7 @@
   letter-spacing: 0.05em;
   text-transform: none;
   color: rgba(26, 43, 60, 0.45);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
 }
 
 .form-input {
@@ -139,7 +139,7 @@
 
 .form-note {
   font-family: var(--font-body);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 300;
   line-height: 1.6;
   color: rgba(26, 43, 60, 0.38);
@@ -161,7 +161,7 @@
 
 .contact-info-label {
   font-family: var(--font-body);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -226,7 +226,6 @@
 .contact-disclaimer-block {
   padding: 1.2rem 1.5rem;
   background: var(--amber);
-  border-left: 2px solid var(--saffron);
 }
 
 .contact-disclaimer-block p {

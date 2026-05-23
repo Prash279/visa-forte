@@ -74,7 +74,7 @@
 
 .visas-nav-tag {
   font-family: var(--font-body);
-  font-size: 0.58rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.24em;
   text-transform: uppercase;
@@ -95,7 +95,7 @@
 
 .visas-nav-streams {
   font-family: var(--font-body);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -114,7 +114,7 @@
 
 .visas-nav-link {
   font-family: var(--font-body);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -170,7 +170,7 @@
 
 .visas-stream-code {
   font-family: var(--font-body);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -203,7 +203,7 @@
 
 .visas-stream-req-label {
   font-family: var(--font-body);
-  font-size: 0.58rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -257,7 +257,7 @@
 
 .visas-crs-label {
   font-family: var(--font-body);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -279,7 +279,7 @@
 
 .visas-crs-factor-name {
   font-family: var(--font-body);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -394,7 +394,7 @@
 
 .visas-doc-cat-name {
   font-family: var(--font-body);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -433,7 +433,6 @@
 
 .visas-docs-callout {
   background: var(--amber);
-  border-left: 3px solid var(--saffron);
   padding: 1.75rem 2rem;
   margin-top: 3rem;
 }
@@ -467,7 +466,7 @@
 
 .visas-fees-sublabel {
   font-family: var(--font-body);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -486,7 +485,7 @@
 
 .visas-fees-table th {
   font-family: var(--font-body);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -559,7 +558,7 @@
 
 .visas-time-program {
   font-family: var(--font-body);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -582,7 +581,7 @@
 
 .visas-time-basis {
   font-family: var(--font-body);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 300;
   color: rgba(248, 244, 238, 0.60);
   grid-column: 1;
@@ -591,14 +590,13 @@
 }
 
 /* Live processing time urgency indicators — keyed on months from JSON */
-.visas-time-card.time-fast     { border-left: 3px solid #2a8a4a; }
-.visas-time-card.time-moderate { border-left: 3px solid var(--saffron); }
-.visas-time-card.time-slow     { border-left: 3px solid #c0392b; }
-.visas-time-card.time-unknown  { border-left: 3px solid rgba(248,244,238,0.1); }
+.visas-time-card.time-fast     { background: rgba(42, 138, 74, 0.10); }
+.visas-time-card.time-moderate { background: rgba(201, 123, 30, 0.12); }
+.visas-time-card.time-slow     { background: rgba(192, 57, 43, 0.10); }
 
 .visas-time-synced {
   font-family: var(--font-body);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: rgba(248, 244, 238, 0.52);
   display: block;
   margin-top: 0.75rem;
@@ -638,7 +636,7 @@
 
 .visas-pnp-type-tag {
   font-family: var(--font-body);
-  font-size: 0.58rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.24em;
   text-transform: uppercase;
@@ -697,7 +695,6 @@
 
 .visas-pnp-callout {
   background: var(--amber);
-  border-left: 3px solid var(--saffron);
   padding: 1.75rem 2rem;
   margin-top: 3rem;
 }
@@ -738,7 +735,7 @@
 
 .visas-other-tag {
   font-family: var(--font-body);
-  font-size: 0.58rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -785,13 +782,12 @@
   max-width: var(--max-w);
   margin: 0 auto;
   background: var(--amber);
-  border-left: 3px solid rgba(201, 123, 30, 0.5);
   padding: 1.5rem 2rem;
 }
 
 .visas-disclaimer-label {
   font-family: var(--font-body);
-  font-size: 0.58rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -886,7 +882,7 @@
   justify-content: space-between;
   align-items: center;
   text-align: center;
-  transition: transform 0.32s ease, background 0.32s ease, border-top-color 0.32s ease, box-shadow 0.32s ease;
+  transition: transform 0.32s ease, background 0.32s ease, border-top-color 0.32s ease;
   cursor: default;
 }
 
@@ -894,12 +890,11 @@
   transform: translateY(-6px);
   background: rgba(248, 244, 238, 0.06);
   border-top: 3px solid var(--saffron);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
 }
 
 .visas-draw-card-label {
   font-family: var(--font-body);
-  font-size: 0.58rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -928,7 +923,7 @@
 
 .visas-draw-card-sub {
   font-family: var(--font-body);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 400;
   color: rgba(248, 244, 238, 0.78);
   line-height: 1.55;
@@ -936,7 +931,7 @@
 
 .visas-draw-synced {
   font-family: var(--font-body);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: rgba(248, 244, 238, 0.65);
   display: block;
   margin-top: 1.5rem;

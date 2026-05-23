@@ -55,6 +55,11 @@ If the lesson contains words like "useEffect", "state mismatch", "hydration erro
 - **Why it happened:** The functions were written as if each combination had only one point value, missing the two-row structure on the official IRCC transferability table.
 - **The rule going forward:** Every skill transferability function must handle both the 1-year CWE tier and the 2+-year CWE tier as separate return values. Always cross-check the function's maximum output against the official IRCC cap for that combination.
 
+**Lesson 4 — High confidence in training data is exactly when the verification gate fails**
+- **What went wrong:** The Anti-Hallucination Gate in CLAUDE.md says to verify facts that "could have changed in the past 12 months." Multiple immigration policy facts were stated as current and correct — PCC validity windows, photo specifications, language test timing benchmarks, job offer CRS points — all from training data. Several were wrong. One (job offer CRS points) had been removed by IRCC in March 2025.
+- **Why it happened:** The gate is triggered by uncertainty. When training data felt certain, the gate never triggered. Confidence in training data bypassed the verification step entirely. A fact does not need to feel uncertain to be wrong.
+- **The rule going forward:** For all IRCC immigration policy facts, training data confidence counts as zero. Every policy claim — CRS points, document validity windows, photo specs, fee amounts, form numbers, biometrics rules, language test eligibility, minimum proof of funds — is in one of exactly two states: verified against canada.ca in this session, or unverified. The verification is triggered by the category of the fact (immigration policy), not by how uncertain it feels. If a canada.ca citation cannot be provided for a claim, the claim cannot be written into any Visa Forte artifact.
+
 ---
 
 ## Category: Architecture & Stack

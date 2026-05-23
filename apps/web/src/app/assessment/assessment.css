@@ -28,7 +28,7 @@
 
 .asx-eyebrow {
   font-family: var(--font-body);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--saffron);
@@ -139,7 +139,7 @@
 
 /* CLB tag */
 .asx-clb-tag {
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.05em;
   padding: 2px 7px;
@@ -152,7 +152,7 @@
 
 /* Hint text */
 .asx-hint {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #718096;
   line-height: 1.4;
 }
@@ -297,7 +297,7 @@
 .asx-score-block[data-level="low"]::before  { background: #EF4444; }
 
 .asx-score-label {
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: rgba(248,244,238,0.5);
@@ -318,7 +318,7 @@
 .asx-score-block[data-level="low"]  .asx-score-value { color: #FCA5A5; }
 
 .asx-score-max {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: rgba(248,244,238,0.4);
   margin-top: 0.3rem;
 }
@@ -341,7 +341,7 @@
 
 .asx-pool-badge {
   display: inline-block;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -363,7 +363,7 @@
 }
 
 .asx-score-date {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: rgba(248,244,238,0.75);
   letter-spacing: 0.04em;
 }
@@ -424,7 +424,7 @@
 }
 
 .asx-elig-badge {
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -539,12 +539,10 @@
   line-height: 1.6;
   color: #4A5568;
   background: var(--pearl);
-  border-left: 3px solid var(--saffron);
   padding: 0.7rem 1rem;
-  border-radius: 0 3px 3px 0;
 }
-.asx-fsw-verdict[data-pass="yes"] { border-left-color: #22C55E; }
-.asx-fsw-verdict[data-pass="no"]  { border-left-color: #EF4444; }
+.asx-fsw-verdict[data-pass="yes"] { background: rgba(34, 197, 94, 0.08); }
+.asx-fsw-verdict[data-pass="no"]  { background: rgba(239, 68, 68, 0.08); }
 
 /* Funds card */
 .asx-funds-card { border-top: 3px solid var(--saffron); }
@@ -612,7 +610,7 @@
 
 .asx-projected-label {
   display: block;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: #718096;
@@ -638,7 +636,7 @@
 .asx-competitive-tag {
   display: inline-block;
   margin-top: 0.35rem;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.03em;
   padding: 0.2rem 0.5rem;
@@ -654,7 +652,7 @@
 }
 
 /* ── Draw History Card ───────────────────────────────────────── */
-.asx-draws-card { border-left: 3px solid var(--teal); }
+.asx-draws-card { border-top: 3px solid var(--teal); }
 
 .asx-gap-row {
   display: flex;
@@ -685,7 +683,7 @@
 
 .asx-gap-label,
 .asx-gap-your-label {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -727,7 +725,7 @@
 }
 
 .asx-draws-header {
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -749,7 +747,7 @@
 .asx-draw-itas  { color: #718096; }
 
 .asx-draws-source {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: #718096;
 }
 .asx-draws-source a { color: var(--teal); text-decoration: underline; }
@@ -758,7 +756,6 @@
 .asx-no-eligible-state {
   background: rgba(251,191,36,0.08);
   border: 1px solid rgba(251,191,36,0.3);
-  border-left: 4px solid var(--saffron);
   border-radius: 8px;
   padding: 1rem 1.25rem;
   margin-bottom: 1rem;
@@ -784,7 +781,7 @@
 }
 
 .asx-cta-eyebrow {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--saffron);
@@ -831,7 +828,7 @@
 
 .asx-cta-sub {
   margin-top: 0.75rem;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: rgba(248,244,238,0.35);
   letter-spacing: 0.04em;
 }
@@ -846,7 +843,7 @@
 }
 
 .asx-lead-eyebrow {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--saffron);
@@ -943,13 +940,11 @@
 .asx-disclaimer {
   background: var(--amber);
   border: 1px solid var(--sand);
-  border-left: 4px solid var(--saffron);
-  border-radius: 0 4px 4px 0;
   padding: 1.75rem 2rem;
 }
 
 .asx-disclaimer-title {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--saffron);

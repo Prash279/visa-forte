@@ -17,7 +17,7 @@
 
 .booking-eyebrow {
   font-family: var(--font-body);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.25em;
   text-transform: uppercase;
@@ -117,7 +117,7 @@
 
 .booking-currency-label {
   font-family: var(--font-body);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -134,7 +134,7 @@
 
 .booking-currency-pill {
   font-family: var(--font-body);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   padding: 0.45rem 1rem;
@@ -157,13 +157,13 @@
   gap: 0.3rem;
   background: white;
   border: 1px solid var(--sand);
-  border-left: 3px solid var(--saffron);
+  border-top: 3px solid var(--saffron);
   padding: 1.1rem 1.25rem;
 }
 
 .booking-price-label {
   font-family: var(--font-body);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -180,7 +180,7 @@
 
 .booking-price-note {
   font-family: var(--font-body);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 300;
   color: rgba(26, 43, 60, 0.45);
   margin-top: 0.1rem;
@@ -201,7 +201,7 @@
 
 .booking-label {
   font-family: var(--font-body);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -313,7 +313,7 @@
 
 .booking-privacy {
   font-family: var(--font-body);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 300;
   line-height: 1.6;
   color: rgba(26, 43, 60, 0.38);
@@ -386,7 +386,7 @@
 
 .booking-disclaimer p {
   font-family: var(--font-body);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 300;
   line-height: 1.75;
   color: rgba(26, 43, 60, 0.42);
@@ -401,17 +401,17 @@
   .booking-subtitle             { font-size: 0.95rem; }
   .booking-price-block          { padding: 0.9rem 1rem; }
   .booking-price-amount         { font-size: 1.6rem; }
-  .booking-currency-pill        { font-size: 0.65rem; padding: 0.35rem 0.75rem; }
-  .booking-label                { font-size: 0.62rem; }
+  .booking-currency-pill        { font-size: 0.75rem; padding: 0.35rem 0.75rem; }
+  .booking-label                { font-size: 0.75rem; }
   .booking-input,
   .booking-select,
   .booking-textarea             { font-size: 0.85rem; padding: 0.8rem 0.9rem; }
-  .booking-field-hint           { font-size: 0.7rem; }
+  .booking-field-hint           { font-size: 0.75rem; }
   .booking-submit               { width: 100%; text-align: center; padding: 0.95rem; font-size: 0.75rem; }
-  .booking-privacy              { font-size: 0.65rem; }
+  .booking-privacy              { font-size: 0.75rem; }
   .booking-unavailable-heading  { font-size: 1.4rem; }
   .booking-success-title        { font-size: 1.8rem; }
   .booking-success-body         { font-size: 0.9rem; }
   .booking-disclaimer           { padding: 1.5rem 1.25rem 4rem; }
-  .booking-disclaimer p         { font-size: 0.65rem; line-height: 1.65; }
+  .booking-disclaimer p         { font-size: 0.75rem; line-height: 1.65; }
 }

@@ -18,7 +18,7 @@
 
 .intake-eyebrow {
   font-family: var(--font-body);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.25em;
   text-transform: uppercase;
@@ -74,7 +74,7 @@
 
 .intake-label {
   font-family: var(--font-body);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -88,7 +88,7 @@
   letter-spacing: 0.05em;
   text-transform: none;
   color: rgba(26, 43, 60, 0.4);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
 }
 
 .intake-input,
@@ -181,7 +181,7 @@
 
 .intake-privacy {
   font-family: var(--font-body);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 300;
   line-height: 1.6;
   color: rgba(26, 43, 60, 0.38);
@@ -255,7 +255,7 @@
 
 .intake-disclaimer p {
   font-family: var(--font-body);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 300;
   line-height: 1.75;
   color: rgba(26, 43, 60, 0.42);
@@ -268,8 +268,8 @@
   .intake-body                 { padding: 3.5rem 1.25rem; }
   .intake-title                { font-size: clamp(2rem, 5vw, 3.5rem); }
   .intake-subtitle             { font-size: 0.95rem; }
-  .intake-label                { font-size: 0.62rem; }
-  .intake-optional             { font-size: 0.6rem; }
+  .intake-label                { font-size: 0.75rem; }
+  .intake-optional             { font-size: 0.75rem; }
   .intake-input,
   .intake-select,
   .intake-textarea             { font-size: 0.85rem; padding: 0.8rem 0.9rem; }
@@ -277,9 +277,9 @@
   .intake-form                 { gap: 1.4rem; }
   .intake-field                { gap: 0.4rem; }
   .intake-submit               { width: 100%; text-align: center; padding: 0.95rem; font-size: 0.75rem; }
-  .intake-privacy              { font-size: 0.65rem; }
+  .intake-privacy              { font-size: 0.75rem; }
   .intake-success-title        { font-size: 1.8rem; }
   .intake-success-body         { font-size: 0.9rem; }
   .intake-disclaimer           { padding: 1.5rem 1.25rem 4rem; }
-  .intake-disclaimer p         { font-size: 0.65rem; line-height: 1.65; }
+  .intake-disclaimer p         { font-size: 0.75rem; line-height: 1.65; }
 }
