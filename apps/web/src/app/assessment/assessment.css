@@ -409,7 +409,7 @@
   font-size: 1.35rem;
   font-weight: 400;
   color: var(--prussian);
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.6rem;
   letter-spacing: -0.01em;
 }
 
@@ -525,6 +525,7 @@
   font-size: 1rem;
   font-weight: 400;
   color: var(--prussian);
+  margin-top: 2rem;
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--sand);
@@ -564,6 +565,7 @@
 /* Funds card */
 .asx-funds-card { border-top: 3px solid var(--saffron); }
 .asx-funds-warn { border-top-color: #EF4444; }
+.asx-funds-card .asx-card-title { margin-bottom: 1.25rem; }
 
 .asx-funds-row {
   display: flex;
@@ -645,6 +647,7 @@
   font-size: 0.75rem;
   color: #718096;
   line-height: 1.6;
+  margin-top: 0.75rem;
 }
 
 .asx-scenarios-note a { color: var(--teal); }
