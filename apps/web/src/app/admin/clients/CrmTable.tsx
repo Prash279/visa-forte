@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Client } from '../../../../drizzle/schema'
 import { CRM_STAGES, CRM_FILTER_STAGES } from '@/lib/crm-stages'
@@ -96,6 +96,14 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
 
   const notesRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
+
+  const [pendingStage, setPendingStage] = useState<{
+    clientId: string
+    oldStage: string
+    newStage: string
+    timerId: ReturnType<typeof setTimeout>
+  } | null>(null)
 
   const filtered = clients.filter((c) => {
     const matchSearch =
@@ -106,9 +114,8 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
     return matchSearch && matchStage
   })
 
-  async function updateStage(id: string, stage: string) {
+  async function commitStage(id: string, stage: string): Promise<void> {
     setSavingStage(id)
-    setClients((prev) => prev.map((c) => (c.id === id ? { ...c, stage } : c)))
     try {
       await fetch(`/api/admin/clients/${id}`, {
         method: 'PATCH',
@@ -119,6 +126,45 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
       setSavingStage(null)
     }
   }
+
+  function handleStageChange(clientId: string, newStage: string): void {
+    const client = clients.find((c) => c.id === clientId)
+    if (!client) return
+
+    if (pendingStage) {
+      clearTimeout(pendingStage.timerId)
+      commitStage(pendingStage.clientId, pendingStage.newStage)
+    }
+
+    setClients((prev) => prev.map((c) => (c.id === clientId ? { ...c, stage: newStage } : c)))
+
+    const timerId = setTimeout(() => {
+      commitStage(clientId, newStage)
+      setPendingStage(null)
+    }, 4000)
+
+    setPendingStage({ clientId, oldStage: client.stage, newStage, timerId })
+  }
+
+  function handleUndoStage(): void {
+    if (!pendingStage) return
+    clearTimeout(pendingStage.timerId)
+    const { clientId, oldStage } = pendingStage
+    setClients((prev) => prev.map((c) => (c.id === clientId ? { ...c, stage: oldStage } : c)))
+    setPendingStage(null)
+  }
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent): void {
+      const tag = (e.target as HTMLElement).tagName
+      if (e.key === '/' && tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') {
+        e.preventDefault()
+        searchRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [])
 
   async function saveNotes(id: string) {
     if (!editingNotes || editingNotes.id !== id) return
@@ -424,17 +470,17 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
     }
   }
 
-  const itaCount = clients.filter((c) => c.stage === 'ITA Window').length
+  const itaClients = clients.filter((c) => c.stage === 'ITA Window')
 
   return (
     <div>
 
       {/* ITA Window alert banner */}
-      {itaCount > 0 && (
+      {itaClients.length > 0 && (
         <div className="crm-ita-banner">
           <span className="crm-ita-banner-icon">⚑</span>
           <span className="crm-ita-banner-text">
-            {itaCount} client{itaCount > 1 ? 's' : ''} in ITA Window — immediate action required.
+            ITA Window — immediate action required: {itaClients.map((c) => c.name).join(', ')}.
           </span>
         </div>
       )}
@@ -443,9 +489,10 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
       <div className="crm-toolbar">
         <div className="crm-toolbar-left">
           <input
+            ref={searchRef}
             type="text"
             className="crm-search"
-            placeholder="Search by name or email…"
+            placeholder="Search by name or email… (press / to focus)"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -492,8 +539,16 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
           <table className="admin-table crm-table">
             <thead>
               <tr>
-                {['Name', 'Email', 'Service Tier', 'Stage', 'Added', 'Notes', 'Docs', 'Resume', 'Msg', 'Portal', ''].map((h) => (
-                  <th key={h}>{h}</th>
+                {[
+                  { label: 'Client', title: 'Name, contact details, and service tier' },
+                  { label: 'Stage', title: 'Current pipeline stage — ITA Window has a 12-hour response SLA' },
+                  { label: 'Added', title: 'Date added to CRM' },
+                  { label: 'Notes', title: 'Internal notes — visible only to admin' },
+                  { label: 'Msg', title: 'Message thread — saffron border means unread client message' },
+                  { label: 'Docs', title: 'Client documents and assessment resume' },
+                  { label: 'Actions', title: 'Portal link, CanDoc AI review, and delete' },
+                ].map((h) => (
+                  <th key={h.label} title={h.title}>{h.label}</th>
                 ))}
               </tr>
             </thead>
@@ -508,24 +563,16 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                 return (
                   <tr key={client.id} className={isIta ? 'crm-row-ita' : ''}>
 
-                    {/* Name */}
+                    {/* Client — name, phone, email, service tier */}
                     <td>
                       <span className="admin-td-name">{client.name}</span>
                       {client.phone && (
                         <span className="crm-td-phone">{client.phone}</span>
                       )}
-                    </td>
-
-                    {/* Email */}
-                    <td>
-                      <a href={`mailto:${client.email}`} className="admin-td-email">
+                      <a href={`mailto:${client.email}`} className="crm-td-client-email">
                         {client.email}
                       </a>
-                    </td>
-
-                    {/* Service Tier */}
-                    <td>
-                      <span className="admin-td-service" title={client.serviceTier}>
+                      <span className="crm-td-client-tier" title={client.serviceTier}>
                         {client.serviceTier}
                       </span>
                     </td>
@@ -537,7 +584,8 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                           className={`crm-stage-select ${isIta ? 'crm-stage-select-ita' : ''}`}
                           value={client.stage}
                           disabled={savingStage === client.id}
-                          onChange={(e) => updateStage(client.id, e.target.value)}
+                          aria-label={`Pipeline stage for ${client.name}`}
+                          onChange={(e) => handleStageChange(client.id, e.target.value)}
                         >
                           {CRM_STAGES.map((s) => (
                             <option key={s} value={s}>{s}</option>
@@ -599,6 +647,7 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                           <button
                             className="crm-notes-edit-btn"
                             title="Edit notes"
+                            aria-label={`Edit notes for ${client.name}`}
                             onClick={() =>
                               setEditingNotes({ id: client.id, notes: client.notes ?? '' })
                             }
@@ -609,29 +658,26 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                       )}
                     </td>
 
-                    {/* Documents */}
+                    {/* Docs + Resume */}
                     <td className="crm-docs-col">
-                      <button
-                        className="crm-docs-btn"
-                        onClick={() => openDocsModal(client.id, client.name)}
-                      >
-                        Docs{count > 0 ? ` (${count})` : ''}
-                      </button>
-                    </td>
-
-                    {/* Resume — download the original resume from assessment, if available */}
-                    <td className="crm-docs-col">
-                      {resumeMap[client.email] ? (
-                        <a
-                          href={`/api/admin/resume/${resumeMap[client.email].leadId}`}
+                      <div className="crm-docs-cell">
+                        <button
                           className="crm-docs-btn"
-                          style={{ textDecoration: 'none', display: 'inline-block' }}
+                          onClick={() => openDocsModal(client.id, client.name)}
                         >
-                          ↓ Resume
-                        </a>
-                      ) : (
-                        <span className="crm-notes-empty">—</span>
-                      )}
+                          Docs{count > 0 ? ` (${count})` : ''}
+                        </button>
+                        {resumeMap[client.email] ? (
+                          <a
+                            href={`/api/admin/resume/${resumeMap[client.email].leadId}`}
+                            className="crm-docs-btn"
+                          >
+                            ↓ Resume
+                          </a>
+                        ) : (
+                          <span className="crm-notes-empty">—</span>
+                        )}
+                      </div>
                     </td>
 
                     {/* Message — Step 14: saffron dot if client has unread; Step 17: SLA ⚠ */}
@@ -644,6 +690,7 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                           className={`crm-msg-btn ${hasUnread ? 'crm-msg-btn-unread' : ''}`}
                           onClick={() => openMsgModal(client.id, client.name)}
                           title={hasUnread ? 'New message from client' : 'Send message to client'}
+                          aria-label={hasUnread ? `Unread message from ${client.name}` : `Message ${client.name}`}
                         >
                           ✉
                           {hasUnread && <span className="crm-unread-dot" />}
@@ -651,50 +698,38 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                       </div>
                     </td>
 
-                    {/* Portal link status */}
-                    <td className="crm-portal-col">
-                      {client.userId ? (
-                        <span className="crm-portal-linked">Portal ✓</span>
-                      ) : (
+                    {/* Actions — portal, CanDoc, delete */}
+                    <td className="crm-actions-col">
+                      <div className="crm-actions-cell">
+                        {client.userId ? (
+                          <span className="crm-portal-linked" title="Portal account linked">Portal ✓</span>
+                        ) : (
+                          <button
+                            className="crm-portal-link-btn"
+                            onClick={() => openLinkModal(client.id, client.email)}
+                            title="Link client to portal"
+                            aria-label={`Link portal for ${client.name}`}
+                          >
+                            Link Portal
+                          </button>
+                        )}
                         <button
-                          className="crm-portal-link-btn"
-                          onClick={() => openLinkModal(client.id, client.email)}
-                          title="Link client to portal"
+                          className="crm-candoc-btn"
+                          onClick={() => router.push(`/admin/candoc?clientId=${client.id}&name=${encodeURIComponent(client.name)}`)}
+                          aria-label={`CanDoc AI review for ${client.name}`}
                         >
-                          Link Portal
+                          CanDoc
                         </button>
-                      )}
-                    </td>
-
-                    {/* CanDoc Review */}
-                    <td>
-                      <button
-                        style={{
-                          background: 'none',
-                          border: '1px solid var(--clr-accent)',
-                          color: 'var(--clr-accent)',
-                          borderRadius: '4px',
-                          padding: '0.25rem 0.6rem',
-                          fontSize: '0.75rem',
-                          cursor: 'pointer',
-                          whiteSpace: 'nowrap',
-                        }}
-                        onClick={() => router.push(`/admin/candoc?clientId=${client.id}&name=${encodeURIComponent(client.name)}`)}
-                      >
-                        CanDoc Review
-                      </button>
-                    </td>
-
-                    {/* Delete */}
-                    <td className="crm-delete-col">
-                      <button
-                        className="crm-delete-btn"
-                        onClick={() => handleDeleteClient(client.id, client.name)}
-                        disabled={deletingClientId === client.id}
-                        title="Delete client permanently"
-                      >
-                        {deletingClientId === client.id ? '…' : '✕'}
-                      </button>
+                        <button
+                          className="crm-delete-btn"
+                          onClick={() => handleDeleteClient(client.id, client.name)}
+                          disabled={deletingClientId === client.id}
+                          title="Delete client permanently"
+                          aria-label={`Delete ${client.name}`}
+                        >
+                          {deletingClientId === client.id ? '…' : '✕'}
+                        </button>
+                      </div>
                     </td>
 
                   </tr>
@@ -1127,6 +1162,16 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
 
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Undo toast — stage change (H3 User Control) */}
+      {pendingStage && (
+        <div className="crm-undo-toast" role="status" aria-live="polite">
+          <span className="crm-undo-toast-text">Stage updated.</span>
+          <button className="crm-undo-btn" onClick={handleUndoStage}>
+            Undo
+          </button>
         </div>
       )}
 

@@ -22,7 +22,6 @@
   align-items: center;
   gap: 0.75rem;
   background: rgba(201, 123, 30, 0.14);
-  border-left: 3px solid var(--saffron);
   padding: 0.875rem 1.25rem;
   margin-bottom: 2rem;
 }
@@ -59,7 +58,7 @@
   font-family: var(--font-body);
   font-size: 0.875rem;
   color: var(--prussian);
-  background: white;
+  background: var(--pearl);
   border: 1px solid var(--sand);
   padding: 0.6rem 1rem;
   width: 100%;
@@ -84,7 +83,7 @@
   font-weight: 600;
   padding: 0.3rem 0.75rem;
   border: 1px solid var(--sand);
-  background: white;
+  background: var(--pearl);
   color: var(--ink);
   opacity: 0.55;
   cursor: pointer;
@@ -113,7 +112,7 @@
   letter-spacing: 0.1em;
   font-weight: 600;
   color: var(--prussian);
-  background: white;
+  background: var(--pearl);
   border: 1px solid var(--sand);
   padding: 0.625rem 1.25rem;
   cursor: pointer;
@@ -190,7 +189,7 @@
   font-family: var(--font-body);
   font-size: 0.75rem;
   color: var(--prussian);
-  background: white;
+  background: var(--pearl);
   border: 1px solid var(--sand);
   padding: 0.35rem 0.625rem;
   outline: none;
@@ -269,7 +268,7 @@
   font-family: var(--font-body);
   font-size: 0.8125rem;
   color: var(--prussian);
-  background: white;
+  background: var(--pearl);
   border: 1px solid var(--prussian);
   padding: 0.5rem;
   resize: vertical;
@@ -325,10 +324,9 @@
 }
 
 .crm-modal {
-  background: white;
+  background: var(--pearl);
   width: 100%;
   max-width: 32rem;
-  border-top: 3px solid var(--saffron);
 }
 
 .crm-modal-header {
@@ -381,7 +379,7 @@
   font-family: var(--font-body);
   font-size: 0.9375rem;
   color: var(--prussian);
-  background: white;
+  background: var(--pearl);
   border: 1px solid var(--sand);
   padding: 0.625rem 0.875rem;
   outline: none;
@@ -455,6 +453,7 @@
   transition: border-color 0.15s ease, opacity 0.15s ease;
 }
 .crm-docs-btn:hover { border-color: var(--prussian); opacity: 0.85; }
+.crm-docs-btn[href] { text-decoration: none; display: inline-block; }
 
 /* ── Documents modal ─────────────────────────────────────── */
 .crm-docs-modal {
@@ -519,7 +518,7 @@
   font-family: var(--font-body);
   font-size: 0.8125rem;
   color: var(--prussian);
-  background: white;
+  background: var(--pearl);
   border: 1px solid var(--sand);
   padding: 0.5rem 0.875rem;
   cursor: pointer;
@@ -584,7 +583,7 @@
   gap: 0.75rem;
   padding: 0.625rem 0.875rem;
   border: 1px solid var(--sand);
-  background: white;
+  background: var(--pearl);
 }
 
 .crm-doc-item-info {
@@ -687,9 +686,8 @@
 }
 .crm-delete-confirm-btn {
   background: #b53d00;
-  color: #fff;
+  color: var(--pearl);
   border: none;
-  border-radius: 6px;
   padding: 0.5rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -706,7 +704,6 @@
 .crm-portal-link-btn {
   background: transparent;
   border: 1px solid rgba(12, 35, 64, 0.3);
-  border-radius: 5px;
   color: var(--prussian);
   font-size: 0.75rem;
   font-weight: 600;
@@ -776,7 +773,6 @@
   position: relative;
   background: transparent;
   border: 1px solid rgba(12, 35, 64, 0.25);
-  border-radius: 5px;
   color: var(--prussian);
   font-size: 0.875rem;
   padding: 0.3rem 0.55rem;
@@ -801,7 +797,7 @@
   height: 7px;
   border-radius: 50%;
   background: var(--saffron);
-  border: 1px solid white;
+  border: 1px solid var(--pearl);
 }
 
 /* ── Message modal ───────────────────────────────────────── */
@@ -824,7 +820,6 @@
 .crm-msg-bubble {
   max-width: 82%;
   padding: 0.75rem 1rem;
-  border-radius: 8px;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -833,14 +828,12 @@
   background: var(--prussian);
   color: var(--pearl);
   align-self: flex-start;
-  border-bottom-left-radius: 2px;
 }
 .crm-msg-bubble-client {
   background: rgba(201, 123, 30, 0.12);
   border: 1px solid rgba(201, 123, 30, 0.3);
   color: var(--ink);
   align-self: flex-end;
-  border-bottom-right-radius: 2px;
 }
 .crm-msg-bubble-sender {
   font-size: 0.65rem;
@@ -879,11 +872,10 @@
   font-size: 0.875rem;
   color: var(--ink);
   border: 1px solid rgba(12, 35, 64, 0.2);
-  border-radius: 6px;
   padding: 0.75rem 1rem;
   resize: vertical;
   min-height: 80px;
-  background: #fafaf8;
+  background: var(--pearl);
   transition: border-color 0.15s ease;
   width: 100%;
   box-sizing: border-box;
@@ -891,7 +883,7 @@
 .crm-msg-textarea:focus {
   outline: none;
   border-color: var(--prussian);
-  background: #fff;
+  background: var(--pearl);
 }
 
 /* ── Message modal header actions row ────────────────────── */
@@ -972,3 +964,83 @@
   flex-shrink: 0;
 }
 .crm-msg-attach-clear:hover { opacity: 0.9; color: #b53d00; }
+
+/* ── H6: merged client cell sub-elements ── */
+.crm-td-client-email {
+  display: block;
+  font-size: 0.6875rem;
+  opacity: 0.5;
+  color: inherit;
+  text-decoration: none;
+}
+.crm-td-client-tier {
+  display: block;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.32;
+}
+
+/* ── H6: merged docs cell ── */
+.crm-docs-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+/* ── H6: merged actions cell ── */
+.crm-actions-col { white-space: nowrap; }
+.crm-actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: nowrap;
+}
+
+/* ── H4: CanDoc button via class (was inline style) ── */
+.crm-candoc-btn {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  background: none;
+  border: 1px solid var(--clr-accent);
+  color: var(--clr-accent);
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s ease;
+}
+.crm-candoc-btn:hover { opacity: 0.75; }
+
+/* ── H3: undo toast ── */
+.crm-undo-toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--prussian);
+  color: var(--pearl);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.6rem 1.25rem;
+  z-index: 1100;
+  box-shadow: 0 4px 16px oklch(0 0 0 / 0.35);
+}
+.crm-undo-toast-text {
+  font-size: 0.8125rem;
+  color: var(--pearl);
+}
+.crm-undo-btn {
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--clr-accent);
+  cursor: pointer;
+  padding: 0;
+}
