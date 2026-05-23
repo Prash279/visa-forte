@@ -666,6 +666,24 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                       )}
                     </td>
 
+                    {/* Message — Step 14: saffron dot if client has unread; Step 17: SLA ⚠ */}
+                    <td className="crm-msg-col">
+                      <div className="crm-msg-cell">
+                        {slaBreached && (
+                          <span className="crm-sla-warn" title="Unanswered client message past SLA">⚠</span>
+                        )}
+                        <button
+                          className={`crm-msg-btn ${hasUnread ? 'crm-msg-btn-unread' : ''}`}
+                          onClick={() => openMsgModal(client.id, client.name)}
+                          title={hasUnread ? 'New message from client' : 'Send message to client'}
+                          aria-label={hasUnread ? `Unread message from ${client.name}` : `Message ${client.name}`}
+                        >
+                          ✉
+                          {hasUnread && <span className="crm-unread-dot" />}
+                        </button>
+                      </div>
+                    </td>
+
                     {/* Docs + Resume */}
                     <td className="crm-docs-col">
                       <div className="crm-docs-cell">
@@ -685,24 +703,6 @@ export default function CrmTable({ initialClients, serviceTiers, initialDocCount
                         ) : (
                           <span className="crm-notes-empty">—</span>
                         )}
-                      </div>
-                    </td>
-
-                    {/* Message — Step 14: saffron dot if client has unread; Step 17: SLA ⚠ */}
-                    <td className="crm-msg-col">
-                      <div className="crm-msg-cell">
-                        {slaBreached && (
-                          <span className="crm-sla-warn" title="Unanswered client message past SLA">⚠</span>
-                        )}
-                        <button
-                          className={`crm-msg-btn ${hasUnread ? 'crm-msg-btn-unread' : ''}`}
-                          onClick={() => openMsgModal(client.id, client.name)}
-                          title={hasUnread ? 'New message from client' : 'Send message to client'}
-                          aria-label={hasUnread ? `Unread message from ${client.name}` : `Message ${client.name}`}
-                        >
-                          ✉
-                          {hasUnread && <span className="crm-unread-dot" />}
-                        </button>
                       </div>
                     </td>
 
