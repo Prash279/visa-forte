@@ -4,7 +4,7 @@ import * as schema from '../../drizzle/schema';
 
 // Preserve the connection pool across Next.js hot reloads in development.
 // Without this, every file save tears down and rebuilds the TCP connection
-// to Neon, causing 3–8s cold-connect latency on the first request after
+// to Supabase, causing 3–8s cold-connect latency on the first request after
 // each edit. globalThis survives HMR; a fresh pool is only created on
 // actual server restart.
 const globalDb = globalThis as typeof globalThis & {

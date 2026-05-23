@@ -83,8 +83,8 @@ export default function PrivacyPolicyPage() {
         <section className="policy-section">
           <h2 className="policy-h2">4. Data Storage and Security</h2>
           <p>
-            Your data is stored in a secured PostgreSQL database hosted on Neon (cloud
-            infrastructure in Singapore). All connections are encrypted using TLS. Access
+            Your data is stored in a secured PostgreSQL database hosted on Supabase (cloud-hosted
+            PostgreSQL infrastructure). All connections are encrypted using TLS. Access
             to the database is restricted to authorised systems only.
           </p>
           <p>
@@ -111,7 +111,7 @@ export default function PrivacyPolicyPage() {
               <strong>Vercel</strong> — website hosting and deployment.
             </li>
             <li>
-              <strong>Neon</strong> — database hosting.
+              <strong>Supabase</strong> — database hosting.
             </li>
           </ul>
           <p>

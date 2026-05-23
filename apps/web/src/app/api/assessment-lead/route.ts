@@ -6,6 +6,7 @@ import { leads } from '../../../../drizzle/schema';
 const FieldSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
   email: z.string().email('A valid email address is required'),
+  phone: z.string().min(7, 'Mobile number is required').max(20),
   crsScore: z.coerce.number().int().min(0).max(1200),
   consentGiven: z.literal('true', { errorMap: () => ({ message: 'Consent is required' }) }),
 });
@@ -28,6 +29,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const result = FieldSchema.safeParse({
     name: formData.get('name'),
     email: formData.get('email'),
+    phone: formData.get('phone'),
     crsScore: formData.get('crsScore'),
     consentGiven: formData.get('consentGiven'),
   });
@@ -36,7 +38,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
   }
 
-  const { name, email, crsScore } = result.data;
+  const { name, email, phone, crsScore } = result.data;
 
   // Encode resume as a base64 data URI and store directly in the database.
   // This approach has no external service dependency and works reliably in all environments.
@@ -68,6 +70,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     await db.insert(leads).values({
       name,
       email,
+      phone,
       serviceInterest: 'Pre-Application Eligibility Assessment',
       notes,
       resumeUrl,

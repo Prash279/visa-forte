@@ -196,12 +196,11 @@ export default function AssessmentTool() {
   const dateOfBirth = dobDay && dobMonth && dobYear
     ? `${dobYear}-${dobMonth}-${dobDay}` : ''
 
-  // Lead capture state — shown in the result view
-  const [leadName, setLeadName]       = useState('')
-  const [leadEmail, setLeadEmail]     = useState('')
-  const [leadConsent, setLeadConsent] = useState(false)
-  const [leadStatus, setLeadStatus]   = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
-  const [resumeFile, setResumeFile]   = useState<File | null>(null)
+  // Contact capture state — mandatory before Check My Eligibility
+  const [contactName, setContactName]       = useState('')
+  const [contactEmail, setContactEmail]     = useState('')
+  const [contactPhone, setContactPhone]     = useState('')
+  const [contactConsent, setContactConsent] = useState(false)
 
   const firstClb  = scoresToClb(profile.firstLanguageScores)
   const secondClb = profile.hasSecondLanguage && profile.secondLanguageScores
@@ -238,25 +237,16 @@ export default function AssessmentTool() {
     [],
   )
 
-  async function submitLead() {
-    if (!leadName.trim() || !leadEmail.trim() || !leadConsent || !result) return
-    setLeadStatus('submitting')
-    try {
-      const fd = new FormData()
-      fd.append('name', leadName.trim())
-      fd.append('email', leadEmail.trim())
-      fd.append('crsScore', String(result.breakdown.total))
-      fd.append('consentGiven', 'true')
-      if (resumeFile) fd.append('resume', resumeFile)
-      const res = await fetch('/api/assessment-lead', { method: 'POST', body: fd })
-      setLeadStatus(res.ok ? 'success' : 'error')
-    } catch {
-      setLeadStatus('error')
-    }
-  }
-
   function runAssessment() {
     const r = calculate(profile)
+    // Fire-and-forget: save lead — never blocks the result display
+    const fd = new FormData()
+    fd.append('name', contactName.trim())
+    fd.append('email', contactEmail.trim())
+    fd.append('phone', contactPhone.trim())
+    fd.append('crsScore', String(r.breakdown.total))
+    fd.append('consentGiven', 'true')
+    fetch('/api/assessment-lead', { method: 'POST', body: fd }).catch(() => undefined)
     setResult(r)
     setView('result')
     setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50)
@@ -268,12 +258,22 @@ export default function AssessmentTool() {
     setNumberOfChildren(0)
     setResult(null)
     setView('form')
-    setResumeFile(null)
+    setContactName('')
+    setContactEmail('')
+    setContactPhone('')
+    setContactConsent(false)
     setDobDay('')
     setDobMonth('')
     setDobYear('')
     setTimeout(() => window.scrollTo({ top: 0 }), 50)
   }
+
+  // Button is enabled only when all three contact fields are valid and consent is given
+  const contactReady =
+    contactName.trim().length > 0 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim()) &&
+    contactPhone.trim().length >= 7 &&
+    contactConsent
 
   // ── FORM ───────────────────────────────────────────────────────────────────
 
@@ -914,12 +914,72 @@ export default function AssessmentTool() {
               </div>
             )}
 
+            {/* ── Contact Details — Mandatory Before Check ────────── */}
+            <div className="asx-contact-section">
+              <p className="asx-section-label">Your Contact Details</p>
+              <p className="asx-contact-note">
+                Required to send you your results and for Prash to follow up personally.
+              </p>
+              <div className="asx-grid-2">
+                <div className="asx-field asx-full">
+                  <label className="asx-label" htmlFor="contact-name">Full Name</label>
+                  <input
+                    id="contact-name"
+                    className="asx-input"
+                    type="text"
+                    placeholder="Your full name"
+                    value={contactName}
+                    onChange={e => setContactName(e.target.value)}
+                    autoComplete="name"
+                  />
+                </div>
+                <div className="asx-field">
+                  <label className="asx-label" htmlFor="contact-email">Email Address</label>
+                  <input
+                    id="contact-email"
+                    className="asx-input"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={contactEmail}
+                    onChange={e => setContactEmail(e.target.value)}
+                    autoComplete="email"
+                  />
+                </div>
+                <div className="asx-field">
+                  <label className="asx-label" htmlFor="contact-phone">Mobile Number</label>
+                  <input
+                    id="contact-phone"
+                    className="asx-input"
+                    type="tel"
+                    placeholder="+91 98765 43210"
+                    value={contactPhone}
+                    onChange={e => setContactPhone(e.target.value)}
+                    autoComplete="tel"
+                  />
+                </div>
+              </div>
+              <label className="asx-checkbox-row" style={{ marginTop: '0.75rem' }}>
+                <input
+                  type="checkbox"
+                  checked={contactConsent}
+                  onChange={e => setContactConsent(e.target.checked)}
+                />
+                <span className="asx-checkbox-label">
+                  I consent to Visa Forte contacting me about my immigration assessment.
+                </span>
+              </label>
+            </div>
+
             <div className="asx-submit-row">
-              <button className="asx-submit-btn" onClick={runAssessment}>
+              <button
+                className="asx-submit-btn"
+                onClick={runAssessment}
+                disabled={!contactReady}
+              >
                 Check My Eligibility →
               </button>
               <p className="asx-submit-note">
-                Instant result. No account required. No data stored.
+                Instant result. Your details are saved securely and never shared.
               </p>
             </div>
 
@@ -1304,135 +1364,6 @@ export default function AssessmentTool() {
             <p className="asx-cta-sub">
               Pre-Application Eligibility Assessment · From $99 / ₹4,999
             </p>
-          </div>
-
-          {/* ── Lead Capture ─────────────────────────────────────── */}
-          <div className="asx-lead-capture">
-            {leadStatus === 'success' ? (
-              <div className="asx-lead-success">
-                <span className="asx-lead-success-icon">✓</span>
-                <div>
-                  <p className="asx-lead-success-title">We&apos;ll be in touch within 24 hours.</p>
-                  <p className="asx-lead-success-sub">
-                    Prash will review your CRS score and profile personally.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <>
-                <p className="asx-lead-eyebrow">Get a Personalised Roadmap</p>
-                <h3 className="asx-lead-headline">
-                  Leave your details — Prash will review your profile personally.
-                </h3>
-                <p className="asx-lead-sub">
-                  No templates. No automated responses. Your CRS score and profile reviewed by
-                  a consultant with 20+ years of Canadian immigration documentation experience.
-                  Responds within 24 hours.
-                </p>
-                <div className="asx-lead-fields">
-                  <div className="asx-field">
-                    <label className="asx-label" htmlFor="lead-name">Your name</label>
-                    <input
-                      id="lead-name"
-                      className="asx-input"
-                      type="text"
-                      placeholder="Full name"
-                      value={leadName}
-                      onChange={e => setLeadName(e.target.value)}
-                      disabled={leadStatus === 'submitting'}
-                      autoComplete="name"
-                    />
-                  </div>
-                  <div className="asx-field">
-                    <label className="asx-label" htmlFor="lead-email">Email address</label>
-                    <input
-                      id="lead-email"
-                      className="asx-input"
-                      type="email"
-                      placeholder="you@example.com"
-                      value={leadEmail}
-                      onChange={e => setLeadEmail(e.target.value)}
-                      disabled={leadStatus === 'submitting'}
-                      autoComplete="email"
-                    />
-                  </div>
-                </div>
-                <div className="asx-field" style={{ marginTop: '0.75rem' }}>
-                  <label className="asx-label" htmlFor="lead-resume">Resume / CV (Optional)</label>
-                  <label
-                    htmlFor="lead-resume"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      border: '1.5px solid var(--sand)',
-                      padding: '0.6rem 0.85rem',
-                      background: 'var(--pearl)',
-                      cursor: leadStatus === 'submitting' ? 'not-allowed' : 'pointer',
-                      fontSize: '0.9rem',
-                      opacity: leadStatus === 'submitting' ? 0.45 : 1,
-                    }}
-                  >
-                    <span style={{
-                      background: 'var(--prussian)',
-                      color: 'var(--pearl)',
-                      padding: '0.25rem 0.75rem',
-                      fontSize: '0.76rem',
-                      fontWeight: 500,
-                      letterSpacing: '0.04em',
-                      flexShrink: 0,
-                    }}>
-                      Choose file
-                    </span>
-                    <span style={{
-                      color: resumeFile ? 'var(--ink)' : '#999',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      fontSize: '0.88rem',
-                    }}>
-                      {resumeFile ? resumeFile.name : 'No file chosen'}
-                    </span>
-                    <input
-                      id="lead-resume"
-                      type="file"
-                      accept=".pdf,.doc,.docx"
-                      onChange={e => setResumeFile(e.target.files?.[0] ?? null)}
-                      disabled={leadStatus === 'submitting'}
-                      style={{ display: 'none' }}
-                    />
-                  </label>
-                  <span className="asx-hint">PDF or Word document · Max 5 MB</span>
-                </div>
-                <label className="asx-checkbox-row" style={{ marginTop: '0.75rem' }}>
-                  <input
-                    type="checkbox"
-                    checked={leadConsent}
-                    onChange={e => setLeadConsent(e.target.checked)}
-                    disabled={leadStatus === 'submitting'}
-                  />
-                  <span className="asx-checkbox-label">
-                    I consent to Visa Forte contacting me about my immigration assessment.
-                  </span>
-                </label>
-                {leadStatus === 'error' && (
-                  <p className="asx-lead-error" role="alert">
-                    Your details could not be submitted. Check your connection and try again, or
-                    email <a href="mailto:prashant@visaforte.com" style={{ color: 'inherit', textDecoration: 'underline' }}>prashant@visaforte.com</a> directly with your results.
-                  </p>
-                )}
-                <button
-                  className="asx-lead-btn"
-                  onClick={submitLead}
-                  disabled={
-                    !leadName.trim() || !leadEmail.trim() || !leadConsent ||
-                    leadStatus === 'submitting'
-                  }
-                >
-                  {leadStatus === 'submitting' ? 'Sending…' : 'Send My Results →'}
-                </button>
-              </>
-            )}
           </div>
 
           {/* ── Legal Disclaimer ─────────────────────────────────── */}

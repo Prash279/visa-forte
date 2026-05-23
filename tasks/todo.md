@@ -1190,7 +1190,7 @@ Admin footer shows "Last retention run: {date} — {N} records deleted" (or "No 
 **One manual step required before cron fires:**
 Add `CRON_SECRET` to Vercel dashboard → Settings → Environment Variables (generate with `openssl rand -hex 32`).
 Also add to `.env.local` for local testing.
-Also apply migration 0011 to Neon: run `npx drizzle-kit migrate` from `apps/web/` after confirming `DATABASE_URL` is set in `.env.local`.
+Also apply migration 0011 to Supabase: run `npx drizzle-kit migrate` from `apps/web/` after confirming `DATABASE_URL` is set in `.env.local`.
 
 **Prashant Proof:**
 1. Go to `/intake` — confirm consent checkbox appears at the bottom; try to submit without checking it — form should not proceed
@@ -1288,7 +1288,7 @@ Cron extended with Email 4: digest to Prash for open queries with deadline ≤ t
 22 new Vitest tests — 122 total passing. TypeScript clean.
 
 **One manual step required:**
-Run `npx drizzle-kit migrate` from `apps/web/` with `DATABASE_URL` set in `.env.local` to apply migration 0012 to Neon.
+Run `npx drizzle-kit migrate` from `apps/web/` with `DATABASE_URL` set in `.env.local` to apply migration 0012 to Supabase.
 
 **Prashant Proof:**
 1. Go to `/admin/monitoring` — confirm the page loads showing any clients in Submitted/Decision Pending stage
@@ -1307,7 +1307,7 @@ Run `npx drizzle-kit migrate` from `apps/web/` with `DATABASE_URL` set in `.env.
 
 **Status:** COMPLETE (local build verified; live end-to-end test via GitHub Actions `workflow_dispatch` required — see Prashant Proof)
 
-**Delivers:** A scheduled Python pipeline (`pipeline/`) that scrapes four canada.ca data sources every 6 hours via GitHub Actions and writes results to the Neon DB. Enables the frontend to read live IRCC data from the DB instead of static JSON files.
+**Delivers:** A scheduled Python pipeline (`pipeline/`) that scrapes four canada.ca data sources every 6 hours via GitHub Actions and writes results to the Supabase DB. Enables the frontend to read live IRCC data from the DB instead of static JSON files.
 
 **Scrapers:**
 - `ee_draws` — Express Entry draw history (JSON feed, append-only)
@@ -1338,7 +1338,7 @@ Run `npx drizzle-kit migrate` from `apps/web/` with `DATABASE_URL` set in `.env.
 **Prashant Proof:**
 1. Go to `github.com/[your-repo]/actions` → find "canada.ca Monitor" workflow → click "Run workflow" → confirm it triggers
 2. Wait ~2 minutes for the run to complete → click the run → confirm all 4 steps show green (ee_draws, proof_of_funds, fee_schedule succeed; processing_times logs a warning but does NOT fail)
-3. Connect to Neon DB and run: `SELECT data_key, last_scraped FROM content_snapshots ORDER BY last_scraped DESC LIMIT 5;` — confirm `proof_of_funds` and `fee_schedule` rows appear with today's timestamp
+3. Connect to Supabase and run: `SELECT data_key, last_scraped FROM content_snapshots ORDER BY last_scraped DESC LIMIT 5;` — confirm `proof_of_funds` and `fee_schedule` rows appear with today's timestamp
 4. Run: `SELECT COUNT(*) FROM ee_draws;` — confirm row count matches (or exceeds) the prior static JSON draw count
 
 ---

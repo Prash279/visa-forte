@@ -44,7 +44,7 @@ src/
 ## Environment Variables
 
 ```env
-DATABASE_URL=postgresql://...          # Neon PostgreSQL connection string
+DATABASE_URL=postgresql://...          # Supabase PostgreSQL connection string
 BETTER_AUTH_SECRET=...                 # 32-byte hex secret (openssl rand -hex 32)
 NEXT_PUBLIC_SITE_URL=https://visaforte.com
 ```

@@ -1,6 +1,6 @@
 # render.yaml — Visa Forte Infrastructure Blueprint
 # Render reads this file to provision the web service on Phase 2+ migration.
-# Database lives on Neon (persistent free tier) — set DATABASE_URL manually in Render dashboard.
+# Database lives on Supabase — set DATABASE_URL manually in Render dashboard.
 # Docs: https://render.com/docs/blueprint-spec
 
 services:
@@ -20,7 +20,7 @@ services:
       - key: NODE_VERSION
         value: "20"
       # DATABASE_URL must be set manually in the Render dashboard.
-      # Copy it from your Neon project dashboard (Settings → Connection string).
+      # Copy it from your Supabase project dashboard (Settings → Database → Connection string).
       - key: DATABASE_URL
         sync: false
       # Render generates a cryptographically random value on first deploy.

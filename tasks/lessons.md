@@ -69,7 +69,10 @@ If the lesson contains words like "useEffect", "state mismatch", "hydration erro
 - **Why it happened:** I reviewed the files from my own perspective only. Different experts look for different things.
 - **The rule going forward:** Before declaring any set of files complete, run a named-audience check: "What would a workflow expert flag? What would a security expert flag? What would a non-coder trying to use this flag?" Each perspective finds a different category of gap.
 
-
+**Lesson 2 — The database is Supabase. Never write "Neon" anywhere on Visa Forte.**
+- **What went wrong:** After the project migrated from Neon to Supabase, seven stale "Neon" references survived in code comments, the README, the live public Privacy Policy page, and the infrastructure blueprint — and were quoted back to Prash in session responses as if they were current facts.
+- **Why it happened:** The runtime code was updated first and the migration felt done. Documentation, comments, and policy pages were never audited to match the new provider.
+- **The rule going forward:** The Visa Forte database is Supabase — always. Any code, comment, or document that says "Neon" in the context of database or infrastructure is wrong and must be corrected immediately. Before finishing any task that touches DB-related files, the README, policy pages, or deployment config, run a search for "Neon" across the codebase and confirm zero results in forward-facing content.
 
 ---
 
