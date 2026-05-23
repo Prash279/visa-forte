@@ -1032,7 +1032,7 @@ Three automated emails that currently do not exist or are incomplete:
 
 **Email 1 — Client booking confirmation (surgical change to existing route):**
 
-- [ ] Step 1 — In `POST /api/payment/verify/route.ts`, after the booking insert and Prash notification email, add a second `resend.emails.send()` call addressed to `booking.email` (the client):
+- [x] Step 1 — In `POST /api/payment/verify/route.ts`, after the booking insert and Prash notification email, add a second `resend.emails.send()` call addressed to `booking.email` (the client):
   - Subject: `Your Visa Forte consultation is confirmed — {serviceTier}`
   - Body: booking date, service tier, what to expect, next steps (Prash will be in touch within 24 hours), Prash's contact email
   - Visa Forte brand styling (same HTML email template pattern as existing Resend calls)
