@@ -565,6 +565,8 @@
   flex-direction: column;
   gap: 0.5rem;
   min-height: 2rem;
+  max-height: 22rem;
+  overflow-y: auto;
 }
 
 .crm-doc-empty {
