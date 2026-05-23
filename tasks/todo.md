@@ -92,15 +92,15 @@ Three new public pages plus a site-wide navigation bar linking them all.
 - Standard legal disclaimer
 
 **Plan:**
-- [ ] Read `/mnt/skills/user/visa-forte-brand/SKILL.md` before writing any UI
-- [ ] Build site-wide nav component at `apps/web/src/components/NavBar.tsx`
-- [ ] Add NavBar to `apps/web/src/app/layout.tsx` (applies to all pages)
-- [ ] Confirm landing page still looks correct with nav added
-- [ ] Build `/app/about/page.tsx`
-- [ ] Build `/app/services/page.tsx`
-- [ ] Build `/app/contact/page.tsx` with server action `POST /app/api/contact/route.ts`
-- [ ] All pages: Visa Forte brand colours, Cormorant Garamond display, DM Sans body
-- [ ] All pages: standard legal disclaimer in footer
+- [x] Read `/mnt/skills/user/visa-forte-brand/SKILL.md` before writing any UI
+- [x] Build site-wide nav component at `apps/web/src/components/NavBar.tsx`
+- [x] Add NavBar to `apps/web/src/app/layout.tsx` (applies to all pages)
+- [x] Confirm landing page still looks correct with nav added
+- [x] Build `/app/about/page.tsx`
+- [x] Build `/app/services/page.tsx`
+- [x] Build `/app/contact/page.tsx` — mailto handler; server action deferred to Task 3B (Resend)
+- [x] All pages: Visa Forte brand colours, Cormorant Garamond display, DM Sans body
+- [x] All pages: standard legal disclaimer in footer
 
 **Review:**
 Nav bar with About / Services / Contact / Log In / Request Triage on all public pages.
