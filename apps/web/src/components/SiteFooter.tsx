@@ -17,7 +17,6 @@ export default function SiteFooter() {
 
   return (
     <footer className="site-footer">
-      <div className="footer-sep" aria-hidden="true" />
       <div className="footer-inner">
         <div className="footer-brand">
           <span className="footer-wordmark">Visa Forte</span>

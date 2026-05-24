@@ -267,24 +267,6 @@ nav#nav.scrolled { padding: 0.75rem 2.5rem; }
 footer.site-footer {
   background: var(--ink);
   padding: 2.5rem 2.5rem 1rem;
-  position: relative; /* anchors the absolutely-positioned gradient separator */
-}
-
-/* Gradient separator — absolutely positioned at the top of the footer's
-   border box, inside the footer's own stacking context, against its dark
-   ink background. Out of flow → no layout side-effects, padding intact. */
-.footer-sep {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(201, 123, 30, 0.55) 50%,
-    transparent 100%
-  );
 }
 
 .footer-inner {
