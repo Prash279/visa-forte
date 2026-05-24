@@ -1,0 +1,55 @@
+{
+  "free": [
+    {
+      "id": "ee-document-checklist",
+      "title": "Express Entry Document Checklist",
+      "type": "checklist",
+      "category": "Express Entry",
+      "description": "A complete, phase-by-phase list of every document required for an Express Entry profile — FSWP, CEC, and FSTP. Covers the profile stage, ITA, and e-APR submission. Updated for current IRCC requirements.",
+      "fileName": "ee-document-checklist.pdf",
+      "featured": true
+    },
+    {
+      "id": "ielts-clb-crs-cheatsheet",
+      "title": "IELTS → CLB → CRS Conversion Cheat Sheet",
+      "type": "cheatsheet",
+      "category": "Language Tests",
+      "description": "Every IELTS band score converted to its CLB level and CRS points — for both first and second official language. Includes spouse contribution rows and the exact IRCC table structure.",
+      "fileName": "ielts-clb-crs-cheatsheet.pdf",
+      "featured": true
+    },
+    {
+      "id": "ita-to-pr-roadmap",
+      "title": "ITA to PR: The 11-Step Roadmap",
+      "type": "timeline",
+      "category": "Express Entry",
+      "description": "A visual end-to-end timeline from the day you receive an Invitation to Apply to the day you land in Canada. Includes realistic timeframes for each stage and what happens if a step is delayed.",
+      "fileName": "ita-to-pr-roadmap.pdf",
+      "featured": true
+    }
+  ],
+  "premium": [
+    {
+      "id": "loe-master-template-pack",
+      "title": "Letter of Explanation (LOE) Master Template Pack",
+      "type": "letter",
+      "category": "Express Entry",
+      "description": "Eight professionally written LOE templates covering the most common explanation scenarios: employment gaps, travel history discrepancies, study-to-work transitions, and more. Each template includes annotated notes explaining what IRCC officers look for.",
+      "priceINR": 1997,
+      "priceUSD": 35,
+      "paddleProductId": "",
+      "featured": true
+    },
+    {
+      "id": "ee-pre-submission-audit-guide",
+      "title": "Express Entry Pre-Submission Audit Guide",
+      "type": "guide",
+      "category": "Express Entry",
+      "description": "A 40-point audit checklist with worked examples for every section of the e-APR. Covers every common rejection trigger, what to do when a document doesn't match the form exactly, and how to write explanatory notes that satisfy IRCC without triggering a request for more information.",
+      "priceINR": 3997,
+      "priceUSD": 69,
+      "paddleProductId": "",
+      "featured": true
+    }
+  ]
+}
