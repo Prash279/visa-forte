@@ -267,7 +267,20 @@ nav#nav.scrolled { padding: 0.75rem 2.5rem; }
 footer.site-footer {
   background: var(--ink);
   padding: 2.5rem 2.5rem 1rem;
-  border-top: 1px solid rgba(201, 123, 30, 0.15);
+}
+
+/* Gradient separator — real element; negative margins pull it to the
+   footer's outer top edge and full width, escaping the padding box.
+   This renders reliably on every page regardless of the preceding section. */
+.footer-sep {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(201, 123, 30, 0.35) 50%,
+    transparent 100%
+  );
+  margin: -2.5rem -2.5rem 0;
 }
 
 .footer-inner {
@@ -494,6 +507,8 @@ footer.site-footer {
 @media (max-width: 640px) {
   .sec           { padding: 5rem 1.25rem; }
   footer.site-footer { padding: 2rem 1.25rem 0; }
+  /* Separator margins must match the mobile padding so the line stays at the top edge */
+  .footer-sep { margin: -2rem -1.25rem 0; }
 
   /* Stack footer vertically and centre-align on mobile */
   .footer-inner {
