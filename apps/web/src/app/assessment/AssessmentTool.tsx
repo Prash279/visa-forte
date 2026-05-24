@@ -287,6 +287,7 @@ export default function AssessmentTool() {
             <h1 className="asx-hero-headline">
               Is Canada PR within reach?
             </h1>
+            <div className="rule" />
             <p className="asx-hero-lead">
               Enter your profile below for an instant CRS score, stream eligibility
               analysis, and your top improvement scenarios — powered by the same
