@@ -50,6 +50,17 @@
       "priceUSD": 69,
       "paddleProductId": "",
       "featured": true
+    },
+    {
+      "id": "crs-gap-analysis-action-plan",
+      "title": "CRS Gap Analysis & Score-Boost Action Plan",
+      "type": "guide",
+      "category": "Express Entry",
+      "description": "A 20-point diagnostic that identifies exactly where CRS points are being left on the table and what actions would move the score. Covers language band gaps, Canadian experience scenarios, spousal contribution modelling, and when a provincial nominee pathway outperforms waiting for a draw.",
+      "priceINR": 2497,
+      "priceUSD": 44,
+      "paddleProductId": "",
+      "featured": true
     }
   ]
 }
