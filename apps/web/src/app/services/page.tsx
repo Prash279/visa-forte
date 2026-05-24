@@ -3,6 +3,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
+import MailtoButton from "@/components/MailtoButton";
 import "./services.css";
 
 export const metadata: Metadata = {
@@ -213,9 +214,9 @@ export default function ServicesPage() {
             before any commitment is made — on either side.
           </p>
           <div className="services-cta-actions r d3">
-            <Link href="/intake" className="btn-primary">
+            <MailtoButton className="btn-primary">
               Get Reviewed →
-            </Link>
+            </MailtoButton>
             <Link href="/about" className="btn-outline">
               About the Practice
             </Link>
