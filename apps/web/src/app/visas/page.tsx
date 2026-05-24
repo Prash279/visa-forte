@@ -190,28 +190,6 @@ export default function VisasPage() {
         </div>
       </section>
 
-      {/* ── ASSESSMENT CALLOUT STRIP ───────────────────────── */}
-      <div className="visas-assess-strip">
-        <div className="visas-assess-strip-inner">
-          <p className="visas-assess-strip-text">
-            Not sure which pathway applies to your profile?
-          </p>
-          <Link href="/assessment" className="visas-assess-strip-cta">
-            Check your CRS score →
-          </Link>
-        </div>
-      </div>
-
-      {/* ── STICKY WITHIN-PAGE NAV ─────────────────────────── */}
-      <nav className="visas-page-nav" aria-label="Page sections">
-        <div className="visas-page-nav-inner">
-          <a href="#express-entry" className="visas-page-nav-link">Express Entry</a>
-          <a href="#pnp" className="visas-page-nav-link">Provincial Nominee</a>
-          <a href="#other-pathways" className="visas-page-nav-link">Other Pathways</a>
-          <a href="#processing-times" className="visas-page-nav-link">Fees &amp; Times</a>
-          <Link href="/assessment" className="visas-page-nav-assess">CRS Calculator</Link>
-        </div>
-      </nav>
 
       {/* ── PROGRAM NAVIGATOR ──────────────────────────────── */}
       <section className="sec visas-nav-section">
