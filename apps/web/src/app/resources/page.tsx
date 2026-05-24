@@ -44,12 +44,9 @@ export default function ResourcesPage(): JSX.Element {
       {/* ── FREE RESOURCES ────────────────────────────────────── */}
       <section className="sec resources-free">
         <div className="sec-inner">
-          <div className="resources-section-header r">
-            <p className="eyebrow">Free Resources</p>
-            <h2 className="resources-section-headline">
-              Start Here. No Email Required.
-            </h2>
-          </div>
+          <p className="eyebrow r">Free Resources</p>
+          <h2 className="headline r d1">Start Here. No Email Required.</h2>
+          <div className="rule r d2" />
           <FreeResourcesGrid resources={freeResources} />
         </div>
       </section>
@@ -57,16 +54,13 @@ export default function ResourcesPage(): JSX.Element {
       {/* ── PREMIUM RESOURCES ─────────────────────────────────── */}
       <section className="sec resources-premium">
         <div className="sec-inner">
-          <div className="resources-section-header r">
-            <p className="eyebrow">Premium Resources</p>
-            <h2 className="resources-section-headline">
-              Go Deeper. Get It Done Faster.
-            </h2>
-            <p className="resources-section-sub">
-              Detailed formats, worked examples, and annotated walkthroughs
-              built for clients who are actively filing.
-            </p>
-          </div>
+          <p className="eyebrow r">Premium Resources</p>
+          <h2 className="headline r d1">Go Deeper. Get It Done Faster.</h2>
+          <div className="rule r d2" />
+          <p className="resources-section-sub r d2">
+            Detailed formats, worked examples, and annotated walkthroughs
+            built for clients who are actively filing.
+          </p>
           <div className="resources-grid">
             {premiumResources.map((resource) => (
               <ResourceCard
@@ -93,6 +87,7 @@ export default function ResourcesPage(): JSX.Element {
             Every resource here was built because a client needed it
             and nothing good enough existed.
           </h2>
+          <div className="rule r d1" />
           <p className="resources-trust-body r d2">
             Twenty years of practice. Every checklist, every template, every
             guide reviewed personally before it goes on this page.

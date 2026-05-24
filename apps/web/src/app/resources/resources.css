@@ -41,20 +41,7 @@
 /* ── FREE RESOURCES SECTION ───────────────────────────────── */
 .resources-free { background: var(--pearl); }
 
-.resources-section-header {
-  margin-bottom: 2.5rem;
-}
-
-.resources-section-headline {
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 4vw, 3.2rem);
-  font-weight: 400;
-  line-height: 1.12;
-  letter-spacing: -0.012em;
-  color: var(--ink);
-  margin-top: 0;
-}
-
+/* Lead paragraph below the section headline in premium section */
 .resources-section-sub {
   font-family: var(--font-body);
   font-size: 1rem;
@@ -62,7 +49,7 @@
   line-height: 1.75;
   color: rgba(26, 43, 60, 0.72);
   max-width: 580px;
-  margin-top: 0.75rem;
+  margin-bottom: 2.5rem;
 }
 
 /* ── FILTER PILLS ─────────────────────────────────────────── */
@@ -253,8 +240,7 @@
   border: none;
   cursor: not-allowed;
   opacity: 0.65;
-  width: 100%;
-  text-align: center;
+  align-self: flex-start;
 }
 
 .resource-cta-note {
@@ -272,23 +258,46 @@
 }
 
 /* ── PREMIUM RESOURCES SECTION ────────────────────────────── */
-/* Warm amber wash distinguishes this section from the pearl free section */
-.resources-premium { background: var(--amber); }
+/* Sand background distinguishes premium from the pearl free section
+   without using amber (which the site reserves for callout boxes only) */
+.resources-premium { background: var(--sand); }
 
 /* ── TRUST CLOSE SECTION ──────────────────────────────────── */
+/* Matches the structure and feel of other dark end-of-page CTA sections
+   (about-cta-section, visas-cta-section): 9rem padding + radial glow */
 .resources-trust {
   background: var(--prussian);
-  padding: 6rem 2.5rem;
+  padding: 9rem 2.5rem;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle saffron radial glow — same decorative treatment as about CTA */
+.resources-trust::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201, 123, 30, 0.06) 0%, transparent 65%);
+  pointer-events: none;
 }
 
 .resources-trust-inner {
   max-width: 680px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 /* Explicit eyebrow saffron on Prussian background (lessons.md #2) */
 .resources-trust .eyebrow { color: var(--saffron); }
+
+/* Center the rule bar — block elements ignore text-align: center */
+.resources-trust .rule { margin-left: auto; margin-right: auto; }
 
 .resources-trust-headline {
   font-family: var(--font-display);
@@ -296,7 +305,6 @@
   font-weight: 400;
   line-height: 1.18;
   color: var(--pearl);
-  margin-bottom: 1.5rem;
   letter-spacing: -0.01em;
 }
 
@@ -316,11 +324,15 @@
 
 @media (max-width: 860px) {
   /* Tablet breakpoint matches nav hamburger breakpoint (lessons.md #3) */
-  .resources-hero { padding: 9rem 1.5rem 5rem; }
-  .resources-trust { padding: 4.5rem 1.5rem; }
+  .resources-hero  { padding: 9rem 1.5rem 5rem; }
+  .resources-trust { padding: 6rem 1.5rem; }
 }
 
 @media (max-width: 640px) {
+  /* Match .sec horizontal padding (1.25rem) for visual consistency with all other pages */
+  .resources-hero  { padding: 9rem 1.25rem 5rem; }
+  .resources-trust { padding: 5rem 1.25rem; }
+
   /* Filter pills scroll horizontally instead of wrapping (lessons.md UX) */
   .filter-pills {
     flex-wrap: nowrap;

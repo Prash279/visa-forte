@@ -77,7 +77,7 @@ export default function ResourceCard(props: ResourceCardProps): JSX.Element {
               disabled
               aria-disabled="true"
             >
-              Buy — ₹{props.priceINR.toLocaleString("en-IN")} →
+              Buy Now →
             </button>
             <p className="resource-cta-note">
               Payment integration coming soon.{" "}
