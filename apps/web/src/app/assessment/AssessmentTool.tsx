@@ -283,12 +283,12 @@ export default function AssessmentTool() {
         {/* Hero */}
         <section className="asx-hero">
           <div className="asx-hero-inner">
-            <p className="asx-eyebrow">Free Eligibility Check</p>
-            <h1 className="asx-hero-headline">
+            <p className="asx-eyebrow r">Free Eligibility Check</p>
+            <h1 className="asx-hero-headline r d1">
               Is Canada PR within reach?
             </h1>
-            <div className="rule" />
-            <p className="asx-hero-lead">
+            <div className="rule r d2" />
+            <p className="asx-hero-lead r d2">
               Enter your profile below for an instant CRS score, stream eligibility
               analysis, and your top improvement scenarios — powered by the same
               engine Prash uses for paid assessments.

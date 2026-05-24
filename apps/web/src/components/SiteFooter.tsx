@@ -31,6 +31,7 @@ export default function SiteFooter() {
           <Link href="/about">About</Link>
           <Link href="/services">Services</Link>
           <Link href="/visas">Visas</Link>
+          <Link href="/resources">Resources</Link>
           <Link href="/assessment">Assessment</Link>
           <Link href="/contact">Contact</Link>
           <Link href="/login">Client Login</Link>
