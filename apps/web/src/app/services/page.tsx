@@ -155,7 +155,7 @@ export default function ServicesPage() {
                   href="/booking"
                   className="service-card-cta"
                 >
-                  Book a Consultation →
+                  Assess Now →
                 </Link>
               </div>
             ))}
