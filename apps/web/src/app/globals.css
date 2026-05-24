@@ -79,6 +79,7 @@ nav#nav {
   justify-content: space-between;
   padding: 1.2rem 2.5rem;
   background: rgba(12, 35, 64, 0.97);
+  backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(201, 123, 30, 0.18);
   transition: padding 0.3s ease;
   gap: 1rem;
