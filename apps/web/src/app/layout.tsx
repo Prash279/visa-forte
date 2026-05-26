@@ -9,15 +9,17 @@ const cormorantGaramond = Cormorant_Garamond({
   variable: "--font-display",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
-  // "optional" skips the font-swap flash on first load
-  display: "optional",
+  // "swap" ensures the web font always renders once loaded.
+  // "optional" caused first-time visitors to permanently see the system fallback
+  // (Georgia, which renders thicker) because the font wasn't cached yet.
+  display: "swap",
 });
 
 const dmSans = DM_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
-  display: "optional",
+  display: "swap",
 });
 
 export const metadata: Metadata = {

@@ -1,11 +1,13 @@
 import "./home.css";
 import AccordionSection from "@/components/AccordionSection";
+import HeroVideo from "@/components/HeroVideo";
 import MailtoButton from "@/components/MailtoButton";
 
 export default function Home() {
   return (
     <main>
       <section className="hero">
+        <HeroVideo />
         <span className="hero-watermark" aria-hidden="true">20</span>
         <div className="hero-inner">
           <p className="hero-eyebrow">Express Entry · Federal Skilled Worker · Provincial Nominee Programs</p>
