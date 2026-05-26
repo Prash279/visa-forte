@@ -18,14 +18,12 @@
   overflow: hidden;
 }
 
-/* ── HERO VIDEO BACKGROUND ──────────────────────────────── */
+/* ── HERO CANVAS BACKGROUND ─────────────────────────────── */
 .hero-video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center;
   z-index: 0;
   pointer-events: none;
 }
@@ -43,10 +41,6 @@
   );
   pointer-events: none;
   z-index: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-video { display: none; }
 }
 
 /* Hover animations — suppressed for reduced-motion users */
