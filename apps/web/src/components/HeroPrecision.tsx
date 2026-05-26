@@ -11,7 +11,7 @@ import {
 } from './heroPrecision.utils';
 
 function drawGrid(ctx: CanvasRenderingContext2D, width: number, height: number): void {
-  ctx.strokeStyle = 'rgba(248, 244, 238, 0.03)';
+  ctx.strokeStyle = 'rgba(248, 244, 238, 0.08)';
   ctx.lineWidth = 0.5;
   ctx.beginPath();
   for (let x = -CELL_SIZE; x <= width + CELL_SIZE; x += CELL_SIZE) {
