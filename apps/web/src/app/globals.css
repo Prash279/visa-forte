@@ -323,10 +323,11 @@ footer.site-footer {
 .footer-contact a:hover { color: var(--saffron); }
 
 .footer-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem 2rem;
+  justify-items: end;
+  align-items: start;
 }
 
 .footer-nav a {
@@ -358,13 +359,34 @@ footer.site-footer {
   margin: 0.75rem auto 0;
   padding-top: 1rem;
   border-top: 1px solid rgba(226, 219, 209, 0.15);
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
   font-family: var(--font-body);
   font-size: 0.75rem;
   font-weight: 300;
   letter-spacing: 0.08em;
   color: rgba(248, 244, 238, 0.55);
 }
+
+.footer-legal {
+  display: flex;
+  gap: 1.5rem;
+  flex-shrink: 0;
+}
+
+.footer-legal a {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 300;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(248, 244, 238, 0.45);
+  transition: color 0.22s ease;
+}
+
+.footer-legal a:hover { color: var(--saffron); }
 
 /* ── 6. SHARED SECTION LAYOUT ─────────────────────────────── */
 .sec {
@@ -502,12 +524,13 @@ footer.site-footer {
   }
 
   .footer-brand       { align-items: center; }
-  .footer-nav         { align-items: center; }
+  .footer-nav         { justify-items: center; }
   .footer-contact     { white-space: normal; }
   .footer-wordmark    { font-size: 0.9rem; }
   .footer-nav a       { font-size: 0.75rem; }
   .footer-disclaimer  { font-size: 0.75rem; line-height: 1.65; padding: 1.25rem 0.5rem 0; text-align: center; }
-  .footer-copyright   { font-size: 0.75rem; padding: 1.25rem 0.5rem; }
+  .footer-copyright   { font-size: 0.75rem; padding: 1.25rem 0.5rem; flex-direction: column; gap: 0.75rem; text-align: center; }
+  .footer-legal       { justify-content: center; }
 }
 
 /* ── CONSENT CHECKBOX (shared across intake, booking, activate) ─────────── */

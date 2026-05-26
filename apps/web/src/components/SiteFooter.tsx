@@ -35,14 +35,16 @@ export default function SiteFooter() {
           <Link href="/assessment">Assessment</Link>
           <Link href="/contact">Contact</Link>
           <Link href="/login">Client Login</Link>
-          <Link href="/refund-policy">Refund Policy</Link>
-          <Link href="/privacy-policy">Privacy Policy</Link>
         </nav>
       </div>
 
       <p className="footer-disclaimer">{DISCLAIMER}</p>
       <div className="footer-copyright">
-        © {new Date().getFullYear()} Visa Forte. All rights reserved.
+        <span>© {new Date().getFullYear()} Visa Forte. All rights reserved.</span>
+        <nav className="footer-legal" aria-label="Legal">
+          <Link href="/refund-policy">Refund Policy</Link>
+          <Link href="/privacy-policy">Privacy Policy</Link>
+        </nav>
       </div>
     </footer>
   );
