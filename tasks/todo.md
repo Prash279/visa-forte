@@ -1385,7 +1385,7 @@ A fully upgraded Admin Assessment Tool at `/admin/canvisa-pro` that exceeds the 
 
 ### TASK CVP-1: NOC 2021 Data Foundation
 
-**Status:** ⬜ NOT STARTED
+**Status:** ✅ COMPLETE — May 2026
 **Approved:** ✅ Approved by Prash — May 2026
 
 **What this delivers:**
@@ -1397,9 +1397,9 @@ IRCC and Statistics Canada do not expose a public REST API for NOC lookups. Any 
 **Anti-hallucination gate:** All NOC codes and TEER classifications in this file must be sourced from the official Statistics Canada or ESDC pages via Firecrawl. No values are derived from training data. If a mapping cannot be verified against canada.ca in this session, it is not included.
 
 **Plan:**
-- [ ] Use Firecrawl to access the Statistics Canada NOC 2021 standard publication page and extract all unit group records — each record needs: 5-digit code, TEER level (0–5), and official occupation title
-- [ ] For each unit group, use Firecrawl to access the ESDC noc.esdc.gc.ca detail page and extract the "example titles" list — these aliases are what make job-title search work in practice (e.g., "software developer" mapping to "Software developers and programmers")
-- [ ] Build `apps/web/src/lib/noc-2021.json` with this structure:
+- [x] Use Firecrawl to access the Statistics Canada NOC 2021 standard publication page and extract all unit group records — each record needs: 5-digit code, TEER level (0–5), and official occupation title
+- [x] For each unit group, use Firecrawl to access the ESDC noc.esdc.gc.ca detail page and extract the "example titles" list — these aliases are what make job-title search work in practice (e.g., "software developer" mapping to "Software developers and programmers")
+- [x] Build `apps/web/src/lib/noc-2021.json` with this structure:
   ```
   {
     "version": "NOC-2021",
@@ -1410,28 +1410,36 @@ IRCC and Statistics Canada do not expose a public REST API for NOC lookups. Any 
     ]
   }
   ```
-- [ ] Spot-check TEER classification and title for the following codes before committing — all 6 TEER levels must be represented in the verification sample:
+- [x] Spot-check TEER classification and title for the following codes before committing — all 6 TEER levels must be represented in the verification sample:
   - TEER 0: corporate senior manager (10010 or equivalent)
   - TEER 1: registered nurse (31301), general practitioner (31102)
-  - TEER 2: software developer (21232), early childhood educator (42202)
+  - TEER 2: ~~software developer (21232)~~ **CORRECTED: NOC 21232 is TEER 1** (see Review), early childhood educator (42202)
   - TEER 3: cook (63200), administrative assistant (13110)
-  - TEER 4: retail sales associate (64100), food service counter attendant (65200)
-  - TEER 5: labourer (95100 or equivalent)
+  - TEER 4: retail sales associate (64100)
+  - TEER 5: ~~food service counter attendant (65200)~~ **CORRECTED: NOC 65200/65201 are TEER 5** (see Review), labourer (95100 or equivalent)
   - Plus 20 more common titles across TEER 1–3 (highest Express Entry volume)
-- [ ] Confirm the file uses NOC 2021 codes — NOT NOC 2016. The two systems have different code numbering; IRCC Express Entry uses NOC 2021 exclusively
-- [ ] Commit `noc-2021.json` to the repository before writing any component code for CVP-2
+- [x] Confirm the file uses NOC 2021 codes — NOT NOC 2016. The two systems have different code numbering; IRCC Express Entry uses NOC 2021 exclusively
+- [x] Commit `noc-2021.json` to the repository before writing any component code for CVP-2
 
 **Prashant Proof:**
 This task has no UI — verification is the spot-check above. Before marking complete:
-confirm that the JSON entry for NOC 31301 shows `teer: 1` and `title: "Registered nurses..."`,
-and NOC 21232 shows `teer: 2` and `title: "Software developers and programmers"` —
-both verifiable at noc.esdc.gc.ca against the official ESDC pages.
+confirm that the JSON entry for NOC 31301 shows `teer: 1` and `title: "Registered nurses..."` ✅ — VERIFIED.
+Note: NOC 21232 correctly shows `teer: 1` (not TEER 2 as the original plan stated) — both verified against Statistics Canada TEER variant CSV. See Review below.
+
+**Review:**
+`apps/web/src/lib/noc-2021.json` built from 3 official Statistics Canada CSVs (classification-structure, elements, TEER-variant). 516 unit groups, TEER 0–5, 27,935 example title aliases. 30/30 spot-check passed. TEER assignments sourced by hierarchy traversal of the TEER variant CSV — not from code digits or training data. Committed: `08754b5 feat(cvp): NOC 2021 data foundation — 516 unit groups, TEER 0-5, 27935 aliases`.
+
+**Two TEER corrections found during build vs. plan's spot-check sample:**
+- NOC 21232 (Software developers and programmers) = **TEER 1** (plan listed TEER 2 — training data error)
+- NOC 65200/65201 (Food servers / Food counter attendants) = **TEER 5** (plan listed TEER 4 — training data error)
+
+Both are correct in `noc-2021.json` per the official TEER variant CSV.
 
 ---
 
 ### TASK CVP-2: NOC Auto-Population Component
 
-**Status:** ⬜ NOT STARTED
+**Status:** ✅ COMPLETE — May 2026
 **Approved:** ✅ Approved by Prash — May 2026
 **Depends on:** CVP-1 complete and `noc-2021.json` committed
 
@@ -1439,8 +1447,8 @@ both verifiable at noc.esdc.gc.ca against the official ESDC pages.
 A reusable `NocSearch` typeahead component that auto-populates the NOC code and TEER fields in both the admin and public assessment forms when an applicant types their job title or designation. Uses Fuse.js fuzzy search against the local `noc-2021.json` index. Built once; wired into both tools.
 
 **Plan:**
-- [ ] Install Fuse.js: `npm install fuse.js` in `apps/web`
-- [ ] Create `apps/web/src/components/NocSearch.tsx` ("use client"):
+- [x] Install Fuse.js: `npm install fuse.js` in `apps/web`
+- [x] Create `apps/web/src/components/NocSearch.tsx` ("use client"):
   - Props: `onSelect: (code: string, teer: 0|1|2|3|4|5) => void`, `theme: 'light' | 'dark'`
   - Internal state: `query` (typed text), `results` (matched entries), `isOpen` (dropdown visible), `selected` (chosen entry or null)
   - On mount: dynamically `import('@/lib/noc-2021.json')` — lazy load, not bundled in main chunk
@@ -1451,20 +1459,23 @@ A reusable `NocSearch` typeahead component that auto-populates the NOC code and 
   - After selection: show selected result text + a "Clear" link that resets both the input and the downstream NOC/TEER fields
   - Below the input (after selection): "Verify on canada.ca/noc ↗" link that opens the official ESDC search in a new tab
   - If query ≥ 3 chars and no results: show "No match found — enter NOC code manually below"
-- [ ] Create `apps/web/src/components/NocSearch.css`:
+- [x] Create `apps/web/src/components/NocSearch.css`:
   - Light theme (public tool): white dropdown, Prussian accent on hover, standard Visa Forte input styles
   - Dark theme (admin tool): dark navy dropdown, teal accent on hover, matches canvisa-pro.css tokens
   - Dropdown positioned absolute below the input, z-index 50, max-height 5 results, rounded corners
-- [ ] Wire `NocSearch` into admin tool (`CanVisaProTool.tsx`):
+- [x] Wire `NocSearch` into admin tool (`CanVisaProTool.tsx`):
   - Place above the existing NOC code text input and TEER dropdown in the Identity section
   - Label: "Search by Job Title / Designation (optional)"
   - `onSelect` callback: `setProfile(prev => ({ ...prev, nocCode: code, nocTeer: teer }))`
   - Existing NOC code and TEER fields remain for manual override — they are pre-populated by the component but always editable
-- [ ] Wire `NocSearch` into public tool (`AssessmentTool.tsx`):
+- [x] Wire `NocSearch` into public tool (`AssessmentTool.tsx`):
   - Same placement (above NOC code field in the Identity section, Section 1)
   - Same `onSelect` pattern, `theme="light"`
-- [ ] `npx tsc --noEmit` — zero errors
-- [ ] Commit: `feat(assessment,canvisa-pro): NOC auto-population component with Fuse.js typeahead`
+- [x] `npx tsc --noEmit` — zero errors
+- [x] Commit: `feat(assessment,canvisa-pro): NOC auto-population component with Fuse.js typeahead`
+
+**Review:**
+`NocSearch.tsx` (138 lines) — "use client" component. Lazy-loads `noc-2021.json` + Fuse.js via `Promise.all` on mount. Fuse.js config: keys `[title 0.6, aliases 0.4]`, threshold 0.35, minMatchCharLength 3, distance 100, top 5 results, 250ms debounce. Dropdown shows `"{title} — {code} · TEER {teer}"`. On select: calls `onSelect(code, teer, title)`, shows selection + Clear link + canada.ca/noc verify link. `NocSearch.css` (204 lines): `.noc-light` (white dropdown, Prussian `#1e3a5f` accents) and `.noc-dark` (dark `#0f1b2d` background, teal `#00A896` accents). Wired into `CanVisaProTool.tsx` with `theme="dark"` and `AssessmentTool.tsx` with `theme="light"` — both populate `nocCode` + `nocTeer` via `setProfile`. TypeScript clean (zero `tsc --noEmit` errors). Both files committed.
 
 **Prashant Proof:**
 1. Go to `/admin/canvisa-pro` — in the Identity section, type "nurse" in the new job title search field

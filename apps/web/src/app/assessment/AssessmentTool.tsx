@@ -16,6 +16,7 @@ import {
 import drawData from '@/lib/crs-draw-history.json'
 import fundsData from '@/lib/proof-of-funds.json'
 import './assessment.css'
+import NocSearch from '@/components/NocSearch'
 
 // ── Draw history helpers ───────────────────────────────────────────────────────
 
@@ -406,6 +407,12 @@ export default function AssessmentTool() {
                   value={profile.occupationTitle}
                   onChange={e => set('occupationTitle', e.target.value)}
                   placeholder="e.g. Software Engineer, Registered Nurse, Electrician"
+                />
+              </div>
+              <div className="asx-field asx-full">
+                <NocSearch
+                  theme="light"
+                  onSelect={(code, teer) => setProfile(prev => ({ ...prev, nocCode: code, nocTeer: teer }))}
                 />
               </div>
             </div>

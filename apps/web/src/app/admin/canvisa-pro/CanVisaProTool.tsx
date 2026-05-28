@@ -11,6 +11,7 @@ import {
   type EducationLevel,
 } from '@/lib/crs-calculator'
 import './canvisa-pro.css'
+import NocSearch from '@/components/NocSearch'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -730,6 +731,12 @@ export default function CanVisaProTool() {
               <label className="cvp-label">Report Date</label>
               <input className="cvp-input" type="date" value={profile.reportDate}
                 onChange={e => set('reportDate', e.target.value)} />
+            </div>
+            <div className="cvp-field full">
+              <NocSearch
+                theme="dark"
+                onSelect={(code, teer) => setProfile(prev => ({ ...prev, nocCode: code, nocTeer: teer }))}
+              />
             </div>
             <div className="cvp-field">
               <label className="cvp-label">NOC Code</label>
