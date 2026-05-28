@@ -7,6 +7,7 @@
 
 import rules from './crs-rules.json'
 import fundsData from './proof-of-funds.json'
+import { CRS_RULES_VERSION } from './crs-rules.version'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -153,6 +154,9 @@ export interface CrsResult {
   fswImprovements: FswImprovementSuggestion[]
   proofOfFundsRequired: number // CAD
   proofOfFundsSufficient: boolean
+  // 8-char SHA-256 prefix of crs-rules.json at build time.
+  // Ties every result to the exact rule file that produced it.
+  rulesVersion: string
 }
 
 // ── JSON lookup helpers ──────────────────────────────────────────────────────
@@ -807,5 +811,6 @@ export function calculate(profile: ApplicantProfile): CrsResult {
     fswImprovements,
     proofOfFundsRequired: fundsRequired,
     proofOfFundsSufficient: profile.settlementFunds >= fundsRequired,
+    rulesVersion: CRS_RULES_VERSION,
   }
 }
