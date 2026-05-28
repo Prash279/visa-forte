@@ -666,6 +666,25 @@ export default function CanVisaProTool() {
     setResult(r)
     setView('report')
     setTimeout(() => window.scrollTo({ top: 0 }), 50)
+    // Non-PII audit trail: log rule version + score breakdown, never blocks UI.
+    fetch('/api/admin/crs-audit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        rulesVersion: r.rulesVersion,
+        total: r.breakdown.total,
+        sections: {
+          coreHuman: r.breakdown.coreTotal,
+          coreSpouse: r.breakdown.spousePoints,
+          transferability: r.breakdown.transferTotal,
+          additional: r.breakdown.additionalTotal,
+        },
+        streamsEligible: (Object.entries(r.eligibility) as [string, { eligible: boolean }][])
+          .filter(([, v]) => v.eligible)
+          .map(([k]) => k),
+        generatedAt: new Date().toISOString(),
+      }),
+    }).catch(() => { /* fire-and-forget: never interrupt the UI on failure */ })
   }
 
   function downloadMarp() {

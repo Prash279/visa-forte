@@ -277,3 +277,20 @@ export const candocReviews = pgTable('candoc_reviews', {
 ])
 
 export type CandocReview = typeof candocReviews.$inferSelect
+
+// Non-PII audit record created each time CanVisa Pro runs a CRS calculation.
+// Ties the score to the exact crs-rules.json version that produced it so any
+// scoring regression can be traced to the rule file change that caused it.
+export const crsAuditLog = pgTable('crs_audit_log', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  rulesVersion: text('rules_version').notNull(),
+  total: integer('total').notNull(),
+  // { coreHuman, coreSpouse, transferability, additional }
+  sections: jsonb('sections').notNull(),
+  // e.g. ["fsw", "expressEntryPool"]
+  streamsEligible: jsonb('streams_eligible').notNull(),
+  generatedAt: timestamp('generated_at').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+})
+
+export type CrsAuditLogRow = typeof crsAuditLog.$inferSelect
