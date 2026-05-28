@@ -152,4 +152,13 @@ If the lesson contains words like "useEffect", "state mismatch", "hydration erro
 
 ---
 
+## Category: Planning & Documentation
+
+**Lesson 1 — Plan documents must be committed before implementation begins**
+- **What went wrong:** Two planning docs (`docs/superpowers/plans/2026-05-24-resources-page.md` and the matching spec) were never committed to git, staying untracked through 15 implementation commits and only noticed after the feature was complete.
+- **Why it happened:** The plan generator writes files to `docs/superpowers/plans/` but does not include a step to commit them. Every per-task commit in the plan used `git add src/...` paths, so the plan file itself was never staged.
+- **The rule going forward:** Immediately after any plan or spec document is written to `docs/superpowers/`, commit it before writing a single line of implementation code. `git add docs/superpowers/` then commit with `docs: add <feature-name> plan`. This is Task 0 — it happens before the plan's own Task 1.
+
+---
+
 *lessons.md is a living document. Every correction is a lesson. Every lesson is a rule.*
