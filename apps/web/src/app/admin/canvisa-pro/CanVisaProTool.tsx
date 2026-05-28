@@ -85,6 +85,7 @@ const INITIAL: ApplicantProfile = {
   foreignWorkExperienceYears: 0,
   canadianWorkExperienceYears: 0,
   hasSpouse: false,
+  hasJobOffer: 'none' as const,
   hasProvincialNomination: false,
   hasCanadianEducation: false,
   hasFamilyInCanada: false,
@@ -127,7 +128,7 @@ function gapCard(level: 'critical' | 'high' | 'medium', title: string, desc: str
 </div>`
 }
 
-function buildMarpMarkdown(p: ApplicantProfile, r: CrsResult): string {
+function buildMarpMarkdown(p: ApplicantProfile, r: CrsResult, maritalStatusStr: string): string {
   const { breakdown, fswGrid, eligibility, scenarios } = r
   const total = breakdown.total
   const fwYrs = p.foreignWorkExperienceYears
@@ -342,7 +343,7 @@ style: |
     </div>
     <div style="flex:1;background:${CARD};padding:18px 20px;">
       <div style="color:${TEAL};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:14px;">Additional Factors</div>
-      ${row('Spouse / CLP', p.hasSpouse ? 'Yes' : 'No')}
+      ${row('Marital Status', maritalStatusStr)}
       ${row('Family Size', `${p.familySize}`)}
       ${row('Settlement Funds', `CAD $${p.settlementFunds.toLocaleString()}`)}
       ${row('Funds Required', `CAD $${r.proofOfFundsRequired.toLocaleString()}`)}
@@ -635,11 +636,16 @@ export default function CanVisaProTool() {
   const [view, setView] = useState<'form' | 'report'>('form')
   const [profile, setProfile] = useState<ApplicantProfile>(INITIAL)
   const [result, setResult] = useState<CrsResult | null>(null)
+  const [maritalStatus, setMaritalStatus] = useState<'single' | 'married' | 'separated'>('single')
+  const [hasSpouseLanguage, setHasSpouseLanguage] = useState(false)
 
   // Live CLB preview while filling the form
   const firstClb = scoresToClb(profile.firstLanguageScores)
   const secondClb = profile.hasSecondLanguage && profile.secondLanguageScores
     ? scoresToClb(profile.secondLanguageScores)
+    : null
+  const spouseClb = hasSpouseLanguage && profile.spouseLanguageScores
+    ? scoresToClb(profile.spouseLanguageScores)
     : null
 
   const reportRef = useRef<HTMLDivElement>(null)
@@ -652,8 +658,8 @@ export default function CanVisaProTool() {
   }, [])
 
   const setLangScore = useCallback(
-    (which: 'first' | 'second', field: keyof LanguageScores, value: string | number) => {
-      const key = which === 'first' ? 'firstLanguageScores' : 'secondLanguageScores'
+    (which: 'first' | 'second' | 'spouse', field: keyof LanguageScores, value: string | number) => {
+      const key = which === 'first' ? 'firstLanguageScores' : which === 'second' ? 'secondLanguageScores' : 'spouseLanguageScores'
       setProfile(prev => ({
         ...prev,
         [key]: { ...(prev[key] ?? DEFAULT_LANG), [field]: value },
@@ -661,6 +667,11 @@ export default function CanVisaProTool() {
     },
     []
   )
+
+  function handleMaritalStatus(status: 'single' | 'married' | 'separated'): void {
+    setMaritalStatus(status)
+    set('hasSpouse', status === 'married')
+  }
 
   function generate() {
     const r = calculate(profile)
@@ -690,7 +701,8 @@ export default function CanVisaProTool() {
 
   function downloadMarp() {
     if (!result) return
-    const md = buildMarpMarkdown(profile, result)
+    const maritalStatusStr = maritalStatus === 'married' ? 'Married / Common-Law' : maritalStatus === 'separated' ? 'Legally Separated' : 'Single'
+    const md = buildMarpMarkdown(profile, result, maritalStatusStr)
     const blob = new Blob([md], { type: 'text/markdown' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -890,6 +902,91 @@ export default function CanVisaProTool() {
 
           {/* Section 6: Additional */}
           <p className="cvp-section-label">6 — Additional Factors</p>
+
+          {/* 6a: Marital Status */}
+          <div className="cvp-field" style={{ marginBottom: '1.25rem' }}>
+            <label className="cvp-label">Marital Status</label>
+            <div className="cvp-radio-group">
+              {([
+                ['single', 'Single'],
+                ['married', 'Married or Common-Law Partner'],
+                ['separated', 'Legally Separated'],
+              ] as const).map(([val, label]) => (
+                <label className="cvp-radio-row" key={val}>
+                  <input type="radio" name="maritalStatus" checked={maritalStatus === val}
+                    onChange={() => handleMaritalStatus(val)} />
+                  <span className="cvp-radio-label">{label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* 6b: Spouse sub-section — visible only when married */}
+          {maritalStatus === 'married' && (
+            <div style={{ background: 'rgba(45,212,191,0.04)', border: '1px solid rgba(45,212,191,0.15)', borderRadius: '6px', padding: '1rem 1.25rem', marginBottom: '1.25rem' }}>
+              <p className="cvp-label" style={{ marginBottom: '0.75rem', color: 'var(--cvp-teal)', letterSpacing: '0.1em', textTransform: 'uppercase', fontSize: '0.65rem' }}>Spouse / Common-Law Partner</p>
+              <div className="cvp-grid-2">
+                <div className="cvp-field">
+                  <label className="cvp-label">Spouse Education Level</label>
+                  <select className="cvp-select" value={profile.spouseEducation ?? 'bachelors'}
+                    onChange={e => set('spouseEducation', e.target.value as EducationLevel)}>
+                    {(Object.entries(EDU_LABELS) as [EducationLevel, string][]).map(([k, v]) => (
+                      <option key={k} value={k}>{v}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="cvp-field">
+                  <label className="cvp-label">Spouse Canadian Work Experience (years)</label>
+                  <input className="cvp-input" type="number" step="0.25" min={0}
+                    value={profile.spouseCanadianExperience ?? ''}
+                    onChange={e => set('spouseCanadianExperience', parseFloat(e.target.value) || 0)} />
+                </div>
+              </div>
+
+              <label className="cvp-checkbox-row" style={{ margin: '0.75rem 0' }}>
+                <input type="checkbox" checked={hasSpouseLanguage}
+                  onChange={e => {
+                    setHasSpouseLanguage(e.target.checked)
+                    if (!e.target.checked) set('spouseLanguageScores', undefined)
+                  }} />
+                <span className="cvp-checkbox-label">Partner has an official language test result</span>
+              </label>
+
+              {hasSpouseLanguage && (
+                <>
+                  <div className="cvp-grid-2" style={{ marginBottom: '0.75rem' }}>
+                    <div className="cvp-field full">
+                      <label className="cvp-label">Spouse Test Type</label>
+                      <select className="cvp-select" value={profile.spouseLanguageScores?.testType ?? 'IELTS_GT'}
+                        onChange={e => setLangScore('spouse', 'testType', e.target.value as LanguageScores['testType'])}>
+                        <option value="IELTS_GT">IELTS General Training</option>
+                        <option value="IELTS_Academic">IELTS Academic</option>
+                        <option value="CELPIP">CELPIP-General</option>
+                        <option value="TEF">TEF Canada</option>
+                        <option value="TCF">TCF Canada</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="cvp-grid-4">
+                    {(['listening', 'reading', 'writing', 'speaking'] as const).map(a => (
+                      <div className="cvp-field" key={a}>
+                        <label className="cvp-label">{a.charAt(0).toUpperCase() + a.slice(1)}</label>
+                        <input className="cvp-input" type="number" step="0.5" min={0} max={9}
+                          value={profile.spouseLanguageScores?.[a] ?? ''}
+                          onChange={e => setLangScore('spouse', a, parseFloat(e.target.value) || 0)} />
+                        {spouseClb && (
+                          <span className="cvp-clb-preview" style={{ color: CLB_COLOR(spouseClb[a]) }}>
+                            CLB {spouseClb[a]}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           <div className="cvp-grid-2">
             <div className="cvp-field">
               <label className="cvp-label">Settlement Funds Available (CAD)</label>
@@ -907,11 +1004,6 @@ export default function CanVisaProTool() {
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', marginTop: '1.25rem' }}>
             <label className="cvp-checkbox-row" style={{ margin: 0 }}>
-              <input type="checkbox" checked={profile.hasSpouse}
-                onChange={e => set('hasSpouse', e.target.checked)} />
-              <span className="cvp-checkbox-label">Has spouse / common-law partner</span>
-            </label>
-            <label className="cvp-checkbox-row" style={{ margin: 0 }}>
               <input type="checkbox" checked={profile.hasProvincialNomination}
                 onChange={e => set('hasProvincialNomination', e.target.checked)} />
               <span className="cvp-checkbox-label">Has provincial nomination (+600)</span>
@@ -926,6 +1018,25 @@ export default function CanVisaProTool() {
                 onChange={e => set('hasFamilyInCanada', e.target.checked)} />
               <span className="cvp-checkbox-label">Has family in Canada (citizen or PR)</span>
             </label>
+          </div>
+
+          {/* 6c: Job Offer */}
+          <div className="cvp-field" style={{ marginTop: '1.5rem' }}>
+            <label className="cvp-label">Valid Job Offer in Canada?</label>
+            <div className="cvp-radio-group">
+              {([
+                ['none', 'No job offer'],
+                ['lmia', 'Yes — LMIA-supported'],
+                ['exempt', 'Yes — LMIA-exempt'],
+              ] as const).map(([val, label]) => (
+                <label className="cvp-radio-row" key={val}>
+                  <input type="radio" name="jobOffer" checked={(profile.hasJobOffer ?? 'none') === val}
+                    onChange={() => set('hasJobOffer', val)} />
+                  <span className="cvp-radio-label">{label}</span>
+                </label>
+              ))}
+            </div>
+            <p className="cvp-hint">Counts toward FSW 67-point Arranged Employment factor (+5 pts). Does not add CRS bonus points (removed March 2025).</p>
           </div>
 
           {/* Section 7: Risk */}
