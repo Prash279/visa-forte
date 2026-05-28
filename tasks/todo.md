@@ -1355,4 +1355,435 @@ No Playwright, no MCPs, no hardcoded credentials.
 
 ---
 
+---
+
+## Current Phase: CanVisa Pro Assessment Tool — Feature Enhancement (Approved May 2026)
+
+**What this phase delivers:**
+A fully upgraded Admin Assessment Tool at `/admin/canvisa-pro` that exceeds the public tool's capabilities with three exclusive differentiating features — a Category Draw Eligibility Matrix, an Age-Sensitive Timeline Alert, and a Plain-Language Narrative Verdict — plus NOC auto-population for both tools. The result view is rebuilt to match the public tool section-for-section (minus Lead Capture and Booking CTA), adapted to the dark admin theme. All changes confirmed and approved by Prash before any code is written.
+
+**Decisions confirmed before this phase starts:**
+- Feature 1 (Category Draw Matrix): Admin tool only
+- Feature 2 (Age Timeline Alert): Both public and admin tools (Prash accepted this recommendation)
+- Feature 3 (Narrative Verdict): Admin tool only
+- NOC auto-population: Both tools — the `NocSearch` component is built once and wired into both
+- Job offer field: Restored to admin tool — it feeds the FSW 67-point Arranged Employment factor (+5 pts), which is still live despite the March 2025 CRS bonus-point removal
+- Lead capture + Booking CTA: NOT added to admin tool
+- MARP export toolbar: Retained unchanged on admin tool
+
+**Build sequence (each task approved before any code is written for that task):**
+1. CVP-1: NOC 2021 Data Foundation — research + verified JSON build, no UI code
+2. CVP-2: NOC Auto-Population Component — `NocSearch.tsx` with Fuse.js, wired into both tools
+3. CVP-3: Admin Tool Form Upgrades — marital status radio, spouse language section, job offer field
+4. CVP-4: Admin Tool Result View — base replication of public tool result sections in dark theme
+5. CVP-5: Feature 2 — Age-Sensitive Timeline Alert — public tool + admin tool
+6. CVP-6: Feature 1 — Category Draw Eligibility Matrix — admin tool only
+7. CVP-7: Feature 3 — Plain-Language Narrative Verdict — admin tool only
+8. CVP-8: Final TypeScript check, visual verification, deploy
+
+---
+
+### TASK CVP-1: NOC 2021 Data Foundation
+
+**Status:** ⬜ NOT STARTED
+**Approved:** ✅ Approved by Prash — May 2026
+
+**What this delivers:**
+A verified, committed `noc-2021.json` search index built from the official Statistics Canada NOC 2021 dataset and ESDC unit group pages. Every NOC code, TEER level, occupation title, and example alias in this file is sourced directly from official government data — no training data used. This file is the foundation for the NOC auto-population feature (CVP-2) and is a one-time build that remains authoritative for years.
+
+**Why a local file and not a live API:**
+IRCC and Statistics Canada do not expose a public REST API for NOC lookups. Any live scraping would be too slow for a form field (2–3 seconds per keystroke), fragile, and subject to rate limiting. A local JSON index is near-instantaneous (client-side), reliable, and authoritative until IRCC adopts a new NOC version (a decade-level event).
+
+**Anti-hallucination gate:** All NOC codes and TEER classifications in this file must be sourced from the official Statistics Canada or ESDC pages via Firecrawl. No values are derived from training data. If a mapping cannot be verified against canada.ca in this session, it is not included.
+
+**Plan:**
+- [ ] Use Firecrawl to access the Statistics Canada NOC 2021 standard publication page and extract all unit group records — each record needs: 5-digit code, TEER level (0–5), and official occupation title
+- [ ] For each unit group, use Firecrawl to access the ESDC noc.esdc.gc.ca detail page and extract the "example titles" list — these aliases are what make job-title search work in practice (e.g., "software developer" mapping to "Software developers and programmers")
+- [ ] Build `apps/web/src/lib/noc-2021.json` with this structure:
+  ```
+  {
+    "version": "NOC-2021",
+    "source": "Statistics Canada NOC 2021 / ESDC noc.esdc.gc.ca",
+    "builtDate": "YYYY-MM-DD",
+    "occupations": [
+      { "code": "21232", "teer": 2, "title": "Software developers and programmers", "aliases": ["software developer", "web developer", "programmer", "application programmer"] }
+    ]
+  }
+  ```
+- [ ] Spot-check TEER classification and title for the following codes before committing — all 6 TEER levels must be represented in the verification sample:
+  - TEER 0: corporate senior manager (10010 or equivalent)
+  - TEER 1: registered nurse (31301), general practitioner (31102)
+  - TEER 2: software developer (21232), early childhood educator (42202)
+  - TEER 3: cook (63200), administrative assistant (13110)
+  - TEER 4: retail sales associate (64100), food service counter attendant (65200)
+  - TEER 5: labourer (95100 or equivalent)
+  - Plus 20 more common titles across TEER 1–3 (highest Express Entry volume)
+- [ ] Confirm the file uses NOC 2021 codes — NOT NOC 2016. The two systems have different code numbering; IRCC Express Entry uses NOC 2021 exclusively
+- [ ] Commit `noc-2021.json` to the repository before writing any component code for CVP-2
+
+**Prashant Proof:**
+This task has no UI — verification is the spot-check above. Before marking complete:
+confirm that the JSON entry for NOC 31301 shows `teer: 1` and `title: "Registered nurses..."`,
+and NOC 21232 shows `teer: 2` and `title: "Software developers and programmers"` —
+both verifiable at noc.esdc.gc.ca against the official ESDC pages.
+
+---
+
+### TASK CVP-2: NOC Auto-Population Component
+
+**Status:** ⬜ NOT STARTED
+**Approved:** ✅ Approved by Prash — May 2026
+**Depends on:** CVP-1 complete and `noc-2021.json` committed
+
+**What this delivers:**
+A reusable `NocSearch` typeahead component that auto-populates the NOC code and TEER fields in both the admin and public assessment forms when an applicant types their job title or designation. Uses Fuse.js fuzzy search against the local `noc-2021.json` index. Built once; wired into both tools.
+
+**Plan:**
+- [ ] Install Fuse.js: `npm install fuse.js` in `apps/web`
+- [ ] Create `apps/web/src/components/NocSearch.tsx` ("use client"):
+  - Props: `onSelect: (code: string, teer: 0|1|2|3|4|5) => void`, `theme: 'light' | 'dark'`
+  - Internal state: `query` (typed text), `results` (matched entries), `isOpen` (dropdown visible), `selected` (chosen entry or null)
+  - On mount: dynamically `import('@/lib/noc-2021.json')` — lazy load, not bundled in main chunk
+  - On input change debounced 250ms: run Fuse.js search on `title + aliases`, return top 5 results
+  - Fuse.js config: `keys: [{ name: 'title', weight: 0.6 }, { name: 'aliases', weight: 0.4 }]`, `threshold: 0.35`, `minMatchCharLength: 3`, `distance: 100`
+  - Dropdown renders each result as: `"{title} — {code} · TEER {teer}"`
+  - On result click: set selected, call `onSelect(code, teer)`, close dropdown
+  - After selection: show selected result text + a "Clear" link that resets both the input and the downstream NOC/TEER fields
+  - Below the input (after selection): "Verify on canada.ca/noc ↗" link that opens the official ESDC search in a new tab
+  - If query ≥ 3 chars and no results: show "No match found — enter NOC code manually below"
+- [ ] Create `apps/web/src/components/NocSearch.css`:
+  - Light theme (public tool): white dropdown, Prussian accent on hover, standard Visa Forte input styles
+  - Dark theme (admin tool): dark navy dropdown, teal accent on hover, matches canvisa-pro.css tokens
+  - Dropdown positioned absolute below the input, z-index 50, max-height 5 results, rounded corners
+- [ ] Wire `NocSearch` into admin tool (`CanVisaProTool.tsx`):
+  - Place above the existing NOC code text input and TEER dropdown in the Identity section
+  - Label: "Search by Job Title / Designation (optional)"
+  - `onSelect` callback: `setProfile(prev => ({ ...prev, nocCode: code, nocTeer: teer }))`
+  - Existing NOC code and TEER fields remain for manual override — they are pre-populated by the component but always editable
+- [ ] Wire `NocSearch` into public tool (`AssessmentTool.tsx`):
+  - Same placement (above NOC code field in the Identity section, Section 1)
+  - Same `onSelect` pattern, `theme="light"`
+- [ ] `npx tsc --noEmit` — zero errors
+- [ ] Commit: `feat(assessment,canvisa-pro): NOC auto-population component with Fuse.js typeahead`
+
+**Prashant Proof:**
+1. Go to `/admin/canvisa-pro` — in the Identity section, type "nurse" in the new job title search field
+2. Confirm dropdown appears within 300ms showing results including "Registered nurses and registered psychiatric nurses — 31301 · TEER 1"
+3. Click that result — confirm the NOC Code field populates with "31301" and TEER dropdown selects "1"
+4. Confirm the "Verify on canada.ca/noc ↗" link appears and opens the ESDC search in a new tab
+5. Click "Clear" — confirm both the search field and the NOC/TEER fields reset
+6. Type "xyz123" — confirm "No match found — enter NOC code manually below" appears after 250ms
+7. Repeat steps 1–4 on `/assessment` (public tool) — confirm same behaviour with light theme styling
+
+---
+
+### TASK CVP-3: Admin Tool Form Upgrades
+
+**Status:** ⬜ NOT STARTED
+**Approved:** ✅ Approved by Prash — May 2026
+**Depends on:** Nothing — independent of CVP-1 and CVP-2; can proceed in parallel if needed
+
+**What this delivers:**
+Three surgical changes to the admin assessment form that fix data collection gaps affecting calculation accuracy:
+1. Marital status three-way radio replacing the current single spouse checkbox
+2. Spouse language test section (conditional on married/common-law) — currently absent, causing Factor B language points to be silently zeroed for all married applicants
+3. Job offer field restored — currently absent, causing the FSW 67-point Arranged Employment factor to always score zero
+
+**Why these matter for calculation accuracy:**
+Without the spouse language section, a married applicant with a spouse scoring CLB 9+ across all four bands loses up to 20 CRS points silently — a material error in a professional consultant tool. Without job offer, the FSW 67-point grid cannot award Arranged Employment points, understating the FSW score for applicants with valid job offers.
+
+**Plan:**
+- [ ] Read `CanVisaProTool.tsx` in full before any edit
+- [ ] A1 — Marital status radio:
+  - In the `INITIAL` state object: replace `hasSpouse: false` with `maritalStatus: 'single'` typed as `'single' | 'married' | 'separated'`
+  - In the Partner section of the form: replace the current checkbox with a three-option radio group labelled "Marital Status": Single / Married or Common-Law Partner / Legally Separated
+  - Spouse sub-section (education + CWE inputs) shows only when `maritalStatus === 'married'`
+  - Before calling `calculate()`: derive `hasSpouse: maritalStatus === 'married'` — the `ApplicantProfile` type from `crs-calculator.ts` is not modified
+  - The marital status string value is stored in a local state field and passed into the MARP report's Applicant Data Profile card text
+- [ ] A2 — Spouse language section:
+  - Directly below spouse education and spouse CWE inputs (visible only when `maritalStatus === 'married'`): add a checkbox "Partner has an official language test result"
+  - When checked: test type selector (IELTS GT / IELTS Academic / CELPIP / TEF / TCF) + four score inputs (L/R/W/S) + live CLB colour display using the existing `CLB_COLOR` helper
+  - Form state: `spouseLanguageScores?: LanguageScores` — this field already exists in `ApplicantProfile`; it just needs the form inputs to populate it
+  - When unchecked: `spouseLanguageScores` is set to `undefined`
+- [ ] A3 — Job offer field:
+  - In the Additional Factors section, below the four checkboxes: add a three-option radio group "Valid Job Offer in Canada?": No job offer / Yes — LMIA-supported / Yes — LMIA-exempt
+  - Hint text: "Counts toward FSW 67-point Arranged Employment factor (+5 pts). Does not add CRS bonus points (removed March 2025)."
+  - Form state: `hasJobOffer: 'none' | 'lmia' | 'exempt'` — this field already exists in `ApplicantProfile`; it just needs the UI inputs
+- [ ] `npx tsc --noEmit` — zero errors
+- [ ] Commit: `feat(canvisa-pro): marital status radio, spouse language section, job offer field`
+
+**Prashant Proof:**
+1. Go to `/admin/canvisa-pro` — in the Partner section, confirm three radio options: Single, Married or Common-Law Partner, Legally Separated
+2. Select "Single" — confirm the entire spouse sub-section (education, CWE, language) is hidden
+3. Select "Married or Common-Law Partner" — confirm the spouse sub-section appears
+4. Check "Partner has an official language test result" — confirm test type selector and four score inputs appear
+5. Enter IELTS scores (e.g., all 7.0) — confirm CLB colour indicators appear showing CLB 8
+6. In Additional Factors, confirm the Job Offer radio appears with three options and the hint text about FSW (+5 pts / not CRS)
+7. Enter a profile: married applicant, spouse with IELTS 7.0/7.0/7.0/7.0, then generate report — confirm the CRS score is higher than the same profile with no spouse language (proving Factor B language is now being calculated)
+
+---
+
+### TASK CVP-4: Admin Tool Result View — Base Replication
+
+**Status:** ⬜ NOT STARTED
+**Approved:** ✅ Approved by Prash — May 2026
+**Depends on:** CVP-3 (form state must be correct before the result view is built)
+
+**What this delivers:**
+The admin tool result view is rebuilt to match the public tool's section structure, adapted to the dark admin theme (canvisa-pro.css). The existing MARP export toolbar ("Print / Save PDF" + "Download PPTX Source") is retained unchanged at the top of the result. Lead capture and booking CTA are not added.
+
+**Sections to build (in order, mirroring public tool):**
+1. Hero CRS Score Card — large score number, Express Entry pool eligibility badge (Eligible / Not Yet Eligible), styled in dark theme
+2. Recent Draw Context Card — most relevant draw from `crs-draw-history.json` based on profile, showing cutoff, ITAs issued, draw date, and applicant's gap
+3. Program Eligibility Table — four rows (Express Entry Pool, FSW, CEC, FST) with status badge (green pass / amber partial / red fail) and plain-English reason per row
+4. CRS Breakdown Grid — four tiles: Core Human Capital / Transferability / Additional / Total
+5. FSW 67-Point Grid — all 6 selection factors including Arranged Employment (now populated from CVP-3 job offer field)
+6. Settlement Funds Card — declared amount vs. required minimum for family size, pass/fail status
+7. Dual Improvement Paths:
+   - Path A (shown when FSW total < 67): FSW 67-point improvement scenarios ranked by point gain
+   - Path B (shown when pool-eligible): CRS improvement scenarios ranked by point gain, each showing new projected score vs. most recent draw cutoff with a "competitive / not yet" verdict
+8. Legal Disclaimer — full IRCC disclaimer, identical text to the public tool
+
+**What is NOT added in this task:**
+- Contact capture (name, email, phone, consent)
+- Lead capture API call
+- Booking CTA or pricing anchor
+- Category Draw Matrix (added in CVP-6)
+- Age Alert (added in CVP-5)
+- Narrative Verdict (added in CVP-7)
+
+**MARP export toolbar retained unchanged** — stays exactly as-is at the top of the result view.
+
+**Plan:**
+- [ ] Read `AssessmentTool.tsx` result view section fully — understand every helper function, draw-selection logic, and scenario-rendering pattern
+- [ ] Read `canvisa-pro.css` fully — understand existing dark theme tokens (navy, teal, amber) before writing any new CSS
+- [ ] Import `drawData` from `@/lib/crs-draw-history.json` and `fundsData` from `@/lib/proof-of-funds.json` into `CanVisaProTool.tsx` (same imports as the public tool)
+- [ ] Lift the `getEligibleDrawCategories()`, `shortType()`, and `fmtDate()` helper functions from `AssessmentTool.tsx` into `CanVisaProTool.tsx` — keep them as local functions in the component file (Karpathy: no premature extraction)
+- [ ] In `CanVisaProTool.tsx`, when `view === 'report'`, render sections 1–8 above the existing MARP markdown section, in the same DOM structure as the public tool but with dark-theme class names
+- [ ] `canvisa-pro.css`: add dark-theme CSS for each new section:
+  - Hero card: teal score number, navy card bg, badge colours (teal = eligible, amber = not yet)
+  - Draw context card: navy card, border-left colour-coded by gap severity
+  - Eligibility table: dark rows, status badge palette matching public tool semantics in dark tones
+  - CRS breakdown grid: four dark tiles with section labels and point totals
+  - FSW grid: dark table, pass threshold highlighted, pass/fail badge
+  - Settlement funds card: dark card, green/red status badge
+  - Improvement paths: dark scenario cards, delta point indicator, cutoff comparison badge
+  - Legal disclaimer: subdued dark card, small text
+- [ ] `npx tsc --noEmit` — zero errors
+- [ ] Commit: `feat(canvisa-pro): base result view replication — draw context, eligibility, breakdown, FSW, funds, improvements, disclaimer`
+
+**Prashant Proof:**
+1. Go to `/admin/canvisa-pro` — enter a complete profile: married, CLB 8 IELTS, 2yr Canadian WE TEER 1, Master's with ECA, $30,000 funds, family of 2, no job offer
+2. Click "Generate Report" — confirm in sequence:
+   - CRS score card with score number and pool eligibility badge appears
+   - Draw context card with a recent draw, cutoff, and applicant gap appears
+   - Program Eligibility Table shows all four rows (EE Pool, FSW, CEC, FST) with status and reason
+   - CRS Breakdown Grid shows four tiles
+   - FSW 67-Point Grid shows all 6 factors; confirm Arranged Employment shows 0 pts (no job offer selected)
+   - Settlement Funds card shows $30,000 vs. required minimum with a status badge
+   - Improvement paths section appears (Path A or B depending on pool eligibility)
+   - Legal disclaimer block appears at the very bottom
+3. Confirm "Print / Save PDF" and "Download PPTX Source" buttons are still present and work
+4. Confirm NO contact form, NO booking button, NO $99 CTA appears anywhere in the result
+5. Now select LMIA job offer and regenerate — confirm Arranged Employment row in FSW grid shows 5 pts
+
+---
+
+### TASK CVP-5: Feature 2 — Age-Sensitive Timeline Alert (Public + Admin)
+
+**Status:** ⬜ NOT STARTED
+**Approved:** ✅ Approved by Prash — May 2026 (accepted recommendation to add to both tools)
+**Depends on:** CVP-4 for admin result placement; no dependency for the public tool change
+
+**What this delivers:**
+An amber alert banner that fires automatically when the applicant is within 12 months of a CRS age bracket change. Shows exact months until the change, points lost, and the strategic implication. On the public tool, it fires at the highest-urgency moment (right after seeing the score) to drive consultation bookings. On the admin tool, it is documented as a formal "Strategic Consideration" card for the client report.
+
+**Source of truth for age bracket thresholds:** The `crs-rules.json` age points table — not training data. The function reads bracket boundaries and point values from the JSON at runtime. Any spot-check of bracket values must verify against canada.ca/crs-grid before using.
+
+**Admin tool note:** The admin form currently captures `age` as an integer, not a full date of birth. To calculate months precisely, the form needs birth year and birth month (day is not required for month precision). Two optional fields are added to the Identity section. If not entered, the alert falls back to a generic age-bracket note using the integer age.
+
+**Plan:**
+- [ ] Read the `agePoints` structure in `crs-rules.json` — identify all bracket boundaries and their associated point values (do not derive from training data; read from the file directly)
+- [ ] Write a pure function `getAgeAlert(input: { dob?: string, birthYear?: number, birthMonth?: number } | null, agePointsTable: Record<string, number>): { monthsUntilChange: number, pointsLost: number, currentPts: number, nextPts: number } | null`:
+  - Returns `null` if no bracket change within 12 months of today's date
+  - Returns the alert object if the next birthday crosses into a lower point bracket within 12 months
+  - When `dob` is provided (public tool, full date): computes exact calendar months
+  - When `birthYear` + `birthMonth` is provided (admin tool): computes months to the birthday in that month/year combination, accurate to the month
+  - When neither is available: returns `null` (caller renders the generic note)
+- [ ] Public tool (`AssessmentTool.tsx`):
+  - The DOB is already fully captured — pass it to `getAgeAlert()` in the result view
+  - Render the alert banner as the first visible element of the result, above the draw context card
+  - Style: amber background (`#FDE68A`), warning icon, plain-language text
+  - Text format: "Age Alert: You turn [age] in [N] months ([month year]). Your CRS age points decrease by [X] — from [current] to [next]. Improving your score or submitting your profile before this date preserves those points."
+  - Alert CSS added to `assessment.css`
+- [ ] Admin tool (`CanVisaProTool.tsx`):
+  - Add two optional fields to the Identity section, below the existing age input:
+    - "Birth Year" (number input, 4-digit year, optional)
+    - "Birth Month" (dropdown: Jan–Dec, optional)
+    - Label group: "For age bracket analysis (optional — improves alert precision)"
+  - In the result view, render the alert card above the hero score card (highest position in the result)
+  - Admin alert style: amber card, teal accent border-left, more formal tone
+  - Text format: "Strategic Consideration: Applicant approaches a CRS age bracket change in [N] months ([month year]). Current bracket: [X] points. Next bracket: [Y] points. Difference: −[Z] points. Recommend prioritising pathway progression before [month year]."
+  - If birth year/month not entered: render a generic note: "Age Bracket Note: Confirm whether this applicant is within 12 months of a CRS age bracket change. Age bracket boundaries have material point implications at ages 30, 36–45."
+  - Alert CSS added to `canvisa-pro.css`
+- [ ] `npx tsc --noEmit` — zero errors
+- [ ] Commit: `feat(assessment,canvisa-pro): age-sensitive timeline alert on both tools`
+
+**Prashant Proof (Public Tool):**
+1. Go to `/assessment` — enter DOB placing applicant at 29 years 10 months old (e.g., born 2 months before turning 30)
+2. Complete the form and calculate — confirm an amber banner appears at the top of the result stating the 30th birthday month and the 10-point reduction
+3. Enter DOB for a 25-year-old — confirm no alert appears (not within 12 months of any bracket boundary)
+4. Enter DOB for a 44-year-old with 8 months remaining — confirm the alert fires with the age-45 bracket information
+
+**Prashant Proof (Admin Tool):**
+1. Go to `/admin/canvisa-pro` — confirm "Birth Year" and "Birth Month" optional fields appear in the Identity section
+2. Enter birth year and month placing the applicant 3 months from their 30th birthday
+3. Generate report — confirm the amber Strategic Consideration card appears above the hero score card
+4. Clear birth year and month and regenerate — confirm the generic age bracket note appears instead
+5. Enter a profile for a 25-year-old (no bracket change within 12 months) — confirm no alert appears
+
+---
+
+### TASK CVP-6: Feature 1 — Category Draw Eligibility Matrix (Admin Only)
+
+**Status:** ⬜ NOT STARTED
+**Approved:** ✅ Approved by Prash — May 2026 (admin only)
+**Depends on:** CVP-4 (result view base must exist before adding this section to it)
+
+**What this delivers:**
+A structured eligibility matrix in the admin result view showing every IRCC draw category the applicant qualifies for — with the most recent cutoff per category, the applicant's score gap vs. each cutoff, and the 6-month historical cutoff range. This is the most differentiating feature of the admin report. It reveals multiple invitation pathways that a single-draw view misses — for example, a Healthcare professional at CRS 467 who appears 47 points below the CEC cutoff but is exactly at the Healthcare Worker draw cutoff.
+
+**Draw categories detected (based on profile):**
+- CEC — requires ≥ 1yr Canadian work experience in TEER 0–3
+- French Language — requires French test (TEF or TCF) with CLB ≥ 7 in all four bands
+- Healthcare & Social Services — NOC code in the range 30010–35109
+- Trades Occupations — NOC code in trades ranges (72000–75199, 82000–82099, 92000–95199)
+- Education Occupations — NOC code 40000–41499
+- Senior Managers with CWE — requires Canadian WE + senior management NOC (verify IRCC eligibility criteria before coding)
+- Physicians with CWE — NOC-specific (verify exact codes against IRCC)
+- PNP — applicant already holds a provincial nomination
+
+**Matrix columns:** Draw Category | Eligible? | Most Recent Cutoff | Draw Date | Your Score | Gap | 6-Month Range
+
+**Gap column values:**
+- Positive or zero: "At cutoff" or "+[N] pts above"
+- Negative: "−[N] pts"
+- French with no French test but CRS above French cutoff: "Would qualify — add French test (CLB 7+)"
+- Not eligible: "—"
+
+**6-Month Range:** Min and max cutoff for draws of that category in the past 183 days from `crs-draw-history.json`. If only one draw in 6 months: "Single draw". If no draws: "No recent draws".
+
+**Plan:**
+- [ ] Read `getEligibleDrawCategories()` in `AssessmentTool.tsx` fully — understand all eligibility conditions and NOC number range logic before reusing it
+- [ ] Verify the Senior Manager and Physician NOC eligibility criteria against canada.ca IRCC pages (these are specialised category draws with additional requirements beyond a NOC range) — do not derive eligibility rules from training data
+- [ ] Write a local function `buildDrawMatrix(profile, elig, secondLangBands, drawData, applicantCrs)` that returns `DrawCategoryRow[]`:
+  - For each draw category: determine eligibility, filter `drawData.draws` for matching draw types, compute most recent cutoff + draw date + 6-month range
+  - French special case: if applicant has no French test but their CRS already exceeds the most recent French cutoff, show "Would qualify with CLB 7+ French test" with the cutoff as context
+  - Use the same keyword matching logic from `shortType()` / `getEligibleDrawCategories()` to connect draw types to categories
+- [ ] In `CanVisaProTool.tsx` result view: place the matrix after the draw context card (Section 2) and before the Program Eligibility Table (Section 3)
+- [ ] Matrix renders as a dark-themed table:
+  - Row background: teal tint (eligible + at/above cutoff), amber tint (eligible + below by <50 pts), neutral (eligible + below by ≥50 pts), muted grey (not eligible)
+  - Note below the table: "Data sourced from canada.ca Express Entry draw history. Draw frequency, cutoffs, and eligibility categories are subject to change without notice."
+- [ ] `canvisa-pro.css`: matrix table styles (column widths, row colour states, gap badge colours)
+- [ ] `npx tsc --noEmit` — zero errors
+- [ ] Commit: `feat(canvisa-pro): category draw eligibility matrix`
+
+**Prashant Proof:**
+1. Go to `/admin/canvisa-pro` — enter a Healthcare profile: NOC 31301 (registered nurse), TEER 1, 1yr Canadian WE, no French test, CRS around 467
+2. Generate report — confirm the Category Draw Matrix appears between the draw context card and the Program Eligibility Table
+3. Confirm CEC row shows as eligible with gap vs. recent CEC cutoff (should be around −47 pts based on current draw data)
+4. Confirm Healthcare row shows as eligible with its most recent cutoff (Feb 20, 2026: 467) and gap ("At cutoff" or similar)
+5. Confirm French Language row shows "Would qualify — add French test (CLB 7+)" with the most recent French cutoff shown (~400)
+6. Confirm Trades, Education, Senior Managers, Physicians show as "Not eligible" (wrong NOC)
+7. Spot-check: manually count Healthcare draws in `crs-draw-history.json` — confirm the matrix shows the correct most recent cutoff and 6-month range for Healthcare
+8. Enter a profile with no Canadian WE — confirm CEC row shows "Not eligible"
+
+---
+
+### TASK CVP-7: Feature 3 — Plain-Language Narrative Verdict (Admin Only)
+
+**Status:** ⬜ NOT STARTED
+**Approved:** ✅ Approved by Prash — May 2026 (admin only)
+**Depends on:** CVP-4, CVP-5, CVP-6 — the narrative references data from the draw matrix and age alert, so those sections must be built first
+
+**What this delivers:**
+A 4–6 sentence plain-English "Consultant Summary" card that appears at the very top of the admin result view, before all other sections. It is template-based conditional logic — not AI-generated, no Anthropic API call. It reads like the opening two minutes of a professional consultation: score status, most favourable draw pathway, fastest improvement, and one strategic consideration (age or PNP).
+
+**Why admin-only:**
+This narrative is the core consulting insight. Delivering it on the free public tool removes the primary reason to book a consultation. On the admin report, it is the professional opinion that clients are paying for. The public tool continues to show tables and grids — the narrative is exclusively in the report Prashant shares.
+
+**Narrative structure (four components, some conditional):**
+1. **Score + Pool Status:** "[Applicant name]'s CRS score of [X] places them [in / does not yet place them in] the Express Entry pool." (Always present)
+2. **Best Pathway Statement:** The most favourable draw category from the matrix (where the applicant is closest to or above the cutoff). If pool-eligible: "Their most competitive pathway is [draw type], where the most recent cutoff of [N] is [X points above / below / exactly at] their current score." If not pool-eligible: "Their primary pathway is the FSW stream, currently [X points below / at] the 67-point selection threshold." (Always present)
+3. **Fastest Improvement:** "The highest-impact improvement within the shortest timeframe is [action]: [e.g., improving their writing band from CLB 7 to CLB 9 via IELTS retake, estimated 4–6 weeks, would add approximately [N] CRS points / a French language test at CLB 7+ would open the French draw pathway where recent cutoffs have been [N] / the spouse completing an official language test would add [N] points via the Factor B language component]." (Always present — derived from top-ranked improvement scenario)
+4. **Strategic Consideration:** If age alert active: "Note: applicant turns [age] in [N] months. CRS age points decrease by [X] at that birthday. Timeline is strategically significant." OR if no age alert and PNP appears plausible (TEER 0–3, CLB 7+, post-secondary education, no current nomination): "A provincial nomination pathway — such as OINP Human Capital Priorities or BCPNP Tech Pilot — would add 600 CRS points and immediately resolve the draw gap. Eligibility assessment is recommended." (Conditional — shown when relevant)
+5. **Closing line (always present):** "A full pathway assessment is recommended to confirm the optimal strategy and provincial eligibility."
+
+**Plan:**
+- [ ] Write `buildNarrative(result, profile, drawMatrix, ageAlert): string` as a local function inside `CanVisaProTool.tsx`:
+  - Component 1: read `result.totalScore` and `result.streamEligibility.expressEntry.eligible`
+  - Component 2: select the most favourable row from `drawMatrix` (eligible + smallest negative gap or positive gap); if none eligible, check FSW 67-point verdict
+  - Component 3: read `result.improvements[0]` (highest point gain scenario); map scenario type to plain-English action description; estimate time/effort by scenario type (language retake → 4–6 weeks; spouse language → 4 weeks; CWE → 12+ months)
+  - Component 4: age alert (`ageAlert !== null`) takes priority over PNP signal; PNP signal fires if `profile.nocTeer <= 3 && firstLangClbMin >= 7 && profile.education !== 'less_than_secondary' && profile.education !== 'secondary' && !profile.hasProvincialNomination`
+  - Component 5: append the fixed closing sentence
+- [ ] In the admin result view: render the narrative in a styled card at the very top — above the age alert card, above the hero score card
+  - Card label: "Consultant Summary" in small uppercase
+  - Narrative text: larger line-height, DM Sans body font, not a table or list — flowing sentences
+  - A small subdued note: "System-generated from applicant profile data. Review and supplement with professional assessment."
+- [ ] `canvisa-pro.css`: narrative card styles — Prussian navy background, teal border-left (4px), slightly larger font size and line-height than standard body text
+- [ ] `npx tsc --noEmit` — zero errors
+- [ ] Commit: `feat(canvisa-pro): plain-language narrative verdict`
+
+**Prashant Proof:**
+1. Go to `/admin/canvisa-pro` — enter a Healthcare profile (NOC 31301, 1yr CWE, CLB 7 writing, Master's, married with spouse CLB 8, 3 months from 30th birthday)
+2. Generate report — confirm a "Consultant Summary" card appears at the very top, before all other sections
+3. Read the narrative carefully — confirm it:
+   - Names the CRS score and pool status
+   - Identifies Healthcare draws as the most relevant pathway (or CEC if score permits)
+   - Identifies writing band improvement or spouse language as the fastest improvement
+   - Notes the upcoming 30th birthday as a strategic consideration
+   - Ends with the fixed closing sentence
+4. Enter a profile below FSW 67 points — confirm Component 2 references the FSW pathway and FSW threshold instead of a draw category
+5. Enter a TEER 1 profile, CLB 8+, Master's, no nomination, no age alert — confirm the PNP signal appears as Component 4
+6. Confirm no factual contradiction between the narrative and the data in the sections below it (if narrative says "Healthcare cutoff 467", that cutoff must match what the matrix shows)
+
+---
+
+### TASK CVP-8: Final Integration — TypeScript Check + Deploy
+
+**Status:** ⬜ NOT STARTED
+**Approved:** ✅ Approved by Prash — May 2026
+**Depends on:** CVP-1 through CVP-7 all complete
+
+**What this delivers:**
+A clean TypeScript build with all existing tests passing, a visual end-to-end verification of both tools on localhost, and a production deploy to visaforte.com.
+
+**Plan:**
+- [ ] Run `npx tsc --noEmit` from `apps/web/` — fix any type errors before proceeding; zero errors required
+- [ ] Run `vitest run` — all existing tests must pass; zero regressions acceptable
+- [ ] Visual check — public tool (`/assessment` on localhost):
+  - Enter a 29-year-old profile with 10 months before their birthday → confirm age alert fires
+  - Use NOC search → type "software developer" → confirm NOC 21232 TEER 2 auto-populates
+  - Calculate the full result → confirm the rest of the result view is unchanged from before this phase
+- [ ] Visual check — admin tool (`/admin/canvisa-pro` on localhost):
+  - Enter a married Healthcare professional profile (NOC 31301, 1yr CWE, CLB 7 writing, Master's, spouse IELTS 7.0, LMIA job offer, birth year/month 3 months before 30th birthday, $30k funds, family of 2)
+  - Confirm result appears in this exact order: Consultant Summary → Age Alert → Hero Score Card → Draw Context Card → Category Draw Matrix → Program Eligibility Table → CRS Breakdown Grid → FSW 67-Point Grid → Settlement Funds Card → Improvement Paths → Legal Disclaimer
+  - Confirm Consultant Summary narrative is factually consistent with the sections below it
+  - Confirm Arranged Employment in FSW grid shows 5 pts (LMIA job offer selected)
+  - Confirm MARP export buttons still function — click "Download PPTX Source" and verify a .md file downloads
+- [ ] Run `vercel whoami` — confirm it returns `prash279` before any deploy command
+- [ ] Run `gh auth status` — confirm it shows `Prash279 (keyring)` with a valid token
+- [ ] Commit all remaining changes: `feat(canvisa-pro): complete CVP assessment tool enhancement — NOC search, form upgrades, result replication, age alert, draw matrix, narrative verdict`
+- [ ] Push to `origin main` → Vercel auto-deploys to visaforte.com
+- [ ] Verify live at visaforte.com/admin/canvisa-pro — run the same profile test as the localhost visual check above
+
+**Prashant Proof:**
+1. Go to visaforte.com/admin/canvisa-pro (live)
+2. Run the full married Healthcare professional profile as described in the visual check above
+3. Confirm ALL sections appear in the correct order with correct data
+4. Go to visaforte.com/assessment (live) — confirm the age alert fires for a 29-year-old and the NOC search works
+5. Confirm nothing is visually broken on the public assessment tool — scroll through the full result for a clean profile
+
+---
+
 *todo.md is the single source of task truth. If it's not here, it's not in scope.*
