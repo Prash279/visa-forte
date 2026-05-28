@@ -186,6 +186,10 @@ describe('calculate — Kishore Sai ground-truth verification', () => {
   it('CRS grand total = 447', () => {
     expect(result.breakdown.total).toBe(447)
   })
+
+  it('full CrsResult snapshot — locks all sections, eligibility, scenarios, and improvements', () => {
+    expect(result).toMatchSnapshot()
+  })
 })
 
 describe('calculate — FSW 67-point grid', () => {
@@ -265,6 +269,10 @@ describe('calculate — provincial nomination', () => {
   it('adds +600 points for provincial nomination', () => {
     const result = calculate({ ...kishoreProfile, hasProvincialNomination: true })
     expect(result.breakdown.total).toBe(447 + 600)
+  })
+
+  it('full CrsResult snapshot — locks complete nominated-applicant output including Section D', () => {
+    expect(calculate({ ...kishoreProfile, hasProvincialNomination: true })).toMatchSnapshot()
   })
 })
 
@@ -365,5 +373,9 @@ describe('calculate — Harish Naik with-spouse Factor B verification', () => {
 
   it('CRS grand total = 364', () => {
     expect(result.breakdown.total).toBe(364)
+  })
+
+  it('full CrsResult snapshot — locks Factor B tables, spouse transferability, and all sections', () => {
+    expect(result).toMatchSnapshot()
   })
 })
