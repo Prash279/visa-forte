@@ -9,11 +9,69 @@ import {
   type LanguageBands,
   type CrsResult,
   type EducationLevel,
+  type StreamEligibility,
+  type FswImprovementSuggestion,
 } from '@/lib/crs-calculator'
+import drawData from '@/lib/crs-draw-history.json'
+import fundsData from '@/lib/proof-of-funds.json'
 import './canvisa-pro.css'
 import NocSearch from '@/components/NocSearch'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
+
+type Draw = { date: string; type: string; cutoffScore: number; invitationsIssued: number }
+
+function fmtDate(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  const dt = new Date(y, (m ?? 1) - 1, d ?? 1)
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+function shortType(type: string): string {
+  if (/^general$/i.test(type)) return 'General'
+  if (/pnp|provincial nominee/i.test(type)) return 'PNP'
+  if (/canadian experience class/i.test(type)) return 'CEC'
+  if (/stem/i.test(type)) return 'STEM'
+  if (/french/i.test(type)) return 'French'
+  if (/health/i.test(type)) return 'Healthcare'
+  if (/trade/i.test(type)) return 'Trades'
+  if (/transport/i.test(type)) return 'Transport'
+  if (/agri/i.test(type)) return 'Agriculture'
+  if (/education/i.test(type)) return 'Education'
+  if (/senior manager/i.test(type)) return 'Senior Mgr'
+  if (/physician/i.test(type)) return 'Physicians'
+  return type.length > 20 ? type.slice(0, 18) + '…' : type
+}
+
+function getEligibleDrawCategories(
+  profile: ApplicantProfile,
+  elig: StreamEligibility,
+  secondLangBands: LanguageBands | undefined
+): string[] {
+  const cats: string[] = []
+  if (elig.cec.eligible) cats.push('CEC')
+  const isFrenchTest =
+    profile.hasSecondLanguage &&
+    (profile.secondLanguageScores?.testType === 'TEF' ||
+      profile.secondLanguageScores?.testType === 'TCF')
+  const frenchClbMet =
+    secondLangBands != null &&
+    secondLangBands.listening >= 7 && secondLangBands.reading >= 7 &&
+    secondLangBands.writing >= 7 && secondLangBands.speaking >= 7
+  if (isFrenchTest && frenchClbMet) cats.push('French')
+  const nocNum = parseInt(profile.nocCode, 10)
+  if (!isNaN(nocNum)) {
+    if (nocNum >= 30010 && nocNum <= 35109) cats.push('Healthcare')
+    if (
+      (nocNum >= 72000 && nocNum <= 75199) ||
+      (nocNum >= 82000 && nocNum <= 82099) ||
+      (nocNum >= 92000 && nocNum <= 95199)
+    ) cats.push('Trades')
+    if (nocNum >= 40000 && nocNum <= 41499) cats.push('Education')
+  }
+  if (profile.hasProvincialNomination) cats.push('PNP')
+  return cats
+}
 
 const EDU_LABELS: Record<EducationLevel, string> = {
   less_than_secondary: 'Less than Secondary School',
@@ -1111,35 +1169,33 @@ export default function CanVisaProTool() {
   if (!result) return null
   const { breakdown: bd, fswGrid: fsw, eligibility: elig, scenarios } = result
   const total = bd.total
-  const generalCutoff = 500 // approximate recent general draw cutoff [VERIFY at canada.ca]
-  const scoreDelta = generalCutoff - total
   const fwYears = profile.foreignWorkExperienceYears
+  const poolEligible = elig.expressEntryPool.eligible
 
-  const eligPills = [
-    {
-      pathway: 'Federal Skilled Worker (FSW)',
-      ...elig.fsw,
-      reason: elig.fsw.reason,
-    },
-    {
-      pathway: 'Express Entry Pool',
-      ...elig.expressEntryPool,
-      reason: elig.expressEntryPool.reason,
-    },
-    {
-      pathway: 'Canadian Experience Class (CEC)',
-      ...elig.cec,
-      reason: elig.cec.reason,
-    },
-    {
-      pathway: 'Federal Skilled Trades (FST)',
-      ...elig.fst,
-      reason: elig.fst.reason,
-    },
+  // Draw context — find highest-priority eligible draw category for this profile
+  const allDraws = drawData.draws as Draw[]
+  const eligibleCategories = getEligibleDrawCategories(profile, elig, result.secondLanguageBands)
+  const topCategory = eligibleCategories[0] ?? null
+  const relevantDraw = topCategory
+    ? (allDraws.find(d => shortType(d.type) === topCategory) ?? null)
+    : null
+  const cutoff = relevantDraw?.cutoffScore ?? null
+  const gap = cutoff !== null ? total - cutoff : null
+  const hasDrawData = allDraws.length > 0
+  const pnpScore = total + 600
+
+  const programs = [
+    { name: 'Express Entry Pool',          eligible: elig.expressEntryPool.eligible, likely: false,                   reason: elig.expressEntryPool.reason },
+    { name: 'Federal Skilled Worker (FSW)', eligible: elig.fsw.eligible,              likely: elig.fsw.likely ?? false, reason: elig.fsw.reason },
+    { name: 'Canadian Experience Class',    eligible: elig.cec.eligible,              likely: elig.cec.likely ?? false, reason: elig.cec.reason },
+    { name: 'Federal Skilled Trades (FST)', eligible: elig.fst.eligible,              likely: elig.fst.likely ?? false, reason: elig.fst.reason },
   ]
 
-  const gaugeOffset_ = gaugeOffset(total)
-  const dot_ = dotPosition(generalCutoff)
+  // FSW grid: split arranged employment (from job offer) out of the adaptability bucket for display
+  const arrangedPts = (profile.hasJobOffer === 'lmia' || profile.hasJobOffer === 'exempt') ? 5 : 0
+  const adaptabilityExclAE = Math.max(0, fsw.adaptability - arrangedPts)
+
+  const maritalStatusStr = maritalStatus === 'married' ? 'Married / Common-Law' : maritalStatus === 'separated' ? 'Legally Separated' : 'Single'
 
   return (
     <div className="cvp-wrap" ref={reportRef}>
@@ -1156,640 +1212,303 @@ export default function CanVisaProTool() {
         </button>
       </div>
 
-      <div className="cvp-report">
-        {/* ── Report Header ──────────────────────────────────────────── */}
-        <div className="cvp-rpt-header">
-          <div className="cvp-rpt-top-row">
-            <div className="cvp-brand">
-              <h1>CanVisa Pro</h1>
-              <p>Precision Canadian Permanent Residency Assessment</p>
-            </div>
-            <div className="cvp-data-badge">
-              All data sourced from canada.ca · {profile.reportDate}
-            </div>
-          </div>
+      <div className="cvp2-body">
 
-          <p className="cvp-rpt-name">Applicant: {profile.name || '—'}</p>
-          <h2 className="cvp-rpt-title">
-            {profile.strategyTitle || 'PR Eligibility Assessment'}
-          </h2>
-          <p className="cvp-rpt-sub">
-            {profile.occupationTitle || '—'} (TEER {profile.nocTeer}) ·{' '}
-            {profile.countryOfCitizenship || '—'} National ·{' '}
-            Resident of {profile.countryOfResidence || '—'}
+        {/* ── 1: Hero CRS Score Card ─────────────────────────────────── */}
+        <section className="cvp2-hero">
+          <div className="cvp2-hero-score">
+            <p className="cvp2-hero-label">CRS Score</p>
+            <p className="cvp2-hero-value">{total}</p>
+            <p className="cvp2-hero-max">out of 1200</p>
+          </div>
+          <div className="cvp2-hero-meta">
+            <p className="cvp2-hero-name">{profile.name || 'Applicant'}</p>
+            <p className="cvp2-hero-occ">
+              {profile.occupationTitle || '—'} · TEER {profile.nocTeer}
+              {profile.countryOfCitizenship ? ` · ${profile.countryOfCitizenship}` : ''}
+            </p>
+            <div className="cvp2-pool-badge" data-eligible={poolEligible ? 'yes' : 'no'}>
+              {poolEligible ? '✓ Express Entry Pool: ELIGIBLE' : '✗ Express Entry Pool: NOT ELIGIBLE'}
+            </div>
+            <p className="cvp2-hero-date">
+              Assessment {profile.reportDate} · {maritalStatusStr} · Family of {profile.familySize}
+            </p>
+          </div>
+        </section>
+
+        {/* ── 2: Recent Draw Context Card ──────────────────────────────── */}
+        {hasDrawData && (
+          <div className="cvp2-card cvp2-draws-card">
+            <h2 className="cvp2-card-title">Pool Draw Context</h2>
+
+            {!poolEligible ? (
+              <>
+                <p className="cvp2-card-sub">
+                  Draw cutoffs are not relevant yet — applicant must clear the FSW 67-point minimum to enter the pool.
+                </p>
+                <div className="cvp2-gap-row cvp2-gap-below">
+                  <div className="cvp2-gap-score">
+                    <span className="cvp2-gap-label">FSW Score</span>
+                    <span className="cvp2-gap-val">{fsw.total}</span>
+                    <span className="cvp2-gap-meta">out of 100</span>
+                  </div>
+                  <div className="cvp2-gap-vs">
+                    <span className="cvp2-gap-your-label">Minimum Required</span>
+                    <span className="cvp2-gap-your-val">67</span>
+                    <span className="cvp2-gap-diff">{fsw.total - 67} pts below threshold</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="cvp2-card-sub">
+                  Applicant score compared to recent Express Entry draws from canada.ca.
+                </p>
+                {relevantDraw ? (
+                  <div className={`cvp2-gap-row${gap !== null && gap >= 0 ? ' cvp2-gap-above' : ' cvp2-gap-below'}`}>
+                    <div className="cvp2-gap-score">
+                      <span className="cvp2-gap-label">Most Recent {topCategory} Draw</span>
+                      <span className="cvp2-gap-val">{relevantDraw.cutoffScore}</span>
+                      <span className="cvp2-gap-meta">{fmtDate(relevantDraw.date)}</span>
+                    </div>
+                    <div className="cvp2-gap-vs">
+                      <span className="cvp2-gap-your-label">Applicant Score</span>
+                      <span className="cvp2-gap-your-val">{total}</span>
+                      {gap !== null && (
+                        <span className="cvp2-gap-diff">
+                          {gap >= 0 ? `+${gap} pts above cutoff` : `${gap} pts below cutoff`}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="cvp2-no-draw">
+                    <p className="cvp2-no-draw-heading">No active draw category matched</p>
+                    <p className="cvp2-no-draw-body">
+                      Profile does not match an active draw category. Primary pathway: Provincial Nominee Program (PNP).
+                      With a nomination, effective CRS becomes <strong>{pnpScore}</strong>, placing well above PNP draw cutoffs.
+                    </p>
+                  </div>
+                )}
+                <div className="cvp2-draws-table">
+                  <div className="cvp2-draws-header">
+                    <span>Date</span><span>Type</span><span>Cutoff</span><span>ITAs</span>
+                  </div>
+                  {allDraws.slice(0, 5).map((d, i) => (
+                    <div key={i} className="cvp2-draw-row">
+                      <span className="cvp2-draw-date">{fmtDate(d.date)}</span>
+                      <span className="cvp2-draw-type">{shortType(d.type)}</span>
+                      <span className="cvp2-draw-score">{d.cutoffScore}</span>
+                      <span className="cvp2-draw-itas">{d.invitationsIssued.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="cvp2-draws-source">
+                  Synced from canada.ca rounds of invitations
+                  {drawData.lastUpdated ? ` · ${fmtDate(drawData.lastUpdated)}` : ''}.
+                </p>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ── 3: Program Eligibility ────────────────────────────────────── */}
+        <div className="cvp2-card">
+          <h2 className="cvp2-card-title">Program Eligibility</h2>
+          <p className="cvp2-card-sub">Hard-gate assessment across active Express Entry streams.</p>
+          <div className="cvp2-elig-table">
+            {programs.map(prog => (
+              <div key={prog.name} className="cvp2-elig-row">
+                <span className="cvp2-elig-name">{prog.name}</span>
+                <span
+                  className="cvp2-elig-badge"
+                  data-status={prog.eligible ? 'eligible' : prog.likely ? 'likely' : 'no'}
+                >
+                  {prog.eligible ? 'ELIGIBLE' : prog.likely ? 'LIKELY' : 'NOT ELIGIBLE'}
+                </span>
+                <span className="cvp2-elig-reason">{prog.reason}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── 4: CRS Breakdown Grid ─────────────────────────────────────── */}
+        <div className="cvp2-card">
+          <h2 className="cvp2-card-title">Score Breakdown</h2>
+          <p className="cvp2-card-sub">
+            CRS points across all sections (post-March 2025 rules — job offer points removed from CRS).
           </p>
-
-          <div className="cvp-meta-row">
-            <div className="cvp-meta-item">
-              <span className="label">Report Date</span>
-              <span className="value">{profile.reportDate}</span>
+          <div className="cvp2-breakdown-grid">
+            <div className="cvp2-bd-tile">
+              <span className="cvp2-bd-tile-label">Human Capital (A+B)</span>
+              <span className="cvp2-bd-tile-value">{bd.coreTotal}</span>
             </div>
-            <div className="cvp-meta-item">
-              <span className="label">NOC Code</span>
-              <span className="value">{profile.nocCode || '—'}</span>
+            <div className="cvp2-bd-tile">
+              <span className="cvp2-bd-tile-label">Skill Transferability (C)</span>
+              <span className="cvp2-bd-tile-value">{bd.transferTotal}</span>
             </div>
-            <div className="cvp-meta-item">
-              <span className="label">Current CRS</span>
-              <span className="value">{total} (Calculated)</span>
+            <div className="cvp2-bd-tile">
+              <span className="cvp2-bd-tile-label">Additional Points (D)</span>
+              <span className="cvp2-bd-tile-value">{bd.additionalTotal}</span>
             </div>
-            <div className="cvp-meta-item">
-              <span className="label">Mode</span>
-              <span className="value">Deep Analysis Mode</span>
+            <div className="cvp2-bd-tile cvp2-bd-total">
+              <span className="cvp2-bd-tile-label">Total CRS</span>
+              <span className="cvp2-bd-tile-value">{total}</span>
             </div>
           </div>
+        </div>
 
-          <p className="cvp-report-id">
-            Report ID: {reportId(profile.name, profile.reportDate)} · Generated {profile.reportDate}
+        {/* ── 5: FSW 67-Point Grid ──────────────────────────────────────── */}
+        <div className="cvp2-card">
+          <h2 className="cvp2-card-title">FSW 67-Point Selection Grid</h2>
+          <p className="cvp2-card-sub">Statutory eligibility threshold for Federal Skilled Worker program entry.</p>
+          <div className="cvp2-fsw-table">
+            {[
+              { factor: 'Language Skills',      value: fsw.language,      max: 28, pass: fsw.language >= 24,       detail: `CLB ${clbDisplay(result.firstLanguageBands)}${profile.hasSecondLanguage ? ' + 2nd lang' : ''}` },
+              { factor: 'Education',             value: fsw.education,     max: 25, pass: fsw.education >= 20,      detail: `${EDU_LABELS[profile.education]}${profile.hasEca ? ' (ECA)' : ''}` },
+              { factor: 'Work Experience',       value: fsw.workExperience, max: 15, pass: fsw.workExperience >= 9, detail: `${fwYears} yrs foreign (NOC ${profile.nocCode || '—'})` },
+              { factor: 'Age',                   value: fsw.age,           max: 12, pass: fsw.age >= 10,            detail: `${profile.age} years old` },
+              { factor: 'Arranged Employment',   value: arrangedPts,        max: 5,  pass: arrangedPts > 0,          detail: arrangedPts > 0 ? `${profile.hasJobOffer === 'lmia' ? 'LMIA-supported' : 'LMIA-exempt'} job offer` : 'No qualifying job offer' },
+              { factor: 'Adaptability',          value: adaptabilityExclAE, max: 10, pass: adaptabilityExclAE > 0,  detail: adaptabilityExclAE > 0 ? [profile.hasCanadianEducation && 'Canadian edu', profile.hasFamilyInCanada && 'Family in CA', profile.canadianWorkExperienceYears >= 1 && 'Prior CWE'].filter(Boolean).join(', ') : 'No Canadian ties' },
+            ].map(row => (
+              <div key={row.factor} className="cvp2-fsw-row">
+                <span className="cvp2-fsw-factor">{row.factor}</span>
+                <span className="cvp2-fsw-detail">{row.detail}</span>
+                <span className="cvp2-fsw-pts" data-pass={row.pass ? 'yes' : 'no'}>{row.value}/{row.max}</span>
+              </div>
+            ))}
+            <div className="cvp2-fsw-row cvp2-fsw-total">
+              <span className="cvp2-fsw-factor">Total</span>
+              <span className="cvp2-fsw-detail">Pass mark: 67 points</span>
+              <span className="cvp2-fsw-pts" data-pass={fsw.eligible ? 'yes' : 'no'}>{fsw.total}/100</span>
+            </div>
+          </div>
+          <p className="cvp2-fsw-verdict" data-pass={fsw.eligible ? 'yes' : 'no'}>
+            {fsw.eligible
+              ? `FSW pass mark cleared (${fsw.total}/100). Profile qualifies for Federal Skilled Worker stream.`
+              : `FSW pass mark not reached (${fsw.total}/100 — 67 required). FSW pathway currently unavailable.`}
           </p>
         </div>
 
-        <div className="cvp-rpt-body">
+        {/* ── 6: Settlement Funds ───────────────────────────────────────── */}
+        <div className={`cvp2-card cvp2-funds-card${result.proofOfFundsSufficient ? '' : ' cvp2-funds-warn'}`}>
+          <h2 className="cvp2-card-title">Settlement Funds</h2>
+          <div className="cvp2-funds-row">
+            <span className="cvp2-funds-label">Declared</span>
+            <span className="cvp2-funds-value">CAD ${profile.settlementFunds.toLocaleString()}</span>
+          </div>
+          <div className="cvp2-funds-row">
+            <span className="cvp2-funds-label">Minimum Required (family of {profile.familySize})</span>
+            <span className="cvp2-funds-value">CAD ${result.proofOfFundsRequired.toLocaleString()}</span>
+          </div>
+          <div className={`cvp2-funds-status${result.proofOfFundsSufficient ? ' cvp2-funds-ok' : ' cvp2-funds-fail'}`}>
+            {result.proofOfFundsSufficient
+              ? '✓ Funds sufficient for application'
+              : '✗ Below required threshold — must be resolved before applying'}
+          </div>
+          <p className="cvp2-funds-source">
+            Source: {fundsData.source} · {fundsData.lastUpdated}. [VERIFY at canada.ca before advising — amounts updated annually.]
+          </p>
+        </div>
 
-          {/* ── Section 1: Applicant Profile ──────────────────────────── */}
-          <div className="cvp-section">
-            <div className="cvp-section-title"><h2>Applicant Data Profile</h2></div>
-            <p className="cvp-section-sub">Intake data mapped against IRCC validation requirements.</p>
-            <div className="cvp-profile-grid">
-              <div className="cvp-profile-card">
-                <p className="cvp-profile-head">Principal Applicant</p>
-                <div className="cvp-data-row"><span className="label">Age</span><span className="value">{profile.age} Years</span></div>
-                <div className="cvp-data-row"><span className="label">Education</span>
-                  <span className="value">{EDU_LABELS[profile.education]}{profile.hasEca ? ' (ECA Confirmed)' : ''}</span></div>
-                <div className="cvp-data-row"><span className="label">First Language</span>
-                  <span className="value" style={{ fontSize: '0.82rem' }}>{clbDisplay(result.firstLanguageBands)}</span></div>
-                <div className="cvp-data-row"><span className="label">Foreign Work Exp</span>
-                  <span className="value">{fwYears} Years {fwYears > 0 && fwYears < 1 ? '(partial)' : fwYears >= 1 ? '(Eligible)' : '(None)'}</span></div>
-                <div className="cvp-data-row"><span className="label">Canadian Work Exp</span>
-                  <span className="value">{profile.canadianWorkExperienceYears > 0 ? `${profile.canadianWorkExperienceYears} Years` : 'None'}</span></div>
-                <div className="cvp-data-row"><span className="label">Settlement Funds</span>
-                  <span className={result.proofOfFundsSufficient ? 'value cvp-funds-ok' : 'value cvp-funds-fail'}>
-                    CAD ${profile.settlementFunds.toLocaleString()}
-                    {result.proofOfFundsSufficient ? ' ✓' : ' — BELOW THRESHOLD'}
-                  </span>
-                </div>
-                {profile.currentEmployer && (
-                  <div className="cvp-data-row"><span className="label">Current Employer</span>
-                    <span className="value">{profile.currentEmployer}</span></div>
-                )}
-              </div>
-              {profile.hasSpouse && (
-                <div className="cvp-profile-card">
-                  <p className="cvp-profile-head">Spouse / Common-Law Partner</p>
-                  <div className="cvp-data-row"><span className="label">Status</span>
-                    <span className="value">Present (affects scoring)</span></div>
-                </div>
-              )}
-            </div>
-            {profile.firstLanguageScores.testType && (
-              <p style={{ fontSize: '0.82rem', color: 'var(--cvp-muted)', marginTop: '14px' }}>
-                <strong style={{ color: 'var(--cvp-text)' }}>Language Test:</strong>{' '}
-                {profile.firstLanguageScores.testType === 'IELTS_GT' ? 'IELTS General Training' :
-                  profile.firstLanguageScores.testType === 'IELTS_Academic' ? 'IELTS Academic' :
-                  profile.firstLanguageScores.testType === 'TEF' ? 'TEF Canada' :
-                  profile.firstLanguageScores.testType === 'TCF' ? 'TCF Canada' :
-                  profile.firstLanguageScores.testType} — L:{profile.firstLanguageScores.listening}{' '}
-                R:{profile.firstLanguageScores.reading} W:{profile.firstLanguageScores.writing}{' '}
-                S:{profile.firstLanguageScores.speaking} → CLB {clbDisplay(result.firstLanguageBands)}
+        {/* ── 7: Improvement Paths ──────────────────────────────────────── */}
+        {/* Path A: Not pool-eligible — show how to reach FSW 67 */}
+        {!poolEligible && result.fswImprovements.length > 0 && (
+          <div className="cvp2-card">
+            <h2 className="cvp2-card-title">How to Qualify for Express Entry</h2>
+            <p className="cvp2-card-sub">
+              FSW selection factor score: <strong>{fsw.total}/100</strong>. Need <strong>67 points</strong> to submit a profile.
+            </p>
+            {result.fswImprovements.every((s: FswImprovementSuggestion) => !s.wouldQualify) && (
+              <p className="cvp2-scenario-note" style={{ marginBottom: '1rem' }}>
+                No single change below reaches 67 on its own — advise combining two or more improvements.
               </p>
             )}
-          </div>
-
-          {/* ── Section 2: Stream Eligibility Matrix ──────────────────── */}
-          <div className="cvp-section">
-            <div className="cvp-section-title"><h2>Stream Eligibility Matrix</h2></div>
-            <p className="cvp-section-sub">Hard-gate assessment against active IRCC pathways.</p>
-            <table className="cvp-table">
-              <thead>
-                <tr>
-                  <th>PR Pathway</th>
-                  <th>Status</th>
-                  <th>Requirement Analysis</th>
-                </tr>
-              </thead>
-              <tbody>
-                {eligPills.map(row => (
-                  <tr key={row.pathway}>
-                    <td><strong>{row.pathway}</strong></td>
-                    <td>
-                      <span className={`cvp-pill ${row.eligible ? 'eligible' : row.likely ? 'likely' : 'not-eligible'}`}>
-                        {row.eligible ? 'ELIGIBLE' : row.likely ? 'LIKELY ELIGIBLE' : 'NOT ELIGIBLE'}
-                      </span>
-                    </td>
-                    <td style={{ color: 'var(--cvp-muted)', fontSize: '0.84rem' }}>{row.reason}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* ── Section 3: FSW 67-Point Grid ──────────────────────────── */}
-          <div className="cvp-section">
-            <div className="cvp-section-title"><h2>FSW 67-Point Selection Grid</h2></div>
-            <p className="cvp-section-sub">Statutory threshold assessment for Federal Skilled Worker program entry.</p>
-            <table className="cvp-table">
-              <thead>
-                <tr>
-                  <th>Selection Factor</th>
-                  <th>Applicant Profile</th>
-                  <th style={{ textAlign: 'right' }}>Points</th>
-                  <th style={{ textAlign: 'right' }}>Max</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Language Skills</strong></td>
-                  <td style={{ color: 'var(--cvp-muted)', fontSize: '0.84rem' }}>
-                    CLB {clbDisplay(result.firstLanguageBands)}{profile.hasSecondLanguage ? ' + 2nd lang' : ''}
-                  </td>
-                  <td className={fsw.language >= 24 ? 'pts' : 'pts-muted'}>{fsw.language}</td>
-                  <td className="max-pts">28</td>
-                </tr>
-                <tr>
-                  <td><strong>Education</strong></td>
-                  <td style={{ color: 'var(--cvp-muted)', fontSize: '0.84rem' }}>
-                    {EDU_LABELS[profile.education]}{profile.hasEca ? ' (ECA Confirmed)' : ''}
-                  </td>
-                  <td className={fsw.education >= 20 ? 'pts' : 'pts-muted'}>{fsw.education}</td>
-                  <td className="max-pts">25</td>
-                </tr>
-                <tr>
-                  <td><strong>Work Experience</strong></td>
-                  <td style={{ color: 'var(--cvp-muted)', fontSize: '0.84rem' }}>
-                    {fwYears} Years (NOC {profile.nocCode || '—'})
-                  </td>
-                  <td className={fsw.workExperience >= 9 ? 'pts' : 'pts-muted'}>{fsw.workExperience}</td>
-                  <td className="max-pts">15</td>
-                </tr>
-                <tr>
-                  <td><strong>Age</strong></td>
-                  <td style={{ color: 'var(--cvp-muted)', fontSize: '0.84rem' }}>{profile.age} Years Old</td>
-                  <td className={fsw.age >= 10 ? 'pts' : 'pts-muted'}>{fsw.age}</td>
-                  <td className="max-pts">12</td>
-                </tr>
-                <tr>
-                  <td><strong>Arranged Employment</strong></td>
-                  <td style={{ color: 'var(--cvp-muted)', fontSize: '0.84rem' }}>
-                    Job offer factor removed post-March 2025 (IRCC update)
-                  </td>
-                  <td className="pts-muted">0</td>
-                  <td className="max-pts">0</td>
-                </tr>
-                <tr>
-                  <td><strong>Adaptability</strong></td>
-                  <td style={{ color: 'var(--cvp-muted)', fontSize: '0.84rem' }}>
-                    {fsw.adaptability > 0
-                      ? [
-                          profile.hasCanadianEducation && 'Canadian education',
-                          profile.hasFamilyInCanada && 'Family in Canada',
-                          profile.canadianWorkExperienceYears >= 1 && 'Prior Canadian work',
-                        ].filter(Boolean).join(', ')
-                      : 'No Canadian ties declared'}
-                  </td>
-                  <td className={fsw.adaptability > 0 ? 'pts' : 'pts-muted'}>{fsw.adaptability}</td>
-                  <td className="max-pts">10</td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr className="grand-total">
-                  <td colSpan={2}><strong>Total FSW Points (Pass Mark: 67)</strong></td>
-                  <td className="pts-total">{fsw.total}</td>
-                  <td className="max-pts">100</td>
-                </tr>
-              </tfoot>
-            </table>
-            <div className="cvp-verify">
-              <strong>Verdict:</strong> Applicant scores{' '}
-              <strong>{fsw.total}/100</strong> and{' '}
-              {fsw.eligible
-                ? 'successfully clears the 67-point FSW statutory threshold. Profile is legally eligible for Express Entry profile creation.'
-                : 'does NOT clear the 67-point FSW statutory threshold. FSW pathway unavailable at this time.'}
-            </div>
-          </div>
-
-          {/* ── Section 4: CRS Score ──────────────────────────────────── */}
-          <div className="cvp-section">
-            <div className="cvp-section-title"><h2>Comprehensive Ranking System (CRS)</h2></div>
-            <p className="cvp-section-sub">Mathematical baseline generated from verified human capital factors.</p>
-
-            <div className="cvp-gauge-wrap">
-              {/* Gauge */}
-              <div className="cvp-gauge-box">
-                <svg className="cvp-gauge-svg" viewBox="0 0 260 210">
-                  <defs>
-                    <linearGradient id="cvpArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#E63946" />
-                      <stop offset="40%" stopColor="#F4A261" />
-                      <stop offset="100%" stopColor="#00A896" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M 30 180 A 100 100 0 1 1 230 180"
-                    fill="none" stroke="#334155" strokeWidth="18" strokeLinecap="round" />
-                  <path d="M 30 180 A 100 100 0 1 1 230 180"
-                    fill="none" stroke="url(#cvpArcGrad)" strokeWidth="18" strokeLinecap="round"
-                    style={{
-                      strokeDasharray: 314.16,
-                      strokeDashoffset: gaugeOffset_,
-                      transition: 'stroke-dashoffset 1.5s ease',
-                    }} />
-                  {/* Cutoff dot at general draw level */}
-                  <circle r="6" fill="#E63946" stroke="white" strokeWidth="2"
-                    cx={dot_.x} cy={dot_.y} />
-                </svg>
-                <div className="cvp-gauge-overlay">
-                  <div className="cvp-gauge-score">{total}</div>
-                  <div className="cvp-gauge-label">CRS Score</div>
-                </div>
-              </div>
-
-              {/* Breakdown list */}
-              <div className="cvp-bd-wrap">
-                <div className="cvp-bd-row"><span className="cvp-bd-label">Age ({profile.age})</span><span className="cvp-bd-pts">{bd.agePoints}</span></div>
-                <div className="cvp-bd-row"><span className="cvp-bd-label">Education</span><span className="cvp-bd-pts">{bd.educationPoints}</span></div>
-                <div className="cvp-bd-row"><span className="cvp-bd-label">First Language</span><span className="cvp-bd-pts">{bd.firstLanguagePoints}</span></div>
-                {bd.secondLanguagePoints > 0 && (
-                  <div className="cvp-bd-row"><span className="cvp-bd-label">Second Language</span><span className="cvp-bd-pts">{bd.secondLanguagePoints}</span></div>
-                )}
-                <div className="cvp-bd-row"><span className="cvp-bd-label">Canadian Experience</span><span className="cvp-bd-pts">{bd.canadianExpPoints}</span></div>
-                {bd.spousePoints > 0 && (
-                  <div className="cvp-bd-row"><span className="cvp-bd-label">Spouse Factors</span><span className="cvp-bd-pts">{bd.spousePoints}</span></div>
-                )}
-                <div className="cvp-bd-row sub-total"><span className="cvp-bd-label strong">Core / Human Capital (A)</span><span className="cvp-bd-pts">{bd.coreTotal}</span></div>
-
-                <div className="cvp-bd-row" style={{ marginTop: '10px' }}><span className="cvp-bd-label">Education + Language</span><span className="cvp-bd-pts">{bd.eduLanguageTransfer}</span></div>
-                <div className="cvp-bd-row"><span className="cvp-bd-label">Foreign Exp + Language</span><span className="cvp-bd-pts">{bd.foreignExpLanguageTransfer}</span></div>
-                {bd.eduCanadianExpTransfer > 0 && (
-                  <div className="cvp-bd-row"><span className="cvp-bd-label">Education + Canadian Exp</span><span className="cvp-bd-pts">{bd.eduCanadianExpTransfer}</span></div>
-                )}
-                {bd.foreignExpCanadianExpTransfer > 0 && (
-                  <div className="cvp-bd-row"><span className="cvp-bd-label">Foreign Exp + Canadian Exp</span><span className="cvp-bd-pts">{bd.foreignExpCanadianExpTransfer}</span></div>
-                )}
-                <div className="cvp-bd-row sub-total"><span className="cvp-bd-label strong">Skill Transferability (C)</span><span className="cvp-bd-pts">{bd.transferTotal}</span></div>
-
-                {bd.additionalTotal > 0 && (
-                  <div className="cvp-bd-row sub-total"><span className="cvp-bd-label strong">Additional (D)</span><span className="cvp-bd-pts">{bd.additionalTotal}</span></div>
-                )}
-
-                <div className="cvp-bd-row grand">
-                  <span className="cvp-bd-label strong">Grand Total CRS</span>
-                  <span className="cvp-bd-pts teal">{total}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Stacked bar */}
-            <div className="cvp-bar" style={{ marginTop: '24px' }}>
-              <div className="cvp-bar-core" style={{ flex: bd.coreTotal }} />
-              <div className="cvp-bar-transfer" style={{ flex: bd.transferTotal }} />
-              {bd.additionalTotal > 0 && (
-                <div className="cvp-bar-extra" style={{ flex: Math.min(bd.additionalTotal, 200) }} />
-              )}
-            </div>
-            <div className="cvp-legend">
-              <div className="cvp-legend-item"><div className="cvp-legend-dot cvp-bar-core" /><span>Core Factors (A)</span></div>
-              <div className="cvp-legend-item"><div className="cvp-legend-dot cvp-bar-transfer" style={{ background: '#6C63FF' }} /><span>Transferability (C)</span></div>
-              {bd.additionalTotal > 0 && (
-                <div className="cvp-legend-item"><div className="cvp-legend-dot" style={{ background: 'var(--cvp-amber2)' }} /><span>Additional (D)</span></div>
-              )}
-            </div>
-
-            <div className="cvp-verify">
-              CRS Total verified: A[{bd.coreTotal}] + C[{bd.transferTotal}] + D[{bd.additionalTotal}] ={' '}
-              <strong style={{ color: 'var(--cvp-teal)' }}>{total}</strong> · Cross-check complete.
-            </div>
-          </div>
-
-          {/* ── Section 5: Pathway Ranking ─────────────────────────────── */}
-          <div className="cvp-section">
-            <div className="cvp-section-title"><h2>Pathway Optimization Ranking</h2></div>
-            <p className="cvp-section-sub">Composite evaluation combining nomination probability, CRS alignment, and execution speed.</p>
-            <table className="cvp-table">
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>Pathway</th>
-                  <th>Eligibility</th>
-                  <th>CRS Requirement</th>
-                  <th>Est. Processing</th>
-                  <th>Priority</th>
-                </tr>
-              </thead>
-              <tbody>
-                {elig.fsw.eligible && (
-                  <tr style={{ borderLeft: '3px solid var(--cvp-teal)', background: 'rgba(0,168,150,0.03)' }}>
-                    <td><strong style={{ color: 'var(--cvp-teal)', fontSize: '1.05rem' }}>1</strong></td>
-                    <td>Express Entry — Category-Based Selection</td>
-                    <td><span className="cvp-pill eligible">ELIGIBLE</span></td>
-                    <td>Live draws — see canada.ca</td>
-                    <td>5–8 Months</td>
-                    <td><span className="cvp-badge critical">CRITICAL PATH</span></td>
-                  </tr>
-                )}
-                <tr>
-                  <td><strong style={{ color: 'var(--cvp-teal)', fontSize: '1.05rem' }}>{elig.fsw.eligible ? 2 : 1}</strong></td>
-                  <td>OINP Human Capital Priorities (Tech)</td>
-                  <td><span className="cvp-pill likely">LIKELY ELIGIBLE</span></td>
-                  <td>460+ (EE-Linked)</td>
-                  <td>11–14 Months</td>
-                  <td><span className="cvp-badge high">HIGH</span></td>
-                </tr>
-                <tr>
-                  <td><strong style={{ color: 'var(--cvp-teal)', fontSize: '1.05rem' }}>{elig.fsw.eligible ? 3 : 2}</strong></td>
-                  <td>BCPNP Tech (Enhanced)</td>
-                  <td><span className="cvp-pill likely">LIKELY ELIGIBLE</span></td>
-                  <td>90–115 SIRS</td>
-                  <td>12–15 Months</td>
-                  <td><span className="cvp-badge high">HIGH</span></td>
-                </tr>
-                {elig.cec.eligible && (
-                  <tr>
-                    <td><strong style={{ color: 'var(--cvp-teal)', fontSize: '1.05rem' }}>*</strong></td>
-                    <td>Canadian Experience Class (CEC)</td>
-                    <td><span className="cvp-pill eligible">ELIGIBLE</span></td>
-                    <td>Live draws — see canada.ca</td>
-                    <td>6–8 Months</td>
-                    <td><span className="cvp-badge critical">CRITICAL PATH</span></td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* ── Section 6: Gap Analysis ────────────────────────────────── */}
-          <div className="cvp-section">
-            <div className="cvp-section-title"><h2>Profile Deficit Mapping</h2></div>
-            <p className="cvp-section-sub">Direct interventions required to clear programmatic thresholds.</p>
-            <div className="cvp-gap-grid">
-              {/* Gap: Foreign work experience vs 3yr threshold */}
-              {Math.floor(fwYears) < 3 && (
-                <div className="cvp-gap-card high">
-                  <span className="cvp-badge high" style={{ marginBottom: '8px', display: 'inline-block' }}>HIGH PRIORITY</span>
-                  <h4>Foreign Work Exp Maturity</h4>
-                  <div className="cvp-gap-metric"><strong>Current:</strong> {fwYears} Years Eligible</div>
-                  <div className="cvp-gap-metric"><strong>Impact:</strong> Missing transferability points unlocked at 3-year threshold (up to +25 pts).</div>
-                  <div className="cvp-gap-action">
-                    <strong>Remediation:</strong> Continue full-time employment in qualifying role for{' '}
-                    {(3 - fwYears).toFixed(2)} more years to trigger CRS increase.
+            <div className="cvp2-scenarios">
+              {result.fswImprovements.map((s: FswImprovementSuggestion, i: number) => (
+                <div key={i} className="cvp2-scenario-row">
+                  <div className="cvp2-scenario-delta positive">+{s.pointsGained}</div>
+                  <div className="cvp2-scenario-info">
+                    <p className="cvp2-scenario-name">{String.fromCharCode(65 + i)}: {s.name}</p>
+                    <p className="cvp2-scenario-desc">{s.action}</p>
+                  </div>
+                  <div className="cvp2-scenario-projected">
+                    <span className="cvp2-projected-label">FSW Score</span>
+                    <span className="cvp2-projected-val">{s.projectedFswTotal}</span>
+                    <span className="cvp2-competitive-tag" data-meets={s.wouldQualify ? 'yes' : 'no'}>
+                      {s.wouldQualify ? '▲ Qualifies' : '▼ Below 67'}
+                    </span>
                   </div>
                 </div>
-              )}
+              ))}
+            </div>
+          </div>
+        )}
 
-              {/* Gap: Language improvement */}
-              {(() => {
-                const bands = result.firstLanguageBands
-                const hasRoom = bands.listening < 10 || bands.reading < 10 || bands.writing < 10 || bands.speaking < 10
-                if (!hasRoom) return null
+        {/* Path B: Pool-eligible — show CRS improvement scenarios */}
+        {poolEligible && scenarios.length > 0 && (
+          <div className="cvp2-card">
+            <h2 className="cvp2-card-title">Score Improvement Scenarios</h2>
+            <p className="cvp2-card-sub">
+              {relevantDraw !== null
+                ? `Projections vs. most recent ${topCategory} draw cutoff of ${cutoff} pts (${fmtDate(relevantDraw.date)}).`
+                : "Highest-impact changes to improve this applicant's CRS score."}
+            </p>
+            <div className="cvp2-scenarios">
+              {scenarios.map((s, i) => {
+                const meetsReal = cutoff !== null ? s.projectedCrs >= cutoff : s.competitive
                 return (
-                  <div className="cvp-gap-card medium">
-                    <span className="cvp-badge medium" style={{ marginBottom: '8px', display: 'inline-block' }}>MEDIUM STRATEGIC</span>
-                    <h4>Language Score Optimization</h4>
-                    <div className="cvp-gap-metric"><strong>Current:</strong> CLB {clbDisplay(bands)}</div>
-                    <div className="cvp-gap-metric"><strong>Impact:</strong> Improving all bands to CLB 10 adds up to {result.scenarios.find(s => s.name.includes('Language'))?.delta ?? 0} CRS points.</div>
-                    <div className="cvp-gap-action">
-                      <strong>Remediation:</strong> Retake test targeting CLB 10 in weaker bands (Writing, Speaking typically most improvable).
+                  <div key={i} className="cvp2-scenario-row">
+                    <div className={`cvp2-scenario-delta${s.delta > 0 ? ' positive' : ''}`}>
+                      {s.delta > 0 ? '+' : ''}{s.delta}
+                    </div>
+                    <div className="cvp2-scenario-info">
+                      <p className="cvp2-scenario-name">{String.fromCharCode(65 + i)}: {s.name}</p>
+                      <p className="cvp2-scenario-desc">{s.change}</p>
+                    </div>
+                    <div className="cvp2-scenario-projected">
+                      <span className="cvp2-projected-label">Projected</span>
+                      <span className="cvp2-projected-val">{s.projectedCrs}</span>
+                      <span className="cvp2-competitive-tag" data-meets={meetsReal ? 'yes' : 'no'}>
+                        {meetsReal ? '▲ Cutoff met' : '▼ Below cutoff'}
+                      </span>
                     </div>
                   </div>
                 )
-              })()}
-
-              {/* Gap: Draw cutoff context */}
-              <div className="cvp-gap-card medium">
-                <span className="cvp-badge medium" style={{ marginBottom: '8px', display: 'inline-block' }}>DRAW CONTEXT</span>
-                <h4>General Draw Cutoff Delta</h4>
-                <div className="cvp-gap-metric"><strong>Current CRS:</strong> {total}</div>
-                <div className="cvp-gap-metric">
-                  <strong>Gap to General Cutoff (~{generalCutoff}):</strong>{' '}
-                  {scoreDelta > 0 ? `-${scoreDelta} points` : 'At or above cutoff'}
-                </div>
-                <div className="cvp-gap-action">
-                  <strong>Note:</strong> Category-based draws (healthcare, STEM, trades, French) and PNP draws
-                  operate at significantly lower cutoffs. Verify live draw history at canada.ca.
-                </div>
-              </div>
+              })}
             </div>
-
-            {/* Scenario Model */}
-            <h3 className="cvp-h3" style={{ marginTop: '28px' }}>Scenario Model</h3>
-            <table className="cvp-table">
-              <thead>
-                <tr>
-                  <th>Scenario</th>
-                  <th>Change Required</th>
-                  <th className="right">Current CRS</th>
-                  <th className="right">Projected CRS</th>
-                  <th className="right">Delta</th>
-                  <th>Competitive?</th>
-                </tr>
-              </thead>
-              <tbody>
-                {scenarios.map(s => (
-                  <tr key={s.name}>
-                    <td style={{ fontWeight: 500 }}>{s.name}</td>
-                    <td style={{ color: 'var(--cvp-muted)', fontSize: '0.84rem' }}>{s.change}</td>
-                    <td className="right">{s.currentCrs}</td>
-                    <td className="right" style={{ fontWeight: 700, color: 'var(--cvp-text)', background: 'rgba(0,168,150,0.04)' }}>
-                      {s.projectedCrs}
-                    </td>
-                    <td className="right">
-                      <span className={s.delta >= 600 ? 'cvp-delta-large' : 'cvp-delta-positive'}>+{s.delta}</span>
-                    </td>
-                    <td>
-                      <span className="cvp-check">{s.competitive ? '✓' : '–'}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* ── Section 7: Strategic Recommendation (AI placeholder) ────── */}
-          <div className="cvp-section">
-            <div className="cvp-section-title"><h2>Strategic Recommendation</h2></div>
-            <p className="cvp-section-sub">Tactical execution plan modeled against live draw patterns.</p>
-            <div className="cvp-ai-placeholder">
-              <strong>Claude AI narrative generation not yet connected.</strong><br />
-              Add <code>ANTHROPIC_API_KEY</code> to your environment variables to unlock personalized strategic
-              recommendations, action timelines, and executive summary narratives for this profile.
-            </div>
-          </div>
-
-          {/* ── Section 8: Risk Assessment ─────────────────────────────── */}
-          <div className="cvp-risk-panel">
-            <h3>Risk and Disclosure Assessment</h3>
-            <p className="cvp-risk-sub">Evaluated against IRPA inadmissibility parameters.</p>
-
-            {/* Proof of funds */}
-            <div className={`cvp-risk-card ${result.proofOfFundsSufficient ? 'green' : 'red'}`}>
-              <h4>{result.proofOfFundsSufficient ? '✓ Funds Sufficiency' : '✗ Funds Insufficiency'}</h4>
-              <p>
-                {result.proofOfFundsSufficient
-                  ? `Cleared. Applicant confirmed CAD $${profile.settlementFunds.toLocaleString()} available, exceeding the IRCC minimum of CAD $${result.proofOfFundsRequired.toLocaleString()} for a family of ${profile.familySize}.`
-                  : `WARNING: CAD $${profile.settlementFunds.toLocaleString()} is below the IRCC minimum of CAD $${result.proofOfFundsRequired.toLocaleString()} for a family of ${profile.familySize}. Application cannot proceed without meeting this threshold. [VERIFY at canada.ca — proof of funds amounts are updated annually]`}
-              </p>
-            </div>
-
-            {/* Criminal record */}
-            <div className={`cvp-risk-card ${profile.hasCriminalRecord ? 'red' : 'green'}`}>
-              <h4>{profile.hasCriminalRecord ? '⚠ Criminal Inadmissibility Risk (IRPA s.36)' : '✓ Criminal Inadmissibility (IRPA s.36)'}</h4>
-              <p>
-                {profile.hasCriminalRecord
-                  ? 'WARNING: Criminal record declared. Admissibility analysis required — depending on the offence, nature, and elapsed time, rehabilitation or record suspension may be required. Seek legal opinion before proceeding.'
-                  : 'Cleared. No criminal records declared.'}
-              </p>
-            </div>
-
-            {/* Medical */}
-            <div className={`cvp-risk-card ${profile.hasMedicalCondition ? 'amber' : 'green'}`}>
-              <h4>{profile.hasMedicalCondition ? '⚠ Medical Inadmissibility (IRPA s.38)' : '✓ Medical Inadmissibility (IRPA s.38)'}</h4>
-              <p>
-                {profile.hasMedicalCondition
-                  ? 'Medical conditions declared. IRCC will assess whether the condition might cause excessive demand on health or social services. Obtain a formal medical inadmissibility opinion from a qualified representative.'
-                  : 'Cleared. No known medical conditions disclosed that would trigger excessive demand.'}
-              </p>
-            </div>
-
-            {/* Prior refusals */}
-            <div className={`cvp-risk-card ${profile.hasPriorRefusal ? 'amber' : 'green'}`}>
-              <h4>{profile.hasPriorRefusal ? '⚠ Prior Refusal Implications' : '✓ Prior Refusal Implications'}</h4>
-              <p>
-                {profile.hasPriorRefusal
-                  ? `Prior refusal(s) declared${profile.refusalDetails ? `: ${profile.refusalDetails}` : ''}. Must be disclosed on all IRCC applications. Refusal reason analysis required to ensure circumstances have changed materially.`
-                  : 'Cleared. No visa refusals disclosed.'}
-              </p>
-            </div>
-          </div>
-
-          {/* ── Section 9: Cost Breakdown ───────────────────────────────── */}
-          <div className="cvp-section">
-            <div className="cvp-section-title"><h2>PR Process Cost Breakdown</h2></div>
-            <p className="cvp-section-sub">Financial staging required (CAD). [VERIFY all fees at ircc.canada.ca before filing — fees updated without notice]</p>
-            <table className="cvp-table">
-              <thead>
-                <tr>
-                  <th>Category 1 — IRCC Government Fees</th>
-                  <th style={{ textAlign: 'right' }}>Amount (CAD)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td>Express Entry Processing Fee — Principal Applicant</td><td className="pts">$950</td></tr>
-                {profile.hasSpouse && <tr><td>Express Entry Processing Fee — Spouse</td><td className="pts">$950</td></tr>}
-                <tr><td>Right of Permanent Residence Fee (RPRF)</td><td className="pts">$575</td></tr>
-                {profile.hasSpouse && <tr><td>RPRF — Spouse</td><td className="pts">$575</td></tr>}
-                <tr><td>Biometrics — Principal Applicant</td><td className="pts">$85</td></tr>
-                {profile.hasSpouse && <tr><td>Biometrics — Spouse</td><td className="pts">$85</td></tr>}
-              </tbody>
-              <tfoot>
-                <tr className="grand-total">
-                  <td><strong>IRCC Fees Sub-total</strong></td>
-                  <td className="pts-total">
-                    ${(950 + 575 + 85 + (profile.hasSpouse ? 950 + 575 + 85 : 0)).toLocaleString()}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-            <div className="cvp-cost-cats">
-              <div className="cvp-cost-card gov">
-                <div className="cvp-cost-cat-label">Gov Fees</div>
-                <div className="cvp-cost-total">
-                  CAD ${(1610 + (profile.hasSpouse ? 1610 : 0)).toLocaleString()}
-                </div>
-              </div>
-              <div className="cvp-cost-card third">
-                <div className="cvp-cost-cat-label">Third-Party (Med / Police)</div>
-                <div className="cvp-cost-total">~CAD 400–600</div>
-              </div>
-              <div className="cvp-cost-card prof">
-                <div className="cvp-cost-cat-label">Consultation Fees</div>
-                <div className="cvp-cost-total">Assessed Post-Consultation</div>
-              </div>
-            </div>
-            <div className="cvp-cost-notice">
-              All IRCC government fees sourced from ircc.canada.ca and subject to change without notice.
-              Third-party costs are approximate market-rate estimates only. Re-verify all fees immediately before filing.
-            </div>
-          </div>
-
-          {/* ── Section 10: Provincial Nomination ──────────────────────── */}
-          <div className="cvp-section">
-            <div className="cvp-section-title"><h2>Provincial Nomination Alignment</h2></div>
-            <p className="cvp-section-sub">Target jurisdictions evaluated against NOC {profile.nocCode} labour market demand.</p>
-            <div className="cvp-prov-grid">
-              <div className="cvp-prov-card rank1">
-                <h4>Ontario (ON)</h4>
-                <p className="cvp-prov-stream">OINP Human Capital Priorities</p>
-                <span className="cvp-pill eligible">Enhanced (EE-Linked)</span>
-                <div className="cvp-prov-divider" />
-                <p className="cvp-prov-body">
-                  Ontario&apos;s tech sector selects directly from the Express Entry pool. OINP regularly
-                  draws at significantly lower CRS cutoffs for in-demand NOCs. Zero job offer required.
-                </p>
-                <div className="cvp-prov-condition">
-                  <strong>Key Condition:</strong> Active Express Entry profile with Ontario as province of interest.
-                </div>
-              </div>
-              <div className="cvp-prov-card rank2">
-                <h4>British Columbia (BC)</h4>
-                <p className="cvp-prov-stream">BCPNP Tech</p>
-                <span className="cvp-pill likely">Enhanced (EE-Linked)</span>
-                <div className="cvp-prov-divider" />
-                <p className="cvp-prov-body">
-                  BC PNP Tech conducts predictable weekly targeted draws for tech talent. Efficient
-                  processing once invited. Among the fastest provincial routes for NOC TEER 0-1.
-                </p>
-                <div className="cvp-prov-condition">
-                  <strong>Key Condition:</strong> Valid job offer from a BC-registered employer required.
-                </div>
-              </div>
-              <div className="cvp-prov-card rank3">
-                <h4>Alberta (AB)</h4>
-                <p className="cvp-prov-stream">Alberta Express Entry Stream</p>
-                <span className="cvp-pill borderline">Enhanced (EE-Linked)</span>
-                <div className="cvp-prov-divider" />
-                <p className="cvp-prov-body">
-                  Alberta&apos;s Accelerated Tech Pathway directly selects from the Express Entry pool,
-                  frequently below standard CRS cutoffs. High disposable income; zero provincial sales tax.
-                </p>
-                <div className="cvp-prov-condition">
-                  <strong>Key Condition:</strong> Preference given to Alberta job offer or immediate family ties.
-                </div>
-              </div>
-            </div>
-            <div className="cvp-strategy primary" style={{ borderRadius: '8px' }}>
-              <h4>Province Recommendation Summary</h4>
-              <p>
-                Ontario represents the highest-probability nomination pathway for qualifying tech profiles.
-                OINP Human Capital Priorities requires zero job offer and systematically selects from the pool.
-                Establish the Express Entry profile immediately to expose the applicant to OINP radar.
-                Verify active OINP streams at ontario.ca/oinp before advising.
-              </p>
-            </div>
-          </div>
-
-          {/* ── Disclaimer ─────────────────────────────────────────────── */}
-          <div className="cvp-disclaimer">
-            <h4>Professional Disclaimer</h4>
-            <p>
-              This assessment has been prepared by Prashant Thirthingoth, a specialist in Canadian immigration documentation analysis with 20+ years of practitioner experience. It is provided for informational reference purposes only to clarify your profile against current IRCC criteria and document-level requirements. The analysis contained herein is expert consulting in the documentation domain—not immigration law advice, legal representation, regulated consulting, or formal eligibility determination.
+            <p className="cvp2-scenario-note">
+              All projections assume current IRCC rules. Verify live draw cutoffs at canada.ca before advising.
             </p>
-            <p style={{ marginTop: '10px' }}>
-              All eligibility assessments, CRS score calculations, and program pathway observations are based
-              on information retrieved exclusively from canada.ca as of {profile.reportDate} and are intended
-              solely to assist the reader in understanding their documentation position. They do not represent
-              a guaranteed outcome, a formal eligibility determination, or a strategic recommendation on which
-              any application decision should be based.
-            </p>
-            <h4 style={{ marginTop: '16px' }}>Data Sources</h4>
-            <div className="cvp-source-list">
-              <div>CRS Grid: canada.ca/.../criteria-comprehensive-ranking-system/grid.html</div>
-              <div>Express Entry Rounds: canada.ca/.../ministerial-instructions/express-entry-rounds.html</div>
-              <div>Proof of Funds: canada.ca/.../express-entry/documents/proof-funds.html</div>
-              <div>Government Fees: ircc.canada.ca/english/information/fees/fees.asp</div>
-            </div>
-            <div className="cvp-data-freshness">
-              Data currency: {profile.reportDate}. Re-verify all figures if referenced more than 30 days after the above date.
-            </div>
           </div>
+        )}
 
+        {/* ── 8: Legal Disclaimer ───────────────────────────────────────── */}
+        <div className="cvp2-disclaimer">
+          <p className="cvp2-disclaimer-title">Legal Disclaimer &amp; Data Sources</p>
+          <p className="cvp2-disclaimer-body">
+            This assessment has been prepared by Prashant Thirthingoth, a specialist in Canadian immigration
+            documentation analysis with 20+ years of practitioner experience. It is provided for informational
+            and guidance purposes only — not immigration law advice, regulated consulting, or a formal
+            eligibility determination.
+          </p>
+          <p className="cvp2-disclaimer-body">
+            All CRS scoring reflects IRCC rules published at canada.ca as of {profile.reportDate}. Immigration
+            regulations, program requirements, processing times, and CRS cutoff scores are subject to frequent
+            change without notice. Verify all information with official IRCC sources at{' '}
+            <strong>www.canada.ca/immigration</strong> before taking any action.
+          </p>
+          <div className="cvp2-disclaimer-sources">
+            <span>CRS Grid: canada.ca/crs-grid</span>
+            <span>Express Entry Rounds: canada.ca/express-entry-rounds</span>
+            <span>Proof of Funds: canada.ca/proof-funds</span>
+          </div>
+          <p className="cvp2-data-freshness">
+            Data currency: {profile.reportDate} · Report ID: {reportId(profile.name, profile.reportDate)}.
+            Re-verify if referenced more than 30 days after this date.
+          </p>
         </div>
+
       </div>
     </div>
   )
