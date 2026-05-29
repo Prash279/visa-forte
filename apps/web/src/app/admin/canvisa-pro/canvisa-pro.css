@@ -2092,6 +2092,9 @@ h3.cvp-h3 {
   font-size: 0.82rem;
   font-weight: 600;
   line-height: 1.4;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0 0.6rem;
 }
 
 .cvp2-matrix-gap-above {
@@ -2107,6 +2110,9 @@ h3.cvp-h3 {
   color: var(--cvp-teal);
   font-style: italic;
   line-height: 1.3;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  text-align: center;
 }
 
 .cvp2-matrix-range-none {
