@@ -11,6 +11,8 @@ import {
   type EducationLevel,
   type StreamEligibility,
   type FswImprovementSuggestion,
+  type FswGrid,
+  type ScenarioProjection,
 } from '@/lib/crs-calculator'
 import drawData from '@/lib/crs-draw-history.json'
 import fundsData from '@/lib/proof-of-funds.json'
@@ -187,6 +189,105 @@ function matrixRowStatus(
   if (row.gap >= 0) return 'above'
   if (row.gap > -50) return 'near'
   return 'below'
+}
+
+// ── CVP-7: Consultant Narrative Verdict ──────────────────────────────────────
+
+function narrativeTimeHint(scenario: ScenarioProjection): string {
+  const n = scenario.name.toLowerCase()
+  if (n.includes('spouse') && n.includes('lang')) return ', estimated 4–6 weeks (spouse language test)'
+  if (n.includes('lang') || n.includes('ielts') || n.includes('celpip') || n.includes('clb')) return ', estimated 4–6 weeks (language test retake)'
+  if (n.includes('canadian') && n.includes('work')) return ' — requires 12+ months of additional Canadian work experience'
+  if (n.includes('education') || n.includes('eca')) return ' — ECA evaluation typically takes 3–4 months'
+  return ''
+}
+
+function buildNarrative(
+  applicantName: string,
+  total: number,
+  poolEligible: boolean,
+  fsw: FswGrid,
+  drawMatrix: DrawCategoryRow[],
+  scenarios: ScenarioProjection[],
+  fswImprovements: FswImprovementSuggestion[],
+  ageAlert: AgeAlertResult | null,
+  profile: ApplicantProfile,
+  firstLangClbMin: number,
+): string {
+  const name = applicantName || 'The applicant'
+  const parts: string[] = []
+
+  // Component 1 — Score + Pool Status
+  parts.push(
+    poolEligible
+      ? `${name}'s CRS score of ${total} places them in the Express Entry pool.`
+      : `${name}'s CRS score of ${total} does not yet place them in the Express Entry pool.`
+  )
+
+  // Component 2 — Best Pathway
+  if (poolEligible) {
+    const eligibleRows = drawMatrix.filter(r => r.eligible && r.gap !== null)
+    const bestRow = eligibleRows.sort((a, b) => (b.gap ?? -999) - (a.gap ?? -999))[0] ?? null
+    if (bestRow && bestRow.mostRecentCutoff !== null && bestRow.gap !== null) {
+      const gapDesc =
+        bestRow.gap > 0 ? `${bestRow.gap} points above`
+        : bestRow.gap === 0 ? 'exactly at'
+        : `${Math.abs(bestRow.gap)} points below`
+      parts.push(
+        `Their most competitive pathway is ${bestRow.label}, where the most recent cutoff of ${bestRow.mostRecentCutoff} is ${gapDesc} their current score.`
+      )
+    } else {
+      parts.push(
+        `No specific draw category currently targets this profile — a Provincial Nominee Program nomination would add 600 points and resolve the draw gap.`
+      )
+    }
+  } else {
+    const fswGap = 67 - fsw.total
+    parts.push(
+      fswGap > 0
+        ? `Their primary pathway is the Federal Skilled Worker stream, currently ${fswGap} points below the 67-point selection threshold.`
+        : `Their Federal Skilled Worker selection factor score of ${fsw.total} meets the 67-point threshold — Express Entry pool access is available once the CRS profile is submitted.`
+    )
+  }
+
+  // Component 3 — Fastest Improvement
+  if (poolEligible && scenarios.length > 0) {
+    const top = scenarios[0]!
+    const timeHint = narrativeTimeHint(top)
+    parts.push(
+      `The highest-impact improvement is ${top.name.toLowerCase()}${timeHint}: ${top.change} would add ${top.delta} CRS points, projecting the score to ${top.projectedCrs}.`
+    )
+  } else if (!poolEligible && fswImprovements.length > 0) {
+    const top = fswImprovements[0]!
+    const qualifies = top.wouldQualify ? ', which would qualify the profile for Express Entry' : ''
+    parts.push(
+      `The highest-impact FSW improvement is ${top.action.toLowerCase()}${qualifies}, adding ${top.pointsGained} selection factor points (${top.currentFswTotal} → ${top.projectedFswTotal}).`
+    )
+  }
+
+  // Component 4 — Strategic Consideration (age alert takes priority over PNP)
+  if (ageAlert) {
+    parts.push(
+      `Note: applicant turns ${ageAlert.birthdayAge} in ${ageAlert.monthsUntilChange} month${ageAlert.monthsUntilChange === 1 ? '' : 's'} (${ageAlert.birthdayMonthYear}) — CRS age points decrease by ${ageAlert.pointsLost} at that birthday, making this timeline strategically significant.`
+    )
+  } else {
+    const pnpPlausible =
+      profile.nocTeer <= 3 &&
+      firstLangClbMin >= 7 &&
+      profile.education !== 'less_than_secondary' &&
+      profile.education !== 'secondary' &&
+      !profile.hasProvincialNomination
+    if (pnpPlausible) {
+      parts.push(
+        `A provincial nomination pathway — such as OINP Human Capital Priorities or BCPNP Tech Pilot — would add 600 CRS points and immediately resolve the draw gap; eligibility assessment is recommended.`
+      )
+    }
+  }
+
+  // Component 5 — Closing (always)
+  parts.push(`A full pathway assessment is recommended to confirm the optimal strategy and provincial eligibility.`)
+
+  return parts.join(' ')
 }
 
 // ── Age bracket alert ─────────────────────────────────────────────────────────
@@ -1497,6 +1598,26 @@ export default function CanVisaProTool() {
   )
   const hasAgeInput = Boolean(dateOfBirth)
 
+  const firstLangClbMin = Math.min(
+    result.firstLanguageBands.listening,
+    result.firstLanguageBands.reading,
+    result.firstLanguageBands.writing,
+    result.firstLanguageBands.speaking,
+  )
+
+  const narrative = buildNarrative(
+    profile.name,
+    total,
+    poolEligible,
+    fsw,
+    drawMatrix,
+    scenarios,
+    result.fswImprovements,
+    ageAlert,
+    profile,
+    firstLangClbMin,
+  )
+
   return (
     <div className="cvp-wrap" ref={reportRef}>
       {/* Toolbar */}
@@ -1523,6 +1644,13 @@ export default function CanVisaProTool() {
       </div>
 
       <div className="cvp2-body">
+
+        {/* ── CVP-7: Consultant Summary ──────────────────────────────── */}
+        <div className="cvp2-narrative-card">
+          <div className="cvp2-narrative-label">Consultant Summary</div>
+          <p className="cvp2-narrative-body">{narrative}</p>
+          <p className="cvp2-narrative-note">System-generated from applicant profile data. Review and supplement with professional assessment.</p>
+        </div>
 
         {/* ── CVP-5: Age Alert ───────────────────────────────────────── */}
         {ageAlert ? (

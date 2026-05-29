@@ -1661,6 +1661,39 @@ h3.cvp-h3 {
 }
 
 /* ── Responsive ────────────────────────────────────────────── */
+/* ── CVP-7 Consultant Summary ────────────────────────────── */
+.cvp2-narrative-card {
+  background: var(--cvp-card);
+  border: 1px solid var(--cvp-border);
+  border-left: 4px solid var(--cvp-teal);
+  border-radius: 6px;
+  padding: 1.375rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.cvp2-narrative-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cvp-teal);
+  margin-bottom: 0.75rem;
+}
+
+.cvp2-narrative-body {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--cvp-text);
+  margin: 0 0 0.75rem;
+}
+
+.cvp2-narrative-note {
+  font-size: 0.72rem;
+  color: var(--cvp-muted);
+  margin: 0;
+  font-style: italic;
+}
+
 /* ── CVP-5 Age Alert ─────────────────────────────────────── */
 .cvp2-age-alert {
   background: var(--cvp-card);
