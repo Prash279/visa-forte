@@ -1313,6 +1313,7 @@ h3.cvp-h3 {
 
 .cvp2-elig-badge {
   display: inline-block;
+  justify-self: center;
   padding: 0.25rem 0.625rem;
   border-radius: 4px;
   font-size: 0.75rem;
@@ -2079,10 +2080,15 @@ h3.cvp-h3 {
   color: var(--cvp-muted);
 }
 
+.cvp2-matrix-header > span:nth-child(6) {
+  text-align: center;
+}
+
 .cvp2-matrix-gap-cell {
   font-size: 0.82rem;
   font-weight: 600;
   line-height: 1.4;
+  text-align: center;
 }
 
 .cvp2-matrix-gap-above {
