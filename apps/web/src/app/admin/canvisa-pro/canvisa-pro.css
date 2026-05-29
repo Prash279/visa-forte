@@ -1808,6 +1808,7 @@ h3.cvp-h3 {
   .cvp-gauge-wrap { flex-direction: column; align-items: flex-start; gap: 20px; }
   .cvp-grid-2, .cvp-grid-3, .cvp-grid-4 { grid-template-columns: 1fr; }
   .cvp-brand-header { padding: 0.75rem 1rem; }
+  .cvp-brand-header-left { width: 100%; }
   .cvp-dob-selects { grid-template-columns: 1fr 1fr 1.4fr; }
   .cvp2-breakdown-grid { grid-template-columns: 1fr 1fr; }
 
