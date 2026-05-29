@@ -176,6 +176,37 @@ function dotPosition(score: number, max = 1200): { x: number; y: number } {
   return { x: 130 + 100 * Math.cos(angle), y: 180 - 100 * Math.sin(angle) }
 }
 
+// ── Date-of-birth helpers ─────────────────────────────────────────────────────
+
+function calcAgeFromDob(dob: string): number {
+  const birth = new Date(dob + 'T00:00:00')
+  const today = new Date()
+  let age = today.getFullYear() - birth.getFullYear()
+  const m = today.getMonth() - birth.getMonth()
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
+  return Math.max(0, age)
+}
+
+function getDobBounds(): { min: string; max: string } {
+  const today = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  return {
+    min: fmt(new Date(today.getFullYear() - 80, today.getMonth(), today.getDate())),
+    max: fmt(new Date(today.getFullYear() - 18, today.getMonth(), today.getDate())),
+  }
+}
+
+function daysInMonth(month: string, year: string): number {
+  if (!month || !year) return 31
+  return new Date(parseInt(year), parseInt(month), 0).getDate()
+}
+
+const DOB_BOUNDS   = getDobBounds()
+const DOB_YEAR_MAX = parseInt(DOB_BOUNDS.max.slice(0, 4))
+const DOB_YEAR_MIN = parseInt(DOB_BOUNDS.min.slice(0, 4))
+const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+
 // ── Initial form state ────────────────────────────────────────────────────────
 
 const DEFAULT_LANG: LanguageScores = {
@@ -766,8 +797,10 @@ export default function CanVisaProTool() {
   const [result, setResult] = useState<CrsResult | null>(null)
   const [maritalStatus, setMaritalStatus] = useState<'single' | 'married' | 'separated'>('single')
   const [hasSpouseLanguage, setHasSpouseLanguage] = useState(false)
-  const [birthYear, setBirthYear]   = useState<number | ''>('')
-  const [birthMonth, setBirthMonth] = useState<number | ''>('')
+  const [dobDay, setDobDay]     = useState('')
+  const [dobMonth, setDobMonth] = useState('')
+  const [dobYear, setDobYear]   = useState('')
+  const dateOfBirth = dobDay && dobMonth && dobYear ? `${dobYear}-${dobMonth}-${dobDay}` : ''
 
   // Live CLB preview while filling the form
   const firstClb = scoresToClb(profile.firstLanguageScores)
@@ -865,38 +898,70 @@ export default function CanVisaProTool() {
                 onChange={e => set('name', e.target.value)} placeholder="e.g. Kishore Sai" />
             </div>
             <div className="cvp-field">
+              <label className="cvp-label">Date of Birth</label>
+              <div className="cvp-dob-selects">
+                <select
+                  className="cvp-select"
+                  value={dobDay}
+                  onChange={e => {
+                    const day = e.target.value
+                    setDobDay(day)
+                    if (day && dobMonth && dobYear) {
+                      set('age', calcAgeFromDob(`${dobYear}-${dobMonth}-${day}`))
+                    } else { set('age', 0) }
+                  }}
+                >
+                  <option value="">DD</option>
+                  {Array.from({ length: daysInMonth(dobMonth, dobYear) }, (_, i) => {
+                    const d = String(i + 1).padStart(2, '0')
+                    return <option key={d} value={d}>{d}</option>
+                  })}
+                </select>
+                <select
+                  className="cvp-select"
+                  value={dobMonth}
+                  onChange={e => {
+                    const month = e.target.value
+                    setDobMonth(month)
+                    if (dobDay && month && dobYear) {
+                      set('age', calcAgeFromDob(`${dobYear}-${month}-${dobDay}`))
+                    } else { set('age', 0) }
+                  }}
+                >
+                  <option value="">MMM</option>
+                  {MONTH_LABELS.map((m, i) => {
+                    const val = String(i + 1).padStart(2, '0')
+                    return <option key={val} value={val}>{m}</option>
+                  })}
+                </select>
+                <select
+                  className="cvp-select"
+                  value={dobYear}
+                  onChange={e => {
+                    const year = e.target.value
+                    setDobYear(year)
+                    if (dobDay && dobMonth && year) {
+                      set('age', calcAgeFromDob(`${year}-${dobMonth}-${dobDay}`))
+                    } else { set('age', 0) }
+                  }}
+                >
+                  <option value="">YYYY</option>
+                  {Array.from({ length: DOB_YEAR_MAX - DOB_YEAR_MIN + 1 }, (_, i) => {
+                    const y = DOB_YEAR_MAX - i
+                    return <option key={y} value={String(y)}>{y}</option>
+                  })}
+                </select>
+              </div>
+            </div>
+            <div className="cvp-field">
               <label className="cvp-label">Age</label>
-              <input className="cvp-input" type="number" min={18} max={80}
-                value={profile.age} onChange={e => set('age', parseInt(e.target.value) || 0)} />
-            </div>
-            <div className="cvp-field">
-              <label className="cvp-label">
-                Birth Year <span className="cvp-optional">(optional — for age bracket analysis)</span>
-              </label>
               <input
-                className="cvp-input"
-                type="number"
-                min={1944}
-                max={2008}
-                placeholder="e.g. 1995"
-                value={birthYear}
-                onChange={e => setBirthYear(e.target.value ? parseInt(e.target.value) : '')}
+                className="cvp-input cvp-input-readonly"
+                type="text"
+                readOnly
+                value={dateOfBirth && profile.age > 0 ? `${profile.age} years` : ''}
+                placeholder="Auto-filled from date of birth"
               />
-            </div>
-            <div className="cvp-field">
-              <label className="cvp-label">
-                Birth Month <span className="cvp-optional">(optional)</span>
-              </label>
-              <select
-                className="cvp-select"
-                value={birthMonth}
-                onChange={e => setBirthMonth(e.target.value ? parseInt(e.target.value) : '')}
-              >
-                <option value="">— Select —</option>
-                {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((m, i) => (
-                  <option key={i + 1} value={i + 1}>{m}</option>
-                ))}
-              </select>
             </div>
             <div className="cvp-field">
               <label className="cvp-label">Report Date</label>
@@ -1311,12 +1376,10 @@ export default function CanVisaProTool() {
     ? crsRules.sectionA.ageWithSpouse as Record<string, number>
     : crsRules.sectionA.ageSingle as Record<string, number>
   const ageAlert = getAgeAlert(
-    (birthYear && birthMonth)
-      ? { birthYear: birthYear as number, birthMonth: birthMonth as number }
-      : null,
+    dateOfBirth ? { dob: dateOfBirth } : null,
     ageTableAdmin
   )
-  const hasAgeInput = Boolean(birthYear && birthMonth)
+  const hasAgeInput = Boolean(dateOfBirth)
 
   return (
     <div className="cvp-wrap" ref={reportRef}>
@@ -1331,6 +1394,15 @@ export default function CanVisaProTool() {
         <button className="cvp-marp-btn" onClick={downloadMarp}>
           ↓ Download PPTX Source (.md)
         </button>
+      </div>
+
+      <div className="cvp-brand-header">
+        <div className="cvp-brand-header-left">
+          <span className="cvp-brand-name">Visa Forte</span>
+          <span className="cvp-brand-divider" />
+          <span className="cvp-brand-tool">CanVisa Pro · Precision Assessment · Confidential</span>
+        </div>
+        <span className="cvp-brand-tagline">Engineered for Passage.</span>
       </div>
 
       <div className="cvp2-body">
@@ -1653,6 +1725,14 @@ export default function CanVisaProTool() {
             Data currency: {profile.reportDate} · Report ID: {reportId(profile.name, profile.reportDate)}.
             Re-verify if referenced more than 30 days after this date.
           </p>
+        </div>
+
+        {/* ── Visa Forte Brand Footer ─────────────────────────────────────── */}
+        <div className="cvp2-brand-footer">
+          <span className="cvp2-brand-footer-name">Visa Forte</span>
+          <span className="cvp2-brand-footer-info">
+            visaforte.com · prashant@visaforte.com · Engineered for Passage.
+          </span>
         </div>
 
       </div>
