@@ -14,6 +14,7 @@ import {
 } from '@/lib/crs-calculator'
 import drawData from '@/lib/crs-draw-history.json'
 import fundsData from '@/lib/proof-of-funds.json'
+import crsRules from '@/lib/crs-rules.json'
 import './canvisa-pro.css'
 import NocSearch from '@/components/NocSearch'
 
@@ -71,6 +72,67 @@ function getEligibleDrawCategories(
   }
   if (profile.hasProvincialNomination) cats.push('PNP')
   return cats
+}
+
+// ── Age bracket alert ─────────────────────────────────────────────────────────
+
+type AgeAlertResult = {
+  monthsUntilChange: number
+  pointsLost: number
+  currentPts: number
+  nextPts: number
+  birthdayAge: number
+  birthdayMonthYear: string
+}
+
+function getAgeAlert(
+  input: { dob?: string; birthYear?: number; birthMonth?: number } | null,
+  agePointsTable: Record<string, number>
+): AgeAlertResult | null {
+  const today = new Date()
+  let nextBirthdayDate: Date | null = null
+  let birthdayAge = 0
+
+  if (input?.dob) {
+    const [y, m, d] = input.dob.split('-').map(Number)
+    if (!y || !m || !d) return null
+    const thisYear = new Date(today.getFullYear(), m - 1, d)
+    const nextYear  = new Date(today.getFullYear() + 1, m - 1, d)
+    nextBirthdayDate = thisYear > today ? thisYear : nextYear
+    birthdayAge = nextBirthdayDate.getFullYear() - y
+  } else if (input?.birthYear != null && input?.birthMonth != null) {
+    const bMonth0 = input.birthMonth - 1
+    const thisYear = new Date(today.getFullYear(), bMonth0, 1)
+    const nextYear  = new Date(today.getFullYear() + 1, bMonth0, 1)
+    nextBirthdayDate = thisYear > today ? thisYear : nextYear
+    birthdayAge = nextBirthdayDate.getFullYear() - input.birthYear
+  } else {
+    return null
+  }
+
+  const monthsDiff =
+    (nextBirthdayDate.getFullYear() - today.getFullYear()) * 12 +
+    nextBirthdayDate.getMonth() - today.getMonth()
+
+  if (monthsDiff > 12 || monthsDiff < 0) return null
+
+  const currentAge = birthdayAge - 1
+  const currentPts = agePointsTable[String(Math.min(currentAge, 44))] ?? 0
+  const nextPts    = birthdayAge <= 44 ? (agePointsTable[String(birthdayAge)] ?? 0) : 0
+
+  if (nextPts >= currentPts) return null
+
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  const birthdayMonthYear = `${MONTHS[nextBirthdayDate.getMonth()]} ${nextBirthdayDate.getFullYear()}`
+
+  return {
+    monthsUntilChange: Math.max(1, monthsDiff),
+    pointsLost: currentPts - nextPts,
+    currentPts,
+    nextPts,
+    birthdayAge,
+    birthdayMonthYear,
+  }
 }
 
 const EDU_LABELS: Record<EducationLevel, string> = {
@@ -704,6 +766,8 @@ export default function CanVisaProTool() {
   const [result, setResult] = useState<CrsResult | null>(null)
   const [maritalStatus, setMaritalStatus] = useState<'single' | 'married' | 'separated'>('single')
   const [hasSpouseLanguage, setHasSpouseLanguage] = useState(false)
+  const [birthYear, setBirthYear]   = useState<number | ''>('')
+  const [birthMonth, setBirthMonth] = useState<number | ''>('')
 
   // Live CLB preview while filling the form
   const firstClb = scoresToClb(profile.firstLanguageScores)
@@ -804,6 +868,35 @@ export default function CanVisaProTool() {
               <label className="cvp-label">Age</label>
               <input className="cvp-input" type="number" min={18} max={80}
                 value={profile.age} onChange={e => set('age', parseInt(e.target.value) || 0)} />
+            </div>
+            <div className="cvp-field">
+              <label className="cvp-label">
+                Birth Year <span className="cvp-optional">(optional — for age bracket analysis)</span>
+              </label>
+              <input
+                className="cvp-input"
+                type="number"
+                min={1944}
+                max={2008}
+                placeholder="e.g. 1995"
+                value={birthYear}
+                onChange={e => setBirthYear(e.target.value ? parseInt(e.target.value) : '')}
+              />
+            </div>
+            <div className="cvp-field">
+              <label className="cvp-label">
+                Birth Month <span className="cvp-optional">(optional)</span>
+              </label>
+              <select
+                className="cvp-select"
+                value={birthMonth}
+                onChange={e => setBirthMonth(e.target.value ? parseInt(e.target.value) : '')}
+              >
+                <option value="">— Select —</option>
+                {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((m, i) => (
+                  <option key={i + 1} value={i + 1}>{m}</option>
+                ))}
+              </select>
             </div>
             <div className="cvp-field">
               <label className="cvp-label">Report Date</label>
@@ -1214,6 +1307,17 @@ export default function CanVisaProTool() {
 
   const maritalStatusStr = maritalStatus === 'married' ? 'Married / Common-Law' : maritalStatus === 'separated' ? 'Legally Separated' : 'Single'
 
+  const ageTableAdmin = profile.hasSpouse
+    ? crsRules.sectionA.ageWithSpouse as Record<string, number>
+    : crsRules.sectionA.ageSingle as Record<string, number>
+  const ageAlert = getAgeAlert(
+    (birthYear && birthMonth)
+      ? { birthYear: birthYear as number, birthMonth: birthMonth as number }
+      : null,
+    ageTableAdmin
+  )
+  const hasAgeInput = Boolean(birthYear && birthMonth)
+
   return (
     <div className="cvp-wrap" ref={reportRef}>
       {/* Toolbar */}
@@ -1230,6 +1334,31 @@ export default function CanVisaProTool() {
       </div>
 
       <div className="cvp2-body">
+
+        {/* ── CVP-5: Age Alert ───────────────────────────────────────── */}
+        {ageAlert ? (
+          <div className="cvp2-age-alert">
+            <div className="cvp2-age-alert-label">Strategic Consideration</div>
+            <p className="cvp2-age-alert-body">
+              Applicant approaches a CRS age bracket change in{' '}
+              <strong>{ageAlert.monthsUntilChange} month{ageAlert.monthsUntilChange === 1 ? '' : 's'}</strong>{' '}
+              ({ageAlert.birthdayMonthYear}). Current bracket:{' '}
+              <strong>{ageAlert.currentPts} points</strong>. Next bracket:{' '}
+              <strong>{ageAlert.nextPts} points</strong>. Difference:{' '}
+              <strong>−{ageAlert.pointsLost} points</strong>. Recommend prioritising
+              pathway progression before {ageAlert.birthdayMonthYear}.
+            </p>
+          </div>
+        ) : !hasAgeInput ? (
+          <div className="cvp2-generic-age-note">
+            <span className="cvp2-generic-age-icon">ℹ</span>
+            <span>
+              Age Bracket Note: Enter Birth Year and Birth Month above for a precise
+              timeline alert. Bracket boundaries have material CRS point implications
+              at ages 30, 36–45.
+            </span>
+          </div>
+        ) : null}
 
         {/* ── 1: Hero CRS Score Card ─────────────────────────────────── */}
         <section className="cvp2-hero">

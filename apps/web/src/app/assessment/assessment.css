@@ -1047,6 +1047,36 @@
 }
 
 /* ── Print ──────────────────────────────────────────────────── */
+/* ── Age Alert Banner (CVP-5) ────────────────────────────── */
+.asx-age-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  background: #FFFBEB;
+  border: 1.5px solid #F59E0B;
+  border-left: 4px solid #F59E0B;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem auto 0;
+  max-width: var(--max-w, 860px);
+}
+
+.asx-age-alert-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  color: #D97706;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.asx-age-alert-body {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: #92400E;
+}
+
+.asx-age-alert-body strong { color: #B45309; font-weight: 700; }
+
 @media print {
   .asx-toolbar,
   .asx-cta-card,

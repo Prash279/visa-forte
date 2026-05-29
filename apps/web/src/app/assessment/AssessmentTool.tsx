@@ -15,6 +15,7 @@ import {
 } from '@/lib/crs-calculator'
 import drawData from '@/lib/crs-draw-history.json'
 import fundsData from '@/lib/proof-of-funds.json'
+import crsRules from '@/lib/crs-rules.json'
 import './assessment.css'
 import NocSearch from '@/components/NocSearch'
 
@@ -85,6 +86,67 @@ function getEligibleDrawCategories(
   if (profile.hasProvincialNomination) cats.push('PNP')
 
   return cats
+}
+
+// ── Age bracket alert ─────────────────────────────────────────────────────────
+
+type AgeAlertResult = {
+  monthsUntilChange: number
+  pointsLost: number
+  currentPts: number
+  nextPts: number
+  birthdayAge: number
+  birthdayMonthYear: string
+}
+
+function getAgeAlert(
+  input: { dob?: string; birthYear?: number; birthMonth?: number } | null,
+  agePointsTable: Record<string, number>
+): AgeAlertResult | null {
+  const today = new Date()
+  let nextBirthdayDate: Date | null = null
+  let birthdayAge = 0
+
+  if (input?.dob) {
+    const [y, m, d] = input.dob.split('-').map(Number)
+    if (!y || !m || !d) return null
+    const thisYear = new Date(today.getFullYear(), m - 1, d)
+    const nextYear  = new Date(today.getFullYear() + 1, m - 1, d)
+    nextBirthdayDate = thisYear > today ? thisYear : nextYear
+    birthdayAge = nextBirthdayDate.getFullYear() - y
+  } else if (input?.birthYear != null && input?.birthMonth != null) {
+    const bMonth0 = input.birthMonth - 1
+    const thisYear = new Date(today.getFullYear(), bMonth0, 1)
+    const nextYear  = new Date(today.getFullYear() + 1, bMonth0, 1)
+    nextBirthdayDate = thisYear > today ? thisYear : nextYear
+    birthdayAge = nextBirthdayDate.getFullYear() - input.birthYear
+  } else {
+    return null
+  }
+
+  const monthsDiff =
+    (nextBirthdayDate.getFullYear() - today.getFullYear()) * 12 +
+    nextBirthdayDate.getMonth() - today.getMonth()
+
+  if (monthsDiff > 12 || monthsDiff < 0) return null
+
+  const currentAge = birthdayAge - 1
+  const currentPts = agePointsTable[String(Math.min(currentAge, 44))] ?? 0
+  const nextPts    = birthdayAge <= 44 ? (agePointsTable[String(birthdayAge)] ?? 0) : 0
+
+  if (nextPts >= currentPts) return null
+
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  const birthdayMonthYear = `${MONTHS[nextBirthdayDate.getMonth()]} ${nextBirthdayDate.getFullYear()}`
+
+  return {
+    monthsUntilChange: Math.max(1, monthsDiff),
+    pointsLost: currentPts - nextPts,
+    currentPts,
+    nextPts,
+    birthdayAge,
+    birthdayMonthYear,
+  }
 }
 
 // ── Date-of-birth helpers ─────────────────────────────────────────────────────
@@ -1030,6 +1092,11 @@ export default function AssessmentTool() {
 
   const scoreColor = total >= 500 ? 'high' : total >= 400 ? 'mid' : 'low'
 
+  const ageTable = profile.hasSpouse
+    ? crsRules.sectionA.ageWithSpouse as Record<string, number>
+    : crsRules.sectionA.ageSingle as Record<string, number>
+  const ageAlert = getAgeAlert(dateOfBirth ? { dob: dateOfBirth } : null, ageTable)
+
   return (
     <div className="asx-wrap">
       {/* Result toolbar */}
@@ -1046,6 +1113,20 @@ export default function AssessmentTool() {
       </div>
 
       <div className="asx-result">
+
+        {/* ── CVP-5: Age Alert Banner ──────────────────────────────── */}
+        {ageAlert && (
+          <div className="asx-age-alert">
+            <span className="asx-age-alert-icon">⚠</span>
+            <div className="asx-age-alert-body">
+              <strong>Age Alert:</strong> You turn {ageAlert.birthdayAge} in{' '}
+              {ageAlert.monthsUntilChange} month{ageAlert.monthsUntilChange === 1 ? '' : 's'}{' '}
+              ({ageAlert.birthdayMonthYear}). Your CRS age points decrease by{' '}
+              {ageAlert.pointsLost} — from {ageAlert.currentPts} to {ageAlert.nextPts}.
+              Improving your score or submitting your profile before this date preserves those points.
+            </div>
+          </div>
+        )}
 
         {/* ── Hero Score Card ─────────────────────────────────────── */}
         <section className="asx-score-hero">
