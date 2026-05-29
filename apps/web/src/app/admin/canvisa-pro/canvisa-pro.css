@@ -1726,17 +1726,19 @@ h3.cvp-h3 {
 .cvp-brand-header {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   gap: 0.2rem;
   padding: 0.75rem 2.5rem;
   background: var(--cvp-navy);
   border-bottom: 1px solid var(--cvp-border);
+  text-align: center;
 }
 
 .cvp-brand-header-left {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 1rem;
 }
 
 .cvp-brand-name {
