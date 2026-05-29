@@ -1641,8 +1641,8 @@ h3.cvp-h3 {
 
 /* ── cvp2 responsive ─────────────────────────────────────── */
 @media (max-width: 900px) {
-  .cvp2-hero { flex-direction: column; align-items: flex-start; gap: 1.25rem; }
-  .cvp2-hero-score { border-right: none; border-bottom: 1px solid var(--cvp-border); padding-right: 0; padding-bottom: 1.25rem; }
+  .cvp2-hero { flex-direction: column; align-items: stretch; gap: 1.25rem; }
+  .cvp2-hero-score { border-right: none; border-bottom: 1px solid var(--cvp-border); padding-right: 0; padding-bottom: 1.25rem; width: 100%; text-align: center; }
   .cvp2-breakdown-grid { grid-template-columns: 1fr 1fr; }
   .cvp2-elig-row { grid-template-columns: 1fr; gap: 0.375rem; }
   .cvp2-fsw-row { grid-template-columns: 1fr 1fr; }
@@ -1743,6 +1743,7 @@ h3.cvp-h3 {
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .cvp-brand-divider {
@@ -1805,6 +1806,10 @@ h3.cvp-h3 {
   .cvp-brand-header { flex-direction: column; align-items: flex-start; gap: 0.375rem; padding: 0.75rem 1rem; }
   .cvp-dob-selects { grid-template-columns: 1fr 1fr 1.4fr; }
   .cvp2-breakdown-grid { grid-template-columns: 1fr 1fr; }
+
+  /* Brand footer: stack on mobile so name and info don't collide */
+  .cvp2-brand-footer { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+  .cvp2-brand-footer-name { white-space: nowrap; }
 
   /* Toolbar: allow buttons to wrap and centre on tablet/mobile */
   .cvp-toolbar {
