@@ -1602,7 +1602,7 @@ The admin tool result view is rebuilt to match the public tool's section structu
 
 ### TASK CVP-5: Feature 2 — Age-Sensitive Timeline Alert (Public + Admin)
 
-**Status:** ⬜ NOT STARTED
+**Status:** ✅ COMPLETE — May 2026
 **Approved:** ✅ Approved by Prash — May 2026 (accepted recommendation to add to both tools)
 **Depends on:** CVP-4 for admin result placement; no dependency for the public tool change
 
@@ -1657,7 +1657,7 @@ An amber alert banner that fires automatically when the applicant is within 12 m
 
 ### TASK CVP-6: Feature 1 — Category Draw Eligibility Matrix (Admin Only)
 
-**Status:** ⬜ NOT STARTED
+**Status:** ✅ COMPLETE — May 2026
 **Approved:** ✅ Approved by Prash — May 2026 (admin only)
 **Depends on:** CVP-4 (result view base must exist before adding this section to it)
 
@@ -1713,7 +1713,7 @@ A structured eligibility matrix in the admin result view showing every IRCC draw
 
 ### TASK CVP-7: Feature 3 — Plain-Language Narrative Verdict (Admin Only)
 
-**Status:** ⬜ NOT STARTED
+**Status:** ✅ COMPLETE — May 2026
 **Approved:** ✅ Approved by Prash — May 2026 (admin only)
 **Depends on:** CVP-4, CVP-5, CVP-6 — the narrative references data from the draw matrix and age alert, so those sections must be built first
 
@@ -1762,7 +1762,7 @@ This narrative is the core consulting insight. Delivering it on the free public 
 
 ### TASK CVP-8: Final Integration — TypeScript Check + Deploy
 
-**Status:** ⬜ NOT STARTED
+**Status:** 🔄 IN PROGRESS
 **Approved:** ✅ Approved by Prash — May 2026
 **Depends on:** CVP-1 through CVP-7 all complete
 
