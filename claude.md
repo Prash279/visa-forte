@@ -88,6 +88,7 @@ At natural session end or context pressure:
 - **I/O:** All external I/O requires `try/catch` with named error paths. No silent swallowing.
 - **Constants:** No magic numbers. Named constants in `constants.ts` or `config.py`.
 - **Commits:** No commented-out dead code.
+- **CSS / UI — Mobile First (Non-Negotiable):** Write base styles at 375px first, layer breakpoints upward. Every layout or grid change must include updated `@media` rules in the same commit. Before marking any UI task done, verify at 375px → 768px → 1280px. No exceptions.
 
 ---
 

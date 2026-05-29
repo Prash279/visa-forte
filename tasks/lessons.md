@@ -114,6 +114,15 @@ If the lesson contains words like "useEffect", "state mismatch", "hydration erro
 
 ---
 
+## Category: Responsive Design — Mobile First (Non-Negotiable)
+
+**Lesson 1 — Every CSS change must include responsive breakpoints at the same time**
+- **What went wrong:** UI corrections were applied only to the desktop view. Tablet and mobile layouts were not updated at the same time, leaving them silently broken.
+- **Why it happened:** Styles were written desktop-first and responsive overrides were treated as an afterthought rather than a required part of every change.
+- **The rule going forward:** Mobile-first always. Write base styles for the smallest viewport (375px), then layer tablet and desktop overrides in the same commit. For the CanVisa Pro tool, the `@media (max-width: 900px)` block in `canvisa-pro.css` must be reviewed and updated every time a layout or grid class is touched. Before any UI task is marked done, mentally run through 375px → 768px → 1280px and confirm nothing breaks.
+
+---
+
 ## Category: UI & Brand Standards
 
 **Lesson 1 — All small text must meet the 12px digital minimum, always**

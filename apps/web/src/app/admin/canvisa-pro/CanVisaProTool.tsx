@@ -1462,7 +1462,7 @@ export default function CanVisaProTool() {
             {!poolEligible ? (
               <>
                 <p className="cvp2-card-sub">
-                  Draw cutoffs are not relevant yet — applicant must clear the FSW 67-point minimum to enter the pool.
+                  Express Entry pool access opens at 67 FSW points. The improvement scenarios below show the specific gaps to close and how quickly this profile can get there.
                 </p>
                 <div className="cvp2-gap-row cvp2-gap-below">
                   <div className="cvp2-gap-score">
@@ -1501,10 +1501,12 @@ export default function CanVisaProTool() {
                   </div>
                 ) : (
                   <div className="cvp2-no-draw">
-                    <p className="cvp2-no-draw-heading">No active draw category matched</p>
+                    <p className="cvp2-no-draw-heading">Nomination Route: The Recommended Primary Pathway</p>
                     <p className="cvp2-no-draw-body">
-                      Profile does not match an active draw category. Primary pathway: Provincial Nominee Program (PNP).
-                      With a nomination, effective CRS becomes <strong>{pnpScore}</strong>, placing well above PNP draw cutoffs.
+                      No category-based draw currently targets this profile — this is a well-known pattern for strong
+                      Provincial Nominee Program candidates. A PNP nomination elevates the effective CRS to{' '}
+                      <strong>{pnpScore}</strong>, placing this application comfortably above recent PNP draw
+                      cutoffs. This is the highest-confidence route to a permanent resident visa for this profile.
                     </p>
                   </div>
                 )}
