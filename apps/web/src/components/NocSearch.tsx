@@ -12,6 +12,7 @@ interface NocEntry {
 
 interface NocSearchProps {
   onSelect: (code: string, teer: 0 | 1 | 2 | 3 | 4 | 5, title: string) => void
+  onClear?: () => void
   theme: 'light' | 'dark'
 }
 
@@ -19,7 +20,7 @@ interface FuseInstance {
   search: (q: string) => { item: NocEntry }[]
 }
 
-export default function NocSearch({ onSelect, theme }: NocSearchProps): React.JSX.Element {
+export default function NocSearch({ onSelect, onClear, theme }: NocSearchProps): React.JSX.Element {
   const [query, setQuery]       = useState('')
   const [results, setResults]   = useState<NocEntry[]>([])
   const [isOpen, setIsOpen]     = useState(false)
@@ -78,12 +79,13 @@ export default function NocSearch({ onSelect, theme }: NocSearchProps): React.JS
     setQuery('')
     setResults([])
     setIsOpen(false)
-    onSelect('', 1, '')
+    if (onClear) onClear()
+    else onSelect('', 1, '')
   }
 
   return (
     <div className={`noc-search noc-${theme}`}>
-      <label className="noc-label">Search Occupation (NOC 2021)</label>
+      <label className="noc-label">Search by Job Title / Designation (optional)</label>
       {selected ? (
         <div className="noc-selected-wrap">
           <span className="noc-selected-text">

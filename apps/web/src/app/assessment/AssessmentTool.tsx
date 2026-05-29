@@ -413,6 +413,7 @@ export default function AssessmentTool() {
                 <NocSearch
                   theme="light"
                   onSelect={(code, teer) => setProfile(prev => ({ ...prev, nocCode: code, nocTeer: teer }))}
+                  onClear={() => setProfile(prev => ({ ...prev, nocCode: '', nocTeer: 1 }))}
                 />
               </div>
             </div>

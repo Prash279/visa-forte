@@ -124,6 +124,13 @@ const DEFAULT_LANG: LanguageScores = {
   speaking: 0,
 }
 
+function minSettlementFunds(familySize: number): number {
+  const size = Math.max(1, familySize)
+  const table = fundsData.byFamilySize as Record<string, number>
+  if (size <= 7) return table[String(size)] ?? 0
+  return (table['7'] ?? 40392) + (size - 7) * fundsData.extraPerMember
+}
+
 const INITIAL: ApplicantProfile = {
   name: '',
   age: 30,
@@ -147,7 +154,8 @@ const INITIAL: ApplicantProfile = {
   hasProvincialNomination: false,
   hasCanadianEducation: false,
   hasFamilyInCanada: false,
-  settlementFunds: 0,
+  hasSiblingInCanada: false,
+  settlementFunds: minSettlementFunds(1),
   familySize: 1,
   hasCriminalRecord: false,
   hasMedicalCondition: false,
@@ -806,6 +814,7 @@ export default function CanVisaProTool() {
               <NocSearch
                 theme="dark"
                 onSelect={(code, teer) => setProfile(prev => ({ ...prev, nocCode: code, nocTeer: teer }))}
+                onClear={() => setProfile(prev => ({ ...prev, nocCode: '', nocTeer: 1 }))}
               />
             </div>
             <div className="cvp-field">
@@ -1056,7 +1065,10 @@ export default function CanVisaProTool() {
               <label className="cvp-label">Family Size (including applicant)</label>
               <input className="cvp-input" type="number" min={1} max={10}
                 value={profile.familySize}
-                onChange={e => set('familySize', parseInt(e.target.value) || 1)} />
+                onChange={e => {
+                  const size = parseInt(e.target.value) || 1
+                  setProfile(prev => ({ ...prev, familySize: size, settlementFunds: minSettlementFunds(size) }))
+                }} />
             </div>
           </div>
 
@@ -1075,6 +1087,11 @@ export default function CanVisaProTool() {
               <input type="checkbox" checked={profile.hasFamilyInCanada}
                 onChange={e => set('hasFamilyInCanada', e.target.checked)} />
               <span className="cvp-checkbox-label">Has family in Canada (citizen or PR)</span>
+            </label>
+            <label className="cvp-checkbox-row" style={{ margin: 0 }}>
+              <input type="checkbox" checked={profile.hasSiblingInCanada ?? false}
+                onChange={e => set('hasSiblingInCanada', e.target.checked)} />
+              <span className="cvp-checkbox-label">Has sibling in Canada (citizen or PR) (+15 CRS)</span>
             </label>
           </div>
 
