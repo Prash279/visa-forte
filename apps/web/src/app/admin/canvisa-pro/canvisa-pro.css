@@ -1186,10 +1186,10 @@ h3.cvp-h3 {
 .cvp2-gap-score,
 .cvp2-gap-vs {
   flex: 1;
-  padding: 1rem 1.25rem;
+  padding: 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.3rem;
 }
 
 .cvp2-gap-vs {
@@ -1198,7 +1198,7 @@ h3.cvp-h3 {
 
 .cvp2-gap-label,
 .cvp2-gap-your-label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--cvp-muted);
@@ -1218,7 +1218,7 @@ h3.cvp-h3 {
 }
 
 .cvp2-gap-diff {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
@@ -1296,9 +1296,9 @@ h3.cvp-h3 {
 
 .cvp2-elig-row {
   display: grid;
-  grid-template-columns: 1.6fr 0.9fr 2fr;
+  grid-template-columns: 1.5fr 1.1fr 2fr;
   align-items: center;
-  padding: 0.875rem 1rem;
+  padding: 0.875rem 1.25rem;
   gap: 1rem;
   border-bottom: 1px solid var(--cvp-border);
 }
@@ -1512,13 +1512,13 @@ h3.cvp-h3 {
 
 .cvp2-scenario-row {
   display: grid;
-  grid-template-columns: 3.5rem 1fr 7rem;
+  grid-template-columns: 4rem 1fr 7.5rem;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
   background: rgba(255,255,255,0.03);
   border: 1px solid var(--cvp-border);
   border-radius: 6px;
-  padding: 0.875rem 1rem;
+  padding: 1rem 1.25rem;
 }
 
 .cvp2-scenario-delta {
@@ -1942,16 +1942,22 @@ h3.cvp-h3 {
 
 .cvp2-matrix-table {
   width: 100%;
-  min-width: 700px;
 }
+
+/*
+ * "Your Score" (5th column) hidden at all widths — same value every row, adds no information.
+ * Desktop 6 columns: Category | Eligible | Cutoff | Date | Gap | Range
+ */
+.cvp2-matrix-header > span:nth-child(5),
+.cvp2-matrix-score { display: none; }
 
 .cvp2-matrix-header,
 .cvp2-matrix-row {
   display: grid;
-  grid-template-columns: 2.2fr 1.1fr 0.8fr 1.1fr 0.8fr 1fr 1.2fr;
+  grid-template-columns: 2.1fr 1.1fr 0.75fr 1.1fr 1.65fr 1.2fr;
   align-items: center;
   gap: 0;
-  padding: 0.55rem 0.75rem;
+  padding: 0.6rem 1rem;
 }
 
 .cvp2-matrix-header {
@@ -1987,7 +1993,7 @@ h3.cvp-h3 {
 .cvp2-matrix-row[data-status='ineligible'] {
   background: rgba(255, 255, 255, 0.01);
   border-left: 3px solid transparent;
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
 .cvp2-matrix-row[data-status='french-note'] {
@@ -1999,6 +2005,7 @@ h3.cvp-h3 {
   font-size: 0.84rem;
   font-weight: 500;
   color: var(--cvp-text);
+  line-height: 1.35;
 }
 
 .cvp2-matrix-row[data-status='ineligible'] .cvp2-matrix-cat {
@@ -2011,8 +2018,8 @@ h3.cvp-h3 {
   font-size: 0.6rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 2px 6px;
-  border-radius: 2px;
+  padding: 3px 7px;
+  border-radius: 3px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -2034,7 +2041,6 @@ h3.cvp-h3 {
 
 .cvp2-matrix-cutoff,
 .cvp2-matrix-date,
-.cvp2-matrix-score,
 .cvp2-matrix-range {
   font-size: 0.82rem;
   color: var(--cvp-muted);
@@ -2043,6 +2049,7 @@ h3.cvp-h3 {
 .cvp2-matrix-gap-cell {
   font-size: 0.82rem;
   font-weight: 600;
+  line-height: 1.4;
 }
 
 .cvp2-matrix-gap-above {
