@@ -2086,9 +2086,8 @@ h3.cvp-h3 {
 }
 
 .cvp2-matrix-gap-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
+  text-align: center;
   font-size: 0.82rem;
   font-weight: 600;
   line-height: 1.4;
@@ -2106,6 +2105,7 @@ h3.cvp-h3 {
 }
 
 .cvp2-matrix-french-note {
+  display: block;
   font-size: 0.75rem;
   color: var(--cvp-teal);
   font-style: italic;
