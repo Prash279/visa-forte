@@ -74,6 +74,121 @@ function getEligibleDrawCategories(
   return cats
 }
 
+// ── CVP-6: Category Draw Eligibility Matrix ───────────────────────────────────
+
+type DrawCategoryRow = {
+  category: string
+  label: string
+  eligible: boolean
+  frenchNote: string | null
+  mostRecentCutoff: number | null
+  mostRecentDate: string | null
+  gap: number | null
+  rangeMin: number | null
+  rangeMax: number | null
+  singleDraw: boolean
+  noRecentDraws: boolean
+}
+
+function buildDrawMatrix(
+  profile: ApplicantProfile,
+  elig: StreamEligibility,
+  secondLangBands: LanguageBands | undefined,
+  allDraws: Draw[],
+  applicantCrs: number
+): DrawCategoryRow[] {
+  const today = new Date()
+  const cutoffDate = new Date(today.getTime() - 183 * 24 * 60 * 60 * 1000)
+  const nocNum = parseInt(profile.nocCode, 10)
+
+  const isFrenchTest =
+    profile.hasSecondLanguage &&
+    (profile.secondLanguageScores?.testType === 'TEF' ||
+      profile.secondLanguageScores?.testType === 'TCF')
+  const frenchClbMet =
+    secondLangBands != null &&
+    secondLangBands.listening >= 7 && secondLangBands.reading >= 7 &&
+    secondLangBands.writing >= 7 && secondLangBands.speaking >= 7
+
+  // NOC-based eligibility flags
+  const isHealthcare = !isNaN(nocNum) && nocNum >= 30010 && nocNum <= 35109
+  const isTrades = !isNaN(nocNum) && (
+    (nocNum >= 72000 && nocNum <= 75199) ||
+    (nocNum >= 82000 && nocNum <= 82099) ||
+    (nocNum >= 92000 && nocNum <= 95199)
+  )
+  const isEducation = !isNaN(nocNum) && nocNum >= 40000 && nocNum <= 41499
+  // Senior management: NOC 2021 major group 00 (00010–00015)
+  const isSeniorMgr = !isNaN(nocNum) && nocNum >= 10 && nocNum <= 15
+  // Physicians: NOC 2021 unit groups 31100–31120
+  const isPhysician = !isNaN(nocNum) && nocNum >= 31100 && nocNum <= 31120
+  const hasCwe = profile.canadianWorkExperienceYears >= 1
+
+  type CategoryDef = {
+    key: string
+    label: string
+    eligible: boolean
+    matchDraw: (t: string) => boolean
+  }
+
+  const categories: CategoryDef[] = [
+    { key: 'CEC',        label: 'Canadian Experience Class',    eligible: elig.cec.eligible,              matchDraw: t => /canadian experience class/i.test(t) },
+    { key: 'French',     label: 'French Language Proficiency',  eligible: isFrenchTest && frenchClbMet,   matchDraw: t => /french/i.test(t) },
+    { key: 'Healthcare', label: 'Healthcare & Social Services', eligible: isHealthcare,                   matchDraw: t => /health/i.test(t) },
+    { key: 'Trades',     label: 'Trades Occupations',           eligible: isTrades,                       matchDraw: t => /trade/i.test(t) },
+    { key: 'Education',  label: 'Education Occupations',        eligible: isEducation,                    matchDraw: t => /education/i.test(t) },
+    { key: 'Senior Mgr', label: 'Senior Managers with CWE',     eligible: isSeniorMgr && hasCwe,         matchDraw: t => /senior manager/i.test(t) },
+    { key: 'Physicians', label: 'Physicians with CWE',          eligible: isPhysician && hasCwe,          matchDraw: t => /physician/i.test(t) },
+    { key: 'PNP',        label: 'Provincial Nominee Program',   eligible: profile.hasProvincialNomination, matchDraw: t => /pnp|provincial nominee/i.test(t) },
+  ]
+
+  // French note: no French test taken but CRS already exceeds most recent French cutoff
+  const frenchDraws = allDraws.filter(d => /french/i.test(d.type))
+  const recentFrenchCutoff = frenchDraws[0]?.cutoffScore ?? null
+  const frenchNote: string | null =
+    !isFrenchTest && recentFrenchCutoff !== null && applicantCrs > recentFrenchCutoff
+      ? 'Would qualify — add French test (CLB 7+)'
+      : null
+
+  return categories.map(({ key, label, eligible, matchDraw }) => {
+    const catDraws = allDraws.filter(d => matchDraw(d.type))
+    const mostRecentDraw = catDraws[0] ?? null
+    const mostRecentCutoff = mostRecentDraw?.cutoffScore ?? null
+    const mostRecentDate = mostRecentDraw?.date ?? null
+    const gap = eligible && mostRecentCutoff !== null ? applicantCrs - mostRecentCutoff : null
+
+    const draws6m = catDraws.filter(d => new Date(d.date) >= cutoffDate)
+    const cutoffs6m = draws6m.map(d => d.cutoffScore)
+    const rangeMin = cutoffs6m.length > 0 ? Math.min(...cutoffs6m) : null
+    const rangeMax = cutoffs6m.length > 0 ? Math.max(...cutoffs6m) : null
+
+    return {
+      category: key,
+      label,
+      eligible,
+      frenchNote: key === 'French' ? frenchNote : null,
+      mostRecentCutoff,
+      mostRecentDate,
+      gap,
+      rangeMin,
+      rangeMax,
+      singleDraw: draws6m.length === 1,
+      noRecentDraws: draws6m.length === 0,
+    }
+  })
+}
+
+function matrixRowStatus(
+  row: DrawCategoryRow
+): 'above' | 'near' | 'below' | 'ineligible' | 'french-note' {
+  if (row.frenchNote) return 'french-note'
+  if (!row.eligible) return 'ineligible'
+  if (row.gap === null) return 'below'
+  if (row.gap >= 0) return 'above'
+  if (row.gap > -50) return 'near'
+  return 'below'
+}
+
 // ── Age bracket alert ─────────────────────────────────────────────────────────
 
 type AgeAlertResult = {
@@ -1358,6 +1473,7 @@ export default function CanVisaProTool() {
   const gap = cutoff !== null ? total - cutoff : null
   const hasDrawData = allDraws.length > 0
   const pnpScore = total + 600
+  const drawMatrix = buildDrawMatrix(profile, elig, result.secondLanguageBands, allDraws, total)
 
   const programs = [
     { name: 'Express Entry Pool',          eligible: elig.expressEntryPool.eligible, likely: false,                   reason: elig.expressEntryPool.reason },
@@ -1532,6 +1648,75 @@ export default function CanVisaProTool() {
             )}
           </div>
         )}
+
+        {/* ── 2.5: Category Draw Eligibility Matrix ────────────────────── */}
+        <div className="cvp2-card cvp2-matrix-card">
+          <h2 className="cvp2-card-title">Category Draw Eligibility Matrix</h2>
+          <p className="cvp2-card-sub">
+            All active IRCC draw categories evaluated against this profile. Multiple pathways may be available simultaneously.
+          </p>
+          <div className="cvp2-matrix-scroll">
+            <div className="cvp2-matrix-table">
+              <div className="cvp2-matrix-header">
+                <span>Category</span>
+                <span>Eligible</span>
+                <span>Cutoff</span>
+                <span className="cvp2-matrix-col-date">Draw Date</span>
+                <span>Your Score</span>
+                <span>Gap</span>
+                <span className="cvp2-matrix-col-range">6-Month Range</span>
+              </div>
+              {drawMatrix.map(row => {
+                const status = matrixRowStatus(row)
+                return (
+                  <div key={row.category} className="cvp2-matrix-row" data-status={status}>
+                    <span className="cvp2-matrix-cat">{row.label}</span>
+                    <span className="cvp2-matrix-elig">
+                      {row.frenchNote ? (
+                        <span className="cvp2-matrix-badge" data-status="french-note">NOTE</span>
+                      ) : row.eligible ? (
+                        <span className="cvp2-matrix-badge" data-status="eligible">ELIGIBLE</span>
+                      ) : (
+                        <span className="cvp2-matrix-badge" data-status="ineligible">NOT ELIGIBLE</span>
+                      )}
+                    </span>
+                    <span className="cvp2-matrix-cutoff">
+                      {row.mostRecentCutoff ?? '—'}
+                    </span>
+                    <span className="cvp2-matrix-col-date cvp2-matrix-date">
+                      {row.mostRecentDate ? fmtDate(row.mostRecentDate) : '—'}
+                    </span>
+                    <span className="cvp2-matrix-score">
+                      {row.eligible || row.frenchNote ? total : '—'}
+                    </span>
+                    <span className="cvp2-matrix-gap-cell">
+                      {row.frenchNote ? (
+                        <span className="cvp2-matrix-french-note">{row.frenchNote}</span>
+                      ) : row.gap !== null ? (
+                        row.gap >= 0
+                          ? <span className="cvp2-matrix-gap-above">+{row.gap} pts</span>
+                          : <span className="cvp2-matrix-gap-below">−{Math.abs(row.gap)} pts</span>
+                      ) : '—'}
+                    </span>
+                    <span className="cvp2-matrix-col-range cvp2-matrix-range">
+                      {row.noRecentDraws
+                        ? <span className="cvp2-matrix-range-none">No recent draws</span>
+                        : row.singleDraw
+                        ? <span className="cvp2-matrix-range-single">Single draw · {row.rangeMin}</span>
+                        : row.rangeMin !== null && row.rangeMax !== null
+                        ? `${row.rangeMin}–${row.rangeMax}`
+                        : '—'
+                      }
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+          <p className="cvp2-matrix-note">
+            Data sourced from canada.ca Express Entry draw history. Draw frequency, cutoffs, and eligibility categories are subject to change without notice.
+          </p>
+        </div>
 
         {/* ── 3: Program Eligibility ────────────────────────────────────── */}
         <div className="cvp2-card">
