@@ -2142,7 +2142,7 @@ h3.cvp-h3 {
 
   .cvp2-matrix-header,
   .cvp2-matrix-row {
-    grid-template-columns: 2.2fr 1.1fr 0.8fr 0.8fr 1fr;
+    grid-template-columns: 2.2fr 1.1fr 0.8fr 1.8fr;
   }
 
   .cvp2-matrix-table {
@@ -2153,7 +2153,7 @@ h3.cvp-h3 {
 @media (max-width: 480px) {
   .cvp2-matrix-header,
   .cvp2-matrix-row {
-    grid-template-columns: 2fr 1fr 0.7fr 1fr;
+    grid-template-columns: 2fr 1fr 0.7fr 1.3fr;
     padding: 0.5rem 0.5rem;
   }
 
