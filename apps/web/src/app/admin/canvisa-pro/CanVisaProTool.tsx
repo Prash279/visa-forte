@@ -1399,10 +1399,9 @@ export default function CanVisaProTool() {
       <div className="cvp-brand-header">
         <div className="cvp-brand-header-left">
           <span className="cvp-brand-name">Visa Forte</span>
-          <span className="cvp-brand-divider" />
-          <span className="cvp-brand-tool">CanVisa Pro · Precision Assessment · Confidential</span>
+          <span className="cvp-brand-tagline">Engineered for Passage.</span>
         </div>
-        <span className="cvp-brand-tagline">Engineered for Passage.</span>
+        <span className="cvp-brand-tool">CanVisa Pro · Precision Assessment · Confidential</span>
       </div>
 
       <div className="cvp2-body">
