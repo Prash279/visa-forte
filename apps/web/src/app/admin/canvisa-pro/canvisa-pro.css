@@ -1657,8 +1657,8 @@ h3.cvp-h3 {
 /* ── Responsive ────────────────────────────────────────────── */
 /* ── CVP-5 Age Alert ─────────────────────────────────────── */
 .cvp2-age-alert {
-  background: rgba(253, 224, 71, 0.06);
-  border: 1px solid rgba(253, 224, 71, 0.35);
+  background: var(--cvp-card);
+  border: 1px solid rgba(253, 224, 71, 0.45);
   border-left: 4px solid var(--cvp-amber);
   border-radius: 6px;
   padding: 1.125rem 1.375rem;
@@ -1686,12 +1686,13 @@ h3.cvp-h3 {
   display: flex;
   align-items: flex-start;
   gap: 0.625rem;
-  background: rgba(100, 116, 139, 0.08);
+  background: var(--cvp-card);
   border: 1px solid var(--cvp-border);
+  border-left: 3px solid var(--cvp-muted);
   border-radius: 6px;
   padding: 0.875rem 1.125rem;
   font-size: 0.82rem;
-  color: #64748B;
+  color: var(--cvp-muted);
   line-height: 1.65;
   margin-bottom: 1.5rem;
 }
