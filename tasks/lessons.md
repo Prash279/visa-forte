@@ -121,6 +121,11 @@ If the lesson contains words like "useEffect", "state mismatch", "hydration erro
 - **Why it happened:** Styles were written desktop-first and responsive overrides were treated as an afterthought rather than a required part of every change.
 - **The rule going forward:** Mobile-first always. Write base styles for the smallest viewport (375px), then layer tablet and desktop overrides in the same commit. For the CanVisa Pro tool, the `@media (max-width: 900px)` block in `canvisa-pro.css` must be reviewed and updated every time a layout or grid class is touched. Before any UI task is marked done, mentally run through 375px → 768px → 1280px and confirm nothing breaks.
 
+**Lesson 2 — Three specific CanVisa Pro mobile rules that were missing and must never be left out**
+- **What went wrong:** The assessment report looked broken on phones: (1) the toolbar buttons were squished side-by-side with no wrapping because `.cvp-toolbar` had no mobile rule, (2) the "Minimum Required (family of X)" funds label split mid-sentence while its value misaligned because `.cvp2-funds-row` used `align-items: baseline` with no mobile override, (3) the report body content was clipped at the edges because `.cvp2-body` kept its 2rem horizontal padding on a 390px screen.
+- **Why it happened:** New UI elements were added to the report without being included in the existing `@media (max-width: 900px)` block in `canvisa-pro.css`.
+- **The rule going forward:** Every time any of these classes are touched — `.cvp-toolbar`, `.cvp2-funds-row`, `.cvp2-body`, `.cvp2-card`, `.cvp2-hero`, `.cvp2-scenario-row` — the 900px and 480px breakpoints in `canvisa-pro.css` must be updated in the same commit. The pattern: toolbar wraps with `flex-wrap: wrap; justify-content: center; gap: 0.5rem`, funds label gets `flex: 1` and value gets `white-space: nowrap; flex-shrink: 0`, body padding shrinks to `1rem` on phone.
+
 ---
 
 ## Category: UI & Brand Standards
