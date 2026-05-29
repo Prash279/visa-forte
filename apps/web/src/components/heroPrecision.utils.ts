@@ -2,9 +2,9 @@ export const CELL_SIZE = 48;
 export const FLICKER_DURATION = 400;
 export const RELEASE_DURATION = 800;
 export const HOLD_OPACITY = 0.85;
-export const FLICKER_CYCLES = 3;
+const FLICKER_CYCLES = 3;
 export const MAX_ACTIVE = 5;
-export const EXCLUSION_CENTER_FRACTION = 0.30;
+const EXCLUSION_CENTER_FRACTION = 0.30;
 export const MIN_CELL_DISTANCE = 3;
 
 export interface LockPoint {

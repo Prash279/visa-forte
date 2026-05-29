@@ -1490,7 +1490,7 @@ A reusable `NocSearch` typeahead component that auto-populates the NOC code and 
 
 ### TASK CVP-3: Admin Tool Form Upgrades
 
-**Status:** ⬜ NOT STARTED
+**Status:** ✅ COMPLETE — May 2026
 **Approved:** ✅ Approved by Prash — May 2026
 **Depends on:** Nothing — independent of CVP-1 and CVP-2; can proceed in parallel if needed
 
@@ -1536,7 +1536,7 @@ Without the spouse language section, a married applicant with a spouse scoring C
 
 ### TASK CVP-4: Admin Tool Result View — Base Replication
 
-**Status:** ⬜ NOT STARTED
+**Status:** ✅ COMPLETE — May 2026
 **Approved:** ✅ Approved by Prash — May 2026
 **Depends on:** CVP-3 (form state must be correct before the result view is built)
 

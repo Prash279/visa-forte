@@ -2,9 +2,6 @@
     "private": true,
     "name": "visa-forte",
     "version": "0.1.0",
-    "scripts": {
-        "test": "jest"
-    },
     "devDependencies": {
         "@playwright/test": "^1.59.1"
     }
