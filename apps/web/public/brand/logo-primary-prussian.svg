@@ -12,7 +12,7 @@
   <rect x="70" y="50" width="192" height="1" fill="#C97B1E"/>
   <text font-family="'DM Sans','Helvetica Neue',Helvetica,Arial,sans-serif"
         font-size="9" font-weight="400" letter-spacing="2.3"
-        fill="#F8F4EE" fill-opacity="0.85">
+        fill="#FFFFFF" fill-opacity="1">
     <tspan x="70" y="65">ENGINEERED FOR PASSAGE</tspan><tspan fill="#C97B1E" fill-opacity="1">.</tspan>
   </text>
 </svg>
