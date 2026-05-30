@@ -96,7 +96,7 @@ nav#nav.scrolled { padding: 0.75rem 2.5rem; }
 }
 
 .nav-logo {
-  height: 44px;
+  height: 54px;
   width: auto;
   display: block;
 }
@@ -491,8 +491,6 @@ footer.site-footer {
 @media (max-width: 860px) {
   nav#nav { padding: 0.9rem 1.5rem; }
   nav#nav.scrolled { padding: 0.75rem 1.5rem; }
-
-  .nav-logo { height: 54px; }
 
   /* Hide all desktop-only nav items on mobile */
   .nav-links,
