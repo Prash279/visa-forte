@@ -1,0 +1,8 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Visa Forte favicon — square crop, mark scaled to 75%, pearl ground -->
+  <rect width="48" height="48" fill="#F8F4EE"/>
+  <g transform="translate(6,1.5) scale(0.75)">
+    <path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#0C2340"/>
+    <rect x="12" y="16" width="24" height="2" fill="#C97B1E"/>
+  </g>
+</svg>

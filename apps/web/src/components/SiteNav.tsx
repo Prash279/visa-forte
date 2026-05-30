@@ -5,6 +5,7 @@
 // Handles: scroll compaction, mobile hamburger menu, active link state,
 // and the "Book a Consultation" mailto CTA.
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -60,8 +61,14 @@ export default function SiteNav() {
       <nav id="nav" className={scrolled ? "scrolled" : ""}>
         {/* Brand — links to homepage */}
         <Link href="/" className="nav-brand">
-          <span className="nav-wordmark">Visa Forte</span>
-          <span className="nav-tagline">Engineered for Passage.</span>
+          <Image
+            src="/brand/logo-primary-prussian.svg"
+            alt="Visa Forte — Engineered for Passage."
+            width={200}
+            height={54}
+            priority
+            className="nav-logo"
+          />
         </Link>
 
         {/* Desktop nav links */}

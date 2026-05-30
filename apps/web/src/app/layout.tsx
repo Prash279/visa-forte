@@ -26,6 +26,9 @@ export const metadata: Metadata = {
   title: "Visa Forte — Forensic Immigration Documentation | Engineered for Passage.",
   description:
     "20 years of forensic immigration documentation expertise. Express Entry, FSW, PNP. Every file personally reviewed. Zero margin for error.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

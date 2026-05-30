@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visa Forte — Brand Identity Standards 2025</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── Reset ──────────────────────────────────────────── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --prussian: #0C2340;
+  --saffron:  #C97B1E;
+  --pearl:    #F8F4EE;
+  --serif:    'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --sans:     'DM Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+body { background: #ddd8d0; font-family: var(--sans); }
+
+/* ─── Page shell ─────────────────────────────────────── */
+.page {
+  width: 794px;
+  min-height: 1123px;
+  margin: 0 auto 6px;
+  background: var(--pearl);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.page.on-prussian { background: var(--prussian); }
+.page.on-white    { background: #ffffff; }
+
+/* ─── Common page furniture ──────────────────────────── */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 56px 0;
+  border-bottom: 1px solid rgba(12,35,64,0.08);
+  padding-bottom: 20px;
+}
+.page-header.dark { border-color: rgba(248,244,238,0.1); }
+
+.page-label {
+  font-family: var(--sans);
+  font-size: 7.5px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(12,35,64,0.35);
+}
+.page-label.dark { color: rgba(248,244,238,0.3); }
+
+.page-num {
+  font-family: var(--serif);
+  font-size: 11px;
+  color: rgba(12,35,64,0.25);
+}
+.page-num.dark { color: rgba(248,244,238,0.25); }
+
+.page-content { padding: 56px 56px; flex: 1; }
+.page-content.no-top { padding-top: 0; }
+
+/* ─── Section header ─────────────────────────────────── */
+.section-intro {
+  margin-bottom: 40px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid rgba(12,35,64,0.1);
+}
+.section-intro.dark { border-color: rgba(248,244,238,0.12); }
+
+.section-index {
+  font-family: var(--serif);
+  font-size: 11px;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  color: var(--saffron);
+  display: block;
+  margin-bottom: 10px;
+}
+
+.section-title {
+  font-family: var(--serif);
+  font-size: 34px;
+  font-weight: 500;
+  color: var(--prussian);
+  line-height: 1.15;
+}
+.section-title.dark { color: var(--pearl); }
+
+.section-desc {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.75;
+  color: rgba(12,35,64,0.55);
+  margin-top: 12px;
+  max-width: 580px;
+}
+.section-desc.dark { color: rgba(248,244,238,0.5); }
+
+/* ─── Typography helpers ─────────────────────────────── */
+.eyebrow {
+  font-family: var(--sans);
+  font-size: 7.5px;
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(12,35,64,0.38);
+  display: block;
+  margin-bottom: 8px;
+}
+.eyebrow.dark { color: rgba(248,244,238,0.35); }
+.eyebrow.saffron { color: var(--saffron); }
+
+.body-text {
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 300;
+  line-height: 1.8;
+  color: rgba(12,35,64,0.65);
+}
+.body-text.dark { color: rgba(248,244,238,0.55); }
+
+/* ─── Utilities ──────────────────────────────────────── */
+.saffron-rule { height: 1px; background: var(--saffron); }
+.rule { height: 1px; background: rgba(12,35,64,0.1); }
+.rule.dark { background: rgba(248,244,238,0.1); }
+
+/* ─── Print ──────────────────────────────────────────── */
+@media print {
+  body { background: transparent; }
+  .page {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    page-break-after: always;
+    break-after: page;
+  }
+  .no-print { display: none !important; }
+  @page { size: A4; margin: 0; }
+}
+
+/* ─── Print button ───────────────────────────────────── */
+.print-btn {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: var(--prussian);
+  color: var(--pearl);
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  border: none;
+  padding: 12px 20px;
+  cursor: pointer;
+  z-index: 100;
+}
+.print-btn:hover { background: #162f58; }
+
+/* ─── Download link ──────────────────────────────────── */
+a.dl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--sans);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--saffron);
+  border: 1px solid var(--saffron);
+  padding: 5px 10px;
+  margin-top: 10px;
+}
+a.dl:hover { background: rgba(201,123,30,0.06); }
+a.dl.pearl { color: var(--pearl); border-color: rgba(248,244,238,0.4); }
+a.dl.pearl:hover { background: rgba(248,244,238,0.08); }
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">Print / Save PDF</button>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PAGE 1 — COVER                                  -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page on-prussian" style="justify-content:space-between">
+
+  <div style="padding:48px 56px 0; display:flex; justify-content:space-between; align-items:center">
+    <span style="font-family:var(--sans);font-size:7.5px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(248,244,238,0.25)">Visa Forte Consulting</span>
+    <span style="font-family:var(--sans);font-size:7.5px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(248,244,238,0.25)">Confidential · 2025</span>
+  </div>
+
+  <!-- large mark centred -->
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0">
+    <svg viewBox="0 0 48 60" xmlns="http://www.w3.org/2000/svg" width="96" height="120" style="margin-bottom:40px">
+      <path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#F8F4EE"/>
+      <rect x="12" y="16" width="24" height="2" fill="#C97B1E"/>
+    </svg>
+
+    <div style="text-align:center">
+      <div style="font-family:var(--serif);font-size:38px;font-weight:500;letter-spacing:6px;color:var(--pearl);word-spacing:12px">VISA&nbsp;&nbsp;FORTE</div>
+      <div style="height:1px;background:var(--saffron);margin:18px auto;width:220px"></div>
+      <div style="font-family:var(--sans);font-size:9px;font-weight:300;letter-spacing:2.5px;color:rgba(248,244,238,0.45)">ENGINEERED FOR PASSAGE<span style="color:var(--saffron)">.</span></div>
+    </div>
+  </div>
+
+  <div style="padding:0 56px 56px">
+    <div style="height:1px;background:rgba(248,244,238,0.1);margin-bottom:28px"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end">
+      <div>
+        <div style="font-family:var(--serif);font-size:26px;font-weight:400;color:var(--pearl);line-height:1.2">Brand Identity Standards</div>
+        <div style="font-family:var(--sans);font-size:9px;font-weight:300;letter-spacing:0.2em;color:rgba(248,244,238,0.3);margin-top:8px">Edition 1.0 · Prashant Thirthingoth · visaforte.com</div>
+      </div>
+      <div style="font-family:var(--serif);font-size:11px;color:rgba(248,244,238,0.25)">01</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PAGE 2 — BRAND ESSENCE                          -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <span class="page-label">Brand Essence</span>
+    <span class="page-num">02</span>
+  </div>
+  <div class="page-content">
+
+    <div class="section-intro">
+      <span class="section-index">01 · Brand Essence</span>
+      <div class="section-title">What Visa Forte is.</div>
+      <p class="section-desc">The practice does not sell hope. It engineers passage. Every brand decision — mark, colour, typeface, tone — is derived from this single statement.</p>
+    </div>
+
+    <!-- Brand persona -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:40px">
+      <div style="background:var(--prussian);padding:36px 32px">
+        <span class="eyebrow dark" style="margin-bottom:16px">Brand Persona</span>
+        <p style="font-family:var(--serif);font-size:20px;font-weight:400;color:var(--pearl);line-height:1.6">The most knowledgeable colleague in the room — completely calm, completely authoritative, completely on the client's side.</p>
+      </div>
+      <div style="background:rgba(12,35,64,0.04);padding:36px 32px">
+        <span class="eyebrow saffron" style="margin-bottom:16px">Positioning</span>
+        <p style="font-family:var(--sans);font-size:13px;font-weight:300;line-height:1.8;color:rgba(12,35,64,0.65)">Premium Canadian immigration documentation consultancy based in Secunderabad, India. 20+ years of domain expertise. Output: McKinsey-quality guidance at human scale.</p>
+      </div>
+    </div>
+
+    <!-- Tagline breakdown -->
+    <div style="margin-bottom:40px">
+      <span class="eyebrow">The Tagline</span>
+      <div style="display:flex;align-items:baseline;gap:0;margin-top:12px;margin-bottom:16px">
+        <div style="font-family:var(--serif);font-size:44px;font-weight:500;color:var(--prussian);letter-spacing:-0.01em">Engineered for Passage</div>
+        <div style="font-family:var(--serif);font-size:44px;font-weight:500;color:var(--saffron)">.</div>
+      </div>
+      <div class="saffron-rule" style="width:100%;margin-bottom:20px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px">
+        <div>
+          <div style="font-family:var(--serif);font-size:16px;font-weight:500;color:var(--prussian);margin-bottom:6px">Engineered</div>
+          <p class="body-text">Not guided, not helped, not assisted. Engineered. The word carries precision, process, and mastery. It removes hope from the equation and replaces it with methodology.</p>
+        </div>
+        <div>
+          <div style="font-family:var(--serif);font-size:16px;font-weight:500;color:var(--prussian);margin-bottom:6px">Passage</div>
+          <p class="body-text">Not arrival, not immigration, not relocation. Passage — the threshold moment, the crossing. It is architectural and timeless, free of bureaucratic language.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Brand values -->
+    <div>
+      <span class="eyebrow">Brand Values</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;margin-top:16px">
+        <div style="padding:24px 20px;border-left:2px solid var(--saffron)">
+          <div style="font-family:var(--serif);font-size:15px;font-weight:500;color:var(--prussian);margin-bottom:6px">Authority</div>
+          <p style="font-size:12px;font-weight:300;line-height:1.7;color:rgba(12,35,64,0.55)">Earned through two decades of documentation expertise. Never asserted — demonstrated.</p>
+        </div>
+        <div style="padding:24px 20px;border-left:2px solid rgba(12,35,64,0.15)">
+          <div style="font-family:var(--serif);font-size:15px;font-weight:500;color:var(--prussian);margin-bottom:6px">Precision</div>
+          <p style="font-size:12px;font-weight:300;line-height:1.7;color:rgba(12,35,64,0.55)">Every word, every document, every proportion is deliberate. The mark's ratios are not decorative — they are architectural constants.</p>
+        </div>
+        <div style="padding:24px 20px;border-left:2px solid rgba(12,35,64,0.15)">
+          <div style="font-family:var(--serif);font-size:15px;font-weight:500;color:var(--prussian);margin-bottom:6px">Calm</div>
+          <p style="font-size:12px;font-weight:300;line-height:1.7;color:rgba(12,35,64,0.55)">Immigration is stressful. The brand is not. Prussian and Pearl are the colours of settled intelligence, not urgent action.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PAGE 3 — THE MARK                               -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page on-white">
+  <div class="page-header">
+    <span class="page-label">The Mark</span>
+    <span class="page-num">03</span>
+  </div>
+  <div class="page-content">
+
+    <div class="section-intro">
+      <span class="section-index">02 · The Mark</span>
+      <div class="section-title">The Threshold.</div>
+      <p class="section-desc">A portal reduced to its structural grammar: lintel, two columns, and the passage between them. It is the moment before crossing — held breath before the gate opens.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start">
+
+      <!-- Anatomy diagram -->
+      <div>
+        <span class="eyebrow">Anatomy</span>
+        <div style="margin-top:20px;display:flex;justify-content:center">
+          <svg viewBox="-60 -20 170 110" xmlns="http://www.w3.org/2000/svg" width="360" height="230">
+            <!-- mark -->
+            <path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#0C2340"/>
+            <rect x="12" y="16" width="24" height="2" fill="#C97B1E"/>
+
+            <!-- lintel label -->
+            <line x1="50" y1="0" x2="50" y2="18" stroke="#C97B1E" stroke-width="0.5"/>
+            <line x1="48" y1="0" x2="55" y2="0" stroke="#C97B1E" stroke-width="0.5"/>
+            <line x1="48" y1="18" x2="55" y2="18" stroke="#C97B1E" stroke-width="0.5"/>
+            <text x="58" y="5" font-family="'DM Sans',sans-serif" font-size="5" fill="#C97B1E">Lintel</text>
+            <text x="58" y="11" font-family="'DM Sans',sans-serif" font-size="4" fill="rgba(201,123,30,0.7)">30% of height</text>
+
+            <!-- passage label -->
+            <line x1="24" y1="62" x2="24" y2="72" stroke="rgba(12,35,64,0.4)" stroke-width="0.5"/>
+            <line x1="12" y1="72" x2="36" y2="72" stroke="rgba(12,35,64,0.4)" stroke-width="0.5"/>
+            <line x1="12" y1="62" x2="12" y2="72" stroke="rgba(12,35,64,0.4)" stroke-width="0.5"/>
+            <line x1="36" y1="62" x2="36" y2="72" stroke="rgba(12,35,64,0.4)" stroke-width="0.5"/>
+            <text x="11" y="82" font-family="'DM Sans',sans-serif" font-size="5" fill="rgba(12,35,64,0.5)">Passage · 2× column</text>
+
+            <!-- column width label -->
+            <line x1="-2" y1="18" x2="-2" y2="60" stroke="rgba(12,35,64,0.3)" stroke-width="0.5"/>
+            <line x1="-6" y1="18" x2="0" y2="18" stroke="rgba(12,35,64,0.3)" stroke-width="0.5"/>
+            <line x1="-6" y1="60" x2="0" y2="60" stroke="rgba(12,35,64,0.3)" stroke-width="0.5"/>
+            <text x="-58" y="38" font-family="'DM Sans',sans-serif" font-size="5" fill="rgba(12,35,64,0.5)" text-anchor="start">Column</text>
+            <text x="-58" y="44" font-family="'DM Sans',sans-serif" font-size="4" fill="rgba(12,35,64,0.4)" text-anchor="start">1× unit</text>
+
+            <!-- saffron label -->
+            <line x1="36" y1="17" x2="60" y2="8" stroke="rgba(201,123,30,0.5)" stroke-width="0.5"/>
+            <text x="62" y="7" font-family="'DM Sans',sans-serif" font-size="5" fill="rgba(201,123,30,0.85)">Keystone accent</text>
+            <text x="62" y="12.5" font-family="'DM Sans',sans-serif" font-size="4" fill="rgba(201,123,30,0.6)">Forte Saffron</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Proportions + meaning -->
+      <div>
+        <span class="eyebrow">Proportions</span>
+        <div style="margin-top:20px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:24px">
+            <div style="background:rgba(12,35,64,0.04);padding:18px 16px">
+              <div style="font-family:var(--serif);font-size:26px;font-weight:500;color:var(--prussian)">4 : 5</div>
+              <div style="font-size:10px;font-weight:300;color:rgba(12,35,64,0.45);margin-top:4px;letter-spacing:0.05em">Width to height ratio</div>
+            </div>
+            <div style="background:rgba(12,35,64,0.04);padding:18px 16px">
+              <div style="font-family:var(--serif);font-size:26px;font-weight:500;color:var(--prussian)">1 : 2</div>
+              <div style="font-size:10px;font-weight:300;color:rgba(12,35,64,0.45);margin-top:4px;letter-spacing:0.05em">Column to passage ratio</div>
+            </div>
+            <div style="background:rgba(12,35,64,0.04);padding:18px 16px">
+              <div style="font-family:var(--serif);font-size:26px;font-weight:500;color:var(--prussian)">30%</div>
+              <div style="font-size:10px;font-weight:300;color:rgba(12,35,64,0.45);margin-top:4px;letter-spacing:0.05em">Lintel height of total</div>
+            </div>
+            <div style="background:rgba(201,123,30,0.08);padding:18px 16px">
+              <div style="font-family:var(--serif);font-size:26px;font-weight:500;color:var(--saffron)">2 u</div>
+              <div style="font-size:10px;font-weight:300;color:rgba(201,123,30,0.7);margin-top:4px;letter-spacing:0.05em">Saffron accent height</div>
+            </div>
+          </div>
+
+          <div style="height:1px;background:rgba(12,35,64,0.08);margin-bottom:20px"></div>
+
+          <span class="eyebrow">What it encodes</span>
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <div style="width:4px;height:4px;background:var(--saffron);margin-top:5px;flex-shrink:0"></div>
+              <p style="font-size:12.5px;font-weight:300;line-height:1.65;color:rgba(12,35,64,0.6)">A portal at the moment of threshold — the held breath before passage begins.</p>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <div style="width:4px;height:4px;background:var(--saffron);margin-top:5px;flex-shrink:0"></div>
+              <p style="font-size:12.5px;font-weight:300;line-height:1.65;color:rgba(12,35,64,0.6)">The saffron accent is the keystone: the compressed point where the arch holds and passage becomes possible.</p>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <div style="width:4px;height:4px;background:var(--saffron);margin-top:5px;flex-shrink:0"></div>
+              <p style="font-size:12.5px;font-weight:300;line-height:1.65;color:rgba(12,35,64,0.6)">No immigration iconography. No maple leaf, no globe, no stamp. The form earns its meaning without explanation.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- mark at sizes -->
+    <div style="margin-top:40px;padding-top:28px;border-top:1px solid rgba(12,35,64,0.08)">
+      <span class="eyebrow" style="margin-bottom:16px;display:block">Mark at key sizes</span>
+      <div style="display:flex;align-items:flex-end;gap:40px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+          <div style="background:var(--prussian);padding:16px;display:flex;align-items:center;justify-content:center">
+            <svg viewBox="0 0 48 60" width="16" height="20"><path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#F8F4EE"/></svg>
+          </div>
+          <span style="font-size:8px;color:rgba(12,35,64,0.35);letter-spacing:0.1em">Favicon · 16px</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+          <div style="background:var(--prussian);padding:16px;display:flex;align-items:center;justify-content:center">
+            <svg viewBox="0 0 48 60" width="24" height="30"><path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#F8F4EE"/><rect x="12" y="16" width="24" height="2" fill="#C97B1E"/></svg>
+          </div>
+          <span style="font-size:8px;color:rgba(12,35,64,0.35);letter-spacing:0.1em">App icon · 24px</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+          <div style="background:var(--prussian);padding:16px;display:flex;align-items:center;justify-content:center">
+            <svg viewBox="0 0 48 60" width="40" height="50"><path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#F8F4EE"/><rect x="12" y="16" width="24" height="2" fill="#C97B1E"/></svg>
+          </div>
+          <span style="font-size:8px;color:rgba(12,35,64,0.35);letter-spacing:0.1em">Card · 40px</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+          <div style="background:var(--prussian);padding:16px;display:flex;align-items:center;justify-content:center">
+            <svg viewBox="0 0 48 60" width="72" height="90"><path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#F8F4EE"/><rect x="12" y="16" width="24" height="2" fill="#C97B1E"/></svg>
+          </div>
+          <span style="font-size:8px;color:rgba(12,35,64,0.35);letter-spacing:0.1em">Header · 72px</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+          <div style="background:var(--prussian);padding:16px;display:flex;align-items:center;justify-content:center">
+            <svg viewBox="0 0 48 60" width="120" height="150"><path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#F8F4EE"/><rect x="12" y="16" width="24" height="2" fill="#C97B1E"/></svg>
+          </div>
+          <span style="font-size:8px;color:rgba(12,35,64,0.35);letter-spacing:0.1em">Print · 120px</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PAGE 4 — LOGO SYSTEM                            -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <span class="page-label">Logo System</span>
+    <span class="page-num">04</span>
+  </div>
+  <div class="page-content">
+
+    <div class="section-intro">
+      <span class="section-index">03 · Logo System</span>
+      <div class="section-title">All lockups.</div>
+      <p class="section-desc">Thirteen production-ready SVG files. Click any download button to save the file. SVG format scales without quality loss from business card to building hoarding.</p>
+    </div>
+
+    <!-- Primary horizontal -->
+    <div style="margin-bottom:36px">
+      <span class="eyebrow saffron">Primary Lockup · Horizontal</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:12px">
+        <div>
+          <div style="background:var(--pearl);border:1px solid rgba(12,35,64,0.08);padding:32px 28px;display:flex;align-items:center;justify-content:center;min-height:110px">
+            <img src="./logo-primary.svg" style="max-width:280px;height:auto">
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+            <span style="font-size:9px;font-weight:300;color:rgba(12,35,64,0.4);letter-spacing:0.08em">Pearl ground</span>
+            <a class="dl" href="./logo-primary.svg" download>↓ Download SVG</a>
+          </div>
+        </div>
+        <div>
+          <div style="background:var(--prussian);padding:32px 28px;display:flex;align-items:center;justify-content:center;min-height:110px">
+            <img src="./logo-primary-prussian.svg" style="max-width:280px;height:auto">
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+            <span style="font-size:9px;font-weight:300;color:rgba(12,35,64,0.4);letter-spacing:0.08em">Prussian ground</span>
+            <a class="dl" href="./logo-primary-prussian.svg" download>↓ Download SVG</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Primary stacked -->
+    <div style="margin-bottom:36px">
+      <span class="eyebrow saffron">Primary Lockup · Stacked</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:12px">
+        <div>
+          <div style="background:var(--pearl);border:1px solid rgba(12,35,64,0.08);padding:32px 28px;display:flex;align-items:center;justify-content:center;min-height:130px">
+            <img src="./logo-primary-stacked.svg" style="max-width:180px;height:auto">
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+            <span style="font-size:9px;font-weight:300;color:rgba(12,35,64,0.4);letter-spacing:0.08em">Pearl ground</span>
+            <a class="dl" href="./logo-primary-stacked.svg" download>↓ Download SVG</a>
+          </div>
+        </div>
+        <div>
+          <div style="background:var(--prussian);padding:32px 28px;display:flex;align-items:center;justify-content:center;min-height:130px">
+            <img src="./logo-primary-stacked-prussian.svg" style="max-width:180px;height:auto">
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+            <span style="font-size:9px;font-weight:300;color:rgba(12,35,64,0.4);letter-spacing:0.08em">Prussian ground</span>
+            <a class="dl" href="./logo-primary-stacked-prussian.svg" download>↓ Download SVG</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Secondary -->
+    <div>
+      <span class="eyebrow saffron">Secondary Lockup · Mark + Wordmark</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:12px">
+        <div>
+          <div style="background:var(--pearl);border:1px solid rgba(12,35,64,0.08);padding:28px;display:flex;align-items:center;justify-content:center;min-height:90px">
+            <img src="./logo-secondary.svg" style="max-width:240px;height:auto">
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+            <span style="font-size:9px;font-weight:300;color:rgba(12,35,64,0.4);letter-spacing:0.08em">Pearl ground</span>
+            <a class="dl" href="./logo-secondary.svg" download>↓ Download SVG</a>
+          </div>
+        </div>
+        <div>
+          <div style="background:var(--prussian);padding:28px;display:flex;align-items:center;justify-content:center;min-height:90px">
+            <img src="./logo-secondary-prussian.svg" style="max-width:240px;height:auto">
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+            <span style="font-size:9px;font-weight:300;color:rgba(12,35,64,0.4);letter-spacing:0.08em">Prussian ground</span>
+            <a class="dl" href="./logo-secondary-prussian.svg" download>↓ Download SVG</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PAGE 5 — LOGO SYSTEM CONTINUED                  -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <span class="page-label">Logo System · continued</span>
+    <span class="page-num">05</span>
+  </div>
+  <div class="page-content">
+
+    <!-- Mark only -->
+    <div style="margin-bottom:36px">
+      <span class="eyebrow saffron">Threshold Mark · All Contexts</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:2px;margin-top:12px">
+        <div>
+          <div style="background:var(--pearl);border:1px solid rgba(12,35,64,0.08);padding:28px;display:flex;align-items:center;justify-content:center;aspect-ratio:1">
+            <img src="./logo-mark.svg" style="width:56px;height:auto">
+          </div>
+          <div style="padding:8px 0"><span style="font-size:8.5px;font-weight:300;color:rgba(12,35,64,0.4)">Pearl</span></div>
+          <a class="dl" href="./logo-mark.svg" download>↓ SVG</a>
+        </div>
+        <div>
+          <div style="background:var(--prussian);padding:28px;display:flex;align-items:center;justify-content:center;aspect-ratio:1">
+            <img src="./logo-mark-prussian.svg" style="width:56px;height:auto">
+          </div>
+          <div style="padding:8px 0"><span style="font-size:8.5px;font-weight:300;color:rgba(12,35,64,0.4)">Prussian</span></div>
+          <a class="dl" href="./logo-mark-prussian.svg" download>↓ SVG</a>
+        </div>
+        <div>
+          <div style="background:#ffffff;border:1px solid rgba(12,35,64,0.08);padding:28px;display:flex;align-items:center;justify-content:center;aspect-ratio:1">
+            <img src="./logo-mark-mono-white.svg" style="width:56px;height:auto">
+          </div>
+          <div style="padding:8px 0"><span style="font-size:8.5px;font-weight:300;color:rgba(12,35,64,0.4)">White · mono</span></div>
+          <a class="dl" href="./logo-mark-mono-white.svg" download>↓ SVG</a>
+        </div>
+        <div>
+          <div style="background:#000000;padding:28px;display:flex;align-items:center;justify-content:center;aspect-ratio:1">
+            <img src="./logo-mark-mono-black.svg" style="width:56px;height:auto">
+          </div>
+          <div style="padding:8px 0"><span style="font-size:8.5px;font-weight:300;color:rgba(12,35,64,0.4)">Black · mono</span></div>
+          <a class="dl" href="./logo-mark-mono-black.svg" download>↓ SVG</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Single colour lockups -->
+    <div style="margin-bottom:36px">
+      <span class="eyebrow saffron">Single-Colour Lockup</span>
+      <p style="font-size:11px;font-weight:300;color:rgba(12,35,64,0.45);margin:6px 0 12px;line-height:1.6">Use when printing in one ink, embossing, or laser-cutting. No saffron accent in this variant.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px">
+        <div>
+          <div style="background:var(--prussian);padding:28px;display:flex;align-items:center;justify-content:center;min-height:90px">
+            <img src="./logo-lockup-mono-prussian.svg" style="max-width:280px;height:auto">
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+            <span style="font-size:9px;font-weight:300;color:rgba(12,35,64,0.4)">White on Prussian</span>
+            <a class="dl" href="./logo-lockup-mono-prussian.svg" download>↓ Download SVG</a>
+          </div>
+        </div>
+        <div>
+          <div style="background:var(--pearl);border:1px solid rgba(12,35,64,0.08);padding:28px;display:flex;align-items:center;justify-content:center;min-height:90px">
+            <img src="./logo-lockup-mono-pearl.svg" style="max-width:280px;height:auto">
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+            <span style="font-size:9px;font-weight:300;color:rgba(12,35,64,0.4)">Prussian on Pearl</span>
+            <a class="dl" href="./logo-lockup-mono-pearl.svg" download>↓ Download SVG</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Favicon -->
+    <div>
+      <span class="eyebrow saffron">Favicon · Square Crop</span>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;margin-top:12px">
+        <div style="display:flex;gap:12px;align-items:flex-end">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+            <div style="background:var(--pearl);border:1px solid rgba(12,35,64,0.08);padding:8px;display:flex">
+              <img src="./favicon.svg" style="width:16px;height:16px">
+            </div>
+            <span style="font-size:7.5px;color:rgba(12,35,64,0.35)">16px</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+            <div style="background:var(--pearl);border:1px solid rgba(12,35,64,0.08);padding:8px;display:flex">
+              <img src="./favicon.svg" style="width:32px;height:32px">
+            </div>
+            <span style="font-size:7.5px;color:rgba(12,35,64,0.35)">32px</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+            <div style="background:var(--pearl);border:1px solid rgba(12,35,64,0.08);padding:8px;display:flex">
+              <img src="./favicon.svg" style="width:64px;height:64px">
+            </div>
+            <span style="font-size:7.5px;color:rgba(12,35,64,0.35)">64px</span>
+          </div>
+        </div>
+        <div>
+          <p style="font-size:12.5px;font-weight:300;line-height:1.75;color:rgba(12,35,64,0.55);margin-bottom:12px">The favicon uses a 48×48 square viewBox with the mark scaled to 75% and centred. At 16px the saffron accent is omitted; it reappears at 32px and above.</p>
+          <a class="dl" href="./favicon.svg" download>↓ Download favicon.svg</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PAGE 6 — COLOUR ARCHITECTURE                    -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page on-white">
+  <div class="page-header">
+    <span class="page-label">Colour Architecture</span>
+    <span class="page-num">06</span>
+  </div>
+  <div class="page-content">
+
+    <div class="section-intro">
+      <span class="section-index">04 · Colour</span>
+      <div class="section-title">Prussian and Pearl dominate.<br>Saffron sharpens.</div>
+      <p class="section-desc">Saffron is a precision instrument, not wallpaper. It appears as a single accent: the keystone line in the mark, the separator rule in the lockup, the period in the tagline. Never as a dominant fill.</p>
+    </div>
+
+    <!-- Swatches -->
+    <div style="display:grid;grid-template-columns:3fr 1fr 2fr;gap:2px;margin-bottom:40px">
+
+      <!-- Prussian -->
+      <div style="background:var(--prussian);padding:32px 28px 28px">
+        <div style="margin-bottom:24px">
+          <div style="font-family:var(--sans);font-size:7.5px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(248,244,238,0.35);margin-bottom:6px">Primary · Dominant</div>
+          <div style="font-family:var(--serif);font-size:22px;font-weight:500;color:var(--pearl)">Forte Prussian</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div style="font-size:7px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(248,244,238,0.3);margin-bottom:4px">HEX</div>
+            <div style="font-family:var(--sans);font-size:13px;font-weight:400;color:var(--pearl)">#0C2340</div>
+          </div>
+          <div>
+            <div style="font-size:7px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(248,244,238,0.3);margin-bottom:4px">RGB</div>
+            <div style="font-family:var(--sans);font-size:13px;font-weight:400;color:var(--pearl)">12 · 35 · 64</div>
+          </div>
+          <div>
+            <div style="font-size:7px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(248,244,238,0.3);margin-bottom:4px">CMYK</div>
+            <div style="font-family:var(--sans);font-size:13px;font-weight:400;color:var(--pearl)">81 · 45 · 0 · 75</div>
+          </div>
+          <div>
+            <div style="font-size:7px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(248,244,238,0.3);margin-bottom:4px">Pantone ≈</div>
+            <div style="font-family:var(--sans);font-size:13px;font-weight:400;color:var(--pearl)">289 C</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Saffron -->
+      <div style="background:var(--saffron);padding:32px 16px 28px">
+        <div style="margin-bottom:24px">
+          <div style="font-family:var(--sans);font-size:7.5px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:6px">Accent</div>
+          <div style="font-family:var(--serif);font-size:18px;font-weight:500;color:#fff;line-height:1.2">Forte Saffron</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div>
+            <div style="font-size:7px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:4px">HEX</div>
+            <div style="font-family:var(--sans);font-size:12px;font-weight:400;color:#fff">#C97B1E</div>
+          </div>
+          <div>
+            <div style="font-size:7px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:4px">RGB</div>
+            <div style="font-family:var(--sans);font-size:12px;font-weight:400;color:#fff">201 · 123 · 30</div>
+          </div>
+          <div>
+            <div style="font-size:7px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:4px">CMYK</div>
+            <div style="font-family:var(--sans);font-size:12px;font-weight:400;color:#fff">0 · 39 · 85 · 21</div>
+          </div>
+          <div>
+            <div style="font-size:7px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:4px">Pantone ≈</div>
+            <div style="font-family:var(--sans);font-size:12px;font-weight:400;color:#fff">1245 C</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pearl -->
+      <div style="background:var(--pearl);border:1px solid rgba(12,35,64,0.08);padding:32px 28px 28px">
+        <div style="margin-bottom:24px">
+          <div style="font-family:var(--sans);font-size:7.5px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(12,35,64,0.3);margin-bottom:6px">Ground · Breathing Room</div>
+          <div style="font-family:var(--serif);font-size:22px;font-weight:500;color:var(--prussian)">Forte Pearl</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div style="font-size:7px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(12,35,64,0.3);margin-bottom:4px">HEX</div>
+            <div style="font-family:var(--sans);font-size:13px;font-weight:400;color:var(--prussian)">#F8F4EE</div>
+          </div>
+          <div>
+            <div style="font-size:7px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(12,35,64,0.3);margin-bottom:4px">RGB</div>
+            <div style="font-family:var(--sans);font-size:13px;font-weight:400;color:var(--prussian)">248 · 244 · 238</div>
+          </div>
+          <div>
+            <div style="font-size:7px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(12,35,64,0.3);margin-bottom:4px">CMYK</div>
+            <div style="font-family:var(--sans);font-size:13px;font-weight:400;color:var(--prussian)">0 · 2 · 4 · 3</div>
+          </div>
+          <div>
+            <div style="font-size:7px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(12,35,64,0.3);margin-bottom:4px">Pantone ≈</div>
+            <div style="font-family:var(--sans);font-size:13px;font-weight:400;color:var(--prussian)">9180 C</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <p style="font-size:9.5px;font-weight:300;color:rgba(12,35,64,0.35);margin-bottom:32px;font-style:italic">Pantone values are nearest matches. Verify against physical swatch before commissioning print work.</p>
+
+    <!-- Colour usage rules -->
+    <div>
+      <span class="eyebrow" style="margin-bottom:16px;display:block">Colour usage hierarchy</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px">
+        <div style="padding:20px 18px;background:rgba(12,35,64,0.03)">
+          <div style="font-family:var(--serif);font-size:15px;font-weight:500;color:var(--prussian);margin-bottom:8px">Dominant (≥ 60%)</div>
+          <p style="font-size:12px;font-weight:300;line-height:1.7;color:rgba(12,35,64,0.55)">Forte Prussian is the authority surface. Primary backgrounds, the mark, wordmark, and body copy all default to Prussian.</p>
+        </div>
+        <div style="padding:20px 18px;background:rgba(12,35,64,0.03)">
+          <div style="font-family:var(--serif);font-size:15px;font-weight:500;color:var(--prussian);margin-bottom:8px">Supporting (≥ 30%)</div>
+          <p style="font-size:12px;font-weight:300;line-height:1.7;color:rgba(12,35,64,0.55)">Forte Pearl is breathing room. It is the ground on which Prussian elements sit. Light backgrounds, paper, card stock.</p>
+        </div>
+        <div style="padding:20px 18px;background:rgba(201,123,30,0.06);border-left:2px solid var(--saffron)">
+          <div style="font-family:var(--serif);font-size:15px;font-weight:500;color:var(--prussian);margin-bottom:8px">Accent (≤ 10%)</div>
+          <p style="font-size:12px;font-weight:300;line-height:1.7;color:rgba(12,35,64,0.55)">Forte Saffron is used exactly three times: the keystone line in the mark, the separator rule, and the period. Never as a background fill.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PAGE 7 — TYPOGRAPHY                             -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <span class="page-label">Typography</span>
+    <span class="page-num">07</span>
+  </div>
+  <div class="page-content">
+
+    <div class="section-intro">
+      <span class="section-index">05 · Typography</span>
+      <div class="section-title">Two typefaces. One hierarchy.</div>
+      <p class="section-desc">Cormorant Garamond for authority and weight. DM Sans for clarity and precision. They are never used interchangeably — each has a defined role.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:36px">
+
+      <!-- Cormorant Garamond -->
+      <div>
+        <span class="eyebrow saffron">Primary · Wordmark & Headings</span>
+        <div style="margin-top:16px;padding:28px 24px;background:var(--prussian)">
+          <div style="font-family:var(--serif);font-size:36px;font-weight:500;color:var(--pearl);line-height:1">Aa</div>
+          <div style="font-family:var(--serif);font-size:12px;font-weight:300;color:rgba(248,244,238,0.5);margin-top:8px;letter-spacing:0.1em">Cormorant Garamond</div>
+        </div>
+        <div style="padding:20px 0;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(12,35,64,0.07);padding-bottom:8px">
+            <span style="font-family:var(--serif);font-size:15px;font-weight:300;color:var(--prussian)">Light 300</span>
+            <span style="font-size:10px;font-weight:300;color:rgba(12,35,64,0.35)">Background decoration only</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(12,35,64,0.07);padding-bottom:8px">
+            <span style="font-family:var(--serif);font-size:15px;font-weight:400;color:var(--prussian)">Regular 400</span>
+            <span style="font-size:10px;font-weight:300;color:rgba(12,35,64,0.35)">Body headings, pull quotes</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(12,35,64,0.07);padding-bottom:8px">
+            <span style="font-family:var(--serif);font-size:15px;font-weight:500;color:var(--prussian)">Medium 500</span>
+            <span style="font-size:10px;font-weight:300;color:rgba(12,35,64,0.35)">Wordmark, section titles</span>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span style="font-family:var(--serif);font-size:15px;font-weight:600;color:var(--prussian)">SemiBold 600</span>
+            <span style="font-size:10px;font-weight:300;color:rgba(12,35,64,0.35)">Emphasis only</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DM Sans -->
+      <div>
+        <span class="eyebrow saffron">Secondary · Body & UI</span>
+        <div style="margin-top:16px;padding:28px 24px;background:rgba(12,35,64,0.04)">
+          <div style="font-family:var(--sans);font-size:36px;font-weight:300;color:var(--prussian);line-height:1">Aa</div>
+          <div style="font-family:var(--sans);font-size:12px;font-weight:300;color:rgba(12,35,64,0.4);margin-top:8px;letter-spacing:0.1em">DM Sans</div>
+        </div>
+        <div style="padding:20px 0;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(12,35,64,0.07);padding-bottom:8px">
+            <span style="font-family:var(--sans);font-size:15px;font-weight:300;color:var(--prussian)">Light 300</span>
+            <span style="font-size:10px;font-weight:300;color:rgba(12,35,64,0.35)">Body text, tagline, captions</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(12,35,64,0.07);padding-bottom:8px">
+            <span style="font-family:var(--sans);font-size:15px;font-weight:400;color:var(--prussian)">Regular 400</span>
+            <span style="font-size:10px;font-weight:300;color:rgba(12,35,64,0.35)">UI labels, navigation</span>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span style="font-family:var(--sans);font-size:15px;font-weight:500;color:var(--prussian)">Medium 500</span>
+            <span style="font-size:10px;font-weight:300;color:rgba(12,35,64,0.35)">Buttons, calls to action</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Type scale -->
+    <div style="border-top:1px solid rgba(12,35,64,0.08);padding-top:28px;margin-bottom:28px">
+      <span class="eyebrow" style="margin-bottom:20px;display:block">Type scale in use</span>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:baseline;gap:20px">
+          <span style="font-size:8.5px;font-weight:300;color:rgba(12,35,64,0.35);width:64px;flex-shrink:0">H1 · 48px</span>
+          <span style="font-family:var(--serif);font-size:32px;font-weight:500;color:var(--prussian);line-height:1">Engineered for Passage</span>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:20px">
+          <span style="font-size:8.5px;font-weight:300;color:rgba(12,35,64,0.35);width:64px;flex-shrink:0">H2 · 32px</span>
+          <span style="font-family:var(--serif);font-size:24px;font-weight:500;color:var(--prussian);line-height:1">Document Strategy</span>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:20px">
+          <span style="font-size:8.5px;font-weight:300;color:rgba(12,35,64,0.35);width:64px;flex-shrink:0">H3 · 22px</span>
+          <span style="font-family:var(--serif);font-size:18px;font-weight:400;color:var(--prussian);line-height:1">Express Entry · CRS Assessment</span>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:20px">
+          <span style="font-size:8.5px;font-weight:300;color:rgba(12,35,64,0.35);width:64px;flex-shrink:0">Body · 14px</span>
+          <span style="font-family:var(--sans);font-size:14px;font-weight:300;color:rgba(12,35,64,0.65);line-height:1">Your eligibility is assessed against current IRCC criteria and verified against canada.ca.</span>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:20px">
+          <span style="font-size:8.5px;font-weight:300;color:rgba(12,35,64,0.35);width:64px;flex-shrink:0">Label · 8px</span>
+          <span style="font-family:var(--sans);font-size:9px;font-weight:400;letter-spacing:0.25em;text-transform:uppercase;color:rgba(12,35,64,0.4)">Section Header · Document Reference</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alphabet specimen -->
+    <div style="background:var(--prussian);padding:24px 28px">
+      <div style="font-family:var(--serif);font-size:18px;font-weight:400;color:rgba(248,244,238,0.75);line-height:1.6;letter-spacing:0.02em">
+        A B C D E F G H I J K L M N O P Q R S T U V W X Y Z<br>
+        a b c d e f g h i j k l m n o p q r s t u v w x y z<br>
+        0 1 2 3 4 5 6 7 8 9 . , : ; — " " ' '
+      </div>
+      <div style="font-family:var(--sans);font-size:11px;font-weight:300;color:rgba(248,244,238,0.3);margin-top:12px;letter-spacing:0.15em">Cormorant Garamond 400 · Character Set</div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PAGE 8 — USAGE RULES                            -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page on-white">
+  <div class="page-header">
+    <span class="page-label">Usage Rules</span>
+    <span class="page-num">08</span>
+  </div>
+  <div class="page-content">
+
+    <div class="section-intro">
+      <span class="section-index">06 · Usage Rules</span>
+      <div class="section-title">Clear space. Minimum size.<br>What not to do.</div>
+    </div>
+
+    <!-- Clear space -->
+    <div style="margin-bottom:36px">
+      <span class="eyebrow saffron" style="display:block;margin-bottom:16px">Clear space</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+        <div>
+          <p style="font-size:12.5px;font-weight:300;line-height:1.75;color:rgba(12,35,64,0.6);margin-bottom:16px">Maintain a minimum clear space around all lockups equal to the height of the threshold mark's lintel. No other element — text, image, line, edge — may enter this zone.</p>
+          <!-- Clear space diagram -->
+          <div style="display:flex;justify-content:center;padding:24px;background:var(--pearl);border:1px solid rgba(12,35,64,0.08)">
+            <svg viewBox="0 0 160 100" xmlns="http://www.w3.org/2000/svg" width="240" height="150">
+              <!-- clear space zone -->
+              <rect x="20" y="10" width="120" height="80" fill="none" stroke="#C97B1E" stroke-width="0.5" stroke-dasharray="3,2"/>
+              <!-- mark centred -->
+              <path d="M56,25 L104,25 L104,75 L92,75 L92,43 L68,43 L68,75 L56,75 Z" fill="#0C2340"/>
+              <rect x="68" y="41" width="24" height="2" fill="#C97B1E"/>
+              <!-- dimension arrows -->
+              <line x1="20" y1="6" x2="56" y2="6" stroke="#C97B1E" stroke-width="0.5"/>
+              <text x="38" y="4" font-family="'DM Sans',sans-serif" font-size="4" fill="#C97B1E" text-anchor="middle">1× lintel</text>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <span class="eyebrow" style="display:block;margin-bottom:12px">Minimum sizes</span>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(12,35,64,0.03)">
+              <span style="font-family:var(--serif);font-size:13px;font-weight:400;color:var(--prussian)">Primary horizontal lockup</span>
+              <span style="font-size:10px;font-weight:300;color:rgba(12,35,64,0.5)">min 160px / 42mm</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(12,35,64,0.03)">
+              <span style="font-family:var(--serif);font-size:13px;font-weight:400;color:var(--prussian)">Primary stacked lockup</span>
+              <span style="font-size:10px;font-weight:300;color:rgba(12,35,64,0.5)">min 80px / 21mm</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(12,35,64,0.03)">
+              <span style="font-family:var(--serif);font-size:13px;font-weight:400;color:var(--prussian)">Secondary lockup</span>
+              <span style="font-size:10px;font-weight:300;color:rgba(12,35,64,0.5)">min 120px / 32mm</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(12,35,64,0.03)">
+              <span style="font-family:var(--serif);font-size:13px;font-weight:400;color:var(--prussian)">Threshold mark alone</span>
+              <span style="font-size:10px;font-weight:300;color:rgba(12,35,64,0.5)">min 16px / 4mm</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Do's and Don'ts -->
+    <div>
+      <span class="eyebrow saffron" style="display:block;margin-bottom:16px">What not to do</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px">
+
+        <div style="background:rgba(180,40,40,0.04);border-top:2px solid rgba(180,40,40,0.3);padding:18px 16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <svg viewBox="0 0 48 60" width="18" height="22" style="transform:scaleX(1.5)"><path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="rgba(12,35,64,0.4)"/></svg>
+            <span style="font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(180,40,40,0.7)">✕ Don't stretch</span>
+          </div>
+          <p style="font-size:11.5px;font-weight:300;line-height:1.6;color:rgba(12,35,64,0.55)">Never scale the mark non-uniformly. The 4:5 ratio is an architectural constant.</p>
+        </div>
+
+        <div style="background:rgba(180,40,40,0.04);border-top:2px solid rgba(180,40,40,0.3);padding:18px 16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <svg viewBox="0 0 48 60" width="18" height="22"><path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#C97B1E"/></svg>
+            <span style="font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(180,40,40,0.7)">✕ Don't fill with saffron</span>
+          </div>
+          <p style="font-size:11.5px;font-weight:300;line-height:1.6;color:rgba(12,35,64,0.55)">Saffron is never a dominant fill. The mark is always Prussian or Pearl.</p>
+        </div>
+
+        <div style="background:rgba(180,40,40,0.04);border-top:2px solid rgba(180,40,40,0.3);padding:18px 16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <svg viewBox="0 0 48 60" width="18" height="22" style="transform:rotate(45deg)"><path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="rgba(12,35,64,0.4)"/></svg>
+            <span style="font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(180,40,40,0.7)">✕ Don't rotate</span>
+          </div>
+          <p style="font-size:11.5px;font-weight:300;line-height:1.6;color:rgba(12,35,64,0.55)">The mark must always sit vertically. It is a standing gateway, not a decorative element.</p>
+        </div>
+
+        <div style="background:rgba(180,40,40,0.04);border-top:2px solid rgba(180,40,40,0.3);padding:18px 16px">
+          <div style="margin-bottom:10px;filter:drop-shadow(3px 3px 4px rgba(0,0,0,0.4))">
+            <svg viewBox="0 0 48 60" width="18" height="22"><path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="rgba(12,35,64,0.7)"/></svg>
+          </div>
+          <span style="font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(180,40,40,0.7)">✕ No drop shadows</span>
+          <p style="font-size:11.5px;font-weight:300;line-height:1.6;color:rgba(12,35,64,0.55);margin-top:8px">No shadows, glows, or embossing effects. The mark relies on form, not effects.</p>
+        </div>
+
+        <div style="background:rgba(180,40,40,0.04);border-top:2px solid rgba(180,40,40,0.3);padding:18px 16px">
+          <div style="margin-bottom:10px;background:linear-gradient(135deg,#4a90d9,#8b5cf6);display:inline-block;padding:2px">
+            <svg viewBox="0 0 48 60" width="18" height="22"><path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="white"/></svg>
+          </div>
+          <span style="font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(180,40,40,0.7)">✕ No gradients</span>
+          <p style="font-size:11.5px;font-weight:300;line-height:1.6;color:rgba(12,35,64,0.55);margin-top:8px">Never place the logo on gradient backgrounds. Use only Prussian, Pearl, White, or Black.</p>
+        </div>
+
+        <div style="background:rgba(180,40,40,0.04);border-top:2px solid rgba(180,40,40,0.3);padding:18px 16px">
+          <div style="margin-bottom:10px;display:flex;align-items:center;gap:4px">
+            <svg viewBox="0 0 48 60" width="18" height="22"><path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="rgba(12,35,64,0.5)"/></svg>
+            <span style="font-family:'Cormorant Garamond',serif;font-size:10px;font-weight:500;color:rgba(12,35,64,0.5);letter-spacing:1px">VISA FORTE</span>
+          </div>
+          <span style="font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(180,40,40,0.7)">✕ Don't recreate</span>
+          <p style="font-size:11.5px;font-weight:300;line-height:1.6;color:rgba(12,35,64,0.55);margin-top:8px">Always use the provided SVG files. Never retype or recreate the wordmark in any other application.</p>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PAGE 9 — APPLICATIONS                           -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page on-prussian">
+  <div class="page-header dark">
+    <span class="page-label dark">Applications</span>
+    <span class="page-num dark">09</span>
+  </div>
+  <div class="page-content">
+
+    <div class="section-intro dark">
+      <span class="section-index">07 · Applications</span>
+      <div class="section-title dark">The brand in the world.</div>
+      <p class="section-desc dark">Business card · Email signature · Letterhead</p>
+    </div>
+
+    <!-- Business card -->
+    <div style="margin-bottom:40px">
+      <span class="eyebrow dark" style="display:block;margin-bottom:20px">Business Card · 85mm × 55mm</span>
+      <div style="display:flex;gap:24px;flex-wrap:wrap">
+
+        <!-- Front -->
+        <div>
+          <span style="font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(248,244,238,0.3);display:block;margin-bottom:10px">Front</span>
+          <div style="width:321px;height:189px;background:var(--prussian);border:1px solid rgba(248,244,238,0.1);position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:24px">
+            <!-- mark top-left -->
+            <div style="display:flex;align-items:center;gap:14px">
+              <svg viewBox="0 0 48 60" xmlns="http://www.w3.org/2000/svg" width="22" height="28">
+                <path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#F8F4EE"/>
+                <rect x="12" y="16" width="24" height="2" fill="#C97B1E"/>
+              </svg>
+              <div>
+                <div style="font-family:var(--serif);font-size:13px;font-weight:500;letter-spacing:2.5px;color:var(--pearl);word-spacing:5px">VISA&nbsp;FORTE</div>
+                <div style="height:0.5px;background:var(--saffron);margin:4px 0;width:100%"></div>
+                <div style="font-family:var(--sans);font-size:5.5px;font-weight:300;letter-spacing:1.5px;color:rgba(248,244,238,0.45)">ENGINEERED FOR PASSAGE<span style="color:var(--saffron)">.</span></div>
+              </div>
+            </div>
+            <!-- contact bottom -->
+            <div>
+              <div style="height:0.5px;background:rgba(248,244,238,0.1);margin-bottom:12px"></div>
+              <div style="font-family:var(--serif);font-size:13px;font-weight:500;color:var(--pearl);margin-bottom:2px">Prashant Thirthingoth</div>
+              <div style="font-family:var(--sans);font-size:7.5px;font-weight:300;letter-spacing:0.1em;color:rgba(248,244,238,0.45);margin-bottom:8px">Senior Documentation Consultant</div>
+              <div style="display:flex;gap:16px">
+                <span style="font-family:var(--sans);font-size:7px;font-weight:300;color:rgba(248,244,238,0.4)">prashant@visaforte.com</span>
+                <span style="font-family:var(--sans);font-size:7px;font-weight:300;color:rgba(248,244,238,0.4)">visaforte.com</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Back -->
+        <div>
+          <span style="font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(248,244,238,0.3);display:block;margin-bottom:10px">Back</span>
+          <div style="width:321px;height:189px;background:var(--prussian);border:1px solid rgba(248,244,238,0.1);position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+            <!-- large faded mark as texture -->
+            <div style="position:absolute;opacity:0.04">
+              <svg viewBox="0 0 48 60" width="200" height="250"><path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#F8F4EE"/></svg>
+            </div>
+            <svg viewBox="0 0 48 60" xmlns="http://www.w3.org/2000/svg" width="36" height="45" style="position:relative">
+              <path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="rgba(248,244,238,0.7)"/>
+              <rect x="12" y="16" width="24" height="2" fill="#C97B1E"/>
+            </svg>
+            <div style="position:relative;text-align:center">
+              <div style="font-family:var(--serif);font-size:10px;font-weight:400;color:rgba(248,244,238,0.35);font-style:italic;letter-spacing:0.04em">Engineered for Passage<span style="color:var(--saffron)">.</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Email signature -->
+    <div style="margin-bottom:36px">
+      <span class="eyebrow dark" style="display:block;margin-bottom:16px">Email Signature</span>
+      <div style="background:var(--pearl);padding:24px 28px">
+        <div style="display:flex;align-items:center;gap:20px;padding-bottom:16px;border-bottom:1px solid rgba(12,35,64,0.08)">
+          <svg viewBox="0 0 48 60" xmlns="http://www.w3.org/2000/svg" width="24" height="30">
+            <path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#0C2340"/>
+            <rect x="12" y="16" width="24" height="2" fill="#C97B1E"/>
+          </svg>
+          <div>
+            <div style="font-family:var(--serif);font-size:16px;font-weight:500;color:var(--prussian)">Prashant Thirthingoth</div>
+            <div style="font-family:var(--sans);font-size:10px;font-weight:300;letter-spacing:0.08em;color:rgba(12,35,64,0.5);margin-top:2px">Senior Documentation Consultant · Visa Forte</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:24px;margin-top:12px">
+          <span style="font-family:var(--sans);font-size:10px;font-weight:300;color:rgba(12,35,64,0.5)">prashant@visaforte.com</span>
+          <span style="font-family:var(--sans);font-size:10px;font-weight:300;color:rgba(12,35,64,0.5)">visaforte.com</span>
+          <span style="font-family:var(--sans);font-size:10px;font-weight:300;color:rgba(12,35,64,0.5)">Secunderabad, India</span>
+        </div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(12,35,64,0.06)">
+          <p style="font-family:var(--sans);font-size:8.5px;font-weight:300;line-height:1.6;color:rgba(12,35,64,0.3);font-style:italic">The information provided is for informational and guidance purposes only. This does not constitute legal advice. Verify all information with official IRCC sources at canada.ca/immigration.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Letterhead -->
+    <div>
+      <span class="eyebrow dark" style="display:block;margin-bottom:16px">Letterhead · A4</span>
+      <div style="background:#fff;width:100%;position:relative">
+        <!-- header stripe -->
+        <div style="background:var(--prussian);padding:16px 28px;display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:12px">
+            <svg viewBox="0 0 48 60" xmlns="http://www.w3.org/2000/svg" width="16" height="20">
+              <path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#F8F4EE"/>
+              <rect x="12" y="16" width="24" height="2" fill="#C97B1E"/>
+            </svg>
+            <span style="font-family:var(--serif);font-size:14px;font-weight:500;letter-spacing:2px;color:var(--pearl);word-spacing:4px">VISA&nbsp;FORTE</span>
+          </div>
+          <span style="font-family:var(--sans);font-size:7.5px;font-weight:300;letter-spacing:0.15em;color:rgba(248,244,238,0.4)">visaforte.com · prashant@visaforte.com</span>
+        </div>
+        <!-- body placeholder -->
+        <div style="padding:24px 28px">
+          <div style="height:6px;background:rgba(12,35,64,0.06);margin-bottom:8px;width:60%"></div>
+          <div style="height:4px;background:rgba(12,35,64,0.04);margin-bottom:6px;width:100%"></div>
+          <div style="height:4px;background:rgba(12,35,64,0.04);margin-bottom:6px;width:95%"></div>
+          <div style="height:4px;background:rgba(12,35,64,0.04);margin-bottom:6px;width:88%"></div>
+          <div style="height:4px;background:rgba(12,35,64,0.04);width:70%"></div>
+        </div>
+        <!-- footer -->
+        <div style="padding:10px 28px;border-top:1px solid var(--saffron);display:flex;justify-content:space-between">
+          <span style="font-family:var(--sans);font-size:7px;font-weight:300;letter-spacing:0.12em;color:rgba(12,35,64,0.35)">Engineered for Passage<span style="color:var(--saffron)">.</span></span>
+          <span style="font-family:var(--sans);font-size:7px;font-weight:300;color:rgba(12,35,64,0.25)">Secunderabad, India · For informational purposes only</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PAGE 10 — CLOSING                               -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page on-prussian" style="justify-content:space-between">
+
+  <div style="padding:48px 56px 0;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-family:var(--sans);font-size:7.5px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(248,244,238,0.2)">Visa Forte Consulting</span>
+    <span style="font-family:var(--sans);font-size:7.5px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(248,244,238,0.2)">10</span>
+  </div>
+
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:56px;text-align:center">
+    <svg viewBox="0 0 48 60" xmlns="http://www.w3.org/2000/svg" width="48" height="60" style="margin-bottom:32px;opacity:0.4">
+      <path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#F8F4EE"/>
+    </svg>
+    <p style="font-family:var(--serif);font-size:24px;font-weight:400;color:rgba(248,244,238,0.6);line-height:1.7;max-width:480px;font-style:italic">
+      "The logo must function flawlessly at 16 pixels and at building signage. Everything in between follows from that discipline."
+    </p>
+  </div>
+
+  <div style="padding:0 56px 56px">
+    <div style="height:1px;background:rgba(248,244,238,0.1);margin-bottom:24px"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end">
+      <div>
+        <div style="font-family:var(--serif);font-size:16px;font-weight:500;letter-spacing:3px;color:var(--pearl);word-spacing:8px">VISA&nbsp;&nbsp;FORTE</div>
+        <div style="height:0.5px;background:var(--saffron);width:160px;margin:8px 0"></div>
+        <div style="font-family:var(--sans);font-size:7.5px;font-weight:300;letter-spacing:2px;color:rgba(248,244,238,0.3)">ENGINEERED FOR PASSAGE<span style="color:var(--saffron)">.</span></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:var(--sans);font-size:8px;font-weight:300;letter-spacing:0.15em;color:rgba(248,244,238,0.2)">Brand Identity Standards · Edition 1.0</div>
+        <div style="font-family:var(--sans);font-size:8px;font-weight:300;letter-spacing:0.15em;color:rgba(248,244,238,0.15);margin-top:4px">visaforte.com · 2025</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

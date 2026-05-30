@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visa Forte — Logo Identity System</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --prussian: #0C2340;
+  --saffron:  #C97B1E;
+  --pearl:    #F8F4EE;
+}
+
+body {
+  background: #080808;
+  font-family: 'DM Sans', sans-serif;
+  padding-bottom: 96px;
+}
+
+.sys-header {
+  padding: 36px 52px;
+  border-bottom: 1px solid #141414;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sys-header span {
+  font-size: 8.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #2c2c2c;
+}
+
+.section {
+  padding: 52px 52px 0;
+}
+
+.label {
+  font-size: 8px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #2e2e2e;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #111;
+  margin-bottom: 2px;
+}
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 2px; }
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 68px 52px;
+}
+.cell-sq {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 40px;
+  aspect-ratio: 1;
+}
+
+.pearl    { background: var(--pearl); }
+.prussian { background: var(--prussian); }
+.white    { background: #ffffff; }
+.black    { background: #000000; }
+
+svg { display: block; max-width: 100%; height: auto; }
+
+/* ── Scale test row ─────────────────────────── */
+.scale-row {
+  background: var(--prussian);
+  display: flex;
+  align-items: flex-end;
+  gap: 48px;
+  padding: 56px 52px;
+}
+.scale-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.scale-unit span {
+  font-size: 7.5px;
+  letter-spacing: 0.2em;
+  color: #1c3a5c;
+}
+
+/* ── Colour swatches ────────────────────────── */
+.swatch-row { display: flex; gap: 2px; }
+.swatch {
+  height: 96px;
+  display: flex;
+  align-items: flex-end;
+  padding: 14px 18px;
+}
+.swatch-inner { display: flex; flex-direction: column; gap: 3px; }
+.swatch-role { font-size: 7px; letter-spacing: 0.26em; opacity: 0.5; }
+.swatch-name { font-size: 9.5px; letter-spacing: 0.1em; font-weight: 500; }
+.swatch-hex  { font-size: 7.5px; opacity: 0.45; letter-spacing: 0.08em; }
+
+/* ── Rationale ──────────────────────────────── */
+.rationale {
+  max-width: 680px;
+  padding: 44px 48px;
+  background: #0d0d0d;
+  border: 1px solid #141414;
+  margin-top: 2px;
+}
+.rationale p {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 18px;
+  line-height: 1.9;
+  color: #7a6e62;
+  font-weight: 400;
+}
+</style>
+</head>
+<body>
+
+<div class="sys-header">
+  <span>Visa Forte · Logo Identity System</span>
+  <span>2025 · Confidential</span>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 01  PRIMARY LOCKUP                                       -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="section" style="margin-top:52px">
+  <p class="label">01 — Primary Lockup · Mark + Wordmark + Tagline</p>
+  <div class="grid-2">
+
+    <div class="cell pearl">
+      <svg viewBox="0 0 320 86" xmlns="http://www.w3.org/2000/svg" width="320">
+        <!-- mark -->
+        <path d="M0,13 L48,13 L48,73 L36,73 L36,31 L12,31 L12,73 L0,73 Z" fill="#0C2340"/>
+        <rect x="12" y="29" width="24" height="2" fill="#C97B1E"/>
+        <!-- wordmark -->
+        <text font-family="'Cormorant Garamond',Georgia,'Times New Roman',serif"
+              font-size="27" font-weight="500" letter-spacing="4" fill="#0C2340">
+          <tspan x="70" y="42">VISA</tspan><tspan dx="18">FORTE</tspan>
+        </text>
+        <!-- rule -->
+        <rect x="70" y="50" width="192" height="1" fill="#C97B1E"/>
+        <!-- tagline -->
+        <text font-family="'DM Sans','Helvetica Neue',Helvetica,Arial,sans-serif"
+              font-size="9" font-weight="300" letter-spacing="2.3"
+              fill="#0C2340" fill-opacity="0.55">
+          <tspan x="70" y="65">ENGINEERED FOR PASSAGE</tspan><tspan fill="#C97B1E" fill-opacity="1">.</tspan>
+        </text>
+      </svg>
+    </div>
+
+    <div class="cell prussian">
+      <svg viewBox="0 0 320 86" xmlns="http://www.w3.org/2000/svg" width="320">
+        <path d="M0,13 L48,13 L48,73 L36,73 L36,31 L12,31 L12,73 L0,73 Z" fill="#F8F4EE"/>
+        <rect x="12" y="29" width="24" height="2" fill="#C97B1E"/>
+        <text font-family="'Cormorant Garamond',Georgia,'Times New Roman',serif"
+              font-size="27" font-weight="500" letter-spacing="4" fill="#F8F4EE">
+          <tspan x="70" y="42">VISA</tspan><tspan dx="18">FORTE</tspan>
+        </text>
+        <rect x="70" y="50" width="192" height="1" fill="#C97B1E"/>
+        <text font-family="'DM Sans','Helvetica Neue',Helvetica,Arial,sans-serif"
+              font-size="9" font-weight="300" letter-spacing="2.3"
+              fill="#F8F4EE" fill-opacity="0.55">
+          <tspan x="70" y="65">ENGINEERED FOR PASSAGE</tspan><tspan fill="#C97B1E" fill-opacity="1">.</tspan>
+        </text>
+      </svg>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 02  PRIMARY LOCKUP — STACKED                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="section" style="margin-top:52px">
+  <p class="label">02 — Primary Lockup · Stacked Variant</p>
+  <div class="grid-2">
+
+    <div class="cell pearl" style="padding: 56px 48px">
+      <svg viewBox="0 0 220 132" xmlns="http://www.w3.org/2000/svg" width="220">
+        <!-- mark centred -->
+        <path d="M86,0 L134,0 L134,60 L122,60 L122,18 L98,18 L98,60 L86,60 Z" fill="#0C2340"/>
+        <rect x="98" y="16" width="24" height="2" fill="#C97B1E"/>
+        <!-- wordmark -->
+        <text text-anchor="middle" font-family="'Cormorant Garamond',Georgia,'Times New Roman',serif"
+              font-size="24" font-weight="500" letter-spacing="3.5" fill="#0C2340">
+          <tspan x="110" y="91">VISA</tspan><tspan dx="14">FORTE</tspan>
+        </text>
+        <!-- rule -->
+        <rect x="25" y="100" width="170" height="1" fill="#C97B1E"/>
+        <!-- tagline -->
+        <text text-anchor="middle"
+              font-family="'DM Sans','Helvetica Neue',Helvetica,Arial,sans-serif"
+              font-size="8.5" font-weight="300" letter-spacing="2"
+              fill="#0C2340" fill-opacity="0.55">
+          <tspan x="110" y="117">ENGINEERED FOR PASSAGE</tspan><tspan fill="#C97B1E" fill-opacity="1">.</tspan>
+        </text>
+      </svg>
+    </div>
+
+    <div class="cell prussian" style="padding: 56px 48px">
+      <svg viewBox="0 0 220 132" xmlns="http://www.w3.org/2000/svg" width="220">
+        <path d="M86,0 L134,0 L134,60 L122,60 L122,18 L98,18 L98,60 L86,60 Z" fill="#F8F4EE"/>
+        <rect x="98" y="16" width="24" height="2" fill="#C97B1E"/>
+        <text text-anchor="middle" font-family="'Cormorant Garamond',Georgia,'Times New Roman',serif"
+              font-size="24" font-weight="500" letter-spacing="3.5" fill="#F8F4EE">
+          <tspan x="110" y="91">VISA</tspan><tspan dx="14">FORTE</tspan>
+        </text>
+        <rect x="25" y="100" width="170" height="1" fill="#C97B1E"/>
+        <text text-anchor="middle"
+              font-family="'DM Sans','Helvetica Neue',Helvetica,Arial,sans-serif"
+              font-size="8.5" font-weight="300" letter-spacing="2"
+              fill="#F8F4EE" fill-opacity="0.55">
+          <tspan x="110" y="117">ENGINEERED FOR PASSAGE</tspan><tspan fill="#C97B1E" fill-opacity="1">.</tspan>
+        </text>
+      </svg>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 03  SECONDARY LOCKUP                                     -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="section" style="margin-top:52px">
+  <p class="label">03 — Secondary Lockup · Mark + Wordmark</p>
+  <div class="grid-2">
+
+    <div class="cell pearl">
+      <svg viewBox="0 0 280 72" xmlns="http://www.w3.org/2000/svg" width="280">
+        <path d="M0,6 L48,6 L48,66 L36,66 L36,24 L12,24 L12,66 L0,66 Z" fill="#0C2340"/>
+        <rect x="12" y="22" width="24" height="2" fill="#C97B1E"/>
+        <text font-family="'Cormorant Garamond',Georgia,'Times New Roman',serif"
+              font-size="29" font-weight="500" letter-spacing="4" fill="#0C2340">
+          <tspan x="68" y="43">VISA</tspan><tspan dx="18">FORTE</tspan>
+        </text>
+      </svg>
+    </div>
+
+    <div class="cell prussian">
+      <svg viewBox="0 0 280 72" xmlns="http://www.w3.org/2000/svg" width="280">
+        <path d="M0,6 L48,6 L48,66 L36,66 L36,24 L12,24 L12,66 L0,66 Z" fill="#F8F4EE"/>
+        <rect x="12" y="22" width="24" height="2" fill="#C97B1E"/>
+        <text font-family="'Cormorant Garamond',Georgia,'Times New Roman',serif"
+              font-size="29" font-weight="500" letter-spacing="4" fill="#F8F4EE">
+          <tspan x="68" y="43">VISA</tspan><tspan dx="18">FORTE</tspan>
+        </text>
+      </svg>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 04  THRESHOLD MARK — ALL CONTEXTS                        -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="section" style="margin-top:52px">
+  <p class="label">04 — Threshold Mark · Four Contexts</p>
+  <div class="grid-4">
+
+    <div class="cell-sq pearl">
+      <svg viewBox="0 0 48 60" xmlns="http://www.w3.org/2000/svg" width="80">
+        <path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#0C2340"/>
+        <rect x="12" y="16" width="24" height="2" fill="#C97B1E"/>
+      </svg>
+    </div>
+
+    <div class="cell-sq prussian">
+      <svg viewBox="0 0 48 60" xmlns="http://www.w3.org/2000/svg" width="80">
+        <path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#F8F4EE"/>
+        <rect x="12" y="16" width="24" height="2" fill="#C97B1E"/>
+      </svg>
+    </div>
+
+    <div class="cell-sq white">
+      <!-- single colour: no saffron -->
+      <svg viewBox="0 0 48 60" xmlns="http://www.w3.org/2000/svg" width="80">
+        <path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#0C2340"/>
+      </svg>
+    </div>
+
+    <div class="cell-sq black">
+      <svg viewBox="0 0 48 60" xmlns="http://www.w3.org/2000/svg" width="80">
+        <path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#FFFFFF"/>
+      </svg>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 05  SINGLE-COLOUR LOCKUPS                                -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="section" style="margin-top:52px">
+  <p class="label">05 — Single Colour · White on Dark · Prussian on Light</p>
+  <div class="grid-2">
+
+    <!-- white on prussian -->
+    <div class="cell prussian">
+      <svg viewBox="0 0 320 86" xmlns="http://www.w3.org/2000/svg" width="320">
+        <path d="M0,13 L48,13 L48,73 L36,73 L36,31 L12,31 L12,73 L0,73 Z" fill="#FFFFFF"/>
+        <text font-family="'Cormorant Garamond',Georgia,'Times New Roman',serif"
+              font-size="27" font-weight="500" letter-spacing="4" fill="#FFFFFF">
+          <tspan x="70" y="42">VISA</tspan><tspan dx="18">FORTE</tspan>
+        </text>
+        <rect x="70" y="50" width="192" height="1" fill="#FFFFFF" fill-opacity="0.3"/>
+        <text font-family="'DM Sans','Helvetica Neue',Helvetica,Arial,sans-serif"
+              font-size="9" font-weight="300" letter-spacing="2.3"
+              fill="#FFFFFF" fill-opacity="0.38">
+          <tspan x="70" y="65">ENGINEERED FOR PASSAGE.</tspan>
+        </text>
+      </svg>
+    </div>
+
+    <!-- prussian on pearl -->
+    <div class="cell pearl">
+      <svg viewBox="0 0 320 86" xmlns="http://www.w3.org/2000/svg" width="320">
+        <path d="M0,13 L48,13 L48,73 L36,73 L36,31 L12,31 L12,73 L0,73 Z" fill="#0C2340"/>
+        <text font-family="'Cormorant Garamond',Georgia,'Times New Roman',serif"
+              font-size="27" font-weight="500" letter-spacing="4" fill="#0C2340">
+          <tspan x="70" y="42">VISA</tspan><tspan dx="18">FORTE</tspan>
+        </text>
+        <rect x="70" y="50" width="192" height="1" fill="#0C2340" fill-opacity="0.22"/>
+        <text font-family="'DM Sans','Helvetica Neue',Helvetica,Arial,sans-serif"
+              font-size="9" font-weight="300" letter-spacing="2.3"
+              fill="#0C2340" fill-opacity="0.42">
+          <tspan x="70" y="65">ENGINEERED FOR PASSAGE.</tspan>
+        </text>
+      </svg>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 06  SCALE INTEGRITY                                      -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="section" style="margin-top:52px">
+  <p class="label">06 — Scale Integrity · Favicon → Building Signage</p>
+  <div class="scale-row">
+
+    <div class="scale-unit">
+      <!-- 16px: no saffron, too small -->
+      <svg viewBox="0 0 48 60" xmlns="http://www.w3.org/2000/svg" width="13" height="16"
+           style="image-rendering:crisp-edges">
+        <path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#F8F4EE"/>
+      </svg>
+      <span>16px</span>
+    </div>
+
+    <div class="scale-unit">
+      <svg viewBox="0 0 48 60" xmlns="http://www.w3.org/2000/svg" width="26" height="32">
+        <path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#F8F4EE"/>
+        <rect x="12" y="16" width="24" height="2" fill="#C97B1E"/>
+      </svg>
+      <span>32px</span>
+    </div>
+
+    <div class="scale-unit">
+      <svg viewBox="0 0 48 60" xmlns="http://www.w3.org/2000/svg" width="52" height="65">
+        <path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#F8F4EE"/>
+        <rect x="12" y="16" width="24" height="2" fill="#C97B1E"/>
+      </svg>
+      <span>64px</span>
+    </div>
+
+    <div class="scale-unit">
+      <svg viewBox="0 0 48 60" xmlns="http://www.w3.org/2000/svg" width="104" height="130">
+        <path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#F8F4EE"/>
+        <rect x="12" y="16" width="24" height="2" fill="#C97B1E"/>
+      </svg>
+      <span>128px</span>
+    </div>
+
+    <div class="scale-unit">
+      <svg viewBox="0 0 48 60" xmlns="http://www.w3.org/2000/svg" width="200" height="250">
+        <path d="M0,0 L48,0 L48,60 L36,60 L36,18 L12,18 L12,60 L0,60 Z" fill="#F8F4EE"/>
+        <rect x="12" y="16" width="24" height="2" fill="#C97B1E"/>
+      </svg>
+      <span>256px</span>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 07  COLOUR ARCHITECTURE                                  -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="section" style="margin-top:52px">
+  <p class="label">07 — Colour Architecture</p>
+  <div class="swatch-row">
+
+    <div class="swatch prussian" style="flex:3">
+      <div class="swatch-inner" style="color:#F8F4EE">
+        <span class="swatch-role">PRIMARY · DOMINANT</span>
+        <span class="swatch-name">FORTE PRUSSIAN</span>
+        <span class="swatch-hex">#0C2340</span>
+      </div>
+    </div>
+
+    <div class="swatch" style="background:#C97B1E; flex:1">
+      <div class="swatch-inner" style="color:#fff">
+        <span class="swatch-role">ACCENT · PRECISION</span>
+        <span class="swatch-name">FORTE SAFFRON</span>
+        <span class="swatch-hex">#C97B1E</span>
+      </div>
+    </div>
+
+    <div class="swatch pearl" style="flex:2">
+      <div class="swatch-inner" style="color:#0C2340">
+        <span class="swatch-role">GROUND · BREATHING ROOM</span>
+        <span class="swatch-name">FORTE PEARL</span>
+        <span class="swatch-hex">#F8F4EE</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 08  DESIGNER RATIONALE                                   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="section" style="margin-top:52px">
+  <p class="label">08 — Designer Rationale</p>
+  <div class="rationale">
+    <p>
+      The mark is a threshold reduced to its structural grammar: a lintel, two columns, and the passage
+      between them. It is the portal at the moment before crossing — the held breath before the gate
+      opens — not the crossing itself. The form encodes both engineering precision and immigration at
+      their most elemental without deploying a single piece of literal iconography. The proportions are
+      not decorative: column width (12 units) to passage width (24 units) is a strict 1:2 ratio; lintel
+      height (18 units) is exactly 30% of the total form. These are architectural constants, not
+      aesthetic choices. The saffron accent is a 2-unit band at the base of the lintel interior — the
+      keystone moment, the compressed point where the arch holds and passage becomes possible. In the
+      primary lockup, the period in "Engineered for Passage." is set in Forte Saffron and full
+      opacity: the full stop is the precision instrument the brief demands, the visa approved, the case
+      closed. The wider inter-word gap between VISA and FORTE creates a measured pause in the wordmark
+      — two words that have chosen each other — without a separator device. Rejected: a VF monogram
+      (self-referential; marks that announce themselves as marks fail at scale and on embossed stock);
+      a globe with meridian lines (immediately immigration-coded in the worst possible way,
+      indistinguishable from two hundred competitors); a standalone serif wordmark (insufficient without
+      a symbol at business-card scale and envelope emboss); any use of the maple leaf (overloaded,
+      clichéd, and already owned by a country). What remains is the only mark that earns its place: a
+      form that does something the wordmark cannot do alone, at every size, in every medium, without
+      explanation.
+    </p>
+  </div>
+</div>
+
+</body>
+</html>

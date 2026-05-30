@@ -90,28 +90,15 @@ nav#nav.scrolled { padding: 0.75rem 2.5rem; }
 /* Brand — left */
 .nav-brand {
   display: flex;
-  flex-direction: column;
-  gap: 0.08rem;
+  align-items: center;
   flex-shrink: 0;
   text-decoration: none;
 }
 
-.nav-wordmark {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  color: var(--pearl);
-  text-transform: uppercase;
-}
-
-.nav-tagline {
-  font-family: var(--font-body);
-  font-size: 0.75rem;
-  font-weight: 400;
-  letter-spacing: 0.22em;
-  color: var(--saffron);
-  text-transform: uppercase;
+.nav-logo {
+  height: 44px;
+  width: auto;
+  display: block;
 }
 
 /* Nav links — center */
@@ -504,6 +491,8 @@ footer.site-footer {
 @media (max-width: 860px) {
   nav#nav { padding: 0.9rem 1.5rem; }
   nav#nav.scrolled { padding: 0.75rem 1.5rem; }
+
+  .nav-logo { height: 36px; }
 
   /* Hide all desktop-only nav items on mobile */
   .nav-links,
