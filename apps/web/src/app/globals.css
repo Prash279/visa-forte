@@ -492,7 +492,7 @@ footer.site-footer {
   nav#nav { padding: 0.9rem 1.5rem; }
   nav#nav.scrolled { padding: 0.75rem 1.5rem; }
 
-  .nav-logo { height: 44px; }
+  .nav-logo { height: 54px; }
 
   /* Hide all desktop-only nav items on mobile */
   .nav-links,
