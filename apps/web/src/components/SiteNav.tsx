@@ -62,7 +62,7 @@ export default function SiteNav() {
         {/* Brand — links to homepage */}
         <Link href="/" className="nav-brand">
           <Image
-            src="/brand/logo-primary-prussian.svg"
+            src="/brand/logo-primary-white.svg"
             alt="Visa Forte — Engineered for Passage."
             width={200}
             height={54}
