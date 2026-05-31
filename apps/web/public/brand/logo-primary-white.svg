@@ -12,6 +12,6 @@
   <text font-family="'DM Sans','Helvetica Neue',Helvetica,Arial,sans-serif"
         font-size="11" font-weight="500" letter-spacing="2.3"
         fill="#FFFFFF" fill-opacity="1">
-    <tspan x="70" y="69">ENGINEERED FOR PASSAGE</tspan><tspan fill="#C97B1E" fill-opacity="1">.</tspan>
+    <tspan x="70" y="69">ENGINEERED FOR PASSAGE</tspan><tspan fill="#C97B1E" fill-opacity="1" font-size="20">.</tspan>
   </text>
 </svg>
