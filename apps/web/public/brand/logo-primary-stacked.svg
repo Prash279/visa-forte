@@ -2,7 +2,6 @@
   <defs>
     <style>@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&amp;family=DM+Sans:wght@300&amp;display=swap');</style>
   </defs>
-  <rect width="220" height="148" fill="#F8F4EE"/>
   <!-- mark centred horizontally, 8px top padding -->
   <path d="M86,8 L134,8 L134,68 L122,68 L122,26 L98,26 L98,68 L86,68 Z" fill="#0C2340"/>
   <rect x="98" y="24" width="24" height="2" fill="#C97B1E"/>

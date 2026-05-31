@@ -4,8 +4,6 @@
       @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&amp;family=DM+Sans:wght@300&amp;display=swap');
     </style>
   </defs>
-  <rect width="320" height="86" fill="#F8F4EE"/>
-
   <!-- Threshold mark — centered vertically in 86px canvas (mark = 60px, offset = 13) -->
   <path d="M0,13 L48,13 L48,73 L36,73 L36,31 L12,31 L12,73 L0,73 Z" fill="#0C2340"/>
   <rect x="12" y="29" width="24" height="2" fill="#C97B1E"/>
