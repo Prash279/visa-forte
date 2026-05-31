@@ -5,6 +5,7 @@ import { clients, clientDocuments } from '../../../../../drizzle/schema'
 import { getCurrentAuthSession } from '@/lib/auth-server'
 import { uploadFile } from '@/lib/storage'
 import { getChecklist } from '@/lib/document-checklist'
+import { log } from '@/lib/logger'
 
 const ADMIN_EMAIL = 'prashant@visaforte.com'
 
@@ -80,15 +81,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'File upload failed. Please try again.' }, { status: 500 })
   }
 
-  const [doc] = await db
-    .insert(clientDocuments)
-    .values({
-      clientId: client.id,
-      filename: file.name,
-      blobUrl,
-      docType,
-    })
-    .returning()
+  let doc: typeof clientDocuments.$inferSelect
+  try {
+    const [inserted] = await db
+      .insert(clientDocuments)
+      .values({
+        clientId: client.id,
+        filename: file.name,
+        blobUrl,
+        docType,
+      })
+      .returning()
+    doc = inserted
+  } catch (err: unknown) {
+    log({ level: 'error', service: 'portal', action: 'upload_document', result: 'failure',
+      metadata: { clientId: client.id, error: err instanceof Error ? err.message : String(err) } })
+    return NextResponse.json({ error: 'Failed to save document record. Please try again.' }, { status: 500 })
+  }
 
   return NextResponse.json({
     doc: {

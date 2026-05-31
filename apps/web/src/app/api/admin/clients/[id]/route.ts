@@ -6,6 +6,7 @@ import { clients, clientDocuments, leads } from '../../../../../../drizzle/schem
 import { getCurrentAuthSession } from '@/lib/auth-server'
 import { UpdateClientSchema } from '@/lib/crm-stages'
 import { deleteFile } from '@/lib/storage'
+import { log } from '@/lib/logger'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -46,11 +47,11 @@ export async function PATCH(
     return NextResponse.json({ error: 'Client not found' }, { status: 404 })
   }
 
-  const updates: Record<string, unknown> = {
+  const updates = {
     updatedAt: sql`NOW()`,
+    ...(result.data.stage !== undefined && { stage: result.data.stage }),
+    ...(result.data.notes !== undefined && { notes: result.data.notes }),
   }
-  if (result.data.stage !== undefined) updates.stage = result.data.stage
-  if (result.data.notes !== undefined) updates.notes = result.data.notes
 
   try {
     const [updated] = await db
@@ -63,7 +64,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Client not found' }, { status: 404 })
     }
 
-    // Fire-and-forget stage-change audit email — does not block the response
+    // Stage-change audit email — awaited in its own try/catch so email failures
+    // are logged without rolling back the successful client update.
     const newStage = result.data.stage
     if (newStage && newStage !== current.stage) {
       const nowIST = new Date().toLocaleString('en-IN', {
@@ -71,24 +73,29 @@ export async function PATCH(
         dateStyle: 'medium',
         timeStyle: 'short',
       })
-      resend.emails.send({
-        from: 'Visa Forte CRM <noreply@visaforte.com>',
-        to: 'prashant@visaforte.com',
-        subject: `[Stage Change] ${current.name}: ${current.stage} → ${newStage}`,
-        text: [
-          `Client stage updated — ${nowIST} IST`,
-          '',
-          `Name:         ${current.name}`,
-          `Email:        ${current.email}`,
-          `Service Tier: ${current.serviceTier}`,
-          `Old Stage:    ${current.stage}`,
-          `New Stage:    ${newStage}`,
-          '',
-          'This is an internal audit notification. It was not sent to the client.',
-          '',
-          'Visa Forte · Engineered for Passage.',
-        ].join('\n'),
-      }).catch((err) => console.error('Stage-change email failed:', err))
+      try {
+        await resend.emails.send({
+          from: 'Visa Forte CRM <noreply@visaforte.com>',
+          to: 'prashant@visaforte.com',
+          subject: `[Stage Change] ${current.name}: ${current.stage} → ${newStage}`,
+          text: [
+            `Client stage updated — ${nowIST} IST`,
+            '',
+            `Name:         ${current.name}`,
+            `Email:        ${current.email}`,
+            `Service Tier: ${current.serviceTier}`,
+            `Old Stage:    ${current.stage}`,
+            `New Stage:    ${newStage}`,
+            '',
+            'This is an internal audit notification. It was not sent to the client.',
+            '',
+            'Visa Forte · Engineered for Passage.',
+          ].join('\n'),
+        })
+      } catch (err: unknown) {
+        log({ level: 'error', service: 'crm', action: 'stage_change_email', result: 'failure',
+          metadata: { clientId: id, error: err instanceof Error ? err.message : String(err) } })
+      }
     }
 
     return NextResponse.json({ client: updated })
@@ -129,20 +136,30 @@ export async function DELETE(
     ))
   )
 
-  const [deleted] = await db
-    .delete(clients)
-    .where(eq(clients.id, id))
-    .returning()
+  let deleted: typeof clients.$inferSelect
 
-  if (!deleted) {
-    return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+  try {
+    deleted = await db.transaction(async (tx) => {
+      const [row] = await tx
+        .delete(clients)
+        .where(eq(clients.id, id))
+        .returning()
+
+      if (!row) throw new Error('CLIENT_NOT_FOUND')
+
+      // Delete matching leads in the same transaction so both succeed or both roll back.
+      await tx.delete(leads).where(eq(leads.email, row.email))
+
+      return row
+    })
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message === 'CLIENT_NOT_FOUND') {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+    }
+    log({ level: 'error', service: 'crm', action: 'delete_client', result: 'failure',
+      metadata: { clientId: id, error: err instanceof Error ? err.message : String(err) } })
+    return NextResponse.json({ error: 'Could not delete client' }, { status: 500 })
   }
 
-  // Also remove any lead submissions that match the deleted client's email
-  // so the Dashboard stays in sync with the CRM.
-  await db.delete(leads).where(eq(leads.email, deleted.email)).catch((err) =>
-    console.error('Lead cascade delete failed:', err)
-  )
-
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true, deletedEmail: deleted.email })
 }

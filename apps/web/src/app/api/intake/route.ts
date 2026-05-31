@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { leads } from '../../../../drizzle/schema';
+import { log } from '@/lib/logger';
 
 // Validates the intake form payload before anything touches the database.
 const IntakeSchema = z.object({
@@ -37,8 +38,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       serviceInterest,
       notes: notes ?? null,
     });
-  } catch (err) {
-    console.error('Intake insert failed:', err);
+  } catch (err: unknown) {
+    log({ level: 'error', service: 'intake', action: 'insert_lead', result: 'failure',
+      metadata: { error: err instanceof Error ? err.message : String(err) } });
     return NextResponse.json({ error: 'Could not save your submission. Please try again.' }, { status: 500 });
   }
 

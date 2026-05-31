@@ -60,7 +60,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const result = ReplySchema.safeParse(body);
   if (!result.success) {
-    return NextResponse.json({ error: result.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 });
+    return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
   }
 
   const [message] = await db

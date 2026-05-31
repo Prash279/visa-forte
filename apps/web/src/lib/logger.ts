@@ -1,7 +1,7 @@
 // logger.ts — structured JSON logger for all server-side events.
 // Every important action (booking saved, payment verified, error thrown) writes
 // a log entry in a consistent shape so debugging is fast and searchable.
-// Output is JSON so Vercel log drains and GlitchTip can parse it automatically.
+// Output is JSON so Vercel log drains and Sentry can parse it automatically.
 
 type LogLevel = 'info' | 'warn' | 'error';
 

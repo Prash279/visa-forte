@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { log } from "@/lib/logger";
 
 // Full-page GET to /logout.
 // Calls Better Auth's signOut via the server API directly (no internal HTTP fetch),
@@ -20,8 +21,9 @@ export async function GET(request: Request) {
     if (setCookie) {
       response.headers.set("set-cookie", setCookie);
     }
-  } catch {
-    // If sign-out fails (session already expired etc.), still redirect to login.
+  } catch (err: unknown) {
+    log({ level: 'error', service: 'auth', action: 'sign_out', result: 'failure',
+      metadata: { error: err instanceof Error ? err.message : String(err) } });
   }
 
   return response;

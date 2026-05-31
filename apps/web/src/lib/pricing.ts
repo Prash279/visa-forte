@@ -21,9 +21,10 @@ export const PRICING: Record<string, TierPrice> = {
 };
 
 // Returns the display price as a formatted string, e.g. "₹4,999" or "$99".
-export function formatPrice(tier: string, currency: Currency): string {
+// Returns null if the tier is not recognised — callers must handle this case.
+export function formatPrice(tier: string, currency: Currency): string | null {
   const price = PRICING[tier];
-  if (!price) return '';
+  if (!price) return null;
   if (currency === 'INR') {
     return `₹${price.inr.toLocaleString('en-IN')}`;
   }
@@ -31,15 +32,17 @@ export function formatPrice(tier: string, currency: Currency): string {
 }
 
 // Returns the amount in the smallest unit for Razorpay (paise for INR, cents for USD).
-export function getAmountInSmallestUnit(tier: string, currency: Currency): number {
+// Returns null if the tier is not recognised — never pass null to a payment processor.
+export function getAmountInSmallestUnit(tier: string, currency: Currency): number | null {
   const price = PRICING[tier];
-  if (!price) return 0;
+  if (!price) return null;
   return currency === 'INR' ? price.inr * 100 : price.usd * 100;
 }
 
 // Returns the numeric price for a tier in the given currency.
-export function getPrice(tier: string, currency: Currency): number {
+// Returns null if the tier is not recognised — callers must handle this case.
+export function getPrice(tier: string, currency: Currency): number | null {
   const price = PRICING[tier];
-  if (!price) return 0;
+  if (!price) return null;
   return currency === 'INR' ? price.inr : price.usd;
 }

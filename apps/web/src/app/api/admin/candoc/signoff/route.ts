@@ -8,6 +8,7 @@ import { getCurrentAuthSession } from '@/lib/auth-server'
 import { parseFindings, type FindingsJson } from '@/lib/candoc-types'
 import { buildCandocMarp, renderMarpToHtml } from '@/lib/candoc-marp'
 import { uploadFile } from '@/lib/storage'
+import { log } from '@/lib/logger'
 
 async function requireAdmin(): Promise<NextResponse | null> {
   const session = await getCurrentAuthSession()
@@ -23,6 +24,15 @@ async function requireAdmin(): Promise<NextResponse | null> {
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const deny = await requireAdmin()
   if (deny) return deny
+
+  const portalSecret = process.env.CLIENT_PORTAL_SECRET
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  const resendKey = process.env.RESEND_API_KEY
+  if (!portalSecret || !appUrl || !resendKey) {
+    const missing = [!portalSecret && 'CLIENT_PORTAL_SECRET', !appUrl && 'NEXT_PUBLIC_APP_URL', !resendKey && 'RESEND_API_KEY'].filter(Boolean).join(', ')
+    log({ level: 'error', service: 'candoc', action: 'signoff', result: 'failure', metadata: { missing } })
+    return NextResponse.json({ error: 'Server misconfiguration — contact support.' }, { status: 500 })
+  }
 
   try {
     const body = await req.json() as {
@@ -52,15 +62,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       'text/html',
     )
 
-    const jwtSecret = new TextEncoder().encode(process.env.CLIENT_PORTAL_SECRET!)
+    const jwtSecret = new TextEncoder().encode(portalSecret)
     const portalToken = await new SignJWT({ reviewId })
       .setProtectedHeader({ alg: 'HS256' })
       .setExpirationTime('7d')
       .sign(jwtSecret)
 
-    const portalUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/client/candoc/report?token=${portalToken}`
+    const portalUrl = `${appUrl}/api/client/candoc/report?token=${portalToken}`
 
-    const resend = new Resend(process.env.RESEND_API_KEY!)
+    const resend = new Resend(resendKey)
     await resend.emails.send({
       from: 'Visa Forte Consulting <prashant@visaforte.com>',
       to: clientRow.email,

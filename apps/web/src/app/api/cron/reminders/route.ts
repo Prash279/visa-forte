@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { and, eq, lt, inArray } from 'drizzle-orm';
+import { and, eq, gte, lt, inArray } from 'drizzle-orm';
 import { Resend } from 'resend';
 import { db } from '@/lib/db';
 import { bookings, messages, clients, irccQueries } from '../../../../../drizzle/schema';
@@ -33,6 +33,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   // ── Email 2: 24-hour appointment reminders ────────────────────────────────
   let remindersSent = 0;
+  let reminderFailures = 0;
 
   try {
     const tomorrowsBookings = await db
@@ -47,7 +48,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       );
 
     for (const booking of tomorrowsBookings) {
-      // Client reminder
+      // Client reminder — tracks success so we only mark sent if delivery succeeded
+      let clientEmailSent = false;
       try {
         await resend.emails.send({
           from: 'Visa Forte <noreply@visaforte.com>',
@@ -82,14 +84,16 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
             </div>
           `,
         });
+        clientEmailSent = true;
       } catch (err) {
+        reminderFailures++;
         log({
           level: 'error', service: 'cron-reminders', action: 'send_client_reminder',
           result: 'failure', metadata: { bookingId: booking.id, error: String(err) },
         });
       }
 
-      // Prash copy
+      // Prash copy — best-effort, does not affect reminderSent flag
       try {
         await resend.emails.send({
           from: 'Visa Forte <noreply@visaforte.com>',
@@ -116,20 +120,22 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         });
       }
 
-      // Mark reminder as sent so we don't re-send on subsequent runs
-      try {
-        await db
-          .update(bookings)
-          .set({ reminderSent: true })
-          .where(eq(bookings.id, booking.id));
-      } catch (err) {
-        log({
-          level: 'error', service: 'cron-reminders', action: 'mark_reminder_sent',
-          result: 'failure', metadata: { bookingId: booking.id, error: String(err) },
-        });
+      // Only mark as sent if the client email was actually delivered
+      if (clientEmailSent) {
+        try {
+          await db
+            .update(bookings)
+            .set({ reminderSent: true })
+            .where(eq(bookings.id, booking.id));
+          remindersSent++;
+        } catch (err) {
+          reminderFailures++;
+          log({
+            level: 'error', service: 'cron-reminders', action: 'mark_reminder_sent',
+            result: 'failure', metadata: { bookingId: booking.id, error: String(err) },
+          });
+        }
       }
-
-      remindersSent++;
     }
   } catch (err) {
     log({
@@ -273,14 +279,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       .where(
         and(
           eq(irccQueries.status, 'Open'),
-          // deadline >= today AND deadline <= today+3
-          // Using string comparison on ISO dates is safe (lexicographic = chronological)
+          // Both bounds applied in SQL — safe because column is always YYYY-MM-DD (enforced by Zod on insert)
+          gte(irccQueries.responseDeadline, todayStr),
           lt(irccQueries.responseDeadline, plusThreeStr),
         )
       );
 
-    // Post-filter: deadline >= todayStr (drizzle doesn't expose gte for text columns easily here)
-    const dueQueries = upcomingQueries.filter(q => q.responseDeadline >= todayStr);
+    const dueQueries = upcomingQueries;
 
     if (dueQueries.length > 0) {
       // Fetch client names for each affected clientId
@@ -349,5 +354,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     result: 'success', metadata: { alertsSent: irccAlertCount },
   });
 
-  return NextResponse.json({ sent: remindersSent, slaBreaches: slaBreachCount, irccAlerts: irccAlertCount });
+  const hadFailures = reminderFailures > 0;
+  return NextResponse.json(
+    { sent: remindersSent, slaBreaches: slaBreachCount, irccAlerts: irccAlertCount, failures: reminderFailures },
+    { status: hadFailures ? 207 : 200 },
+  );
 }
