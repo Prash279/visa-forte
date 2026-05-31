@@ -102,7 +102,7 @@ nav#nav.scrolled { padding: 0.75rem 2.5rem; }
 }
 
 @media (max-width: 860px) {
-  .nav-logo { height: 32px; }
+  .nav-logo { height: 40px; }
 }
 
 /* Nav links — center */
