@@ -76,6 +76,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   // ── Save booking (with portal activation token) ─────────────────────────────
   const amountPaid = getAmountInSmallestUnit(serviceTier, currency);
+
+  if (amountPaid === null) {
+    return NextResponse.json({ error: 'Pricing not available for this tier and currency.' }, { status: 400 });
+  }
+
   // Generate a single-use token so the client can activate their portal account.
   // The token expires in 7 days and is cleared from the DB on first use.
   const portalToken = randomUUID();
