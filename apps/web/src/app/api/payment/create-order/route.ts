@@ -32,6 +32,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const amount = getAmountInSmallestUnit(serviceTier, currency);
 
+  if (amount === null) {
+    return NextResponse.json({ error: 'Pricing not available for this tier and currency.' }, { status: 400 });
+  }
+
   // Guard: Razorpay keys must be configured before orders can be created.
   if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
     return NextResponse.json(
