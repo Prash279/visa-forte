@@ -27,9 +27,9 @@ export const metadata: Metadata = {
   description:
     "20 years of forensic immigration documentation expertise. Express Entry, FSW, PNP. Every file personally reviewed. Zero margin for error.",
   icons: {
-    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
-    shortcut: "/favicon.svg",
-    apple: "/favicon.svg",
+    icon: [{ url: "/brand/favicon-mark.svg", type: "image/svg+xml" }],
+    shortcut: "/brand/favicon-mark.svg",
+    apple: "/brand/favicon-mark.svg",
   },
 };
 

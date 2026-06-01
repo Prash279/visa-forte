@@ -143,11 +143,17 @@ body { background: #ddd8d0; font-family: var(--sans); }
   @page { size: A4; margin: 0; }
 }
 
-/* ─── Print button ───────────────────────────────────── */
-.print-btn {
+/* ─── Fixed action buttons ───────────────────────────── */
+.fixed-actions {
   position: fixed;
   bottom: 32px;
   right: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 100;
+}
+.print-btn {
   background: var(--prussian);
   color: var(--pearl);
   font-family: var(--sans);
@@ -158,9 +164,17 @@ body { background: #ddd8d0; font-family: var(--sans); }
   border: none;
   padding: 12px 20px;
   cursor: pointer;
-  z-index: 100;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
 }
 .print-btn:hover { background: #162f58; }
+.print-btn.secondary {
+  background: transparent;
+  border: 1px solid rgba(12,35,64,0.3);
+  color: rgba(12,35,64,0.45);
+}
+.print-btn.secondary:hover { background: rgba(12,35,64,0.05); }
 
 /* ─── Download link ──────────────────────────────────── */
 a.dl {
@@ -184,7 +198,10 @@ a.dl.pearl:hover { background: rgba(248,244,238,0.08); }
 </head>
 <body>
 
-<button class="print-btn no-print" onclick="window.print()">Print / Save PDF</button>
+<div class="fixed-actions no-print">
+  <a class="print-btn" href="./visa-forte-brand-book-2026.pdf" download="Visa-Forte-Brand-Book-2026.pdf">↓ Download PDF</a>
+  <button class="print-btn secondary" onclick="window.print()">Print / Save PDF</button>
+</div>
 
 
 <!-- ═══════════════════════════════════════════════ -->
@@ -194,7 +211,7 @@ a.dl.pearl:hover { background: rgba(248,244,238,0.08); }
 
   <div style="padding:48px 56px 0; display:flex; justify-content:space-between; align-items:center">
     <span style="font-family:var(--sans);font-size:7.5px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(248,244,238,0.25)">Visa Forte Consulting</span>
-    <span style="font-family:var(--sans);font-size:7.5px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(248,244,238,0.25)">Confidential · 2025</span>
+    <span style="font-family:var(--sans);font-size:7.5px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(248,244,238,0.25)">Confidential · 2026</span>
   </div>
 
   <!-- large mark centred -->
@@ -216,7 +233,7 @@ a.dl.pearl:hover { background: rgba(248,244,238,0.08); }
     <div style="display:flex;justify-content:space-between;align-items:flex-end">
       <div>
         <div style="font-family:var(--serif);font-size:26px;font-weight:400;color:var(--pearl);line-height:1.2">Brand Identity Standards</div>
-        <div style="font-family:var(--sans);font-size:9px;font-weight:300;letter-spacing:0.2em;color:rgba(248,244,238,0.3);margin-top:8px">Edition 1.0 · Prashant Thirthingoth · visaforte.com</div>
+        <div style="font-family:var(--sans);font-size:9px;font-weight:300;letter-spacing:0.2em;color:rgba(248,244,238,0.3);margin-top:8px">Edition 1.1 · Prashant Thirthingoth · visaforte.com</div>
       </div>
       <div style="font-family:var(--serif);font-size:11px;color:rgba(248,244,238,0.25)">01</div>
     </div>
@@ -449,7 +466,7 @@ a.dl.pearl:hover { background: rgba(248,244,238,0.08); }
     <div class="section-intro">
       <span class="section-index">03 · Logo System</span>
       <div class="section-title">All lockups.</div>
-      <p class="section-desc">Thirteen production-ready SVG files. Click any download button to save the file. SVG format scales without quality loss from business card to building hoarding.</p>
+      <p class="section-desc">Fourteen production-ready SVG files. Click any download button to save the file. SVG format scales without quality loss from business card to building hoarding.</p>
     </div>
 
     <!-- Primary horizontal -->
@@ -609,26 +626,26 @@ a.dl.pearl:hover { background: rgba(248,244,238,0.08); }
         <div style="display:flex;gap:12px;align-items:flex-end">
           <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
             <div style="background:var(--pearl);border:1px solid rgba(12,35,64,0.08);padding:8px;display:flex">
-              <img src="./favicon.svg" style="width:16px;height:16px">
+              <img src="./favicon-mark.svg" style="width:16px;height:16px">
             </div>
             <span style="font-size:7.5px;color:rgba(12,35,64,0.35)">16px</span>
           </div>
           <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
             <div style="background:var(--pearl);border:1px solid rgba(12,35,64,0.08);padding:8px;display:flex">
-              <img src="./favicon.svg" style="width:32px;height:32px">
+              <img src="./favicon-mark.svg" style="width:32px;height:32px">
             </div>
             <span style="font-size:7.5px;color:rgba(12,35,64,0.35)">32px</span>
           </div>
           <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
             <div style="background:var(--pearl);border:1px solid rgba(12,35,64,0.08);padding:8px;display:flex">
-              <img src="./favicon.svg" style="width:64px;height:64px">
+              <img src="./favicon-mark.svg" style="width:64px;height:64px">
             </div>
             <span style="font-size:7.5px;color:rgba(12,35,64,0.35)">64px</span>
           </div>
         </div>
         <div>
           <p style="font-size:12.5px;font-weight:300;line-height:1.75;color:rgba(12,35,64,0.55);margin-bottom:12px">The favicon uses a 48×48 square viewBox with the mark scaled to 75% and centred. At 16px the saffron accent is omitted; it reappears at 32px and above.</p>
-          <a class="dl" href="./favicon.svg" download>↓ Download favicon.svg</a>
+          <a class="dl" href="./favicon-mark.svg" download>↓ Download favicon.svg</a>
         </div>
       </div>
     </div>
@@ -638,17 +655,159 @@ a.dl.pearl:hover { background: rgba(248,244,238,0.08); }
 
 
 <!-- ═══════════════════════════════════════════════ -->
-<!-- PAGE 6 — COLOUR ARCHITECTURE                    -->
+<!-- PAGE 6 — DIGITAL NAV LOGO (TRANSPARENT WHITE)   -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page on-prussian">
+  <div class="page-header dark">
+    <span class="page-label dark">Digital Nav Logo</span>
+    <span class="page-num dark">06</span>
+  </div>
+  <div class="page-content">
+
+    <div class="section-intro dark">
+      <span class="section-index">04 · Digital Nav Logo</span>
+      <div class="section-title dark">Transparent white variant.</div>
+      <p class="section-desc dark">Three viewport-optimized SVGs render on the Prussian navigation bar: <strong style="color:rgba(248,244,238,0.7);font-weight:400">logo-nav-desktop.svg</strong> at ≥ 860px, <strong style="color:rgba(248,244,238,0.7);font-weight:400">logo-nav-tablet.svg</strong> at ≤ 860px, and <strong style="color:rgba(248,244,238,0.7);font-weight:400">logo-nav-mobile.svg</strong> at 375px. The mark and wordmark are pure white; only the saffron keystone accent and the separator rule retain their brand colour. The background is fully transparent.</p>
+    </div>
+
+    <!-- Viewport rows — full width so the logo never clips -->
+
+    <!-- Desktop -->
+    <div style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">
+        <span class="eyebrow dark saffron" style="margin-bottom:0">Desktop · ≥ 860px</span>
+        <span style="font-family:var(--sans);font-size:8px;font-weight:300;letter-spacing:0.15em;color:rgba(248,244,238,0.35)">height: 42px · width: auto</span>
+      </div>
+      <div style="background:rgba(12,35,64,0.55);border:1px solid rgba(248,244,238,0.1);padding:13px 24px;display:flex;align-items:center;justify-content:space-between">
+        <img src="./logo-nav-desktop.svg" style="height:42px;width:auto;display:block;flex-shrink:0">
+        <div style="display:flex;gap:18px;align-items:center">
+          <span style="font-family:var(--sans);font-size:8px;color:rgba(248,244,238,0.5);letter-spacing:0.08em">About</span>
+          <span style="font-family:var(--sans);font-size:8px;color:rgba(248,244,238,0.5);letter-spacing:0.08em">Services</span>
+          <span style="font-family:var(--sans);font-size:8px;color:rgba(248,244,238,0.5);letter-spacing:0.08em">Visas</span>
+          <span style="font-family:var(--sans);font-size:8px;color:rgba(248,244,238,0.5);letter-spacing:0.08em">Resources</span>
+          <span style="font-family:var(--sans);font-size:8px;color:rgba(248,244,238,0.5);letter-spacing:0.08em">Contact</span>
+          <span style="font-family:var(--sans);font-size:7.5px;color:rgba(248,244,238,0.35);letter-spacing:0.08em;border:1px solid rgba(248,244,238,0.2);padding:4px 10px">Get Reviewed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tablet -->
+    <div style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">
+        <span class="eyebrow dark saffron" style="margin-bottom:0">Tablet · ≤ 860px</span>
+        <span style="font-family:var(--sans);font-size:8px;font-weight:300;letter-spacing:0.15em;color:rgba(248,244,238,0.35)">height: 40px · width: auto</span>
+      </div>
+      <!-- Constrained to ~420px to simulate tablet viewport feel -->
+      <div style="max-width:420px">
+        <div style="background:rgba(12,35,64,0.55);border:1px solid rgba(248,244,238,0.1);padding:12px 20px;display:flex;align-items:center;justify-content:space-between">
+          <img src="./logo-nav-tablet.svg" style="height:40px;width:auto;display:block;flex-shrink:0">
+          <div style="display:flex;flex-direction:column;gap:4px;padding:2px;flex-shrink:0">
+            <span style="display:block;width:20px;height:1.5px;background:rgba(248,244,238,0.55)"></span>
+            <span style="display:block;width:20px;height:1.5px;background:rgba(248,244,238,0.55)"></span>
+            <span style="display:block;width:20px;height:1.5px;background:rgba(248,244,238,0.55)"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile -->
+    <div style="margin-bottom:36px">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">
+        <span class="eyebrow dark saffron" style="margin-bottom:0">Mobile · 375px</span>
+        <span style="font-family:var(--sans);font-size:8px;font-weight:300;letter-spacing:0.15em;color:rgba(248,244,238,0.35)">height: 40px · width: auto</span>
+      </div>
+      <!-- Constrained to 280px to simulate mobile viewport feel -->
+      <div style="max-width:280px">
+        <div style="background:rgba(12,35,64,0.55);border:1px solid rgba(248,244,238,0.1);padding:10px 16px;display:flex;align-items:center;justify-content:space-between">
+          <img src="./logo-nav-mobile.svg" style="height:40px;width:auto;display:block;flex-shrink:0">
+          <div style="display:flex;flex-direction:column;gap:4px;padding:2px;flex-shrink:0">
+            <span style="display:block;width:20px;height:1.5px;background:rgba(248,244,238,0.55)"></span>
+            <span style="display:block;width:20px;height:1.5px;background:rgba(248,244,238,0.55)"></span>
+            <span style="display:block;width:20px;height:1.5px;background:rgba(248,244,238,0.55)"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spec table -->
+    <div style="margin-bottom:36px">
+      <span class="eyebrow dark" style="margin-bottom:14px;display:block">File specification</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:2px">
+        <div style="background:rgba(248,244,238,0.05);padding:14px 16px">
+          <div style="font-family:var(--sans);font-size:7.5px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(248,244,238,0.3);margin-bottom:8px">Desktop · ≥ 860px</div>
+          <div style="font-family:var(--sans);font-size:10.5px;font-weight:300;color:rgba(248,244,238,0.75);margin-bottom:4px">logo-nav-desktop.svg</div>
+          <div style="font-family:var(--sans);font-size:9px;font-weight:300;color:rgba(248,244,238,0.35)">156 × 42 px</div>
+        </div>
+        <div style="background:rgba(248,244,238,0.05);padding:14px 16px">
+          <div style="font-family:var(--sans);font-size:7.5px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(248,244,238,0.3);margin-bottom:8px">Tablet · ≤ 860px</div>
+          <div style="font-family:var(--sans);font-size:10.5px;font-weight:300;color:rgba(248,244,238,0.75);margin-bottom:4px">logo-nav-tablet.svg</div>
+          <div style="font-family:var(--sans);font-size:9px;font-weight:300;color:rgba(248,244,238,0.35)">149 × 40 px</div>
+        </div>
+        <div style="background:rgba(248,244,238,0.05);padding:14px 16px">
+          <div style="font-family:var(--sans);font-size:7.5px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(248,244,238,0.3);margin-bottom:8px">Mobile · 375px</div>
+          <div style="font-family:var(--sans);font-size:10.5px;font-weight:300;color:rgba(248,244,238,0.75);margin-bottom:4px">logo-nav-mobile.svg</div>
+          <div style="font-family:var(--sans);font-size:9px;font-weight:300;color:rgba(248,244,238,0.35)">149 × 40 px</div>
+        </div>
+        <div style="background:rgba(248,244,238,0.05);padding:14px 16px">
+          <div style="font-family:var(--sans);font-size:7.5px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(248,244,238,0.3);margin-bottom:8px">All variants</div>
+          <div style="font-family:var(--sans);font-size:10.5px;font-weight:300;color:rgba(248,244,238,0.75);margin-bottom:4px">ViewBox 0 0 320 86</div>
+          <div style="font-family:var(--sans);font-size:9px;font-weight:300;color:rgba(248,244,238,0.35)">Transparent · Prussian only</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colour breakdown -->
+    <div style="margin-bottom:36px">
+      <span class="eyebrow dark" style="margin-bottom:14px;display:block">Colour breakdown</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px">
+        <div style="background:rgba(248,244,238,0.05);padding:18px 16px;display:flex;align-items:center;gap:12px">
+          <div style="width:16px;height:16px;background:#FFFFFF;flex-shrink:0"></div>
+          <div>
+            <div style="font-family:var(--sans);font-size:9px;font-weight:400;color:rgba(248,244,238,0.65);letter-spacing:0.08em">Mark + Wordmark</div>
+            <div style="font-family:var(--sans);font-size:11px;font-weight:300;color:rgba(248,244,238,0.4);margin-top:2px">#FFFFFF</div>
+          </div>
+        </div>
+        <div style="background:rgba(248,244,238,0.05);padding:18px 16px;display:flex;align-items:center;gap:12px">
+          <div style="width:16px;height:16px;background:#C97B1E;flex-shrink:0"></div>
+          <div>
+            <div style="font-family:var(--sans);font-size:9px;font-weight:400;color:rgba(248,244,238,0.65);letter-spacing:0.08em">Keystone · Separator · Period</div>
+            <div style="font-family:var(--sans);font-size:11px;font-weight:300;color:rgba(248,244,238,0.4);margin-top:2px">Forte Saffron · #C97B1E</div>
+          </div>
+        </div>
+        <div style="background:rgba(248,244,238,0.05);padding:18px 16px;display:flex;align-items:center;gap:12px">
+          <div style="width:16px;height:16px;background:transparent;border:1px solid rgba(248,244,238,0.25);flex-shrink:0"></div>
+          <div>
+            <div style="font-family:var(--sans);font-size:9px;font-weight:400;color:rgba(248,244,238,0.65);letter-spacing:0.08em">Background</div>
+            <div style="font-family:var(--sans);font-size:11px;font-weight:300;color:rgba(248,244,238,0.4);margin-top:2px">Transparent (none)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Download -->
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <a class="dl pearl" href="./logo-nav-desktop.svg" download>↓ Desktop SVG</a>
+      <a class="dl pearl" href="./logo-nav-tablet.svg" download>↓ Tablet SVG</a>
+      <a class="dl pearl" href="./logo-nav-mobile.svg" download>↓ Mobile SVG</a>
+      <span style="font-family:var(--sans);font-size:9px;font-weight:300;color:rgba(248,244,238,0.3);letter-spacing:0.08em">Only use on Prussian or dark backgrounds. Never on Pearl or white.</span>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PAGE 7 — COLOUR ARCHITECTURE                    -->
 <!-- ═══════════════════════════════════════════════ -->
 <div class="page on-white">
   <div class="page-header">
     <span class="page-label">Colour Architecture</span>
-    <span class="page-num">06</span>
+    <span class="page-num">07</span>
   </div>
   <div class="page-content">
 
     <div class="section-intro">
-      <span class="section-index">04 · Colour</span>
+      <span class="section-index">05 · Colour</span>
       <div class="section-title">Prussian and Pearl dominate.<br>Saffron sharpens.</div>
       <p class="section-desc">Saffron is a precision instrument, not wallpaper. It appears as a single accent: the keystone line in the mark, the separator rule in the lockup, the period in the tagline. Never as a dominant fill.</p>
     </div>
@@ -762,17 +921,17 @@ a.dl.pearl:hover { background: rgba(248,244,238,0.08); }
 
 
 <!-- ═══════════════════════════════════════════════ -->
-<!-- PAGE 7 — TYPOGRAPHY                             -->
+<!-- PAGE 8 — TYPOGRAPHY                             -->
 <!-- ═══════════════════════════════════════════════ -->
 <div class="page">
   <div class="page-header">
     <span class="page-label">Typography</span>
-    <span class="page-num">07</span>
+    <span class="page-num">08</span>
   </div>
   <div class="page-content">
 
     <div class="section-intro">
-      <span class="section-index">05 · Typography</span>
+      <span class="section-index">06 · Typography</span>
       <div class="section-title">Two typefaces. One hierarchy.</div>
       <p class="section-desc">Cormorant Garamond for authority and weight. DM Sans for clarity and precision. They are never used interchangeably — each has a defined role.</p>
     </div>
@@ -873,17 +1032,17 @@ a.dl.pearl:hover { background: rgba(248,244,238,0.08); }
 
 
 <!-- ═══════════════════════════════════════════════ -->
-<!-- PAGE 8 — USAGE RULES                            -->
+<!-- PAGE 9 — USAGE RULES                            -->
 <!-- ═══════════════════════════════════════════════ -->
 <div class="page on-white">
   <div class="page-header">
     <span class="page-label">Usage Rules</span>
-    <span class="page-num">08</span>
+    <span class="page-num">09</span>
   </div>
   <div class="page-content">
 
     <div class="section-intro">
-      <span class="section-index">06 · Usage Rules</span>
+      <span class="section-index">07 · Usage Rules</span>
       <div class="section-title">Clear space. Minimum size.<br>What not to do.</div>
     </div>
 
@@ -993,17 +1152,17 @@ a.dl.pearl:hover { background: rgba(248,244,238,0.08); }
 
 
 <!-- ═══════════════════════════════════════════════ -->
-<!-- PAGE 9 — APPLICATIONS                           -->
+<!-- PAGE 10 — APPLICATIONS                          -->
 <!-- ═══════════════════════════════════════════════ -->
 <div class="page on-prussian">
   <div class="page-header dark">
     <span class="page-label dark">Applications</span>
-    <span class="page-num dark">09</span>
+    <span class="page-num dark">10</span>
   </div>
   <div class="page-content">
 
     <div class="section-intro dark">
-      <span class="section-index">07 · Applications</span>
+      <span class="section-index">08 · Applications</span>
       <div class="section-title dark">The brand in the world.</div>
       <p class="section-desc dark">Business card · Email signature · Letterhead</p>
     </div>
@@ -1124,13 +1283,13 @@ a.dl.pearl:hover { background: rgba(248,244,238,0.08); }
 
 
 <!-- ═══════════════════════════════════════════════ -->
-<!-- PAGE 10 — CLOSING                               -->
+<!-- PAGE 11 — CLOSING                               -->
 <!-- ═══════════════════════════════════════════════ -->
 <div class="page on-prussian" style="justify-content:space-between">
 
   <div style="padding:48px 56px 0;display:flex;justify-content:space-between;align-items:center">
     <span style="font-family:var(--sans);font-size:7.5px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(248,244,238,0.2)">Visa Forte Consulting</span>
-    <span style="font-family:var(--sans);font-size:7.5px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(248,244,238,0.2)">10</span>
+    <span style="font-family:var(--sans);font-size:7.5px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(248,244,238,0.2)">11</span>
   </div>
 
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:56px;text-align:center">
@@ -1151,8 +1310,8 @@ a.dl.pearl:hover { background: rgba(248,244,238,0.08); }
         <div style="font-family:var(--sans);font-size:7.5px;font-weight:300;letter-spacing:2px;color:rgba(248,244,238,0.3)">ENGINEERED FOR PASSAGE<span style="color:var(--saffron)">.</span></div>
       </div>
       <div style="text-align:right">
-        <div style="font-family:var(--sans);font-size:8px;font-weight:300;letter-spacing:0.15em;color:rgba(248,244,238,0.2)">Brand Identity Standards · Edition 1.0</div>
-        <div style="font-family:var(--sans);font-size:8px;font-weight:300;letter-spacing:0.15em;color:rgba(248,244,238,0.15);margin-top:4px">visaforte.com · 2025</div>
+        <div style="font-family:var(--sans);font-size:8px;font-weight:300;letter-spacing:0.15em;color:rgba(248,244,238,0.2)">Brand Identity Standards · Edition 1.1</div>
+        <div style="font-family:var(--sans);font-size:8px;font-weight:300;letter-spacing:0.15em;color:rgba(248,244,238,0.15);margin-top:4px">visaforte.com · 2026</div>
       </div>
     </div>
   </div>
