@@ -68,6 +68,33 @@ const requestSchema = z.object({
   jobDuties: z.string().min(20, 'Provide a detailed description of the job duties (at least a sentence or two).').max(8000),
 })
 
+// Pull the first complete, balanced JSON object out of the model's reply, even
+// if it wraps the object in markdown fences or adds commentary before/after it.
+// String contents are skipped so braces inside values don't end the scan early.
+function extractJsonObject(text: string): string | null {
+  const start = text.indexOf('{')
+  if (start === -1) return null
+  let depth = 0
+  let inString = false
+  let escaped = false
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i]
+    if (inString) {
+      if (escaped) escaped = false
+      else if (ch === '\\') escaped = true
+      else if (ch === '"') inString = false
+    } else if (ch === '"') {
+      inString = true
+    } else if (ch === '{') {
+      depth++
+    } else if (ch === '}') {
+      depth--
+      if (depth === 0) return text.slice(start, i + 1)
+    }
+  }
+  return null
+}
+
 // POST /api/admin/pnp-noc  Body: { occupationTitle?, jobDuties }
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const deny = await requireAdmin()
@@ -97,9 +124,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     })
 
     const rawText = message.content.find(b => b.type === 'text')?.text ?? ''
-    const jsonText = rawText.replace(/^```json\s*/i, '').replace(/\s*```$/, '').trim()
+    const jsonText = extractJsonObject(rawText)
+    if (jsonText === null) {
+      return NextResponse.json({ error: 'Classifier did not return a JSON object.' }, { status: 502 })
+    }
 
-    const result = nocResponseSchema.safeParse(JSON.parse(jsonText))
+    let parsedJson: unknown
+    try {
+      parsedJson = JSON.parse(jsonText)
+    } catch {
+      return NextResponse.json({ error: 'Classifier returned malformed JSON.' }, { status: 502 })
+    }
+
+    const result = nocResponseSchema.safeParse(parsedJson)
     if (!result.success) {
       return NextResponse.json({ error: 'Classifier returned an unexpected shape.' }, { status: 502 })
     }
