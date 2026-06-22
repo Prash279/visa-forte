@@ -45,6 +45,7 @@ export interface ApplicantProfile {
   nocCode: string
   nocTeer: 0 | 1 | 2 | 3 | 4 | 5
   occupationTitle: string
+  jobDuties?: string // free-text duties; powers the PNP duties→NOC classifier (ignored by CRS scoring)
   countryOfCitizenship: string
   countryOfResidence: string
   reportDate: string

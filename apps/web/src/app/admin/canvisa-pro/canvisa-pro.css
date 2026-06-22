@@ -218,6 +218,39 @@
   transform: translateY(-1px);
 }
 
+/* PNP assessment — secondary action below the primary CRS button */
+.cvp-pnp-btn {
+  background: transparent;
+  color: var(--cvp-teal);
+  border: 1px solid var(--cvp-teal);
+  margin-top: 0.875rem;
+  margin-left: 0.75rem;
+}
+
+.cvp-pnp-btn:hover {
+  background: rgba(45, 212, 191, 0.12);
+}
+
+.cvp-pnp-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.cvp-pnp-error {
+  color: #fca5a5;
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 600px) {
+  .cvp-pnp-btn {
+    margin-left: 0;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 /* ── Report view ─────────────────────────────────────────── */
 .cvp-report {
   max-width: 1400px;
