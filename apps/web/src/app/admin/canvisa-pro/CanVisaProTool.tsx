@@ -1238,8 +1238,8 @@ export default function CanVisaProTool() {
             <div className="cvp-field full">
               <NocSearch
                 theme="dark"
-                onSelect={(code, teer) => setProfile(prev => ({ ...prev, nocCode: code, nocTeer: teer }))}
-                onClear={() => setProfile(prev => ({ ...prev, nocCode: '', nocTeer: 1 }))}
+                onSelect={(code, teer, title) => setProfile(prev => ({ ...prev, nocCode: code, nocTeer: teer, occupationTitle: title }))}
+                onClear={() => setProfile(prev => ({ ...prev, nocCode: '', nocTeer: 1, occupationTitle: '' }))}
               />
             </div>
             <div className="cvp-field">
