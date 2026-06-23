@@ -2,16 +2,28 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
 import { getCurrentAuthSession } from '@/lib/auth-server'
+import { retrieveCandidates } from '@/lib/noc-retrieval'
+import {
+  NOC_CLASSIFIER_SYSTEM,
+  RETRIEVE_TOP_K,
+  buildCandidateBlock,
+  parseRawClassification,
+  groundClassification,
+  esdcProfileUrl,
+  statcanUnitGroupUrl,
+} from '@/lib/noc-classify'
+import { type NocClassification } from '@/lib/pnp-eligibility'
 
-export const maxDuration = 30
+// Grounded duties -> NOC classifier. Retrieval narrows the 516 official NOC 2021 unit
+// groups to a shortlist; Claude (with extended thinking) ranks the shortlist against
+// their REAL StatCan duties; the winner's code is then verified live. TEER and title
+// are joined from the bundled dataset server-side — never trusted from the model.
+export const maxDuration = 60
 
-// Claude classifies free-text job duties → a single best-fit NOC 2021 code + TEER.
-// The citation URL is constructed server-side (never trust a model-generated URL).
 const MODEL = 'claude-sonnet-4-6'
-const MAX_TOKENS = 1024
-const NOC_FINDER_URL =
-  'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/eligibility/find-national-occupation-code.html'
-
+const MAX_TOKENS = 4096
+const THINKING_BUDGET = 2048
+const VERIFY_TIMEOUT_MS = 5000
 const ADMIN_EMAIL = 'prashant@visaforte.com'
 
 async function requireAdmin(): Promise<NextResponse | null> {
@@ -22,77 +34,32 @@ async function requireAdmin(): Promise<NextResponse | null> {
   return null
 }
 
-const SYSTEM_PROMPT = `You are an expert Canadian NOC 2021 (TEER) occupational classifier for immigration documentation.
-You map a worker's DUTIES (not their job title) to a single best-fit NOC 2021 5-digit code and its TEER level.
-
-Rules:
-- Classify from the duties. The job title is a weak signal; duties decide the code.
-- If the duties plausibly match MORE THAN ONE NOC at materially different TEER levels (e.g. a TEER 1 vs a TEER 3 code), set ambiguity.flag = true and list the competing codes in ambiguity.alternatives. NOC mismatch is the highest-frequency PR refusal trigger — never manufacture false confidence.
-- confidence: "high" only when the duties clearly map to one code; "medium" when reasonable but with caveats; "low" when duties are sparse or generic.
-- Return ONLY a valid JSON object — no markdown fences, no commentary.
-
-Return exactly this shape:
-{
-  "nocCode": "<5-digit NOC 2021 code>",
-  "teer": <integer 0-5>,
-  "title": "<official NOC unit group title>",
-  "confidence": "high" | "medium" | "low",
-  "ambiguity": {
-    "flag": <boolean>,
-    "alternatives": [ { "nocCode": "<code>", "teer": <int>, "title": "<title>" } ]
-  }
-}`
-
-// Boundary validation — Claude output is untrusted until parsed.
-const nocResponseSchema = z.object({
-  nocCode: z.string().min(4).max(6),
-  teer: z.number().int().min(0).max(5),
-  title: z.string().min(1),
-  confidence: z.enum(['high', 'medium', 'low']),
-  ambiguity: z.object({
-    flag: z.boolean(),
-    alternatives: z
-      .array(
-        z.object({
-          nocCode: z.string().min(4).max(6),
-          teer: z.number().int().min(0).max(5),
-          title: z.string().min(1),
-        })
-      )
-      .default([]),
-  }),
-})
-
 const requestSchema = z.object({
   occupationTitle: z.string().max(200).optional(),
-  jobDuties: z.string().min(20, 'Provide a detailed description of the job duties (at least a sentence or two).').max(8000),
+  jobDuties: z
+    .string()
+    .min(20, 'Provide a detailed description of the job duties (at least a sentence or two).')
+    .max(8000),
 })
 
-// Pull the first complete, balanced JSON object out of the model's reply, even
-// if it wraps the object in markdown fences or adds commentary before/after it.
-// String contents are skipped so braces inside values don't end the scan early.
-function extractJsonObject(text: string): string | null {
-  const start = text.indexOf('{')
-  if (start === -1) return null
-  let depth = 0
-  let inString = false
-  let escaped = false
-  for (let i = start; i < text.length; i++) {
-    const ch = text[i]
-    if (inString) {
-      if (escaped) escaped = false
-      else if (ch === '\\') escaped = true
-      else if (ch === '"') inString = false
-    } else if (ch === '"') {
-      inString = true
-    } else if (ch === '{') {
-      depth++
-    } else if (ch === '}') {
-      depth--
-      if (depth === 0) return text.slice(start, i + 1)
-    }
+// Best-effort confirmation that the winning code still exists on the official source.
+// Never throws: a verification hiccup must not fail the whole classification.
+async function verifyCodeLive(code: string, title: string): Promise<boolean> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), VERIFY_TIMEOUT_MS)
+  try {
+    const res = await fetch(statcanUnitGroupUrl(code), {
+      redirect: 'manual',
+      signal: controller.signal,
+    })
+    if (res.status !== 200) return false
+    const html = await res.text()
+    return html.includes(title)
+  } catch {
+    return false
+  } finally {
+    clearTimeout(timer)
   }
-  return null
 }
 
 // POST /api/admin/pnp-noc  Body: { occupationTitle?, jobDuties }
@@ -110,45 +77,56 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
     const { occupationTitle, jobDuties } = parsed.data
 
+    // 1) Retrieval: narrow 516 unit groups to a grounded shortlist.
+    const hits = retrieveCandidates(jobDuties, occupationTitle, RETRIEVE_TOP_K)
+    if (hits.length === 0) {
+      return NextResponse.json(
+        { error: 'The duties did not match any occupation. Add more concrete, task-level detail.' },
+        { status: 422 }
+      )
+    }
+
+    // 2) Claude ranks the shortlist against the candidates' real StatCan duties.
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
     const message = await anthropic.messages.create({
       model: MODEL,
       max_tokens: MAX_TOKENS,
-      system: SYSTEM_PROMPT,
+      thinking: { type: 'enabled', budget_tokens: THINKING_BUDGET },
+      system: NOC_CLASSIFIER_SYSTEM,
       messages: [
         {
           role: 'user',
-          content: `Job title (context only): ${occupationTitle || 'not provided'}\n\nDetailed job duties:\n${jobDuties}`,
+          content: `Applicant job title (context only): ${occupationTitle || 'not provided'}\n\nApplicant duties:\n${jobDuties}\n\nShortlisted candidate NOC unit groups:\n\n${buildCandidateBlock(hits)}`,
         },
       ],
     })
 
-    const rawText = message.content.find(b => b.type === 'text')?.text ?? ''
-    const jsonText = extractJsonObject(rawText)
-    if (jsonText === null) {
-      return NextResponse.json({ error: 'Classifier did not return a JSON object.' }, { status: 502 })
+    const rawText = message.content.find((b) => b.type === 'text')?.text ?? ''
+    const raw = parseRawClassification(rawText)
+    if (raw === null) {
+      return NextResponse.json({ error: 'Classifier returned malformed output.' }, { status: 502 })
     }
 
-    let parsedJson: unknown
-    try {
-      parsedJson = JSON.parse(jsonText)
-    } catch {
-      return NextResponse.json({ error: 'Classifier returned malformed JSON.' }, { status: 502 })
+    // 3) Ground: keep only shortlisted codes, join authoritative TEER + title.
+    const grounded = groundClassification(raw, hits)
+    if (grounded === null) {
+      return NextResponse.json(
+        { error: 'Classifier did not choose a code from the shortlist.' },
+        { status: 502 }
+      )
     }
 
-    const result = nocResponseSchema.safeParse(parsedJson)
-    if (!result.success) {
-      return NextResponse.json({ error: 'Classifier returned an unexpected shape.' }, { status: 502 })
-    }
+    // 4) Verify the winning code live against the official StatCan page.
+    const verified = await verifyCodeLive(grounded.nocCode, grounded.title)
 
-    // Build the citation URL server-side so it is always a valid canada.ca source.
-    const classification = {
-      ...result.data,
-      citationUrl: NOC_FINDER_URL,
+    const classification: NocClassification = {
+      ...grounded,
+      citationUrl: esdcProfileUrl(grounded.nocCode),
+      verified,
     }
     return NextResponse.json(classification)
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'NOC classification failed'
-    return NextResponse.json({ error: message }, { status: 500 })
+    const messageText = error instanceof Error ? error.message : 'NOC classification failed'
+    return NextResponse.json({ error: messageText }, { status: 500 })
   }
 }

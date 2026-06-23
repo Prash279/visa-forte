@@ -1605,13 +1605,14 @@ export default function CanVisaProTool() {
             </div>
           )}
 
-          <button className="cvp-generate-btn" onClick={generate}>
-            Generate Assessment Report →
-          </button>
-
-          <button className="cvp-generate-btn cvp-pnp-btn" onClick={generatePnp} disabled={pnpLoading}>
-            {pnpLoading ? 'Classifying duties & scoring streams…' : 'Run PNP Pathway Assessment →'}
-          </button>
+          <div className="cvp-submit-row">
+            <button className="cvp-generate-btn" onClick={generate}>
+              Generate Assessment Report →
+            </button>
+            <button className="cvp-generate-btn cvp-pnp-btn" onClick={generatePnp} disabled={pnpLoading}>
+              {pnpLoading ? 'Classifying duties & scoring streams…' : 'Run PNP Pathway Assessment →'}
+            </button>
+          </div>
           {pnpError && <p className="cvp-pnp-error" role="alert">{pnpError}</p>}
         </div>
       </div>
@@ -1708,7 +1709,11 @@ export default function CanVisaProTool() {
         <button className="cvp-marp-btn" onClick={downloadMarp}>
           ↓ Download PPTX Source (.md)
         </button>
+        <button className="cvp-marp-btn" onClick={generatePnp} disabled={pnpLoading}>
+          {pnpLoading ? 'Classifying…' : 'Run PNP Assessment →'}
+        </button>
       </div>
+      {pnpError && <p className="cvp-pnp-toolbar-error" role="alert">{pnpError}</p>}
 
       <div className="cvp-brand-header">
         <div className="cvp-brand-header-left">

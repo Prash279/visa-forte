@@ -37,6 +37,10 @@ const noc: NocClassification = {
   title: 'Data scientists',
   citationUrl: 'https://www.canada.ca/noc',
   confidence: 'high',
+  verified: true,
+  candidates: [
+    { nocCode: '21211', teer: 1, title: 'Data scientists', rationale: 'Builds ML models.', matchScore: 100 },
+  ],
   ambiguity: { flag: false, alternatives: [] },
 }
 

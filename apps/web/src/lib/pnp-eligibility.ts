@@ -10,6 +10,7 @@
 // concern handled by re-verifying the JSON, exactly like crs-rules.json.
 
 import { scoresToClb, type ApplicantProfile, type EducationLevel } from './crs-calculator'
+import { streamRelevance, type StreamRelevance } from './noc-focus'
 import pnpData from './pnp-streams.json'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -64,12 +65,22 @@ export interface PnpStream {
   indicativeProcessingMonths: number | null  // drives the deterministic speed score
   criteria: PnpCriteria
   roadmap: PnpRoadmapStep[]
+  occupationFocus?: string[]             // stable occupation-field tags (e.g. ['health']); absent = general/open
   needsVerification?: boolean            // true → excluded from scoring, surfaced as [VERIFY]
 }
 
 interface PnpData {
   _meta: { lastVerified: string; note: string }
   streams: PnpStream[]
+}
+
+// A ranked NOC match: one of the top candidates the classifier returns for the duties.
+export interface NocCandidate {
+  nocCode: string
+  teer: number
+  title: string
+  rationale: string   // one sentence tying the code to the applicant's specific duties
+  matchScore: number  // lexical-retrieval relevance (higher = stronger duty overlap)
 }
 
 // One classified occupation, produced by /api/admin/pnp-noc (Claude) or entered manually.
@@ -79,6 +90,8 @@ export interface NocClassification {
   title: string
   citationUrl: string
   confidence: 'high' | 'medium' | 'low'
+  verified: boolean              // winning code confirmed live against the official StatCan source
+  candidates: NocCandidate[]     // ranked best-first; [0] is the chosen code
   ambiguity: {
     flag: boolean
     alternatives: { nocCode: string; teer: number; title: string }[]
@@ -92,6 +105,8 @@ export interface PnpStreamMatch {
   reasons: string[]                      // why it landed at this verdict
   unmetHardGates: string[]               // disqualifying gaps (drive 'ineligible')
   conditionalRequirements: string[]      // must-secure items (job offer, connection, EOI, list)
+  relevance: StreamRelevance             // fit between the NOC's field and this stream's focus
+  whyRelevant: string                    // plain-English reason shown on the shortlist
 }
 
 export interface PnpSourceLogEntry {
@@ -104,6 +119,7 @@ export interface PnpSourceLogEntry {
 
 export interface PnpAssessmentResult {
   noc: NocClassification
+  shortlist: PnpStreamMatch[]            // primary recommendation: top NOC-relevant eligible streams
   eeLinked: PnpStreamMatch[]             // ranked; NEVER merged with base
   base: PnpStreamMatch[]                 // ranked; NEVER merged with eeLinked
   ineligible: PnpStreamMatch[]           // shown in the matrix, excluded from the shortlist
@@ -135,6 +151,10 @@ const STATUS_SCORE: Record<PnpStatus, number> = {
 }
 // Indicative ceiling used to normalise processing speed (faster → higher score).
 const PROCESSING_CEILING_MONTHS = 18
+
+// The report leads with a tight shortlist instead of every eligible stream.
+const SHORTLIST_MAX = 5
+const RELEVANCE_BONUS = 12  // lifts a field-matched stream up the shortlist without overriding strategic value
 
 // Education levels in ascending order, for minimum-education comparisons.
 const EDUCATION_ORDER: EducationLevel[] = [
@@ -253,7 +273,17 @@ function evaluateStream(
 
   const score = verdict === 'ineligible' ? 0 : rankScore(stream, verdict)
 
-  return { stream, verdict, score, reasons, unmetHardGates, conditionalRequirements }
+  // Field fit between the NOC and this stream — drives the shortlist, not the verdict.
+  const relevance = streamRelevance(stream.occupationFocus, noc.nocCode)
+  const focus = stream.occupationFocus?.join(', ')
+  const whyRelevant =
+    relevance === 'targeted'
+      ? `Targets your occupation field${focus ? ` (${focus})` : ''}.`
+      : relevance === 'mismatch'
+        ? `Restricted to ${focus} occupations — outside your NOC's field.`
+        : 'Open to your occupation — no field restriction on this stream.'
+
+  return { stream, verdict, score, reasons, unmetHardGates, conditionalRequirements, relevance, whyRelevant }
 }
 
 function rankScore(stream: PnpStream, verdict: PnpVerdict): number {
@@ -308,8 +338,18 @@ export function assessPnp(
   const byScore = (a: PnpStreamMatch, b: PnpStreamMatch): number => b.score - a.score
   const eligible = matches.filter(m => m.verdict !== 'ineligible')
 
+  // Shortlist: drop streams locked to a different occupation field, then rank by
+  // qualification score with a boost for field-matched streams — capped to a tight set.
+  const shortlistScore = (m: PnpStreamMatch): number =>
+    m.score + (m.relevance === 'targeted' ? RELEVANCE_BONUS : 0)
+  const shortlist = eligible
+    .filter(m => m.relevance !== 'mismatch')
+    .sort((a, b) => shortlistScore(b) - shortlistScore(a))
+    .slice(0, SHORTLIST_MAX)
+
   return {
     noc,
+    shortlist,
     eeLinked: eligible.filter(m => m.stream.category === 'ee-linked').sort(byScore),
     base: eligible.filter(m => m.stream.category === 'base').sort(byScore),
     ineligible: matches.filter(m => m.verdict === 'ineligible'),

@@ -83,6 +83,10 @@ function mkNoc(teer: number, ambiguity = false): NocClassification {
     title: 'Data Scientist',
     citationUrl: 'https://www.canada.ca/noc/21211',
     confidence: 'high',
+    verified: true,
+    candidates: [
+      { nocCode: '21211', teer, title: 'Data Scientist', rationale: 'Builds ML models.', matchScore: 100 },
+    ],
     ambiguity: {
       flag: ambiguity,
       alternatives: ambiguity ? [{ nocCode: '22220', teer: 2, title: 'Tech support' }] : [],
@@ -203,6 +207,48 @@ describe('assessPnp — source log', () => {
     const r = assessPnp(strongProfile, mkNoc(1), streams)
     expect(r.sourceLog).toHaveLength(2)
     expect(r.sourceLog.every(e => e.sourceUrl.length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(e.lastVerified))).toBe(true)
+  })
+})
+
+// ── NOC-targeted shortlist (over the REAL curated data) ──────────────────────
+
+describe('assessPnp — NOC-targeted shortlist', () => {
+  const healthNoc: NocClassification = {
+    nocCode: '41404',
+    teer: 1,
+    title: 'Health policy researchers, consultants and program officers',
+    citationUrl: 'https://noc.esdc.gc.ca',
+    confidence: 'high',
+    verified: true,
+    candidates: [
+      { nocCode: '41404', teer: 1, title: 'Health policy researchers', rationale: 'health policy + databases', matchScore: 134 },
+    ],
+    ambiguity: { flag: false, alternatives: [] },
+  }
+
+  it('caps the shortlist and excludes streams locked to a different occupation field', () => {
+    const r = assessPnp(strongProfile, healthNoc)
+    expect(r.shortlist.length).toBeGreaterThan(0)
+    expect(r.shortlist.length).toBeLessThanOrEqual(5)
+    const ids = r.shortlist.map(m => m.stream.id)
+    expect(ids).not.toContain('sk-tech')
+    expect(ids).not.toContain('ab-tourism')
+    expect(ids).not.toContain('ns-ccw')
+    expect(ids).not.toContain('on-trades')
+  })
+
+  it('marks the health stream targeted and an off-field stream mismatch', () => {
+    const all = (() => {
+      const r = assessPnp(strongProfile, healthNoc)
+      return [...r.eeLinked, ...r.base, ...r.ineligible]
+    })()
+    expect(all.find(m => m.stream.id === 'bc-health')?.relevance).toBe('targeted')
+    expect(all.find(m => m.stream.id === 'sk-tech')?.relevance).toBe('mismatch')
+  })
+
+  it('leaves the full matrix unfiltered — the shortlist is a view, not a filter', () => {
+    const r = assessPnp(strongProfile, healthNoc)
+    expect(r.eeLinked.length + r.base.length).toBeGreaterThan(r.shortlist.length)
   })
 })
 

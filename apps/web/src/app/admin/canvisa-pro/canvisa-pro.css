@@ -218,17 +218,28 @@
   transform: translateY(-1px);
 }
 
-/* PNP assessment — secondary action below the primary CRS button */
+/* Action row: both form submit buttons side by side */
+.cvp-submit-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 2.5rem;
+}
+
+.cvp-submit-row .cvp-generate-btn {
+  margin-top: 0;
+}
+
+/* PNP assessment — secondary action alongside the primary CRS button */
 .cvp-pnp-btn {
   background: transparent;
   color: var(--cvp-teal);
   border: 1px solid var(--cvp-teal);
-  margin-top: 0.875rem;
-  margin-left: 0.75rem;
 }
 
 .cvp-pnp-btn:hover {
-  background: rgba(45, 212, 191, 0.12);
+  background: rgba(201, 123, 30, 0.12);
 }
 
 .cvp-pnp-btn:disabled {
@@ -242,10 +253,21 @@
   margin-top: 0.75rem;
 }
 
+.cvp-pnp-toolbar-error {
+  color: #fca5a5;
+  font-size: 0.8rem;
+  padding: 0.5rem 2.5rem;
+  margin: 0;
+  background: var(--cvp-navy);
+  border-bottom: 1px solid var(--cvp-border);
+}
+
 @media (max-width: 600px) {
-  .cvp-pnp-btn {
-    margin-left: 0;
-    display: flex;
+  .cvp-submit-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .cvp-submit-row .cvp-generate-btn {
     width: 100%;
     justify-content: center;
   }
