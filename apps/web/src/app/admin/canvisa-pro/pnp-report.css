@@ -1,0 +1,303 @@
+/* PNP Pathway Assessment — Visa Forte report styling.
+   Canonical VF document look: Pearl ground, Prussian headers, Saffron accents,
+   Cormorant display headings, DM Sans body, Sand rules. Mobile-first: base styles
+   target 375px; breakpoints layer upward at 720px and 1024px. Brand tokens come
+   from globals.css (:root). No font-size below 0.75rem (brand digital floor). */
+
+.pnp {
+  background: var(--pearl);
+  color: var(--ink);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  padding-bottom: 3rem;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.pnp-inner {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.pnp-header {
+  background: var(--prussian);
+  color: var(--pearl);
+  padding: 1.5rem 1rem 1.6rem;
+}
+.pnp-header-inner { max-width: 980px; margin: 0 auto; }
+.pnp-wordmark {
+  font-family: var(--font-body);
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  font-size: 0.9rem;
+  color: var(--pearl);
+}
+.pnp-tagline {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--saffron);
+  font-size: 1rem;
+  margin-top: 0.1rem;
+}
+.pnp-rule {
+  height: 2px;
+  background: var(--saffron);
+  width: 48px;
+  margin: 1rem 0;
+}
+.pnp-doctitle {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  line-height: 1.15;
+  color: var(--pearl);
+  margin: 0;
+}
+.pnp-prepared { font-size: 0.85rem; color: var(--sand); margin-top: 0.5rem; }
+.pnp-prepared strong { color: var(--pearl); font-weight: 600; }
+.pnp-meta { font-size: 0.78rem; color: var(--sand); margin-top: 0.2rem; }
+
+/* ── Toolbar ────────────────────────────────────────────────────────────── */
+.pnp-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.1rem;
+}
+.pnp-btn {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--saffron);
+  background: transparent;
+  color: var(--pearl);
+  cursor: pointer;
+  border-radius: 2px;
+}
+.pnp-btn:hover { background: rgba(201, 123, 30, 0.18); }
+.pnp-btn--primary { background: var(--saffron); color: var(--prussian); }
+.pnp-btn--primary:hover { background: var(--pearl); }
+
+/* ── Sections ───────────────────────────────────────────────────────────── */
+.pnp-section { margin-top: 2rem; }
+.pnp-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  border-bottom: 2px solid var(--prussian);
+  padding-bottom: 0.4rem;
+  margin-bottom: 1rem;
+}
+.pnp-eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  font-weight: 700;
+}
+.pnp-h2 {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  color: var(--prussian);
+  margin: 0;
+  line-height: 1.1;
+}
+.pnp-hint { font-size: 0.78rem; color: var(--teal); }
+.pnp-lead { font-size: 0.95rem; line-height: 1.7; color: var(--ink); margin: 0 0 0.8rem; }
+
+/* ── NOC classification ─────────────────────────────────────────────────── */
+.pnp-noc-winner {
+  background: #fff;
+  border: 1px solid var(--sand);
+  border-top: 3px solid var(--saffron);
+  padding: 1rem 1.1rem;
+  border-radius: 2px;
+}
+.pnp-noc-code {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--prussian);
+  line-height: 1.1;
+}
+.pnp-noc-title { font-size: 0.95rem; color: var(--ink); margin-top: 0.15rem; }
+.pnp-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.6rem; align-items: center; }
+.pnp-chip {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 2px;
+  background: var(--amber);
+  color: var(--prussian);
+}
+.pnp-chip--teer { background: var(--prussian); color: var(--pearl); }
+.pnp-chip--verified { background: #1f7a4d; color: #fff; }
+.pnp-chip--unverified { background: var(--sand); color: var(--ink); }
+.pnp-cite { font-size: 0.78rem; }
+.pnp-cite a { color: var(--teal); text-decoration: underline; }
+
+.pnp-candidates { margin-top: 0.9rem; display: grid; gap: 0.5rem; }
+.pnp-candidate {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.7rem;
+  background: #fff;
+  border: 1px solid var(--sand);
+  border-left: 3px solid var(--sand);
+  padding: 0.7rem 0.9rem;
+  border-radius: 2px;
+}
+.pnp-candidate--top { border-left-color: var(--saffron); }
+.pnp-cand-rank {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--saffron);
+  font-weight: 600;
+  line-height: 1.4;
+}
+.pnp-cand-code { font-weight: 700; color: var(--prussian); font-size: 0.9rem; }
+.pnp-cand-teer { font-size: 0.72rem; color: var(--teal); font-weight: 700; }
+.pnp-cand-rationale { font-size: 0.85rem; color: var(--ink); line-height: 1.55; margin-top: 0.2rem; }
+
+.pnp-callout {
+  background: var(--amber);
+  border-left: 4px solid var(--saffron);
+  padding: 0.8rem 1rem;
+  margin-top: 1rem;
+  border-radius: 2px;
+}
+.pnp-callout-label {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--prussian);
+}
+.pnp-callout p { font-size: 0.85rem; line-height: 1.6; color: var(--ink); margin: 0.3rem 0 0; }
+.pnp-flag {
+  background: #fff;
+  border-left: 3px solid var(--saffron);
+  padding: 0.6rem 0.9rem;
+  font-size: 0.82rem;
+  color: var(--ink);
+  line-height: 1.5;
+  margin-bottom: 0.45rem;
+}
+
+/* ── Stream cards (shortlist) ───────────────────────────────────────────── */
+.pnp-cards { display: grid; gap: 0.8rem; }
+.pnp-card {
+  background: #fff;
+  border: 1px solid var(--sand);
+  border-top: 3px solid var(--teal);
+  border-radius: 2px;
+  padding: 0.9rem 1.05rem;
+}
+.pnp-card--targeted { border-top-color: var(--saffron); }
+.pnp-card-top { display: flex; justify-content: space-between; gap: 0.6rem; align-items: flex-start; }
+.pnp-card-name { font-family: var(--font-display); font-size: 1.15rem; color: var(--prussian); line-height: 1.15; }
+.pnp-card-sub { font-size: 0.76rem; color: var(--teal); margin-top: 0.15rem; }
+.pnp-card-score { font-weight: 700; color: var(--saffron); font-size: 1.05rem; flex-shrink: 0; }
+.pnp-why { font-size: 0.84rem; color: var(--ink); margin-top: 0.55rem; line-height: 1.55; }
+.pnp-why strong { color: var(--prussian); }
+.pnp-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.18rem 0.5rem;
+  border-radius: 2px;
+}
+.pnp-badge--confirmed { background: #1f7a4d; color: #fff; }
+.pnp-badge--likely { background: var(--teal); color: #fff; }
+.pnp-badge--marginal { background: var(--amber); color: var(--prussian); }
+.pnp-badge--ineligible { background: #b23a3a; color: #fff; }
+.pnp-conds { margin: 0.55rem 0 0; padding-left: 1.1rem; }
+.pnp-conds li { font-size: 0.82rem; color: var(--ink); line-height: 1.55; margin-bottom: 0.2rem; }
+.pnp-conds .pnp-secure { color: var(--saffron); font-weight: 700; }
+
+/* ── Application guide ──────────────────────────────────────────────────── */
+.pnp-guide {
+  background: #fff;
+  border: 1px solid var(--sand);
+  border-radius: 2px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+}
+.pnp-guide-head {
+  display: flex; justify-content: space-between; gap: 0.5rem; align-items: baseline;
+  border-bottom: 1px solid var(--sand); padding-bottom: 0.5rem; margin-bottom: 0.8rem;
+}
+.pnp-guide-name { font-family: var(--font-display); font-size: 1.2rem; color: var(--prussian); }
+.pnp-guide-sub { font-size: 0.74rem; color: var(--teal); }
+.pnp-subhead {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--saffron); margin: 0.9rem 0 0.45rem;
+}
+.pnp-prep { margin: 0; padding-left: 1.1rem; }
+.pnp-prep li { font-size: 0.84rem; color: var(--ink); line-height: 1.55; margin-bottom: 0.2rem; }
+.pnp-step { display: grid; grid-template-columns: auto 1fr; gap: 0.7rem; margin-bottom: 0.7rem; }
+.pnp-step-num {
+  width: 1.5rem; height: 1.5rem; flex-shrink: 0;
+  background: var(--prussian); color: var(--pearl);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 700;
+}
+.pnp-step-title { font-size: 0.88rem; font-weight: 700; color: var(--prussian); }
+.pnp-step-detail { font-size: 0.84rem; color: var(--ink); line-height: 1.55; margin-top: 0.1rem; }
+.pnp-guide-foot {
+  display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+  border-top: 1px solid var(--sand); margin-top: 0.7rem; padding-top: 0.6rem;
+  font-size: 0.8rem; color: var(--ink);
+}
+.pnp-guide-foot a { color: var(--teal); text-decoration: underline; word-break: break-word; }
+.pnp-guide-foot b { color: var(--prussian); }
+
+/* ── Tables (matrix + source log) ───────────────────────────────────────── */
+.pnp-table-wrap { overflow-x: auto; }
+.pnp-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 520px; }
+.pnp-table thead th {
+  text-align: left; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--pearl); background: var(--prussian); padding: 0.5rem 0.7rem; font-weight: 600;
+}
+.pnp-table td { padding: 0.5rem 0.7rem; border-bottom: 1px solid var(--sand); color: var(--ink); }
+.pnp-table tbody tr:nth-child(even) { background: rgba(226, 219, 209, 0.32); }
+.pnp-table .pnp-num { text-align: right; font-weight: 700; color: var(--saffron); }
+.pnp-table a { color: var(--teal); text-decoration: underline; word-break: break-all; font-size: 0.74rem; }
+.pnp-caption { font-size: 0.78rem; color: var(--teal); margin-top: 0.5rem; }
+
+/* ── Disclaimer + footer ────────────────────────────────────────────────── */
+.pnp-disclaimer {
+  background: var(--amber);
+  border-left: 4px solid var(--saffron);
+  padding: 1rem 1.1rem;
+  margin-top: 2rem;
+  border-radius: 2px;
+}
+.pnp-disclaimer-label {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--prussian); margin-bottom: 0.4rem;
+}
+.pnp-disclaimer p { font-size: 0.78rem; line-height: 1.7; color: var(--ink); margin: 0; }
+.pnp-footer {
+  text-align: center; margin-top: 1.6rem; padding-top: 1rem;
+  border-top: 1px solid var(--sand); font-size: 0.76rem; color: var(--teal);
+}
+.pnp-empty { font-size: 0.86rem; color: var(--teal); background: #fff; border: 1px solid var(--sand); padding: 0.8rem 1rem; border-radius: 2px; }
+
+/* ── Breakpoints ────────────────────────────────────────────────────────── */
+@media (min-width: 720px) {
+  .pnp-inner, .pnp-header-inner { padding-left: 1.5rem; padding-right: 1.5rem; }
+  .pnp-doctitle { font-size: 2.1rem; }
+  .pnp-h2 { font-size: 1.7rem; }
+  .pnp-cards { grid-template-columns: 1fr 1fr; }
+  .pnp-cards--single { grid-template-columns: 1fr; }
+}
+@media (min-width: 1024px) {
+  .pnp-header { padding: 2rem 1.5rem 2.2rem; }
+  .pnp-doctitle { font-size: 2.4rem; }
+}
+@media print {
+  .pnp-toolbar { display: none; }
+  .pnp { padding-bottom: 0; }
+}

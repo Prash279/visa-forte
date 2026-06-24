@@ -1797,4 +1797,70 @@ A clean TypeScript build with all existing tests passing, a visual end-to-end ve
 
 ---
 
+### TASK PNP-R: PNP Pathway Assessment — Accuracy + Relevance + Steps + Brand Redesign
+**Status:** ✅ COMPLETE (code built + verified 2026-06-23) — awaiting Prash's merge/deploy authorization
+**Branch:** feat/pnp-pathway-assessment (already live in prod; this refines it)
+**Trigger:** Prash regenerated a real report (Rashmi Anupoju) and found four gaps: weak NOC match, all 44 streams listed, thin application steps, off-brand "AI-looking" design.
+
+**Confirmed decisions (Prash, 2026-06-22):**
+1. NOC accuracy → **Full grounding + verify** (bundle real NOC 2021 dataset; rank top-3; live-verify winner).
+2. Streams → **NOC-targeted relevance shortlist (~5)**; hide the generic remainder.
+3. Design → **Canonical Visa Forte light report** (Pearl ground, Prussian headers, Saffron accents, Freight/Cormorant headings).
+
+**Non-negotiables carried through every phase:**
+- Every IRCC fact (NOC code, TEER, fee, portal, deadline) verified against canada.ca / noc.esdc.gc.ca in-session before it is written. TEER is NEVER taken from the model or training data (lessons.md Immigration L4 + L5). Check `statusCode 200` and no redirect before trusting any extracted page (memory: live-verification-statuscode).
+- 203/203 existing tests stay green; `tsc --noEmit` clean; add tests per phase.
+- Mobile-first: base 375px → 768px → 1280px in the same commit (lessons.md Responsive L1/L2).
+- One phase at a time, each committed separately. No `git push` without Prash's word.
+
+---
+
+**PHASE 0 — De-risk the data source (do first, reversible, no app code)**
+- [ ] Verify NOC 41404 ("Health policy researchers, consultants and program officers") title + TEER live on noc.esdc.gc.ca — confirm it is genuinely TEER 1 and read its real lead statement + main duties.
+- [ ] Locate an official bulk NOC 2021 v1.0 source (StatCan/ESDC) carrying, for all ~516 unit groups: code, title, TEER, lead statement, main duties, example titles. Confirm statusCode 200 + current version.
+- [ ] **Gate:** if a clean bulk source exists → bundle it. If not → fall back to fetching the retrieved-candidate detail pages on demand, or a curated high-coverage subset. Report the chosen source to Prash before building Phase 1 on top of it.
+
+**PHASE 1 — Grounded, verified NOC classifier**
+- [ ] Bundle `apps/web/src/lib/noc-2021.json` from the Phase 0 source (code, title, teer, leadStatement, mainDuties[], exampleTitles[]) with a `_meta` source + verified date, mirroring the pnp-streams.json provenance pattern.
+- [ ] `apps/web/src/lib/noc-retrieval.ts` — deterministic lexical retrieval: score the input duties against every unit group's text, return the top ~20 candidates. No network.
+- [ ] Rewrite `app/api/admin/pnp-noc/route.ts`: feed the 20 real candidate descriptions to Claude (extended thinking) → returns a RANKED top-3 with per-candidate rationale + confidence + ambiguity. Model returns codes + reasoning only; the server joins title + TEER from `noc-2021.json` (never trusts model TEER) and rejects any code not in the dataset.
+- [ ] Live-verify the winning code on noc.esdc.gc.ca (statusCode 200, no redirect; title/TEER match) → attach verification status + a deep citationUrl to the specific code.
+- [ ] Extend `NocClassification`: add `candidates: { nocCode, teer, title, rationale, matchScore }[]` (ranked top-3) + `verified: boolean`. Keep `nocCode/teer/title` as the winner.
+- [ ] Tests: retrieval surfaces the right neighbourhood for known duties; server rejects an out-of-dataset code; TEER always equals the dataset value; ambiguity still flags.
+
+**PHASE 2 — NOC-targeted stream relevance shortlist (replace the 44-row dump)**
+- [ ] Extend each stream in `pnp-streams.json` with `occupationTargeting: { categories?: string[]; nocCodes?: string[]; note: string; sourceVerified: boolean }`. Set targeting ONLY where verifiable against the provincial source; otherwise mark generic.
+- [ ] Map a NOC → occupation category from its broad/major group (e.g. 41404 → healthcare/health-services).
+- [ ] Engine: add a relevance score — NOC on a stream's verified list (high) > category match (medium) > generic-but-eligible (low) — combined with verdict strength + EE-linked strategic value. `assessPnp` returns a new `shortlist` (ranked, capped ~5, with a floor so it is never empty when an eligible stream exists) alongside the existing arrays.
+- [ ] Report shows the shortlist as the primary recommendation, each with a one-line "why this fits your NOC". The full 44-row matrix moves to a secondary/collapsed "All jurisdictions" section (provenance preserved).
+- [ ] Tests: shortlist caps at ~5; a healthcare NOC ranks health-targeted streams above generic ones; never empty when eligibility holds; existing eeLinked/base/ineligible behaviour unchanged.
+
+**PHASE 3 — Thorough, verified step-by-step application guide (shortlisted streams only)**
+- [ ] Expand the `roadmap[]` of each shortlist-eligible stream into detailed, stream-specific steps: where to register (EOI portal / IRCC), the documents required, the fee, nomination → ITA, and an indicative timeline. Add optional `link?` / `timeline?` to `PnpRoadmapStep` only if needed.
+- [ ] Verify every factual step (portal URL, fee, deadline) against the provincial source in-session (statusCode 200). Anything unverifiable is written as a generic instruction, never invented.
+- [ ] Tests: each shortlisted stream renders its full roadmap; provenance guard still passes.
+
+**PHASE 4 — Canonical Visa Forte report redesign (in-app + downloadable)**
+- [ ] Read brand references `colour-css.md` + `document-specs.md`; consult the frontend-design skill for craft.
+- [ ] Rebuild `PnpReport.tsx` to the VF PR-Assessment-Report spec: Pearl ground, Prussian section headers, Saffron accent rules, Freight Display/Cormorant headings, Helvetica Neue body, Sand-striped tables, standard VF header + footer, disclaimer block (Amber fill, Saffron left border). Replace the off-brand bright-teal/near-black palette with brand tokens.
+- [ ] Report order: VF header → Executive Summary → Occupation Classification (ranked candidates + verification) → Recommended Streams (shortlist, with why-relevant) → Step-by-Step Application Guide per shortlisted stream → All-Jurisdictions matrix (secondary) → Source & Verification Log → Disclaimer + VF footer.
+- [ ] Rebuild `pnp-marp.ts` to the same brand spec (PPTX/PDF brand rules: Prussian title, Pearl content, Teal/Saffron chart accents).
+- [ ] Mobile-first pass; screenshot audit at 1280 / 768 / 375 before marking done (lessons.md UI L4).
+
+**Prashant Proof (final, after all phases):**
+1. Go to visaforte.com/admin/canvisa-pro, hard-refresh, paste Rashmi's real duties, run the PNP assessment.
+2. Confirm the classifier surfaces a ranked top-3 with NOC 41404 (TEER 1) as the lead, each with a plain-English rationale, and a "verified on noc.esdc.gc.ca" marker.
+3. Confirm the report shows ~5 NOC-relevant streams (not 44), each with a "why this fits" line and a thorough step-by-step application guide.
+4. Confirm the report looks like a Visa Forte document — Pearl/Prussian/Saffron, Freight headings — at desktop, tablet, and phone widths.
+
+**Review (2026-06-23):**
+All four phases built and verified locally. 231/231 Vitest pass; `tsc --noEmit` clean.
+- **Phase 1 (NOC accuracy):** Bundled `noc-2021.json` (516 StatCan unit groups, authoritative TEER/title). `noc-retrieval.ts` deterministic IDF lexical retrieval ranks 41404 #1 for Rashmi's duties (score 134.4). Route rewritten: real candidates → Claude extended-thinking ranking (codes + rationale only) → server joins authoritative TEER/title → live-verify winner on noc.esdc.gc.ca (status 200 + title present). Model TEER never trusted.
+- **Phase 2 (shortlist):** `noc-focus.ts` maps NOC → occupation category; `occupationFocus` tags on streams; `assessPnp` returns a `shortlist` (≤5, mismatch-filtered, RELEVANCE_BONUS lifts field-matched). Full 44-row matrix preserved as a secondary view.
+- **Phase 3 (steps):** Per-shortlisted-stream application guide — before-you-apply conditions, derived document list, numbered roadmap, processing/fee/source.
+- **Phase 4 (brand):** `PnpReport.tsx` + `pnp-report.css` rebuilt to canonical VF light report (Pearl ground, Prussian headers, Saffron accents, Cormorant headings, Sand-striped tables, Amber/Saffron disclaimer). `pnp-marp.ts` mirrors it for PPTX/PDF. Mobile-first; visual audit passed at 1280 / 768 / 375.
+- **Deferred to prod proof:** the live Claude ranking could not run locally (ANTHROPIC_API_KEY is Vercel-only). All deterministic logic is tested green; model-ranking validation happens on the first production run.
+
+---
+
 *todo.md is the single source of task truth. If it's not here, it's not in scope.*

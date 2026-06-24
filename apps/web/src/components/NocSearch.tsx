@@ -7,7 +7,7 @@ interface NocEntry {
   code: string
   teer: 0 | 1 | 2 | 3 | 4 | 5
   title: string
-  aliases: string[]
+  examples: string[]
 }
 
 interface NocSearchProps {
@@ -34,11 +34,11 @@ export default function NocSearch({ onSelect, onClear, theme }: NocSearchProps):
         import('fuse.js'),
         import('@/lib/noc-2021.json'),
       ])
-      const data = (nocMod as unknown as { occupations: NocEntry[] }).occupations
+      const data = (nocMod as unknown as { groups: NocEntry[] }).groups
       fuseRef.current = new Fuse(data, {
         keys: [
           { name: 'title', weight: 0.6 },
-          { name: 'aliases', weight: 0.4 },
+          { name: 'examples', weight: 0.4 },
         ],
         threshold: 0.35,
         minMatchCharLength: 3,

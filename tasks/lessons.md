@@ -169,6 +169,11 @@ If the lesson contains words like "useEffect", "state mismatch", "hydration erro
 - **Why it happened:** Three things were wrong simultaneously: (1) the PAT embedded in the remote URL had expired, (2) the old `amoghaaproperties` account's credentials were still in Windows Credential Manager and were being sent for GitHub requests, (3) the GitHub CLI (`gh`) token was also invalid. Windows kept routing pushes through the wrong account's stale credentials.
 - **The rule going forward:** The GitHub remote URL must always be the clean form — `https://github.com/Prash279/visa-forte.git` — with no PAT embedded in it. Authentication is handled exclusively by the GitHub CLI (`gh`). Before any push, `gh auth status` must show `Prash279 (keyring)` with a valid token. If it does not, run `gh auth login -h github.com -p https -w` to re-authenticate via browser — takes 30 seconds, no PAT copy-paste required. Never store GitHub credentials in Windows Credential Manager manually; let `gh` manage the keyring. The `amoghaaproperties` account must never be present in any credential store.
 
+**Lesson 4 — Each user turn resets the Bash cwd to repo root; run web commands with an explicit `cd apps/web`**
+- **What went wrong:** `npx vitest`/`npx tsc` run bare from the persistent shell either installed a fresh tool version or printed help (no tsconfig found), because the shell's working directory had reset to the repo root between turns.
+- **Why it happened:** The Bash tool's cwd does not persist across user turns — it returns to `c:\Users\hp\visaforte` at the start of each turn, but the project's vitest/tsconfig live under `apps/web`.
+- **The rule going forward:** For any web task, prefix the command with `cd /c/Users/hp/visaforte/apps/web && …` inside the same call. Do not rely on a `cd` from a previous turn. Also: do NOT invoke PowerShell via the Bash tool (`powershell -Command …`) — the auto-mode classifier denies it as routing around the PowerShell deny rule. Use native Bash/Windows commands (`taskkill`, `rm` without `-rf`) or the dedicated task tools (`TaskStop`) instead.
+
 ---
 
 ## Category: Planning & Documentation

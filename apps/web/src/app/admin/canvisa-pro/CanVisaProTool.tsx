@@ -19,6 +19,9 @@ import fundsData from '@/lib/proof-of-funds.json'
 import crsRules from '@/lib/crs-rules.json'
 import './canvisa-pro.css'
 import NocSearch from '@/components/NocSearch'
+import PnpReport from './PnpReport'
+import { assessPnp, type PnpAssessmentResult } from '@/lib/pnp-eligibility'
+import { buildPnpMarpMarkdown } from '@/lib/pnp-marp'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -446,6 +449,7 @@ const INITIAL: ApplicantProfile = {
   nocCode: '',
   nocTeer: 1,
   occupationTitle: '',
+  jobDuties: '',
   countryOfCitizenship: '',
   countryOfResidence: '',
   reportDate: todayStr(),
@@ -1008,9 +1012,12 @@ style: |
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function CanVisaProTool() {
-  const [view, setView] = useState<'form' | 'report'>('form')
+  const [view, setView] = useState<'form' | 'report' | 'pnp'>('form')
   const [profile, setProfile] = useState<ApplicantProfile>(INITIAL)
   const [result, setResult] = useState<CrsResult | null>(null)
+  const [pnpResult, setPnpResult] = useState<PnpAssessmentResult | null>(null)
+  const [pnpLoading, setPnpLoading] = useState(false)
+  const [pnpError, setPnpError] = useState<string | null>(null)
   const [maritalStatus, setMaritalStatus] = useState<'single' | 'married' | 'separated'>('single')
   const [hasSpouseLanguage, setHasSpouseLanguage] = useState(false)
   const [dobDay, setDobDay]     = useState('')
@@ -1087,6 +1094,50 @@ export default function CanVisaProTool() {
     const a = document.createElement('a')
     a.href = url
     a.download = `CanVisa-Pro-${profile.name.replace(/\s+/g, '-') || 'Report'}-${profile.reportDate}.md`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  // Classify the free-text duties → NOC (Claude backend), then score the profile
+  // against every curated PNP stream deterministically. The classifier is the only
+  // network call; eligibility scoring is local.
+  async function generatePnp() {
+    const duties = (profile.jobDuties ?? '').trim()
+    if (duties.length < 20) {
+      setPnpError('Enter the applicant’s detailed job duties (at least a sentence or two) before running the PNP assessment.')
+      return
+    }
+    setPnpError(null)
+    setPnpLoading(true)
+    try {
+      const res = await fetch('/api/admin/pnp-noc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ occupationTitle: profile.occupationTitle, jobDuties: duties }),
+      })
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string }
+        throw new Error(body.error ?? `Classification failed (${res.status}).`)
+      }
+      const noc = (await res.json()) as PnpAssessmentResult['noc']
+      setPnpResult(assessPnp(profile, noc))
+      setView('pnp')
+      setTimeout(() => window.scrollTo({ top: 0 }), 50)
+    } catch (err: unknown) {
+      setPnpError(err instanceof Error ? err.message : 'PNP assessment failed.')
+    } finally {
+      setPnpLoading(false)
+    }
+  }
+
+  function downloadPnpMarp() {
+    if (!pnpResult) return
+    const md = buildPnpMarpMarkdown(profile, pnpResult)
+    const blob = new Blob([md], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `CanVisa-Pro-PNP-${profile.name.replace(/\s+/g, '-') || 'Report'}-${profile.reportDate}.md`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -1187,8 +1238,8 @@ export default function CanVisaProTool() {
             <div className="cvp-field full">
               <NocSearch
                 theme="dark"
-                onSelect={(code, teer) => setProfile(prev => ({ ...prev, nocCode: code, nocTeer: teer }))}
-                onClear={() => setProfile(prev => ({ ...prev, nocCode: '', nocTeer: 1 }))}
+                onSelect={(code, teer, title) => setProfile(prev => ({ ...prev, nocCode: code, nocTeer: teer, occupationTitle: title }))}
+                onClear={() => setProfile(prev => ({ ...prev, nocCode: '', nocTeer: 1, occupationTitle: '' }))}
               />
             </div>
             <div className="cvp-field">
@@ -1209,6 +1260,13 @@ export default function CanVisaProTool() {
               <label className="cvp-label">Occupation Title</label>
               <input className="cvp-input" value={profile.occupationTitle}
                 onChange={e => set('occupationTitle', e.target.value)} placeholder="e.g. Data Scientist" />
+            </div>
+            <div className="cvp-field full">
+              <label className="cvp-label">Detailed Job Duties (for PNP Pathway Assessment)</label>
+              <textarea className="cvp-input" rows={4} value={profile.jobDuties ?? ''}
+                onChange={e => set('jobDuties', e.target.value)}
+                placeholder="Paste the applicant's actual day-to-day duties (from the employment reference letter). Duties — not the job title — determine the NOC code." />
+              <p className="cvp-hint">Powers the PNP Pathway Assessment. The classifier maps these duties to a single best-fit NOC/TEER and flags ambiguity. Leave blank if you only need the CRS report.</p>
             </div>
             <div className="cvp-field">
               <label className="cvp-label">Country of Citizenship</label>
@@ -1547,11 +1605,31 @@ export default function CanVisaProTool() {
             </div>
           )}
 
-          <button className="cvp-generate-btn" onClick={generate}>
-            Generate Assessment Report →
-          </button>
+          <div className="cvp-submit-row">
+            <button className="cvp-generate-btn" onClick={generate}>
+              Generate Assessment Report →
+            </button>
+            <button className="cvp-generate-btn cvp-pnp-btn" onClick={generatePnp} disabled={pnpLoading}>
+              {pnpLoading ? 'Classifying duties & scoring streams…' : 'Run PNP Pathway Assessment →'}
+            </button>
+          </div>
+          {pnpError && <p className="cvp-pnp-error" role="alert">{pnpError}</p>}
         </div>
       </div>
+    )
+  }
+
+  // ── PNP PATHWAY ASSESSMENT ──────────────────────────────────────────────────
+
+  if (view === 'pnp') {
+    if (!pnpResult) return null
+    return (
+      <PnpReport
+        profile={profile}
+        pnp={pnpResult}
+        onBack={() => setView('form')}
+        onDownload={downloadPnpMarp}
+      />
     )
   }
 
@@ -1631,7 +1709,11 @@ export default function CanVisaProTool() {
         <button className="cvp-marp-btn" onClick={downloadMarp}>
           ↓ Download PPTX Source (.md)
         </button>
+        <button className="cvp-marp-btn" onClick={generatePnp} disabled={pnpLoading}>
+          {pnpLoading ? 'Classifying…' : 'Run PNP Assessment →'}
+        </button>
       </div>
+      {pnpError && <p className="cvp-pnp-toolbar-error" role="alert">{pnpError}</p>}
 
       <div className="cvp-brand-header">
         <div className="cvp-brand-header-left">
