@@ -793,6 +793,46 @@
   color: rgba(255, 255, 255, 0.4);
 }
 
+/* ── Card decision-support extras (Tier 1) ───────────────────────────────── */
+.pnp-score-caption {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.45;
+}
+
+.pnp-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.4rem 0.75rem;
+  margin-top: 0.85rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--pnp-border);
+  font-size: 0.78rem;
+  color: var(--pnp-teal);
+  font-weight: 700;
+}
+
+.pnp-nextmove {
+  display: flex;
+  gap: 0.45rem;
+  margin-top: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  background: rgba(201, 123, 30, 0.08);
+  border-left: 3px solid var(--pnp-accent);
+  border-radius: 4px;
+  font-size: 0.82rem;
+  color: var(--pnp-text);
+  line-height: 1.5;
+}
+
+.pnp-nextmove-arrow {
+  color: var(--pnp-accent);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
 /* ── Strategic insights ──────────────────────────────────────────────────── */
 .pnp-insights {
   display: grid;

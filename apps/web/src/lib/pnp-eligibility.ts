@@ -476,3 +476,74 @@ export function assessPnp(
     dataVersion: (pnpData as PnpData)._meta.lastVerified,
   }
 }
+
+export interface PnpInsight {
+  label: string
+  body: string
+}
+
+// Deterministic, data-driven decision support built from the assessment itself —
+// what to prioritise, what is fastest, and the single change with the widest impact.
+// Shared by the on-screen report and the PowerPoint export so both stay in sync.
+export function buildPnpInsights(pnp: PnpAssessmentResult): PnpInsight[] {
+  const out: PnpInsight[] = []
+  const shortlist = pnp.shortlist
+  const topEe = pnp.eeLinked[0]
+
+  if (topEe) {
+    out.push({
+      label: 'Highest-leverage route',
+      body: `${topEe.stream.province} — ${topEe.stream.streamName} is Express Entry-linked. A nomination here adds 600 CRS points, which in practice guarantees an Invitation to Apply. Prioritise it wherever its conditions can be met.`,
+    })
+  } else if (shortlist.length > 0) {
+    out.push({
+      label: 'Highest-leverage route',
+      body: `No Express Entry-linked stream fits this profile yet, so the base pathways are the route to PR. Raising language to CLB 9 or securing an in-province job offer is what typically unlocks the faster Express Entry-linked streams.`,
+    })
+  }
+
+  const withSpeed = shortlist.filter((m) => m.stream.indicativeProcessingMonths != null)
+  if (withSpeed.length > 0) {
+    const fastest = withSpeed.reduce((a, b) =>
+      a.stream.indicativeProcessingMonths! <= b.stream.indicativeProcessingMonths! ? a : b
+    )
+    out.push({
+      label: 'Fastest pathway',
+      body: `${fastest.stream.province} — ${fastest.stream.streamName} carries the shortest indicative processing on your shortlist (about ${fastest.stream.indicativeProcessingMonths} months after nomination). Where speed matters most, start here.`,
+    })
+  }
+
+  const buckets: { test: RegExp; advice: string }[] = [
+    { test: /job offer/i, advice: 'an eligible in-province job offer' },
+    { test: /Expression of Interest|EOI/i, advice: 'registering an Expression of Interest and competing in the ranked draws' },
+    { test: /connection/i, advice: 'a demonstrable connection to the province (study, work, or family)' },
+    { test: /Educational Credential|ECA/i, advice: 'an Educational Credential Assessment' },
+    { test: /occupation list/i, advice: "confirming your NOC is on the stream's current in-demand list" },
+  ]
+  let best: { count: number; advice: string } | null = null
+  for (const b of buckets) {
+    const count = shortlist.filter((m) => m.conditionalRequirements.some((c) => b.test.test(c))).length
+    if (count > 0 && (!best || count > best.count)) best = { count, advice: b.advice }
+  }
+  if (best) {
+    out.push({
+      label: 'Highest-impact next step',
+      body: `${best.count} of your ${shortlist.length} shortlisted streams hinge on ${best.advice}. Securing it is the single change that improves your odds across multiple provinces at once.`,
+    })
+  }
+
+  const targeted = shortlist.filter((m) => m.relevance === 'targeted').length
+  if (targeted > 0) {
+    out.push({
+      label: 'Strongest occupation fit',
+      body: `${targeted} of your shortlisted streams specifically target your occupation field, not just your general eligibility. These carry the lowest documentation risk because your NOC duties align with what the province is actively selecting.`,
+    })
+  }
+
+  out.push({
+    label: 'Apply in parallel',
+    body: `A nomination from any single province is enough for permanent residence. Where you qualify for more than one stream, pursuing them in parallel raises your overall probability without added risk — PNP streams open and close on short notice.`,
+  })
+
+  return out
+}

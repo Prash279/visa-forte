@@ -3,6 +3,7 @@
 import './pnp-report.css'
 import { type ApplicantProfile } from '@/lib/crs-calculator'
 import {
+  buildPnpInsights,
   type EligibilityCheck,
   type PnpAssessmentResult,
   type PnpStreamMatch,
@@ -76,69 +77,30 @@ function EligibilityChecks({ checks }: { checks: EligibilityCheck[] }): React.JS
   )
 }
 
-// Deterministic, data-driven decision support built from the assessment itself —
-// what to prioritise, what is fastest, and the single change with the widest impact.
-function buildInsights(pnp: PnpAssessmentResult): { label: string; body: string }[] {
-  const out: { label: string; body: string }[] = []
-  const shortlist = pnp.shortlist
-  const topEe = pnp.eeLinked[0]
+// The single highest-impact action for a stream, and what it unlocks.
+function nextMove(m: PnpStreamMatch): string {
+  if (m.verdict === 'confirmed') return 'You meet every checkable requirement — proceed to documentation.'
+  const lever = m.conditionalRequirements[0]
+  if (!lever) return `Maintain your profile — current verdict is ${m.verdict}.`
+  return `Highest-impact next step: ${lever.replace(/\.$/, '')} → moves this toward Confirmed.`
+}
 
-  if (topEe) {
-    out.push({
-      label: 'Highest-leverage route',
-      body: `${topEe.stream.province} — ${topEe.stream.streamName} is Express Entry-linked. A nomination here adds 600 CRS points, which in practice guarantees an Invitation to Apply. Prioritise it wherever its conditions can be met.`,
-    })
-  } else if (shortlist.length > 0) {
-    out.push({
-      label: 'Highest-leverage route',
-      body: `No Express Entry-linked stream fits this profile yet, so the base pathways are the route to PR. Raising language to CLB 9 or securing an in-province job offer is what typically unlocks the faster Express Entry-linked streams.`,
-    })
-  }
-
-  const withSpeed = shortlist.filter((m) => m.stream.indicativeProcessingMonths != null)
-  if (withSpeed.length > 0) {
-    const fastest = withSpeed.reduce((a, b) =>
-      a.stream.indicativeProcessingMonths! <= b.stream.indicativeProcessingMonths! ? a : b
-    )
-    out.push({
-      label: 'Fastest pathway',
-      body: `${fastest.stream.province} — ${fastest.stream.streamName} carries the shortest indicative processing on your shortlist (about ${fastest.stream.indicativeProcessingMonths} months after nomination). Where speed matters most, start here.`,
-    })
-  }
-
-  const buckets: { test: RegExp; advice: string }[] = [
-    { test: /job offer/i, advice: 'an eligible in-province job offer' },
-    { test: /Expression of Interest|EOI/i, advice: 'registering an Expression of Interest and competing in the ranked draws' },
-    { test: /connection/i, advice: 'a demonstrable connection to the province (study, work, or family)' },
-    { test: /Educational Credential|ECA/i, advice: 'an Educational Credential Assessment' },
-    { test: /occupation list/i, advice: "confirming your NOC is on the stream's current in-demand list" },
-  ]
-  let best: { count: number; advice: string } | null = null
-  for (const b of buckets) {
-    const count = shortlist.filter((m) => m.conditionalRequirements.some((c) => b.test.test(c))).length
-    if (count > 0 && (!best || count > best.count)) best = { count, advice: b.advice }
-  }
-  if (best) {
-    out.push({
-      label: 'Highest-impact next step',
-      body: `${best.count} of your ${shortlist.length} shortlisted streams hinge on ${best.advice}. Securing it is the single change that improves your odds across multiple provinces at once.`,
-    })
-  }
-
-  const targeted = shortlist.filter((m) => m.relevance === 'targeted').length
-  if (targeted > 0) {
-    out.push({
-      label: 'Strongest occupation fit',
-      body: `${targeted} of your shortlisted streams specifically target your occupation field, not just your general eligibility. These carry the lowest documentation risk because your NOC duties align with what the province is actively selecting.`,
-    })
-  }
-
-  out.push({
-    label: 'Apply in parallel',
-    body: `A nomination from any single province is enough for permanent residence. Where you qualify for more than one stream, pursuing them in parallel raises your overall probability without added risk — PNP streams open and close on short notice.`,
-  })
-
-  return out
+// Decision-support footer for a shortlist card: criteria summary, cost & timeline,
+// and the next move. All derived from data already in the assessment — no new facts.
+function StreamCardExtras({ m }: { m: PnpStreamMatch }): React.JSX.Element {
+  const met = m.eligibilityChecks.filter((c) => c.status === 'met').length
+  const cond = m.eligibilityChecks.filter((c) => c.status === 'conditional').length
+  const fee = m.stream.feeCad != null ? `Fee CAD $${m.stream.feeCad.toLocaleString()}` : 'Fee varies'
+  const time = m.stream.indicativeProcessingMonths != null ? ` · ~${m.stream.indicativeProcessingMonths} mo` : ''
+  return (
+    <>
+      <div className="pnp-card-meta">
+        <span>{met} met{cond > 0 ? ` · ${cond} to secure` : ''}</span>
+        <span>{fee}{time}</span>
+      </div>
+      <div className="pnp-nextmove"><span className="pnp-nextmove-arrow">→</span> {nextMove(m)}</div>
+    </>
+  )
 }
 
 // Standard, stream-specific document set derived from the stream's verified criteria.
@@ -209,7 +171,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
   const eligible = allPassing.filter((m) => m.relevance !== 'mismatch')
   const fieldExcluded = allPassing.length - eligible.length
   const topEe = pnp.eeLinked[0]
-  const insights = buildInsights(pnp)
+  const insights = buildPnpInsights(pnp)
 
   return (
     <div className="pnp">
@@ -226,7 +188,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
           <div className="pnp-toolbar">
             <button className="pnp-btn" onClick={onBack}>← Back to form</button>
             <button className="pnp-btn" onClick={() => window.print()}>Print / Save PDF</button>
-            <button className="pnp-btn pnp-btn--primary" onClick={onDownload}>↓ Download report source (.md)</button>
+            <button className="pnp-btn pnp-btn--primary" onClick={onDownload}>↓ Download presentation (.pptx)</button>
           </div>
         </div>
       </header>
@@ -316,6 +278,9 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
                   <div className="pnp-why"><strong>Why this fits:</strong> {m.whyRelevant}</div>
                   <EligibilityChecks checks={m.eligibilityChecks} />
                   <ScoreBreakdown m={m} />
+                  <div className="pnp-score-caption">
+                    Eligibility {m.scoreBreakdown.matchStrength} · Strategic priority {m.scoreBreakdown.strategicValue + m.scoreBreakdown.openStatus + m.scoreBreakdown.processingSpeed} — ranks fit, not your odds of selection.
+                  </div>
                   {m.conditionalRequirements.length > 0 && (
                     <ul className="pnp-conds">
                       {m.conditionalRequirements.map((c, i) => (
@@ -323,6 +288,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
                       ))}
                     </ul>
                   )}
+                  <StreamCardExtras m={m} />
                 </div>
               ))}
             </div>
@@ -398,7 +364,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
         </div>
 
         <div className="pnp-footer">
-          visaforte.com · hello@visaforte.com · Secunderabad, India<br />
+          visaforte.com · prashant@visaforte.com · Secunderabad, India<br />
           PNP Pathway Assessment · For client reference only
         </div>
       </div>

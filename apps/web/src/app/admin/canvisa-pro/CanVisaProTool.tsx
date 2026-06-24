@@ -21,7 +21,7 @@ import './canvisa-pro.css'
 import NocSearch from '@/components/NocSearch'
 import PnpReport from './PnpReport'
 import { assessPnp, type PnpAssessmentResult } from '@/lib/pnp-eligibility'
-import { buildPnpMarpMarkdown } from '@/lib/pnp-marp'
+import { buildPnpPptxBlob } from '@/lib/pnp-pptx'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -1130,16 +1130,19 @@ export default function CanVisaProTool() {
     }
   }
 
-  function downloadPnpMarp() {
+  async function downloadPnpPptx() {
     if (!pnpResult) return
-    const md = buildPnpMarpMarkdown(profile, pnpResult)
-    const blob = new Blob([md], { type: 'text/markdown' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `CanVisa-Pro-PNP-${profile.name.replace(/\s+/g, '-') || 'Report'}-${profile.reportDate}.md`
-    a.click()
-    URL.revokeObjectURL(url)
+    try {
+      const blob = await buildPnpPptxBlob(profile, pnpResult)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `CanVisa-Pro-PNP-${profile.name.replace(/\s+/g, '-') || 'Report'}-${profile.reportDate}.pptx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err: unknown) {
+      setPnpError(err instanceof Error ? err.message : 'Could not generate the PowerPoint file.')
+    }
   }
 
   // ── FORM ──────────────────────────────────────────────────────────────────
@@ -1628,7 +1631,7 @@ export default function CanVisaProTool() {
         profile={profile}
         pnp={pnpResult}
         onBack={() => setView('form')}
-        onDownload={downloadPnpMarp}
+        onDownload={downloadPnpPptx}
       />
     )
   }
