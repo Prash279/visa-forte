@@ -19,6 +19,43 @@ function Badge({ verdict }: { verdict: PnpVerdict }): React.JSX.Element {
   return <span className={`pnp-badge pnp-badge--${verdict}`}>{verdict}</span>
 }
 
+function SectionHead({ eyebrow, title, hint }: { eyebrow: string; title: string; hint?: string }): React.JSX.Element {
+  return (
+    <div className="pnp-section-head">
+      <div className="pnp-section-head-text">
+        <span className="pnp-eyebrow">{eyebrow}</span>
+        <h2 className="pnp-h2">{title}</h2>
+      </div>
+      {hint && <span className="pnp-hint">{hint}</span>}
+    </div>
+  )
+}
+
+// Score breakdown bar for each dimension
+function ScoreBreakdown({ m }: { m: PnpStreamMatch }): React.JSX.Element {
+  const rows: { label: string; value: number; max: number }[] = [
+    { label: 'Eligibility match', value: m.scoreBreakdown.matchStrength, max: 40 },
+    { label: 'Strategic value',   value: m.scoreBreakdown.strategicValue, max: 30 },
+    { label: 'Stream status',     value: m.scoreBreakdown.openStatus,     max: 20 },
+    { label: 'Processing speed',  value: m.scoreBreakdown.processingSpeed, max: 10 },
+  ]
+  return (
+    <div className="pnp-score-breakdown">
+      {rows.map((r) => (
+        <div key={r.label} className="pnp-score-row">
+          <span className="pnp-score-label">{r.label}</span>
+          <div className="pnp-score-bar-wrap">
+            <div className="pnp-score-bar" style={{ width: `${Math.round((r.value / r.max) * 100)}%` }} />
+          </div>
+          <span className="pnp-score-val">
+            {r.value}<span className="pnp-score-max">/{r.max}</span>
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // Standard, stream-specific document set derived from the stream's verified criteria.
 function documentsFor(m: PnpStreamMatch, nocCode: string): string[] {
   const c = m.stream.criteria
@@ -107,10 +144,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
       <div className="pnp-inner">
         {/* Occupation classification */}
         <section className="pnp-section">
-          <div className="pnp-section-head">
-            <span className="pnp-eyebrow">Occupation Classification</span>
-            <h2 className="pnp-h2">Closest NOC match</h2>
-          </div>
+          <SectionHead eyebrow="Occupation Classification" title="Closest NOC match" />
           <div className="pnp-noc-winner">
             <div className="pnp-noc-code">NOC {noc.nocCode}</div>
             <div className="pnp-noc-title">{noc.title}</div>
@@ -134,8 +168,9 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
                   <div key={c.nocCode} className={`pnp-candidate ${i === 0 ? 'pnp-candidate--top' : ''}`}>
                     <div className="pnp-cand-rank">{i + 1}</div>
                     <div>
-                      <span className="pnp-cand-code">NOC {c.nocCode}</span> <span className="pnp-cand-teer">TEER {c.teer}</span>
-                      <span> — {c.title}</span>
+                      <span className="pnp-cand-code">NOC {c.nocCode}</span>{' '}
+                      <span className="pnp-cand-teer">TEER {c.teer}</span>
+                      <span style={{ color: 'var(--pnp-muted)', fontSize: '0.9rem' }}> — {c.title}</span>
                       <div className="pnp-cand-rationale">{c.rationale}</div>
                     </div>
                   </div>
@@ -159,10 +194,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
 
         {/* Executive summary */}
         <section className="pnp-section">
-          <div className="pnp-section-head">
-            <span className="pnp-eyebrow">Executive Summary</span>
-            <h2 className="pnp-h2">Recommended direction</h2>
-          </div>
+          <SectionHead eyebrow="Executive Summary" title="Recommended direction" />
           <p className="pnp-lead">
             {profile.name || 'The applicant'}&rsquo;s documented duties classify to <strong>NOC {noc.nocCode} (TEER {noc.teer})</strong>, {noc.title}.
             Of {pnp.sourceLog.length} active Provincial and Territorial Nominee streams assessed (Quebec excluded), the {pnp.shortlist.length} below
@@ -178,10 +210,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
 
         {/* Recommended pathways (shortlist) */}
         <section className="pnp-section">
-          <div className="pnp-section-head">
-            <span className="pnp-eyebrow">Recommended Pathways</span>
-            <h2 className="pnp-h2">Your strongest {pnp.shortlist.length} streams</h2>
-          </div>
+          <SectionHead eyebrow="Recommended Pathways" title={`Your strongest ${pnp.shortlist.length} streams`} />
           {pnp.shortlist.length > 0 ? (
             <div className={`pnp-cards ${pnp.shortlist.length < 2 ? 'pnp-cards--single' : ''}`}>
               {pnp.shortlist.map((m) => (
@@ -191,10 +220,11 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
                       <div className="pnp-card-name">{m.stream.province}</div>
                       <div className="pnp-card-sub">{m.stream.streamName} · {m.stream.category === 'ee-linked' ? 'EE-linked' : 'Base'}</div>
                     </div>
-                    <div className="pnp-card-score">{m.score}</div>
+                    <div className="pnp-card-score">{m.score}<span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-body)', fontWeight: 400 }}>/100</span></div>
                   </div>
                   <div style={{ marginTop: '0.4rem' }}><Badge verdict={m.verdict} /></div>
                   <div className="pnp-why"><strong>Why this fits:</strong> {m.whyRelevant}</div>
+                  <ScoreBreakdown m={m} />
                   {m.conditionalRequirements.length > 0 && (
                     <ul className="pnp-conds">
                       {m.conditionalRequirements.map((c, i) => (
@@ -213,10 +243,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
         {/* Application guides */}
         {pnp.shortlist.length > 0 && (
           <section className="pnp-section">
-            <div className="pnp-section-head">
-              <span className="pnp-eyebrow">How to Apply</span>
-              <h2 className="pnp-h2">Step-by-step, per stream</h2>
-            </div>
+            <SectionHead eyebrow="How to Apply" title="Step-by-step, per stream" />
             {pnp.shortlist.map((m) => <ApplicationGuide key={m.stream.id} m={m} nocCode={noc.nocCode} />)}
           </section>
         )}
@@ -224,21 +251,14 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
         {/* Flags */}
         {pnp.flags.length > 0 && (
           <section className="pnp-section">
-            <div className="pnp-section-head">
-              <span className="pnp-eyebrow">Notes &amp; Flags</span>
-              <h2 className="pnp-h2">Things to verify</h2>
-            </div>
+            <SectionHead eyebrow="Notes & Flags" title="Things to verify" />
             {pnp.flags.map((f, i) => <div key={i} className="pnp-flag">{f}</div>)}
           </section>
         )}
 
         {/* All jurisdictions matrix (secondary) */}
         <section className="pnp-section">
-          <div className="pnp-section-head">
-            <span className="pnp-eyebrow">Reference</span>
-            <h2 className="pnp-h2">All eligible jurisdictions</h2>
-            <span className="pnp-hint">full assessment</span>
-          </div>
+          <SectionHead eyebrow="Reference" title="All eligible jurisdictions" hint="full assessment" />
           <div className="pnp-table-wrap">
             <table className="pnp-table">
               <thead>
@@ -265,10 +285,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
 
         {/* Source & verification log */}
         <section className="pnp-section">
-          <div className="pnp-section-head">
-            <span className="pnp-eyebrow">Provenance</span>
-            <h2 className="pnp-h2">Source &amp; verification log</h2>
-          </div>
+          <SectionHead eyebrow="Provenance" title="Source & verification log" />
           <div className="pnp-table-wrap">
             <table className="pnp-table">
               <thead><tr><th>Province</th><th>Stream</th><th>Source</th><th>Verified</th></tr></thead>

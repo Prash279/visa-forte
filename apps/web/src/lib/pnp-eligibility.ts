@@ -98,10 +98,18 @@ export interface NocClassification {
   }
 }
 
+export interface ScoreBreakdown {
+  matchStrength: number    // 0–40: how cleanly the applicant qualifies (confirmed/likely/marginal)
+  strategicValue: number   // 0–30: EE-linked (30) vs base (12)
+  openStatus: number       // 0–20: open (20) / intermittent (10) / closed (2)
+  processingSpeed: number  // 0–10: faster streams score higher
+}
+
 export interface PnpStreamMatch {
   stream: PnpStream
   verdict: PnpVerdict
   score: number                          // 0–100 ranking score (eligible verdicts only)
+  scoreBreakdown: ScoreBreakdown         // per-dimension score components
   reasons: string[]                      // why it landed at this verdict
   unmetHardGates: string[]               // disqualifying gaps (drive 'ineligible')
   conditionalRequirements: string[]      // must-secure items (job offer, connection, EOI, list)
@@ -271,7 +279,7 @@ function evaluateStream(
     verdict = 'confirmed'
   }
 
-  const score = verdict === 'ineligible' ? 0 : rankScore(stream, verdict)
+  const { total: score, breakdown: scoreBreakdown } = rankScore(stream, verdict)
 
   // Field fit between the NOC and this stream — drives the shortlist, not the verdict.
   const relevance = streamRelevance(stream.occupationFocus, noc.nocCode)
@@ -283,21 +291,27 @@ function evaluateStream(
         ? `Restricted to ${focus} occupations — outside your NOC's field.`
         : 'Open to your occupation — no field restriction on this stream.'
 
-  return { stream, verdict, score, reasons, unmetHardGates, conditionalRequirements, relevance, whyRelevant }
+  return { stream, verdict, score, scoreBreakdown, reasons, unmetHardGates, conditionalRequirements, relevance, whyRelevant }
 }
 
-function rankScore(stream: PnpStream, verdict: PnpVerdict): number {
-  if (verdict === 'ineligible') return 0
+const ZERO_BREAKDOWN: ScoreBreakdown = { matchStrength: 0, strategicValue: 0, openStatus: 0, processingSpeed: 0 }
+
+function rankScore(stream: PnpStream, verdict: PnpVerdict): { total: number; breakdown: ScoreBreakdown } {
+  if (verdict === 'ineligible') return { total: 0, breakdown: ZERO_BREAKDOWN }
   const match = MATCH_SCORE[verdict]
   const strategic = STRATEGIC_SCORE[stream.category]
   const status = STATUS_SCORE[stream.status]
   const speed = processingSpeedScore(stream.indicativeProcessingMonths)
-  return Math.round(
-    WEIGHT_MATCH_STRENGTH * match +
-    WEIGHT_STRATEGIC_VALUE * strategic +
-    WEIGHT_OPEN_STATUS * status +
-    WEIGHT_PROCESSING_SPEED * speed
-  )
+  const breakdown: ScoreBreakdown = {
+    matchStrength: Math.round(WEIGHT_MATCH_STRENGTH * match),
+    strategicValue: Math.round(WEIGHT_STRATEGIC_VALUE * strategic),
+    openStatus: Math.round(WEIGHT_OPEN_STATUS * status),
+    processingSpeed: Math.round(WEIGHT_PROCESSING_SPEED * speed),
+  }
+  return {
+    total: breakdown.matchStrength + breakdown.strategicValue + breakdown.openStatus + breakdown.processingSpeed,
+    breakdown,
+  }
 }
 
 // ── Public API ───────────────────────────────────────────────────────────────
