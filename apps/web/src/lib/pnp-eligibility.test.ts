@@ -210,6 +210,33 @@ describe('assessPnp — source log', () => {
   })
 })
 
+// ── Eligibility breakdown (per-criterion) ────────────────────────────────────
+
+describe('assessPnp — eligibility breakdown', () => {
+  it('emits a check per constrained criterion with the applicant value and met status', () => {
+    const streams = [mkStream({ id: 'b' })]
+    const checks = assessPnp(strongProfile, mkNoc(1), streams).eeLinked[0]!.eligibilityChecks
+    const teer = checks.find(c => c.label === 'Occupation level (TEER)')
+    const lang = checks.find(c => c.label === 'Language (CLB)')
+    expect(teer?.applicant).toBe('TEER 1')
+    expect(teer?.status).toBe('met')
+    expect(lang?.status).toBe('met') // CLB derived from IELTS 8/7/7/7 → min 7, stream needs 7
+  })
+
+  it('marks an unsatisfied hard gate as unmet', () => {
+    const streams = [mkStream({ id: 't', criteria: { allowedTeers: [0] } })]
+    const checks = assessPnp(strongProfile, mkNoc(1), streams).ineligible[0]!.eligibilityChecks
+    expect(checks.find(c => c.label === 'Occupation level (TEER)')?.status).toBe('unmet')
+  })
+
+  it('marks a securable item (ECA not yet obtained) as conditional, not unmet', () => {
+    const noEca: ApplicantProfile = { ...strongProfile, hasEca: false }
+    const streams = [mkStream({ id: 'e', criteria: { ecaRequired: true } })]
+    const checks = assessPnp(noEca, mkNoc(1), streams).eeLinked[0]!.eligibilityChecks
+    expect(checks.find(c => c.label === 'Credential assessment (ECA)')?.status).toBe('conditional')
+  })
+})
+
 // ── NOC-targeted shortlist (over the REAL curated data) ──────────────────────
 
 describe('assessPnp — NOC-targeted shortlist', () => {

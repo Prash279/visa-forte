@@ -105,6 +105,18 @@ export interface ScoreBreakdown {
   processingSpeed: number  // 0–10: faster streams score higher
 }
 
+export type EligibilityCheckStatus = 'met' | 'conditional' | 'unmet'
+
+// One profile-checkable eligibility criterion for a stream: what the stream requires,
+// what the applicant brings, and whether it is satisfied. 'conditional' = a province-
+// specific item (job offer, ECA still to obtain) that is securable, not a hard failure.
+export interface EligibilityCheck {
+  label: string
+  requirement: string
+  applicant: string
+  status: EligibilityCheckStatus
+}
+
 export interface PnpStreamMatch {
   stream: PnpStream
   verdict: PnpVerdict
@@ -113,6 +125,7 @@ export interface PnpStreamMatch {
   reasons: string[]                      // why it landed at this verdict
   unmetHardGates: string[]               // disqualifying gaps (drive 'ineligible')
   conditionalRequirements: string[]      // must-secure items (job offer, connection, EOI, list)
+  eligibilityChecks: EligibilityCheck[]  // per-criterion eligibility breakdown shown on the report
   relevance: StreamRelevance             // fit between the NOC's field and this stream's focus
   whyRelevant: string                    // plain-English reason shown on the shortlist
 }
@@ -176,6 +189,18 @@ const EDUCATION_ORDER: EducationLevel[] = [
   'doctoral',
 ]
 
+// Short, report-friendly labels for the eligibility breakdown.
+const EDUCATION_LABEL: Record<EducationLevel, string> = {
+  less_than_secondary: 'Less than secondary',
+  secondary: 'Secondary diploma',
+  one_year_post_secondary: '1-yr post-secondary',
+  two_year_post_secondary: '2-yr post-secondary',
+  bachelors: "Bachelor's degree",
+  two_or_more_degrees: 'Two or more credentials',
+  masters: "Master's degree",
+  doctoral: 'Doctoral degree',
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function minClb(profile: ApplicantProfile): number {
@@ -203,6 +228,8 @@ function evaluateStream(
   const unmetHardGates: string[] = []
   const conditionalRequirements: string[] = []
   const reasons: string[] = []
+  const clb = minClb(profile)
+  const totalExp = profile.foreignWorkExperienceYears + profile.canadianWorkExperienceYears
 
   // ── Hard gates: concrete profile facts that disqualify if unmet ────────────
   if (c.allowedTeers !== null && !c.allowedTeers.includes(noc.teer)) {
@@ -212,7 +239,6 @@ function evaluateStream(
   }
 
   if (c.minClbOverall !== null) {
-    const clb = minClb(profile)
     if (clb < c.minClbOverall) {
       unmetHardGates.push(`Language is CLB ${clb}; stream requires CLB ${c.minClbOverall} in each ability.`)
     } else {
@@ -224,7 +250,6 @@ function evaluateStream(
     unmetHardGates.push(`Education below the stream minimum.`)
   }
 
-  const totalExp = profile.foreignWorkExperienceYears + profile.canadianWorkExperienceYears
   if (c.minTotalWorkExperienceYears !== null && totalExp < c.minTotalWorkExperienceYears) {
     unmetHardGates.push(`${totalExp} yr work experience; stream requires ${c.minTotalWorkExperienceYears}+ yr.`)
   }
@@ -267,6 +292,79 @@ function evaluateStream(
     for (const cond of c.otherConditions) conditionalRequirements.push(cond)
   }
 
+  // ── Eligibility breakdown: profile-checkable criteria, requirement vs applicant ──
+  const eligibilityChecks: EligibilityCheck[] = []
+  if (c.allowedTeers !== null) {
+    eligibilityChecks.push({
+      label: 'Occupation level (TEER)',
+      requirement: `TEER ${c.allowedTeers.join(', ')}`,
+      applicant: `TEER ${noc.teer}`,
+      status: c.allowedTeers.includes(noc.teer) ? 'met' : 'unmet',
+    })
+  }
+  if (c.minClbOverall !== null) {
+    eligibilityChecks.push({
+      label: 'Language (CLB)',
+      requirement: `CLB ${c.minClbOverall}+ each ability`,
+      applicant: `CLB ${clb}`,
+      status: clb >= c.minClbOverall ? 'met' : 'unmet',
+    })
+  }
+  if (c.minEducation !== null) {
+    eligibilityChecks.push({
+      label: 'Education',
+      requirement: `${EDUCATION_LABEL[c.minEducation]} or higher`,
+      applicant: EDUCATION_LABEL[profile.education],
+      status: meetsEducation(profile.education, c.minEducation) ? 'met' : 'unmet',
+    })
+  }
+  if (c.minTotalWorkExperienceYears !== null) {
+    eligibilityChecks.push({
+      label: 'Work experience',
+      requirement: `${c.minTotalWorkExperienceYears}+ yr`,
+      applicant: `${totalExp} yr`,
+      status: totalExp >= c.minTotalWorkExperienceYears ? 'met' : 'unmet',
+    })
+  }
+  if (c.minAge !== null || c.maxAge !== null) {
+    const req =
+      c.minAge !== null && c.maxAge !== null ? `${c.minAge}–${c.maxAge} yr`
+      : c.minAge !== null ? `${c.minAge}+ yr`
+      : `up to ${c.maxAge} yr`
+    const ageOk = (c.minAge === null || profile.age >= c.minAge) && (c.maxAge === null || profile.age <= c.maxAge)
+    eligibilityChecks.push({
+      label: 'Age',
+      requirement: req,
+      applicant: `${profile.age} yr`,
+      status: ageOk ? 'met' : 'unmet',
+    })
+  }
+  if (c.minSettlementFundsCad !== null) {
+    eligibilityChecks.push({
+      label: 'Settlement funds',
+      requirement: `CAD $${c.minSettlementFundsCad.toLocaleString()}`,
+      applicant: `CAD $${profile.settlementFunds.toLocaleString()}`,
+      status: profile.settlementFunds >= c.minSettlementFundsCad ? 'met' : 'unmet',
+    })
+  }
+  if (c.ecaRequired) {
+    eligibilityChecks.push({
+      label: 'Credential assessment (ECA)',
+      requirement: 'Required',
+      applicant: profile.hasEca ? 'On file' : 'Not yet obtained',
+      status: profile.hasEca ? 'met' : 'conditional',
+    })
+  }
+  if (c.jobOfferRequired === 'required') {
+    const noOffer = profile.hasJobOffer === 'none'
+    eligibilityChecks.push({
+      label: 'In-province job offer',
+      requirement: 'Required',
+      applicant: noOffer ? 'None on file' : 'On file',
+      status: noOffer ? 'conditional' : 'met',
+    })
+  }
+
   // ── Verdict ────────────────────────────────────────────────────────────────
   let verdict: PnpVerdict
   if (unmetHardGates.length > 0) {
@@ -291,7 +389,7 @@ function evaluateStream(
         ? `Restricted to ${focus} occupations — outside your NOC's field.`
         : 'Open to your occupation — no field restriction on this stream.'
 
-  return { stream, verdict, score, scoreBreakdown, reasons, unmetHardGates, conditionalRequirements, relevance, whyRelevant }
+  return { stream, verdict, score, scoreBreakdown, reasons, unmetHardGates, conditionalRequirements, eligibilityChecks, relevance, whyRelevant }
 }
 
 const ZERO_BREAKDOWN: ScoreBreakdown = { matchStrength: 0, strategicValue: 0, openStatus: 0, processingSpeed: 0 }

@@ -732,6 +732,98 @@
   border-radius: 6px;
 }
 
+/* ── Eligibility breakdown (per card) ────────────────────────────────────── */
+.pnp-elig {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--pnp-border);
+}
+
+.pnp-elig-head {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pnp-accent);
+  margin-bottom: 0.5rem;
+}
+
+.pnp-elig-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  column-gap: 0.5rem;
+  row-gap: 0.05rem;
+  align-items: baseline;
+  padding: 0.32rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.pnp-elig-dot {
+  grid-row: 1 / span 2;
+  align-self: center;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pnp-elig-dot--met { background: var(--pnp-teal); }
+.pnp-elig-dot--conditional { background: var(--pnp-amber); }
+.pnp-elig-dot--unmet { background: var(--pnp-red); }
+
+.pnp-elig-label {
+  font-size: 0.8rem;
+  color: var(--pnp-text);
+}
+
+.pnp-elig-val {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.pnp-elig-val--met { color: var(--pnp-text); }
+.pnp-elig-val--conditional { color: var(--pnp-amber); }
+.pnp-elig-val--unmet { color: var(--pnp-red); }
+
+.pnp-elig-req {
+  grid-column: 2 / span 2;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ── Strategic insights ──────────────────────────────────────────────────── */
+.pnp-insights {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.pnp-insight {
+  background: var(--pnp-navy);
+  border: 1px solid var(--pnp-border);
+  border-left: 3px solid var(--pnp-accent);
+  border-radius: 6px;
+  padding: 0.9rem 1.1rem;
+}
+
+.pnp-insight-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pnp-accent);
+  margin-bottom: 0.35rem;
+}
+
+.pnp-insight-body {
+  font-size: 0.86rem;
+  color: var(--pnp-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
 /* ── Breakpoints ─────────────────────────────────────────────────────────── */
 @media (min-width: 720px) {
   .pnp-inner,
@@ -741,6 +833,7 @@
   .pnp-section { padding: 2rem 2.25rem; }
   .pnp-cards { grid-template-columns: 1fr 1fr; }
   .pnp-cards--single { grid-template-columns: 1fr; }
+  .pnp-insights { grid-template-columns: 1fr 1fr; }
 }
 
 @media (min-width: 1024px) {
