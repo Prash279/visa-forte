@@ -117,3 +117,36 @@ SINP draw activity is intermittent and sub-category-variable; a band that clears
 cutoff is not a guarantee of an invitation. Cutoffs change without notice — the data
 file's `lastUpdated` is the source of truth for freshness and must be refreshed from
 product 102708 whenever a new selection is published.
+
+---
+
+## Revision — 2026-06-26: pivot to sector-based selection
+
+After review, the draw comparison was demoted in favour of the SINP **2026 sector-based
+model**, which is how Saskatchewan now selects (the EOI points-draw system is dormant —
+last draw 2024-09-12). All facts verified against saskatchewan.ca in-session.
+
+**Verified findings.** The pause ended 27 March 2025; the program is now sector-based
+(≈4,761 allocation). Priority sectors (Healthcare, Agriculture, Skilled Trades, Energy,
+Mining, Manufacturing, Technology) get ≥50% of allocation and continuous intake / overseas
+application. Capped sectors are 25% — Food Service & Accommodation 15% (714), Trucking 5%
+(238), Retail Trade 5% (238) — run through six 2026 intake windows via the Employer
+Position Assessment (EPA, formerly the JAF). **No public NOC→sector list exists**: sector
+membership is set by the employer at EPA time, so it cannot be auto-classified per NOC.
+
+**What is NOC-classifiable (and verified):** the **Excluded Occupation List** (~145 NOCs,
+*Updated 2024-05-01*) plus the rule that **TEER 4/5 are ineligible** for the points-based
+OID/EE sub-categories. This determines whether the points/draw path is even open.
+
+**New architecture (additive to the units above):**
+- `sinp-2026.json` — verified Excluded Occupation List + sector-model framework.
+- `classifySinpPathway(noc, teer)` — pure scorer + `sinp-pathway.test.ts`. Returns
+  `oid-ee-eligible` / `excluded-occupation` / `teer-ineligible` (+ `pointsPathOpen`).
+- `SinpPathwayCard` — new **primary** SINP element: pathway status + the priority/capped
+  sector model as context. The points card is kept; the draw comparison is demoted into a
+  collapsed `<details>` under a "points-draw system dormant" banner.
+- PPTX: the SINP slide now leads with the 2026 pathway/sector model; draws are a reference line.
+
+**Honest limitation:** the three capped sectors cannot be mapped to NOCs authoritatively
+(employer-determined), so the sector model is presented as context, not auto-classified.
+The Excluded-list + TEER classification is exact.

@@ -13,7 +13,9 @@ import {
   type PnpVerdict,
 } from './pnp-eligibility'
 import { scoreSinp } from './sinp-points'
-import { analyzeSinpDraws, type SinpDrawVerdict } from './sinp-draws'
+import { analyzeSinpDraws } from './sinp-draws'
+import { classifySinpPathway } from './sinp-pathway'
+import sinp2026 from './sinp-2026.json'
 
 // Brand palette (hex without '#', as pptxgenjs expects).
 const PRUSSIAN = '0C2340'
@@ -244,55 +246,60 @@ function insightsSlide(pptx: Pptx, profile: ApplicantProfile, pnp: PnpAssessment
   footer(s, profile, pnp)
 }
 
-const DRAW_VERDICT_COLOR: Record<SinpDrawVerdict, string> = {
-  clears: GREEN,
-  conditional: AMBER,
-  'out-of-range': RED,
-}
-const DRAW_VERDICT_LABEL: Record<SinpDrawVerdict, string> = {
-  clears: 'ABOVE CUTOFF',
-  conditional: 'CONDITIONAL',
-  'out-of-range': 'BELOW REACH',
-}
-
-// Saskatchewan-only slide: the SINP points band against the last 5 EOI draw cutoffs.
-// Returns early when there is no draw data so the deck simply omits the slide.
-function sinpDrawsSlide(pptx: Pptx, profile: ApplicantProfile, pnp: PnpAssessmentResult): void {
-  const sinp = scoreSinp(profile)
-  const analysis = analyzeSinpDraws(sinp)
-  if (analysis.comparisons.length === 0) return
+// Saskatchewan-only slide: the SINP 2026 sector-based pathway. Leads with whether the
+// occupation can use the points-based OID/EE path or routes to the employer-driven,
+// sector-capped EPA pathway; the historical EOI draws are a demoted reference line.
+function sinpPathwaySlide(pptx: Pptx, profile: ApplicantProfile, pnp: PnpAssessmentResult): void {
+  const pathway = classifySinpPathway(pnp.noc.nocCode, pnp.noc.teer)
+  const { prioritySectors, cappedSectors } = sinp2026.sectorModel
 
   const s = pptx.addSlide()
   s.background = { color: PEARL }
-  sectionHeader(pptx, s, 'Saskatchewan · SINP', 'Standing vs last 5 draws')
+  sectionHeader(pptx, s, 'Saskatchewan · SINP', 'SINP 2026 pathway')
 
   s.addText(
-    `Estimated band: floor ${analysis.bandFloor} – ceiling ${analysis.bandCeiling} of ${sinp.maxPoints} (pass mark ${analysis.passMark}). ` +
-      `${analysis.clears} above · ${analysis.conditional} conditional · ${analysis.outOfRange} below reach.`,
-    { x: 0.8, y: 1.5, w: W - 1.6, h: 0.35, fontFace: SANS, fontSize: 12, color: INK }
+    [
+      { text: pathway.pointsPathOpen ? 'POINTS PATH OPEN — ' : 'POINTS PATH CLOSED — ', options: { bold: true, color: pathway.pointsPathOpen ? GREEN : AMBER } },
+      { text: pathway.headline, options: { color: PRUSSIAN, bold: true } },
+    ],
+    { x: 0.8, y: 1.5, w: W - 1.6, h: 0.4, fontFace: SANS, fontSize: 13 }
   )
-
-  const header = ['Draw date', 'Sub-category', 'Cutoff', 'Invited', 'Standing'].map((h) => ({
-    text: h, options: { fill: { color: PRUSSIAN }, color: PEARL, bold: true, fontSize: 10, valign: 'middle' },
-  }))
-  const rows = analysis.comparisons.map((c) => ([
-    { text: c.date, options: { color: INK, valign: 'middle' } },
-    { text: c.subCategories.join(' · '), options: { color: INK, valign: 'middle' } },
-    { text: String(c.cutoffScore), options: { color: SAFFRON, bold: true, align: 'center', valign: 'middle' } },
-    { text: String(c.invitationsIssued), options: { color: MUTED, align: 'center', valign: 'middle' } },
-    { text: DRAW_VERDICT_LABEL[c.verdict], options: { color: DRAW_VERDICT_COLOR[c.verdict], bold: true, valign: 'middle' } },
-  ]))
-  s.addTable([header, ...rows], {
-    x: 0.8, y: 2.0, w: W - 1.6, colW: [1.8, 4.5, 1.3, 1.3, 2.8],
-    fontFace: SANS, fontSize: 11, valign: 'middle',
-    border: { type: 'solid', color: SAND, pt: 1 }, rowH: 0.5, autoPage: false,
+  s.addText(pathway.detail, {
+    x: 0.8, y: 1.95, w: W - 1.6, h: 0.7, fontFace: SANS, fontSize: 11, color: INK, lineSpacingMultiple: 1.2, valign: 'top',
   })
 
+  // Two sector panels: priority (continuous) vs capped (windowed / EPA).
+  const colW = (W - 1.6 - 0.4) / 2
+  s.addShape(pptx.ShapeType.rect, { x: 0.8, y: 2.8, w: colW, h: 2.5, fill: { color: WHITE }, line: { color: SAND, width: 1 } })
+  s.addShape(pptx.ShapeType.rect, { x: 0.8, y: 2.8, w: 0.06, h: 2.5, fill: { color: TEAL } })
+  s.addText('PRIORITY SECTORS · CONTINUOUS INTAKE', { x: 1.0, y: 2.95, w: colW - 0.4, h: 0.3, fontFace: SANS, fontSize: 10, color: TEAL, bold: true, charSpacing: 1 })
   s.addText(
-    `${analysis.programStatus} Standing compares this profile's band against historical cutoffs only — not a prediction, probability, or guarantee of an invitation. ` +
-      `Draw data: saskatchewan.ca EOI Selection Results · last updated ${analysis.lastUpdated}.`,
-    { x: 0.8, y: 6.35, w: W - 1.6, h: 0.6, fontFace: SANS, fontSize: 10, color: MUTED, italic: true, lineSpacingMultiple: 1.2 }
+    `${prioritySectors.sectors.join(', ')}.\n\n${prioritySectors.allocationNote} May apply at any time, including from overseas.`,
+    { x: 1.0, y: 3.3, w: colW - 0.4, h: 1.9, fontFace: SANS, fontSize: 11, color: INK, lineSpacingMultiple: 1.15, valign: 'top' }
   )
+
+  const cappedX = 0.8 + colW + 0.4
+  s.addShape(pptx.ShapeType.rect, { x: cappedX, y: 2.8, w: colW, h: 2.5, fill: { color: WHITE }, line: { color: SAND, width: 1 } })
+  s.addShape(pptx.ShapeType.rect, { x: cappedX, y: 2.8, w: 0.06, h: 2.5, fill: { color: SAFFRON } })
+  s.addText(`CAPPED SECTORS · ${cappedSectors.intakeWindows2026.length} INTAKE WINDOWS (EPA)`, { x: cappedX + 0.2, y: 2.95, w: colW - 0.4, h: 0.3, fontFace: SANS, fontSize: 10, color: SAFFRON, bold: true, charSpacing: 1 })
+  const cappedLines = cappedSectors.sectors.map((c) => `• ${c.name} — ${c.capPct}% (${c.capNominations})`).join('\n')
+  s.addText(
+    `${cappedLines}\n\n${cappedSectors.intakeWindows2026.join(' · ')}.`,
+    { x: cappedX + 0.2, y: 3.3, w: colW - 0.4, h: 1.9, fontFace: SANS, fontSize: 11, color: INK, lineSpacingMultiple: 1.2, valign: 'top' }
+  )
+
+  // Demoted historical draws reference.
+  const sinp = scoreSinp(profile)
+  const analysis = analyzeSinpDraws(sinp)
+  const drawsLine = analysis.comparisons.length > 0
+    ? `Historical reference: points band ${analysis.bandFloor}–${analysis.bandCeiling} of ${sinp.maxPoints} vs the last 5 EOI cutoffs (${analysis.clears} above, ${analysis.conditional} conditional, ${analysis.outOfRange} below reach). The EOI points-draw system is dormant (last draw ${analysis.lastUpdated}); this is a benchmark, not a live selection.`
+    : 'Sector membership is set by the employer at Employer Position Assessment (EPA) time, not by a public NOC list.'
+  s.addText(drawsLine, {
+    x: 0.8, y: 5.55, w: W - 1.6, h: 1.2, fontFace: SANS, fontSize: 10, color: MUTED, italic: true, lineSpacingMultiple: 1.2, valign: 'top',
+  })
+  s.addText(`Source: saskatchewan.ca · verified ${sinp2026.lastVerified}.`, {
+    x: 0.8, y: 6.65, w: W - 1.6, h: 0.3, fontFace: SANS, fontSize: 9, color: MUTED,
+  })
   footer(s, profile, pnp)
 }
 
@@ -328,7 +335,7 @@ export async function buildPnpPptxBlob(profile: ApplicantProfile, pnp: PnpAssess
   matrixSlide(pptx, profile, pnp)
   insightsSlide(pptx, profile, pnp)
   if (pnp.sourceLog.some((entry) => entry.province === 'Saskatchewan')) {
-    sinpDrawsSlide(pptx, profile, pnp)
+    sinpPathwaySlide(pptx, profile, pnp)
   }
   disclaimerSlide(pptx, profile, pnp)
 

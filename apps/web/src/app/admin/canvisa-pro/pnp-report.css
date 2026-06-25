@@ -1127,6 +1127,137 @@
   color: var(--pnp-muted);
 }
 
+/* ── SINP 2026 pathway (sector-based, primary) ───────────────────────────── */
+.pnp-pathway {
+  background: var(--pnp-navy);
+  border: 1px solid var(--pnp-border);
+  border-radius: 8px;
+  padding: 1.1rem 1.2rem;
+}
+
+.pnp-pathway-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.pnp-pathway-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+}
+
+.pnp-pathway-badge--open { color: var(--pnp-body); background: var(--pnp-teal); }
+.pnp-pathway-badge--closed { color: var(--pnp-amber); background: rgba(253, 224, 71, 0.12); border: 1px solid rgba(253, 224, 71, 0.4); }
+
+.pnp-pathway-noc { font-size: 0.76rem; color: var(--pnp-muted); }
+
+.pnp-pathway-headline {
+  margin: 0.7rem 0 0.3rem;
+  font-family: var(--font-display, serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--pnp-text);
+  line-height: 1.3;
+}
+
+.pnp-pathway-detail {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--pnp-muted);
+  line-height: 1.55;
+}
+
+.pnp-pathway-sectors {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.7rem;
+  margin: 1rem 0 0;
+}
+
+.pnp-pathway-sector {
+  background: var(--pnp-card);
+  border-radius: 6px;
+  padding: 0.8rem 0.9rem;
+  border-left: 3px solid var(--pnp-border);
+}
+
+.pnp-pathway-sector--priority { border-left-color: var(--pnp-teal); }
+.pnp-pathway-sector--capped { border-left-color: var(--pnp-accent); }
+
+.pnp-pathway-sector-head {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--pnp-text);
+  margin-bottom: 0.4rem;
+}
+
+.pnp-pathway-sector-body {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+  color: var(--pnp-muted);
+  line-height: 1.5;
+}
+
+.pnp-pathway-cap-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+  color: var(--pnp-muted);
+  line-height: 1.6;
+}
+.pnp-pathway-cap-list b { color: var(--pnp-text); }
+
+.pnp-pathway-note {
+  margin: 0.9rem 0 0;
+  font-size: 0.74rem;
+  color: var(--pnp-muted);
+  line-height: 1.5;
+}
+
+/* ── Demoted historical draws (collapsed) ────────────────────────────────── */
+.pnp-draws-legacy {
+  margin-top: 0.9rem;
+  background: var(--pnp-navy);
+  border: 1px dashed var(--pnp-border);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+}
+
+.pnp-draws-legacy-summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--pnp-muted);
+  line-height: 1.5;
+  padding: 0.5rem 0.4rem;
+  list-style: none;
+}
+.pnp-draws-legacy-summary::-webkit-details-marker { display: none; }
+.pnp-draws-legacy-summary::before { content: '▸ '; color: var(--pnp-accent); }
+.pnp-draws-legacy[open] .pnp-draws-legacy-summary::before { content: '▾ '; }
+
+.pnp-draws-legacy-tag {
+  display: inline-block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pnp-accent);
+  background: rgba(201, 123, 30, 0.14);
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+  margin-right: 0.5rem;
+}
+
+.pnp-draws-legacy .pnp-draws { margin-top: 0.6rem; border-style: solid; }
+
 /* ── Breakpoints ─────────────────────────────────────────────────────────── */
 @media (min-width: 720px) {
   .pnp-inner,
@@ -1146,6 +1277,9 @@
     padding: 0.5rem 0;
   }
   .pnp-draws-cutoff, .pnp-draws-invited { text-align: right; white-space: nowrap; }
+
+  /* Pathway sector panels sit side by side. */
+  .pnp-pathway-sectors { grid-template-columns: 1fr 1fr; }
 }
 
 @media (min-width: 1024px) {

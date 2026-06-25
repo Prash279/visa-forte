@@ -11,6 +11,8 @@ import {
 } from '@/lib/pnp-eligibility'
 import { scoreSinp, SINP_MAX_POINTS, type SinpScore } from '@/lib/sinp-points'
 import { analyzeSinpDraws, type SinpDrawAnalysis, type SinpDrawVerdict } from '@/lib/sinp-draws'
+import { classifySinpPathway, type SinpPathway } from '@/lib/sinp-pathway'
+import sinp2026 from '@/lib/sinp-2026.json'
 
 interface PnpReportProps {
   profile: ApplicantProfile
@@ -165,6 +167,51 @@ function ApplicationGuide({ m, nocCode }: { m: PnpStreamMatch; nocCode: string }
   )
 }
 
+// SINP 2026 pathway: which selection route the applicant's occupation actually has
+// under the sector-based model. The points-based OID/EE path is open only for TEER 0–3
+// occupations that are not on the Excluded Occupation List; everything else routes to
+// the employer-driven, sector-capped EPA pathway.
+function SinpPathwayCard({ pathway }: { pathway: SinpPathway }): React.JSX.Element {
+  const { prioritySectors, cappedSectors } = sinp2026.sectorModel
+  const open = pathway.pointsPathOpen
+  return (
+    <div className="pnp-pathway">
+      <div className="pnp-pathway-top">
+        <span className={`pnp-pathway-badge pnp-pathway-badge--${open ? 'open' : 'closed'}`}>
+          {open ? 'Points path open' : 'Points path closed'}
+        </span>
+        <span className="pnp-pathway-noc">NOC {pathway.nocCode} · TEER {pathway.teer}</span>
+      </div>
+      <h3 className="pnp-pathway-headline">{pathway.headline}</h3>
+      <p className="pnp-pathway-detail">{pathway.detail}</p>
+
+      <div className="pnp-pathway-sectors">
+        <div className="pnp-pathway-sector pnp-pathway-sector--priority">
+          <div className="pnp-pathway-sector-head">Priority sectors · continuous intake</div>
+          <p className="pnp-pathway-sector-body">
+            {prioritySectors.sectors.join(', ')}. {prioritySectors.allocationNote} These candidates may apply at any time, including from overseas.
+          </p>
+        </div>
+        <div className="pnp-pathway-sector pnp-pathway-sector--capped">
+          <div className="pnp-pathway-sector-head">Capped sectors · {cappedSectors.intakeWindows2026.length} intake windows (EPA)</div>
+          <ul className="pnp-pathway-cap-list">
+            {cappedSectors.sectors.map((s) => (
+              <li key={s.name}><b>{s.name}</b> — {s.capPct}% ({s.capNominations})</li>
+            ))}
+          </ul>
+          <p className="pnp-pathway-sector-body">
+            {cappedSectors.intakeWindows2026.join(' · ')}. {cappedSectors.allocationNote}
+          </p>
+        </div>
+      </div>
+
+      <p className="pnp-pathway-note">
+        Sector membership is set by the employer&rsquo;s job at Employer Position Assessment (EPA) time, not by a public NOC list, so the sector model above is shown as context. Source: saskatchewan.ca · verified {sinp2026.lastVerified}.
+      </p>
+    </div>
+  )
+}
+
 // Saskatchewan SINP International Skilled Worker points estimate. Only Factor I is
 // derivable from the profile; Factor II (SK connection) and a missing second-language
 // test are surfaced as "to confirm" rather than scored zero silently.
@@ -294,6 +341,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
   // Saskatchewan-specific points estimate (pilot). Shown only when SINP is assessed.
   const sinp = scoreSinp(profile)
   const sinpDraws = analyzeSinpDraws(sinp)
+  const sinpPathway = classifySinpPathway(noc.nocCode, noc.teer)
   const showSinp = pnp.sourceLog.some((s) => s.province === 'Saskatchewan')
 
   return (
@@ -420,16 +468,23 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
           )}
         </section>
 
-        {/* Saskatchewan SINP points estimate (pilot) */}
+        {/* Saskatchewan SINP — 2026 sector-based pathway, then points, then demoted draws */}
         {showSinp && (
           <section className="pnp-section">
+            <SectionHead eyebrow="Saskatchewan · SINP" title="SINP 2026 pathway" hint="sector-based selection" />
+            <SinpPathwayCard pathway={sinpPathway} />
+
             <SectionHead eyebrow="Saskatchewan · SINP" title="SINP points estimate" hint={`pass mark ${sinp.passMark}/${sinp.maxPoints}`} />
             <SinpCard sinp={sinp} />
+
             {sinpDraws.comparisons.length > 0 && (
-              <>
-                <SectionHead eyebrow="Saskatchewan · SINP" title="Standing vs last 5 draws" hint={`scale /${SINP_MAX_POINTS}`} />
+              <details className="pnp-draws-legacy">
+                <summary className="pnp-draws-legacy-summary">
+                  <span className="pnp-draws-legacy-tag">Historical reference</span>
+                  Standing vs last 5 EOI draws — points-draw system is dormant (last draw {formatDrawDate(sinpDraws.lastUpdated)}). Click to expand.
+                </summary>
                 <SinpDrawsCard analysis={sinpDraws} />
-              </>
+              </details>
             )}
           </section>
         )}
