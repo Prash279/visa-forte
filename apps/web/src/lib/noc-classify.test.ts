@@ -7,6 +7,7 @@ import {
   groundClassification,
   esdcProfileUrl,
   statcanUnitGroupUrl,
+  NOC_CLASSIFIER_SYSTEM,
   type RawClassification,
 } from './noc-classify'
 
@@ -33,7 +34,7 @@ describe('extractJsonObject', () => {
 describe('parseRawClassification', () => {
   it('parses a well-formed object', () => {
     const out = parseRawClassification(
-      '{"ranked":[{"nocCode":"41404","rationale":"x"}],"confidence":"high","ambiguityFlag":false}'
+      '{"ranked":[{"nocCode":"41404","rationale":"x","fitScore":90}],"confidence":"high","ambiguityFlag":false}'
     )
     expect(out?.confidence).toBe('high')
   })
@@ -51,8 +52,8 @@ describe('groundClassification', () => {
   it('joins authoritative TEER and title from the dataset, not the model', () => {
     const raw: RawClassification = {
       ranked: [
-        { nocCode: '41404', rationale: 'health policy, databases, statistical analysis' },
-        { nocCode: '12111', rationale: 'health information management' },
+        { nocCode: '41404', rationale: 'health policy, databases, statistical analysis', fitScore: 90 },
+        { nocCode: '12111', rationale: 'health information management', fitScore: 78 },
       ],
       confidence: 'high',
       ambiguityFlag: false,
@@ -67,8 +68,8 @@ describe('groundClassification', () => {
   it('drops codes that were not in the retrieved shortlist', () => {
     const raw: RawClassification = {
       ranked: [
-        { nocCode: '31301', rationale: 'real code but not shortlisted' },
-        { nocCode: '41404', rationale: 'shortlisted' },
+        { nocCode: '31301', rationale: 'real code but not shortlisted', fitScore: 85 },
+        { nocCode: '41404', rationale: 'shortlisted', fitScore: 80 },
       ],
       confidence: 'high',
       ambiguityFlag: false,
@@ -80,8 +81,8 @@ describe('groundClassification', () => {
   it('drops codes that are not real NOC codes', () => {
     const raw: RawClassification = {
       ranked: [
-        { nocCode: '99999', rationale: 'invented' },
-        { nocCode: '12111', rationale: 'real and shortlisted' },
+        { nocCode: '99999', rationale: 'invented', fitScore: 90 },
+        { nocCode: '12111', rationale: 'real and shortlisted', fitScore: 80 },
       ],
       confidence: 'medium',
       ambiguityFlag: false,
@@ -92,18 +93,18 @@ describe('groundClassification', () => {
 
   it('returns null when the model picked nothing from the shortlist', () => {
     const raw: RawClassification = {
-      ranked: [{ nocCode: '99999', rationale: 'invented' }],
+      ranked: [{ nocCode: '99999', rationale: 'invented', fitScore: 50 }],
       confidence: 'low',
       ambiguityFlag: false,
     }
     expect(groundClassification(raw, HITS)).toBeNull()
   })
 
-  it('forces the ambiguity flag when the top codes span different TEER levels', () => {
+  it('forces the ambiguity flag when the surviving top codes span different TEER levels', () => {
     const raw: RawClassification = {
       ranked: [
-        { nocCode: '41404', rationale: 'TEER 1' },
-        { nocCode: '14111', rationale: 'TEER 4' },
+        { nocCode: '41404', rationale: 'TEER 1', fitScore: 82 },
+        { nocCode: '14111', rationale: 'TEER 4', fitScore: 75 },
       ],
       confidence: 'medium',
       ambiguityFlag: false,
@@ -111,6 +112,62 @@ describe('groundClassification', () => {
     const g = groundClassification(raw, [hit('41404', 100), hit('14111', 50)])!
     expect(g.ambiguity.flag).toBe(true)
     expect(g.ambiguity.alternatives[0]!.nocCode).toBe('14111')
+  })
+})
+
+describe('groundClassification — margin gating of weak ranked matches', () => {
+  it('drops runners-up whose fit score is far below the leader, leaving one clean match', () => {
+    const raw: RawClassification = {
+      ranked: [
+        { nocCode: '41404', rationale: 'strong, decisive fit', fitScore: 88 },
+        { nocCode: '12111', rationale: 'shared keywords only', fitScore: 35 },
+        { nocCode: '21223', rationale: 'weaker still', fitScore: 22 },
+      ],
+      confidence: 'high',
+      ambiguityFlag: false,
+    }
+    const g = groundClassification(raw, HITS)!
+    expect(g.candidates.map((c) => c.nocCode)).toEqual(['41404'])
+    expect(g.ambiguity.flag).toBe(false)
+    expect(g.ambiguity.alternatives).toHaveLength(0)
+  })
+
+  it('keeps a runner-up that is genuinely close to the leader', () => {
+    const raw: RawClassification = {
+      ranked: [
+        { nocCode: '41404', rationale: 'leader', fitScore: 82 },
+        { nocCode: '12111', rationale: 'within margin', fitScore: 74 },
+      ],
+      confidence: 'medium',
+      ambiguityFlag: false,
+    }
+    const g = groundClassification(raw, HITS)!
+    expect(g.candidates.map((c) => c.nocCode)).toEqual(['41404', '12111'])
+  })
+
+  it('exposes the model fit score on each surviving candidate', () => {
+    const raw: RawClassification = {
+      ranked: [{ nocCode: '41404', rationale: 'x', fitScore: 91 }],
+      confidence: 'high',
+      ambiguityFlag: false,
+    }
+    expect(groundClassification(raw, HITS)!.candidates[0]!.fitScore).toBe(91)
+  })
+})
+
+describe('classifier prompt contract', () => {
+  it('asks the model for a fitScore (the schema requires it, so the prompt must request it)', () => {
+    expect(NOC_CLASSIFIER_SYSTEM).toContain('fitScore')
+  })
+  it('tells the model that paraphrased duties must not lower confidence', () => {
+    const p = NOC_CLASSIFIER_SYSTEM.toLowerCase()
+    expect(p).toContain('verbatim')
+    expect(p).toContain('paraphrase')
+  })
+  it('documents an output shape that parses against the schema', () => {
+    const shape = extractJsonObject(NOC_CLASSIFIER_SYSTEM.slice(NOC_CLASSIFIER_SYSTEM.lastIndexOf('{"ranked"')))
+    expect(shape).not.toBeNull()
+    expect(parseRawClassification(shape!)).not.toBeNull()
   })
 })
 

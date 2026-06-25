@@ -18,8 +18,8 @@ const noc: NocClassification = {
   nocCode: '31301', teer: 1, title: 'Registered nurses and registered psychiatric nurses',
   citationUrl: 'https://noc.esdc.gc.ca', confidence: 'high', verified: true,
   candidates: [
-    { nocCode: '31301', teer: 1, title: 'Registered nurses', rationale: 'Direct patient care duties.', matchScore: 120 },
-    { nocCode: '32101', teer: 2, title: 'Licensed practical nurses', rationale: 'Adjacent clinical duties.', matchScore: 88 },
+    { nocCode: '31301', teer: 1, title: 'Registered nurses', rationale: 'Direct patient care duties.', matchScore: 120, fitScore: 90 },
+    { nocCode: '32101', teer: 2, title: 'Licensed practical nurses', rationale: 'Adjacent clinical duties.', matchScore: 88, fitScore: 58 },
   ],
   ambiguity: { flag: false, alternatives: [] },
 }

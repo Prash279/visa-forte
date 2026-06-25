@@ -864,6 +864,148 @@
   margin: 0;
 }
 
+/* ── Saskatchewan SINP points card ───────────────────────────────────────── */
+.pnp-sinp {
+  background: var(--pnp-navy);
+  border: 1px solid var(--pnp-border);
+  border-radius: 8px;
+  padding: 1.1rem 1.2rem;
+}
+
+.pnp-sinp-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+}
+
+.pnp-sinp-total {
+  font-family: var(--font-display, serif);
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--pnp-text);
+}
+
+.pnp-sinp-max {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--pnp-muted);
+}
+
+.pnp-sinp-sub {
+  margin-top: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--pnp-muted);
+  max-width: 30ch;
+  line-height: 1.45;
+}
+
+.pnp-sinp-verdict {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.pnp-sinp-verdict--pass {
+  color: var(--pnp-body);
+  background: var(--pnp-teal);
+}
+
+.pnp-sinp-verdict--below {
+  color: var(--pnp-amber);
+  background: rgba(253, 224, 71, 0.12);
+  border: 1px solid rgba(253, 224, 71, 0.4);
+}
+
+.pnp-sinp-track {
+  position: relative;
+  height: 8px;
+  margin: 1rem 0 1.1rem;
+  background: var(--pnp-card);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.pnp-sinp-fill {
+  height: 100%;
+  background: var(--pnp-accent);
+  border-radius: 999px;
+}
+
+.pnp-sinp-mark {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 14px;
+  background: var(--pnp-text);
+  transform: translateX(-1px);
+}
+
+.pnp-sinp-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.pnp-sinp-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  column-gap: 0.6rem;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.pnp-sinp-label {
+  font-size: 0.82rem;
+  color: var(--pnp-text);
+}
+
+.pnp-sinp-tag {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+}
+
+.pnp-sinp-tag--counted {
+  color: var(--pnp-teal);
+  background: rgba(91, 186, 212, 0.12);
+}
+
+.pnp-sinp-tag--confirm {
+  color: var(--pnp-amber);
+  background: rgba(253, 224, 71, 0.1);
+}
+
+.pnp-sinp-pts {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--pnp-text);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.pnp-sinp-pts-max {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.pnp-sinp-note {
+  margin: 0.9rem 0 0;
+  font-size: 0.78rem;
+  color: var(--pnp-muted);
+  line-height: 1.55;
+}
+
 /* ── Breakpoints ─────────────────────────────────────────────────────────── */
 @media (min-width: 720px) {
   .pnp-inner,

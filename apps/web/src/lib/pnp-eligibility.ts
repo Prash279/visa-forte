@@ -81,6 +81,7 @@ export interface NocCandidate {
   title: string
   rationale: string   // one sentence tying the code to the applicant's specific duties
   matchScore: number  // lexical-retrieval relevance (higher = stronger duty overlap)
+  fitScore: number    // 0–100 semantic fit of the duties to this code's scope (model judgement)
 }
 
 // One classified occupation, produced by /api/admin/pnp-noc (Claude) or entered manually.
@@ -110,9 +111,15 @@ export type EligibilityCheckStatus = 'met' | 'conditional' | 'unmet'
 // One profile-checkable eligibility criterion for a stream: what the stream requires,
 // what the applicant brings, and whether it is satisfied. 'conditional' = a province-
 // specific item (job offer, ECA still to obtain) that is securable, not a hard failure.
+// 'threshold' = a graded minimum the report introduces with "requires …" (e.g. CLB 7+).
+// 'binary' = a yes/no gate whose requirement word stands alone (e.g. ECA "Required") —
+// rendering it with the "requires" prefix would read as "requires Required".
+export type RequirementKind = 'threshold' | 'binary'
+
 export interface EligibilityCheck {
   label: string
   requirement: string
+  requirementKind: RequirementKind
   applicant: string
   status: EligibilityCheckStatus
 }
@@ -298,6 +305,7 @@ function evaluateStream(
     eligibilityChecks.push({
       label: 'Occupation level (TEER)',
       requirement: `TEER ${c.allowedTeers.join(', ')}`,
+      requirementKind: 'threshold',
       applicant: `TEER ${noc.teer}`,
       status: c.allowedTeers.includes(noc.teer) ? 'met' : 'unmet',
     })
@@ -306,6 +314,7 @@ function evaluateStream(
     eligibilityChecks.push({
       label: 'Language (CLB)',
       requirement: `CLB ${c.minClbOverall}+ each ability`,
+      requirementKind: 'threshold',
       applicant: `CLB ${clb}`,
       status: clb >= c.minClbOverall ? 'met' : 'unmet',
     })
@@ -314,6 +323,7 @@ function evaluateStream(
     eligibilityChecks.push({
       label: 'Education',
       requirement: `${EDUCATION_LABEL[c.minEducation]} or higher`,
+      requirementKind: 'threshold',
       applicant: EDUCATION_LABEL[profile.education],
       status: meetsEducation(profile.education, c.minEducation) ? 'met' : 'unmet',
     })
@@ -322,6 +332,7 @@ function evaluateStream(
     eligibilityChecks.push({
       label: 'Work experience',
       requirement: `${c.minTotalWorkExperienceYears}+ yr`,
+      requirementKind: 'threshold',
       applicant: `${totalExp} yr`,
       status: totalExp >= c.minTotalWorkExperienceYears ? 'met' : 'unmet',
     })
@@ -335,6 +346,7 @@ function evaluateStream(
     eligibilityChecks.push({
       label: 'Age',
       requirement: req,
+      requirementKind: 'threshold',
       applicant: `${profile.age} yr`,
       status: ageOk ? 'met' : 'unmet',
     })
@@ -343,6 +355,7 @@ function evaluateStream(
     eligibilityChecks.push({
       label: 'Settlement funds',
       requirement: `CAD $${c.minSettlementFundsCad.toLocaleString()}`,
+      requirementKind: 'threshold',
       applicant: `CAD $${profile.settlementFunds.toLocaleString()}`,
       status: profile.settlementFunds >= c.minSettlementFundsCad ? 'met' : 'unmet',
     })
@@ -351,6 +364,7 @@ function evaluateStream(
     eligibilityChecks.push({
       label: 'Credential assessment (ECA)',
       requirement: 'Required',
+      requirementKind: 'binary',
       applicant: profile.hasEca ? 'On file' : 'Not yet obtained',
       status: profile.hasEca ? 'met' : 'conditional',
     })
@@ -360,6 +374,7 @@ function evaluateStream(
     eligibilityChecks.push({
       label: 'In-province job offer',
       requirement: 'Required',
+      requirementKind: 'binary',
       applicant: noOffer ? 'None on file' : 'On file',
       status: noOffer ? 'conditional' : 'met',
     })

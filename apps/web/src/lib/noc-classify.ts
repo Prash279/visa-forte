@@ -13,32 +13,41 @@ import { type NocCandidate } from './pnp-eligibility'
 export const RETRIEVE_TOP_K = 30
 export const RANKED_RETURNED = 3
 
+// A runner-up is only shown as a "considered match" when it is genuinely competitive:
+// its own fit must clear an absolute floor AND sit within a margin of the leader's fit.
+// Otherwise the leader stands alone — which is the correct signal, not manufactured doubt.
+export const ALT_MIN_FIT_SCORE = 55
+export const ALT_MAX_FIT_GAP = 20
+
 export const NOC_CLASSIFIER_SYSTEM = `You are an expert Canadian NOC 2021 (TEER) occupational classifier for immigration documentation. A wrong NOC code is the single highest-frequency PR refusal trigger — accuracy is paramount.
 
 You are given an applicant's DUTIES and a SHORTLIST of candidate NOC 2021 unit groups, each with its official Statistics Canada lead statement, example job titles and main duties.
 
-Your task: choose the THREE best-fitting unit groups FROM THE SHORTLIST ONLY, ranked best first.
+Your task: choose the best-fitting unit group(s) FROM THE SHORTLIST ONLY, ranked best first, and score how well each fits.
 
 Classification methodology — follow this order strictly:
-1. Read each applicant duty as a concrete task. For each task, identify which candidate's MAIN DUTIES it maps to most precisely — match verbs, tools, processes, scope of work, and level of responsibility.
-2. Count how many of the applicant's concrete tasks appear verbatim or near-verbatim in each candidate's MAIN DUTIES list. The candidate with the most duty-to-duty matches ranks #1.
-3. NEVER rank by job title similarity. Titles are unreliable and often misleading. Classification is determined solely by duty overlap with the official MAIN DUTIES.
-4. If two candidates tie on duty matches, prefer the one whose LEAD STATEMENT most accurately describes the same scope of responsibility (e.g. "plan, organize and supervise" vs "operate equipment" are different levels).
-5. Consider TEER level: TEER 0 = senior management/executive, TEER 1 = professional (degree-level), TEER 2 = technical (diploma/apprenticeship), TEER 3 = intermediate (6 months training), TEER 4 = labour (short training). Match the applicant's actual responsibilities to the correct TEER.
+1. From the applicant's duties, state their PRIMARY occupational function — the core work that defines the role — and separate it from incidental or secondary tasks.
+2. For each candidate, judge whether its official SCOPE (lead statement + main duties) CONTAINS that primary function and the bulk of the secondary tasks. Classification is about scope of work and level of responsibility — not shared wording.
+3. CRITICAL — paraphrase rule: an applicant's duties are real-world descriptions written by a consultant. They will NEVER match the Statistics Canada wording verbatim, and they are NOT supposed to. The absence of verbatim or word-for-word overlap is completely normal and must NEVER lower your confidence or your fitScore. Judge meaning and scope, never vocabulary.
+4. NEVER rank by job title similarity. Titles are unreliable and often misleading.
+5. Determine the correct TEER from the work actually performed and its level of responsibility: TEER 0 = senior management/executive, TEER 1 = professional (degree-level), TEER 2 = technical (diploma/apprenticeship), TEER 3 = intermediate (months of training), TEER 4 = labour (short training).
 
-For each chosen code provide ONE sentence of rationale that cites the SPECIFIC applicant duties that matched the code's official main duties.
-Output the 5-digit code and rationale ONLY. Do NOT output TEER or title — the system supplies the authoritative values.
-Choose only from the numbered candidates provided. Never output a NOC code that is not in the shortlist.
+For each chosen code, assign:
+- fitScore: an integer 0–100 for how fully that code's official scope contains the applicant's primary function and main tasks. 100 = the code's scope is a complete, unambiguous home for these duties; ~50 = partial or generic overlap; below 40 = only loosely related. Score on semantic scope, NEVER on shared words.
+- rationale: ONE sentence citing the SPECIFIC applicant duties that fall within that code's scope.
 
-Confidence rules:
-- "high": the top-ranked code has substantially more duty matches than all alternatives, and the TEER level is unambiguous
-- "medium": the top code has a modest lead, or TEER level requires judgement
-- "low": duties are sparse, generic, or describe work in more than one TEER category
+Return between 1 and 3 codes. Include a second or third code ONLY if it is a genuine alternative — do NOT pad the list with loosely-related codes to reach three. A single, clearly-correct code with no real rival is the ideal result.
+Output the 5-digit code, fitScore and rationale ONLY. Do NOT output TEER or title — the system supplies the authoritative values. Choose only from the numbered candidates provided; never output a code that is not in the shortlist.
 
-Set ambiguityFlag = true if your top two choices are genuinely close OR describe materially different kinds of work (e.g. a TEER 1 specialist vs a TEER 2 technician).
+Confidence rules — judge the TOP code by scope fit, never by counting matching words:
+- "high": the applicant's primary function falls cleanly and wholly inside one code's scope, the TEER is unambiguous, and no other candidate is a close rival.
+- "medium": the scope fit is good but some duties sit outside it, OR the TEER needs judgement, OR one other candidate is a plausible rival.
+- "low": the duties are genuinely generic, span more than one TEER, or fit two or more codes' scopes roughly equally.
+
+Set ambiguityFlag = true only if your top two choices are genuine rivals (close fitScores) OR describe materially different kinds of work at different TEER levels.
 
 Return ONLY a valid JSON object, no markdown fences and no commentary, in exactly this shape:
-{"ranked":[{"nocCode":"#####","rationale":"..."},{"nocCode":"#####","rationale":"..."},{"nocCode":"#####","rationale":"..."}],"confidence":"high","ambiguityFlag":false}`
+{"ranked":[{"nocCode":"#####","fitScore":0,"rationale":"..."}],"confidence":"high","ambiguityFlag":false}`
 
 // Build the grounding block: the real StatCan lead statement, example titles and main
 // duties for each shortlisted unit group. Claude ranks against THIS, not memory.
@@ -60,7 +69,11 @@ ${duties}`
 // The model returns codes + reasoning only — never TEER/title, which we join ourselves.
 const rawSchema = z.object({
   ranked: z
-    .array(z.object({ nocCode: z.string(), rationale: z.string().min(1) }))
+    .array(z.object({
+      nocCode: z.string(),
+      rationale: z.string().min(1),
+      fitScore: z.number().min(0).max(100),  // 0–100 semantic fit of the duties to this code's scope
+    }))
     .min(1),
   confidence: z.enum(['high', 'medium', 'low']),
   ambiguityFlag: z.boolean(),
@@ -126,7 +139,7 @@ export function groundClassification(
 ): GroundedClassification | null {
   const scoreByCode = new Map(hits.map((h) => [h.group.code, h.score]))
   const seen = new Set<string>()
-  const candidates: NocCandidate[] = []
+  const valid: NocCandidate[] = []
 
   for (const r of raw.ranked) {
     const group = getGroupByCode(r.nocCode)
@@ -134,18 +147,27 @@ export function groundClassification(
     if (!scoreByCode.has(r.nocCode)) continue   // not in the shortlist we supplied
     if (seen.has(r.nocCode)) continue           // de-dupe
     seen.add(r.nocCode)
-    candidates.push({
+    valid.push({
       nocCode: group.code,
       teer: group.teer,                         // authoritative — never from the model
       title: group.title,
       rationale: r.rationale,
       matchScore: Math.round(scoreByCode.get(r.nocCode) ?? 0),
+      fitScore: Math.round(r.fitScore),
     })
-    if (candidates.length >= RANKED_RETURNED) break
+    if (valid.length >= RANKED_RETURNED) break
   }
 
-  if (candidates.length === 0) return null
-  const winner = candidates[0]!
+  if (valid.length === 0) return null
+
+  // The leader always stands; a runner-up is shown only when it is genuinely competitive.
+  const winner = valid[0]!
+  const candidates = [
+    winner,
+    ...valid.slice(1).filter(
+      (c) => c.fitScore >= ALT_MIN_FIT_SCORE && winner.fitScore - c.fitScore <= ALT_MAX_FIT_GAP
+    ),
+  ]
   const teerSpread = new Set(candidates.map((c) => c.teer)).size > 1
 
   return {
@@ -155,7 +177,7 @@ export function groundClassification(
     confidence: raw.confidence,
     candidates,
     ambiguity: {
-      flag: raw.ambiguityFlag || teerSpread,
+      flag: candidates.length > 1 && (raw.ambiguityFlag || teerSpread),
       alternatives: candidates
         .slice(1)
         .map((c) => ({ nocCode: c.nocCode, teer: c.teer, title: c.title })),

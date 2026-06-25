@@ -17,6 +17,40 @@ Before starting any task with more than 1 step:
 
 ---
 
+## Active Session (2026-06-25): PNP Assessment — four engine corrections (Rashmi Anupozu report review)
+
+Prash reviewed the generated PNP report and raised four issues. Fixing each one at a time, TDD.
+
+- [x] **3a — "requires Required" cosmetic.** The eligibility breakdown renders `requires {requirement}` for every row; binary gates (ECA, job offer) carry the requirement word `Required`, producing "requires Required". Fix: tag each eligibility check as `threshold` vs `binary`; the report shows the "requires" prefix only for threshold rows, and binary rows show the requirement word on its own.
+- [x] **2 — Weak ranked matches #2/#3.** The classifier is forced to return three codes with no relevance floor, so unrelated codes (31301, 22110) appear as "close matches". Fix: the model returns a 0–100 semantic fit score per candidate; `groundClassification` shows a runner-up only if it clears an absolute floor AND is within a margin of the leader. When none qualify, the report shows a single clean match (which also lifts confidence).
+- [x] **1 — Unfair "low confidence".** The classifier prompt counts verbatim/near-verbatim duty matches, which punishes well-written, paraphrased real duties. Fix: reframe the rubric to judge confidence on semantic scope containment + TEER clarity + margin to runner-up, with an explicit directive that verbatim overlap is neither expected nor required.
+- [x] **3b — Province points grid (SINP pilot).** No province-specific points calculator exists. Build a verified SINP 110-point grid scorer (Factor I labour-market success + Factor II SK connection, pass mark 60) from the official saskatchewan.ca grid, computing factors derivable from the existing profile and transparently marking uncaptured factors (second-language band, SK connection) as "to confirm". Source folder: `D:\1. Projects\…\Knowledge Base\SINP`. Point values verified live against saskatchewan.ca this session.
+
+**Prashant Proof (whole session):** Go to /admin/canvisa-pro, run a PNP assessment for a Master's-degree health-policy profile, and confirm: (1) no "requires Required" text anywhere, (2) only genuinely-close codes appear under "Ranked matches considered", (3) the Saskatchewan card shows a SINP points total out of 110 with the 60-point pass mark.
+
+**Review (2026-06-25):**
+All four issues complete; full suite 261/261 green, `tsc --noEmit` clean.
+- 3a/2/1 carried in from the prior session (verified still green this session).
+- 3b — New `apps/web/src/lib/sinp-points.ts` scores the SINP International Skilled
+  Worker grid. Point values were read directly from the official saskatchewan.ca
+  "Assess Your Eligibility" page (PDF has no text layer, so it was rendered at high
+  resolution with pypdfium2 and read crop-by-crop — NOT from training data). Verified
+  grid: Education 23/20/20/15/12; Work-exp(5yr) 10/8/6/4/2; First-lang 20/18/16/14/12;
+  Second-lang 10/8/6/4/2; Age <18:0 / 18-21:8 / 22-34:12 / 35-45:10 / 46-50:8 / >50:0;
+  Factor I max 80, Factor II max 30, total 110, pass mark 60.
+  Only Factor I is derivable from the profile; Factor II (SK connection) and a missing
+  second-language test render as "to confirm", never silently zero. New `SinpCard` in
+  `PnpReport.tsx` shows total/110, the 60-point pass-mark marker, per-factor counted vs
+  to-confirm breakdown, gated on Saskatchewan being assessed. 19 new unit tests assert
+  every grid value against the source. Also fixed two pre-existing `NocCandidate` test
+  fixtures (pnp-marp/pnp-pptx) missing the issue-2 `fitScore` field so tsc is clean.
+
+**Note:** `HANDOVER.md` is stale (CVP-5, 2026-05-29) and did NOT contain the SINP render
+steps the opening prompt referenced. SINP values were therefore re-verified from source
+rather than trusting any recalled figures.
+
+---
+
 ## Current Phase: Phase 1 — Foundation (Complete)
 
 **Architecture decision (confirmed April 2026):** Option A — single Next.js app, everything under visaforte.com.

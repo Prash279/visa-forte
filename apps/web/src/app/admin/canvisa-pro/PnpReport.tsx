@@ -9,6 +9,7 @@ import {
   type PnpStreamMatch,
   type PnpVerdict,
 } from '@/lib/pnp-eligibility'
+import { scoreSinp, type SinpScore } from '@/lib/sinp-points'
 
 interface PnpReportProps {
   profile: ApplicantProfile
@@ -70,7 +71,7 @@ function EligibilityChecks({ checks }: { checks: EligibilityCheck[] }): React.JS
           <span className={`pnp-elig-dot pnp-elig-dot--${c.status}`} aria-hidden="true" />
           <span className="pnp-elig-label">{c.label}</span>
           <span className={`pnp-elig-val pnp-elig-val--${c.status}`}>{c.applicant}</span>
-          <span className="pnp-elig-req">requires {c.requirement}</span>
+          <span className="pnp-elig-req">{c.requirementKind === 'binary' ? c.requirement : `requires ${c.requirement}`}</span>
         </div>
       ))}
     </div>
@@ -163,6 +164,49 @@ function ApplicationGuide({ m, nocCode }: { m: PnpStreamMatch; nocCode: string }
   )
 }
 
+// Saskatchewan SINP International Skilled Worker points estimate. Only Factor I is
+// derivable from the profile; Factor II (SK connection) and a missing second-language
+// test are surfaced as "to confirm" rather than scored zero silently.
+function SinpCard({ sinp }: { sinp: SinpScore }): React.JSX.Element {
+  const pct = Math.round((sinp.computedPoints / sinp.maxPoints) * 100)
+  const markPct = Math.round((sinp.passMark / sinp.maxPoints) * 100)
+  return (
+    <div className="pnp-sinp">
+      <div className="pnp-sinp-top">
+        <div>
+          <div className="pnp-sinp-total">{sinp.computedPoints}<span className="pnp-sinp-max">/{sinp.maxPoints}</span></div>
+          <div className="pnp-sinp-sub">Estimated SINP points — Factor I (Labour Market Success) computed from this profile</div>
+        </div>
+        <div className={`pnp-sinp-verdict pnp-sinp-verdict--${sinp.meetsPassMark ? 'pass' : 'below'}`}>
+          {sinp.meetsPassMark
+            ? `Clears the ${sinp.passMark}-point pass mark`
+            : `Below the ${sinp.passMark}-point pass mark`}
+        </div>
+      </div>
+      <div className="pnp-sinp-track">
+        <div className="pnp-sinp-fill" style={{ width: `${pct}%` }} />
+        <div className="pnp-sinp-mark" style={{ left: `${markPct}%` }} aria-label={`Pass mark ${sinp.passMark}`} />
+      </div>
+      <div className="pnp-sinp-rows">
+        {sinp.factors.map((f) => (
+          <div key={f.key} className="pnp-sinp-row" title={f.detail}>
+            <span className="pnp-sinp-label">{f.label}</span>
+            <span className={`pnp-sinp-tag pnp-sinp-tag--${f.status === 'to-confirm' ? 'confirm' : 'counted'}`}>
+              {f.status === 'to-confirm' ? 'to confirm' : 'counted'}
+            </span>
+            <span className="pnp-sinp-pts">{f.points}<span className="pnp-sinp-pts-max">/{f.maxPoints}</span></span>
+          </div>
+        ))}
+      </div>
+      {sinp.hasUnconfirmedFactors && (
+        <p className="pnp-sinp-note">
+          Items marked &ldquo;to confirm&rdquo; are not held in this profile — chiefly the Saskatchewan connection (Factor II) and any second official-language test. Confirming them can only raise the total. The SINP minimum eligibility score is {sinp.passMark} of {sinp.maxPoints}.
+        </p>
+      )}
+    </div>
+  )
+}
+
 export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpReportProps): React.JSX.Element {
   const { noc } = pnp
   // Only streams the applicant can realistically pursue: passes the hard gates AND is
@@ -172,6 +216,9 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
   const fieldExcluded = allPassing.length - eligible.length
   const topEe = pnp.eeLinked[0]
   const insights = buildPnpInsights(pnp)
+  // Saskatchewan-specific points estimate (pilot). Shown only when SINP is assessed.
+  const sinp = scoreSinp(profile)
+  const showSinp = pnp.sourceLog.some((s) => s.province === 'Saskatchewan')
 
   return (
     <div className="pnp">
@@ -296,6 +343,14 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
             <div className="pnp-empty">No stream currently matches this profile. Improving language scores or securing an in-province job offer typically opens these pathways.</div>
           )}
         </section>
+
+        {/* Saskatchewan SINP points estimate (pilot) */}
+        {showSinp && (
+          <section className="pnp-section">
+            <SectionHead eyebrow="Saskatchewan · SINP" title="SINP points estimate" hint={`pass mark ${sinp.passMark}/${sinp.maxPoints}`} />
+            <SinpCard sinp={sinp} />
+          </section>
+        )}
 
         {/* Application guides */}
         {pnp.shortlist.length > 0 && (

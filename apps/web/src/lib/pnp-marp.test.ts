@@ -39,7 +39,7 @@ const noc: NocClassification = {
   confidence: 'high',
   verified: true,
   candidates: [
-    { nocCode: '21211', teer: 1, title: 'Data scientists', rationale: 'Builds ML models.', matchScore: 100 },
+    { nocCode: '21211', teer: 1, title: 'Data scientists', rationale: 'Builds ML models.', matchScore: 100, fitScore: 92 },
   ],
   ambiguity: { flag: false, alternatives: [] },
 }

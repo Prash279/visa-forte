@@ -85,7 +85,7 @@ function mkNoc(teer: number, ambiguity = false): NocClassification {
     confidence: 'high',
     verified: true,
     candidates: [
-      { nocCode: '21211', teer, title: 'Data Scientist', rationale: 'Builds ML models.', matchScore: 100 },
+      { nocCode: '21211', teer, title: 'Data Scientist', rationale: 'Builds ML models.', matchScore: 100, fitScore: 90 },
     ],
     ambiguity: {
       flag: ambiguity,
@@ -235,6 +235,15 @@ describe('assessPnp — eligibility breakdown', () => {
     const checks = assessPnp(noEca, mkNoc(1), streams).eeLinked[0]!.eligibilityChecks
     expect(checks.find(c => c.label === 'Credential assessment (ECA)')?.status).toBe('conditional')
   })
+
+  it('tags threshold criteria as threshold and yes/no gates as binary (so the report never prints "requires Required")', () => {
+    const streams = [mkStream({ id: 'k', category: 'base', criteria: { ecaRequired: true, jobOfferRequired: 'required' } })]
+    const checks = assessPnp(strongProfile, mkNoc(1), streams).base[0]!.eligibilityChecks
+    expect(checks.find(c => c.label === 'Language (CLB)')?.requirementKind).toBe('threshold')
+    expect(checks.find(c => c.label === 'Occupation level (TEER)')?.requirementKind).toBe('threshold')
+    expect(checks.find(c => c.label === 'Credential assessment (ECA)')?.requirementKind).toBe('binary')
+    expect(checks.find(c => c.label === 'In-province job offer')?.requirementKind).toBe('binary')
+  })
 })
 
 // ── NOC-targeted shortlist (over the REAL curated data) ──────────────────────
@@ -248,7 +257,7 @@ describe('assessPnp — NOC-targeted shortlist', () => {
     confidence: 'high',
     verified: true,
     candidates: [
-      { nocCode: '41404', teer: 1, title: 'Health policy researchers', rationale: 'health policy + databases', matchScore: 134 },
+      { nocCode: '41404', teer: 1, title: 'Health policy researchers', rationale: 'health policy + databases', matchScore: 134, fitScore: 92 },
     ],
     ambiguity: { flag: false, alternatives: [] },
   }

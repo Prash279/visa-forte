@@ -183,6 +183,11 @@ If the lesson contains words like "useEffect", "state mismatch", "hydration erro
 - **Why it happened:** The plan generator writes files to `docs/superpowers/plans/` but does not include a step to commit them. Every per-task commit in the plan used `git add src/...` paths, so the plan file itself was never staged.
 - **The rule going forward:** Immediately after any plan or spec document is written to `docs/superpowers/`, commit it before writing a single line of implementation code. `git add docs/superpowers/` then commit with `docs: add <feature-name> plan`. This is Task 0 — it happens before the plan's own Task 1.
 
+**Lesson 2 — A handover file must be date-checked before it is trusted, and rewritten whenever a session ends**
+- **What went wrong:** A fresh session was told by its opening prompt to "read HANDOVER.md" to resume a half-finished task, but HANDOVER.md was three weeks old and described a completely different, already-finished task (CVP-5). The file meant to brief the session actively mis-briefed it, and it promised resume steps that were not in the file at all.
+- **Why it happened:** The previous session wrote a new opening prompt for the new task but never rewrote HANDOVER.md to match, so the opening prompt and the handover file drifted apart — and nothing in the file warned a reader that it was out of date.
+- **The rule going forward:** Every HANDOVER.md carries the date it was written. At the start of any session, compare that date to today; if it does not match the current session, treat the whole file as history — re-verify every fact from source and never act on its "next steps". A session that ends with a handoff must rewrite HANDOVER.md in the same breath as producing the opening prompt, and the opening prompt may only reference steps that actually appear in the file it just wrote.
+
 ---
 
 *lessons.md is a living document. Every correction is a lesson. Every lesson is a rule.*
