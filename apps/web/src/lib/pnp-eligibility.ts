@@ -11,6 +11,7 @@
 
 import { scoresToClb, type ApplicantProfile, type EducationLevel } from './crs-calculator'
 import { streamRelevance, type StreamRelevance } from './noc-focus'
+import { classifySinpPathway } from './sinp-pathway'
 import pnpData from './pnp-streams.json'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -39,6 +40,9 @@ export interface PnpCriteria {
   provincialConnectionRequired: boolean  // study / work / family / prior ties
   eoiRegistrationRequired: boolean       // must register an EOI and be invited
   occupationListRestricted: boolean      // NOC must be on a stream-specific list
+  // Set only on the SINP Express Entry / Occupations In-Demand streams: those two
+  // sub-categories hard-exclude NOCs on the published Excluded Occupation List.
+  sinpPointsSubcategory?: boolean
   // Free-text requirements the generic gates can't express (e.g. French at NCLC 7,
   // a degree from a named province, an EE profile). Each becomes a conditional
   // requirement so the engine never reports "confirmed" on something it can't verify.
@@ -243,6 +247,13 @@ function evaluateStream(
     unmetHardGates.push(`Occupation TEER ${noc.teer} is outside this stream's accepted TEER levels (${c.allowedTeers.join(', ')}).`)
   } else if (c.allowedTeers !== null) {
     reasons.push(`Occupation TEER ${noc.teer} is accepted.`)
+  }
+
+  // The SINP EE / Occupations In-Demand sub-categories hard-exclude NOCs on the
+  // published Excluded Occupation List (TEER 4/5 is already caught by allowedTeers).
+  // Other SINP routes (Employment Offer, SK Experience, Tech) are not affected.
+  if (c.sinpPointsSubcategory && classifySinpPathway(noc.nocCode, noc.teer).status === 'excluded-occupation') {
+    unmetHardGates.push(`NOC ${noc.nocCode} is on the SINP Excluded Occupation List — not eligible for this points-based sub-category. The employer-driven Employer Position Assessment (EPA) route may still apply.`)
   }
 
   if (c.minClbOverall !== null) {

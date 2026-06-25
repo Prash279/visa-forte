@@ -4,6 +4,8 @@ import {
   type PnpStream,
   type PnpCriteria,
   type NocClassification,
+  type PnpAssessmentResult,
+  type PnpVerdict,
 } from './pnp-eligibility'
 import { type ApplicantProfile } from './crs-calculator'
 import pnpData from './pnp-streams.json'
@@ -316,5 +318,38 @@ describe('pnp-streams.json — provenance & schema guard', () => {
   it('stream ids are unique', () => {
     const ids = streams.map(s => s.id)
     expect(new Set(ids).size).toBe(ids.length)
+  })
+})
+
+// ── SINP Excluded Occupation List gate ───────────────────────────────────────
+// The SINP Express Entry / Occupations In-Demand sub-categories hard-exclude NOCs on
+// the published Excluded Occupation List (verified in sinp-2026.json). Other streams
+// must be unaffected. NOC 73300 (Transport truck drivers, TEER 3) is on that list.
+describe('assessPnp — SINP Excluded Occupation List gate', () => {
+  function excludedNoc(): NocClassification {
+    return { ...mkNoc(3), nocCode: '73300', title: 'Transport truck drivers' }
+  }
+  function verdictFor(r: PnpAssessmentResult, id: string): PnpVerdict | undefined {
+    return [...r.eeLinked, ...r.base, ...r.ineligible].find(m => m.stream.id === id)?.verdict
+  }
+
+  it('marks a flagged SINP points stream ineligible for an excluded NOC', () => {
+    const stream = mkStream({ id: 'sk-pts', criteria: { sinpPointsSubcategory: true } })
+    const r = assessPnp(strongProfile, excludedNoc(), [stream])
+    expect(verdictFor(r, 'sk-pts')).toBe('ineligible')
+    const m = r.ineligible.find(x => x.stream.id === 'sk-pts')
+    expect(m?.unmetHardGates.some(g => /Excluded Occupation List/.test(g))).toBe(true)
+  })
+
+  it('keeps a flagged stream eligible for a TEER 0-3 NOC that is not excluded', () => {
+    const stream = mkStream({ id: 'sk-pts2', criteria: { sinpPointsSubcategory: true } })
+    const r = assessPnp(strongProfile, mkNoc(1), [stream]) // 21211 — not on the list
+    expect(verdictFor(r, 'sk-pts2')).not.toBe('ineligible')
+  })
+
+  it('does not apply the exclusion to streams without the flag', () => {
+    const stream = mkStream({ id: 'sk-offer', criteria: {} })
+    const r = assessPnp(strongProfile, excludedNoc(), [stream])
+    expect(verdictFor(r, 'sk-offer')).not.toBe('ineligible')
   })
 })

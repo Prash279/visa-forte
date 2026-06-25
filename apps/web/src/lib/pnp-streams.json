@@ -554,6 +554,7 @@
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": true,
         "occupationListRestricted": true,
+        "sinpPointsSubcategory": true,
         "otherConditions": ["Maintain an active IRCC Express Entry profile.", "Score the minimum on the SINP points grid; occupation must be in an eligible (in-demand) category."]
       },
       "roadmap": [
@@ -588,6 +589,7 @@
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": true,
         "occupationListRestricted": true,
+        "sinpPointsSubcategory": true,
         "otherConditions": ["Score the minimum on the SINP points grid; occupation must be on the in-demand list at the time of application."]
       },
       "roadmap": [
