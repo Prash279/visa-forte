@@ -9,7 +9,8 @@ import {
   type PnpStreamMatch,
   type PnpVerdict,
 } from '@/lib/pnp-eligibility'
-import { scoreSinp, type SinpScore } from '@/lib/sinp-points'
+import { scoreSinp, SINP_MAX_POINTS, type SinpScore } from '@/lib/sinp-points'
+import { analyzeSinpDraws, type SinpDrawAnalysis, type SinpDrawVerdict } from '@/lib/sinp-draws'
 
 interface PnpReportProps {
   profile: ApplicantProfile
@@ -207,6 +208,80 @@ function SinpCard({ sinp }: { sinp: SinpScore }): React.JSX.Element {
   )
 }
 
+const DRAW_VERDICT_LABEL: Record<SinpDrawVerdict, string> = {
+  clears: 'Above cutoff',
+  conditional: 'Conditional',
+  'out-of-range': 'Below reach',
+}
+
+// Renders a SINP draw date (YYYY-MM-DD) as e.g. "12 Sep 2024" without pulling a date lib.
+function formatDrawDate(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  return `${d} ${months[m - 1]} ${y}`
+}
+
+// Standing against the last 5 SINP EOI draws. The applicant's true grid total is a
+// band [floor, ceiling]; each draw cutoff is judged against it — never a probability.
+function SinpDrawsCard({ analysis }: { analysis: SinpDrawAnalysis }): React.JSX.Element {
+  const floorPct = (analysis.bandFloor / SINP_MAX_POINTS) * 100
+  const ceilPct = (analysis.bandCeiling / SINP_MAX_POINTS) * 100
+  return (
+    <div className="pnp-draws">
+      <div className="pnp-draws-band">
+        <div className="pnp-draws-band-track">
+          <div
+            className="pnp-draws-band-fill"
+            style={{ left: `${floorPct}%`, width: `${ceilPct - floorPct}%` }}
+          />
+          {analysis.comparisons.map((c) => (
+            <div
+              key={`${c.date}-mark`}
+              className={`pnp-draws-band-cut pnp-draws-band-cut--${c.verdict}`}
+              style={{ left: `${(c.cutoffScore / SINP_MAX_POINTS) * 100}%` }}
+              aria-label={`Cutoff ${c.cutoffScore}`}
+            />
+          ))}
+        </div>
+        <div className="pnp-draws-band-scale">
+          <span>Floor {analysis.bandFloor}</span>
+          <span>Ceiling {analysis.bandCeiling}</span>
+        </div>
+      </div>
+
+      <div className="pnp-draws-summary">
+        <span className="pnp-draws-chip pnp-draws-chip--clears">{analysis.clears} above</span>
+        <span className="pnp-draws-chip pnp-draws-chip--conditional">{analysis.conditional} conditional</span>
+        <span className="pnp-draws-chip pnp-draws-chip--out-of-range">{analysis.outOfRange} below reach</span>
+      </div>
+
+      <div className="pnp-draws-table" role="table">
+        {analysis.comparisons.map((c) => (
+          <div className="pnp-draws-row" role="row" key={c.date}>
+            <span className="pnp-draws-date">{formatDrawDate(c.date)}</span>
+            <span className="pnp-draws-cat">{c.subCategories.join(' · ')}</span>
+            <span className="pnp-draws-cutoff"><b>{c.cutoffScore}</b> cutoff</span>
+            <span className="pnp-draws-invited"><b>{c.invitationsIssued}</b> invited</span>
+            <span className={`pnp-draws-verdict pnp-draws-verdict--${c.verdict}`}>
+              {DRAW_VERDICT_LABEL[c.verdict]}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <p className="pnp-draws-note">{analysis.programStatus}</p>
+      <p className="pnp-draws-note">
+        &ldquo;Standing&rdquo; compares this profile&rsquo;s band against historical cutoffs only. It is
+        not a prediction, probability, or guarantee of an invitation; SINP draw activity is intermittent and
+        cutoffs change without notice.
+      </p>
+      <p className="pnp-draws-source">
+        Draw data: saskatchewan.ca EOI Selection Results · last updated {formatDrawDate(analysis.lastUpdated)}
+      </p>
+    </div>
+  )
+}
+
 export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpReportProps): React.JSX.Element {
   const { noc } = pnp
   // Only streams the applicant can realistically pursue: passes the hard gates AND is
@@ -218,6 +293,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
   const insights = buildPnpInsights(pnp)
   // Saskatchewan-specific points estimate (pilot). Shown only when SINP is assessed.
   const sinp = scoreSinp(profile)
+  const sinpDraws = analyzeSinpDraws(sinp)
   const showSinp = pnp.sourceLog.some((s) => s.province === 'Saskatchewan')
 
   return (
@@ -349,6 +425,12 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
           <section className="pnp-section">
             <SectionHead eyebrow="Saskatchewan · SINP" title="SINP points estimate" hint={`pass mark ${sinp.passMark}/${sinp.maxPoints}`} />
             <SinpCard sinp={sinp} />
+            {sinpDraws.comparisons.length > 0 && (
+              <>
+                <SectionHead eyebrow="Saskatchewan · SINP" title="Standing vs last 5 draws" hint={`scale /${SINP_MAX_POINTS}`} />
+                <SinpDrawsCard analysis={sinpDraws} />
+              </>
+            )}
           </section>
         )}
 

@@ -12,6 +12,8 @@ import {
   type PnpStreamMatch,
   type PnpVerdict,
 } from './pnp-eligibility'
+import { scoreSinp } from './sinp-points'
+import { analyzeSinpDraws, type SinpDrawVerdict } from './sinp-draws'
 
 // Brand palette (hex without '#', as pptxgenjs expects).
 const PRUSSIAN = '0C2340'
@@ -242,6 +244,58 @@ function insightsSlide(pptx: Pptx, profile: ApplicantProfile, pnp: PnpAssessment
   footer(s, profile, pnp)
 }
 
+const DRAW_VERDICT_COLOR: Record<SinpDrawVerdict, string> = {
+  clears: GREEN,
+  conditional: AMBER,
+  'out-of-range': RED,
+}
+const DRAW_VERDICT_LABEL: Record<SinpDrawVerdict, string> = {
+  clears: 'ABOVE CUTOFF',
+  conditional: 'CONDITIONAL',
+  'out-of-range': 'BELOW REACH',
+}
+
+// Saskatchewan-only slide: the SINP points band against the last 5 EOI draw cutoffs.
+// Returns early when there is no draw data so the deck simply omits the slide.
+function sinpDrawsSlide(pptx: Pptx, profile: ApplicantProfile, pnp: PnpAssessmentResult): void {
+  const sinp = scoreSinp(profile)
+  const analysis = analyzeSinpDraws(sinp)
+  if (analysis.comparisons.length === 0) return
+
+  const s = pptx.addSlide()
+  s.background = { color: PEARL }
+  sectionHeader(pptx, s, 'Saskatchewan · SINP', 'Standing vs last 5 draws')
+
+  s.addText(
+    `Estimated band: floor ${analysis.bandFloor} – ceiling ${analysis.bandCeiling} of ${sinp.maxPoints} (pass mark ${analysis.passMark}). ` +
+      `${analysis.clears} above · ${analysis.conditional} conditional · ${analysis.outOfRange} below reach.`,
+    { x: 0.8, y: 1.5, w: W - 1.6, h: 0.35, fontFace: SANS, fontSize: 12, color: INK }
+  )
+
+  const header = ['Draw date', 'Sub-category', 'Cutoff', 'Invited', 'Standing'].map((h) => ({
+    text: h, options: { fill: { color: PRUSSIAN }, color: PEARL, bold: true, fontSize: 10, valign: 'middle' },
+  }))
+  const rows = analysis.comparisons.map((c) => ([
+    { text: c.date, options: { color: INK, valign: 'middle' } },
+    { text: c.subCategories.join(' · '), options: { color: INK, valign: 'middle' } },
+    { text: String(c.cutoffScore), options: { color: SAFFRON, bold: true, align: 'center', valign: 'middle' } },
+    { text: String(c.invitationsIssued), options: { color: MUTED, align: 'center', valign: 'middle' } },
+    { text: DRAW_VERDICT_LABEL[c.verdict], options: { color: DRAW_VERDICT_COLOR[c.verdict], bold: true, valign: 'middle' } },
+  ]))
+  s.addTable([header, ...rows], {
+    x: 0.8, y: 2.0, w: W - 1.6, colW: [1.8, 4.5, 1.3, 1.3, 2.8],
+    fontFace: SANS, fontSize: 11, valign: 'middle',
+    border: { type: 'solid', color: SAND, pt: 1 }, rowH: 0.5, autoPage: false,
+  })
+
+  s.addText(
+    `${analysis.programStatus} Standing compares this profile's band against historical cutoffs only — not a prediction, probability, or guarantee of an invitation. ` +
+      `Draw data: saskatchewan.ca EOI Selection Results · last updated ${analysis.lastUpdated}.`,
+    { x: 0.8, y: 6.35, w: W - 1.6, h: 0.6, fontFace: SANS, fontSize: 10, color: MUTED, italic: true, lineSpacingMultiple: 1.2 }
+  )
+  footer(s, profile, pnp)
+}
+
 function disclaimerSlide(pptx: Pptx, profile: ApplicantProfile, pnp: PnpAssessmentResult): void {
   const s = pptx.addSlide()
   s.background = { color: PRUSSIAN }
@@ -273,6 +327,9 @@ export async function buildPnpPptxBlob(profile: ApplicantProfile, pnp: PnpAssess
   pathwaysSlide(pptx, profile, pnp)
   matrixSlide(pptx, profile, pnp)
   insightsSlide(pptx, profile, pnp)
+  if (pnp.sourceLog.some((entry) => entry.province === 'Saskatchewan')) {
+    sinpDrawsSlide(pptx, profile, pnp)
+  }
   disclaimerSlide(pptx, profile, pnp)
 
   return pptx.write({ outputType: 'blob' })

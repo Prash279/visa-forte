@@ -1006,6 +1006,127 @@
   line-height: 1.55;
 }
 
+/* ── SINP: standing vs last 5 draws (honest band) ────────────────────────── */
+.pnp-draws {
+  margin-top: 0.9rem;
+  background: var(--pnp-navy);
+  border: 1px solid var(--pnp-border);
+  border-radius: 8px;
+  padding: 1.1rem 1.2rem;
+}
+
+/* The applicant's [floor, ceiling] band on the 0–110 grid, with each draw cutoff
+   marked and coloured by its verdict. */
+.pnp-draws-band-track {
+  position: relative;
+  height: 10px;
+  background: var(--pnp-card);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.pnp-draws-band-fill {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: rgba(91, 186, 212, 0.28);
+  border-left: 2px solid var(--pnp-teal);
+  border-right: 2px solid var(--pnp-teal);
+}
+
+.pnp-draws-band-cut {
+  position: absolute;
+  top: -2px;
+  width: 2px;
+  height: 14px;
+  transform: translateX(-1px);
+}
+
+.pnp-draws-band-cut--clears { background: var(--pnp-teal); }
+.pnp-draws-band-cut--conditional { background: var(--pnp-amber); }
+.pnp-draws-band-cut--out-of-range { background: var(--pnp-red); }
+
+.pnp-draws-band-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--pnp-muted);
+}
+
+.pnp-draws-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.9rem 0;
+}
+
+.pnp-draws-chip {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+}
+
+.pnp-draws-chip--clears { color: var(--pnp-body); background: var(--pnp-teal); }
+.pnp-draws-chip--conditional { color: var(--pnp-amber); background: rgba(253, 224, 71, 0.12); }
+.pnp-draws-chip--out-of-range { color: var(--pnp-red); background: rgba(252, 165, 165, 0.12); }
+
+.pnp-draws-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Mobile-first: each draw stacks as a self-labelling card. */
+.pnp-draws-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "date    verdict"
+    "cat     cat"
+    "cutoff  invited";
+  gap: 0.3rem 0.6rem;
+  align-items: center;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.pnp-draws-date { grid-area: date; font-size: 0.82rem; font-weight: 700; color: var(--pnp-text); }
+.pnp-draws-cat { grid-area: cat; font-size: 0.76rem; color: var(--pnp-muted); }
+.pnp-draws-cutoff { grid-area: cutoff; font-size: 0.78rem; color: var(--pnp-muted); }
+.pnp-draws-invited { grid-area: invited; font-size: 0.78rem; color: var(--pnp-muted); }
+.pnp-draws-cutoff b, .pnp-draws-invited b { color: var(--pnp-text); }
+
+.pnp-draws-verdict {
+  grid-area: verdict;
+  justify-self: end;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.pnp-draws-verdict--clears { color: var(--pnp-body); background: var(--pnp-teal); }
+.pnp-draws-verdict--conditional { color: var(--pnp-amber); background: rgba(253, 224, 71, 0.12); }
+.pnp-draws-verdict--out-of-range { color: var(--pnp-red); background: rgba(252, 165, 165, 0.12); }
+
+.pnp-draws-note {
+  margin: 0.9rem 0 0;
+  font-size: 0.78rem;
+  color: var(--pnp-muted);
+  line-height: 1.55;
+}
+
+.pnp-draws-source {
+  margin: 0.6rem 0 0;
+  font-size: 0.72rem;
+  color: var(--pnp-muted);
+}
+
 /* ── Breakpoints ─────────────────────────────────────────────────────────── */
 @media (min-width: 720px) {
   .pnp-inner,
@@ -1016,6 +1137,15 @@
   .pnp-cards { grid-template-columns: 1fr 1fr; }
   .pnp-cards--single { grid-template-columns: 1fr; }
   .pnp-insights { grid-template-columns: 1fr 1fr; }
+
+  /* Draws collapse from stacked cards to one tabular row each. */
+  .pnp-draws-row {
+    grid-template-columns: 7.5rem 1fr auto auto 8rem;
+    grid-template-areas: "date cat cutoff invited verdict";
+    gap: 0.6rem 1rem;
+    padding: 0.5rem 0;
+  }
+  .pnp-draws-cutoff, .pnp-draws-invited { text-align: right; white-space: nowrap; }
 }
 
 @media (min-width: 1024px) {

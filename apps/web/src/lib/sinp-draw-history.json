@@ -1,0 +1,23 @@
+{
+  "source": "saskatchewan.ca — SINP International Skilled Workers: Expression of Interest (EOI) Selection Results",
+  "sourceUrl": "https://publications.saskatchewan.ca/#/products/102708",
+  "documentUrl": "https://publications.saskatchewan.ca/api/v1/products/102708/formats/113850/download",
+  "documentTitle": "ISW EOI Selection Results (September 12 2024).pdf",
+  "lastUpdated": "2024-09-12",
+  "programStatus": "Regular SINP EOI draws have been paused since the September 12, 2024 selection, following the federal 2025–2027 Immigration Levels Plan. No further EOI draws have been published as of the lastUpdated date. These five draws are the most recent on record; treat them as historical reference, not a live cutoff.",
+  "scoreScale": 110,
+  "passMark": 60,
+  "note": "Every cutoffScore and invitationsIssued value transcribed directly from the saskatchewan.ca EOI Selection Results PDF (productFormatId 113850), cross-checked against the source on 2026-06-26. cutoffScore is the 'Score of Lowest Ranked Candidate to Apply' on the 110-point SINP points grid. Each selection date invited candidates under two sub-categories (Express Entry, Occupations In-Demand); the lowest-ranked score was identical across both sub-categories on every date.",
+  "draws": [
+    { "date": "2024-09-12", "subCategory": "Express Entry", "cutoffScore": 88, "invitationsIssued": 57 },
+    { "date": "2024-09-12", "subCategory": "Occupations In-Demand", "cutoffScore": 88, "invitationsIssued": 32 },
+    { "date": "2024-06-13", "subCategory": "Express Entry", "cutoffScore": 88, "invitationsIssued": 88 },
+    { "date": "2024-06-13", "subCategory": "Occupations In-Demand", "cutoffScore": 88, "invitationsIssued": 32 },
+    { "date": "2024-03-07", "subCategory": "Express Entry", "cutoffScore": 89, "invitationsIssued": 21 },
+    { "date": "2024-03-07", "subCategory": "Occupations In-Demand", "cutoffScore": 89, "invitationsIssued": 14 },
+    { "date": "2023-12-27", "subCategory": "Express Entry", "cutoffScore": 69, "invitationsIssued": 15 },
+    { "date": "2023-12-27", "subCategory": "Occupations In-Demand", "cutoffScore": 69, "invitationsIssued": 48 },
+    { "date": "2023-10-23", "subCategory": "Express Entry", "cutoffScore": 84, "invitationsIssued": 59 },
+    { "date": "2023-10-23", "subCategory": "Occupations In-Demand", "cutoffScore": 84, "invitationsIssued": 40 }
+  ]
+}
