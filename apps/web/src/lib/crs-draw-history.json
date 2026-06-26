@@ -1,8 +1,14 @@
 {
   "source": "canada.ca",
   "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/submit-profile/rounds-invitations.html",
-  "lastUpdated": "2026-06-25",
+  "lastUpdated": "2026-06-26",
   "draws": [
+    {
+      "date": "2026-06-25",
+      "type": "Healthcare and Social Services Occupations, 2026-Version 3",
+      "cutoffScore": 475,
+      "invitationsIssued": 4000
+    },
     {
       "date": "2026-06-24",
       "type": "Physicians with Canadian Work Experience, 2026-Version 1",
@@ -146,12 +152,6 @@
       "type": "Healthcare and Social Services Occupations, 2026-Version 3",
       "cutoffScore": 467,
       "invitationsIssued": 4000
-    },
-    {
-      "date": "2026-02-19",
-      "type": "Physicians with Canadian Work Experience, 2026-Version 1",
-      "cutoffScore": 169,
-      "invitationsIssued": 391
     }
   ]
 }
