@@ -279,6 +279,29 @@ function fitLabel(m: PnpStreamMatch): string {
   }
 }
 
+// Render an official NOC occupation title in professional Title Case for the report,
+// keeping short joining words (and, in, of, the…) lowercase unless they lead. Display-only:
+// the stored NocClassification title stays the verbatim StatCan title used for the citation.
+const TITLE_MINOR_WORDS = new Set([
+  'a', 'an', 'and', 'the', 'of', 'in', 'on', 'at', 'to', 'for', 'by', 'or', 'nor',
+  'but', 'with', 'as', 'from', 'into', 'per',
+])
+
+function titleCaseOccupation(title: string): string {
+  let wordIndex = 0
+  return title
+    .split(/(\s+)/)
+    .map((tok) => {
+      if (/^\s*$/.test(tok)) return tok
+      const isFirst = wordIndex === 0
+      wordIndex += 1
+      const lower = tok.toLowerCase()
+      if (!isFirst && TITLE_MINOR_WORDS.has(lower)) return lower
+      return lower.replace(/(^[^a-z]*|[-/(][^a-z]*)([a-z])/g, (_m, pre, c) => pre + c.toUpperCase())
+    })
+    .join('')
+}
+
 // Standing against the last 5 SINP EOI draws. The applicant's true grid total is a
 // band [floor, ceiling]; each draw cutoff is judged against it — never a probability.
 function SinpDrawsCard({ analysis }: { analysis: SinpDrawAnalysis }): React.JSX.Element {
@@ -368,7 +391,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
           <div className="pnp-rule" />
           <h1 className="pnp-doctitle">PNP Pathway Assessment</h1>
           <div className="pnp-prepared">Prepared for: <strong>{profile.name || 'Applicant'}</strong></div>
-          <div className="pnp-meta">NOC {noc.nocCode} · TEER {noc.teer} · {noc.title}</div>
+          <div className="pnp-meta">NOC {noc.nocCode} · TEER {noc.teer} · {titleCaseOccupation(noc.title)}</div>
           <div className="pnp-meta">Report generated: {reportGenerated} · Stream data verified: {pnp.dataVersion} · Source: canada.ca</div>
           <div className="pnp-toolbar">
             <button className="pnp-btn" onClick={onBack}>← Back to form</button>
@@ -384,7 +407,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
           <SectionHead eyebrow="Occupation Classification" title="Closest NOC match" />
           <div className="pnp-noc-winner">
             <div className="pnp-noc-code">NOC {noc.nocCode}</div>
-            <div className="pnp-noc-title">{noc.title}</div>
+            <div className="pnp-noc-title">{titleCaseOccupation(noc.title)}</div>
             <div className="pnp-tags">
               <span className="pnp-chip pnp-chip--teer">TEER {noc.teer}</span>
               <span className="pnp-chip">{noc.confidence} confidence</span>
@@ -407,7 +430,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
                     <div>
                       <span className="pnp-cand-code">NOC {c.nocCode}</span>{' '}
                       <span className="pnp-cand-teer">TEER {c.teer}</span>
-                      <span style={{ color: 'var(--pnp-muted)', fontSize: '0.9rem' }}> — {c.title}</span>
+                      <span style={{ color: 'var(--pnp-muted)', fontSize: '0.9rem' }}> — {titleCaseOccupation(c.title)}</span>
                       <div className="pnp-cand-rationale">{c.rationale}</div>
                     </div>
                   </div>
@@ -433,7 +456,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
         <section className="pnp-section">
           <SectionHead eyebrow="Executive Summary" title="Recommended direction" />
           <p className="pnp-lead">
-            {profile.name || 'The applicant'}&rsquo;s documented duties classify to <strong>NOC {noc.nocCode} (TEER {noc.teer})</strong>, {noc.title}.
+            {profile.name || 'The applicant'}&rsquo;s documented duties classify to <strong>NOC {noc.nocCode} (TEER {noc.teer})</strong>, {titleCaseOccupation(noc.title)}.
             Of {pnp.sourceLog.length} active Provincial and Territorial Nominee streams assessed (Quebec excluded), the {pnp.shortlist.length} below
             are the strongest, most occupation-relevant pathways for this profile.
           </p>
