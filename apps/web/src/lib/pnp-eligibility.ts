@@ -198,6 +198,10 @@ const RELEVANCE_BONUS = 12      // lifts a field-matched stream (coarse focus ta
 const LISTED_BONUS = 25
 const UNKNOWN_PENALTY = 8
 
+// Curated data is only as accurate as its last verification. Past this age the report
+// flags the data as stale rather than presenting it as current.
+const STALE_AFTER_DAYS = 90
+
 // Education levels in ascending order, for minimum-education comparisons.
 const EDUCATION_ORDER: EducationLevel[] = [
   'less_than_secondary',
@@ -237,6 +241,14 @@ function processingSpeedScore(months: number | null): number {
   if (months === null) return 0.5 // unknown → neutral
   const raw = (PROCESSING_CEILING_MONTHS - months) / PROCESSING_CEILING_MONTHS
   return Math.max(0.1, Math.min(1, raw))
+}
+
+// Whole days from an earlier ISO date to a later one; null if either is unparseable.
+function daysBetween(fromIso: string, toIso: string): number | null {
+  const from = Date.parse(fromIso)
+  const to = Date.parse(toIso)
+  if (Number.isNaN(from) || Number.isNaN(to)) return null
+  return Math.round((to - from) / 86_400_000)
 }
 
 // Evaluate one stream against the profile + classified NOC.
@@ -480,6 +492,14 @@ export function assessPnp(
     flags.push(`[NOC AMBIGUITY] Duties plausibly match more than one NOC at different TEER levels${alts ? `: ${alts}` : ''}. Confirm the correct code before relying on these results.`)
   }
 
+  // Freshness guard: PNP streams open, close, and re-list occupations without notice, so
+  // stale curated data is flagged rather than presented as current.
+  const dataVersion = (pnpData as PnpData)._meta.lastVerified
+  const dataAgeDays = daysBetween(dataVersion, profile.reportDate)
+  if (dataAgeDays !== null && dataAgeDays > STALE_AFTER_DAYS) {
+    flags.push(`[STALE DATA] PNP stream data was last verified ${dataVersion} (${dataAgeDays} days ago). Re-verify the provincial sources before relying on these results.`)
+  }
+
   // Streams that could not be verified are surfaced, never scored.
   const scorable = streams.filter(s => {
     if (s.needsVerification) {
@@ -535,7 +555,7 @@ export function assessPnp(
       lastVerified: s.lastVerified,
     })),
     flags,
-    dataVersion: (pnpData as PnpData)._meta.lastVerified,
+    dataVersion,
   }
 }
 

@@ -268,6 +268,17 @@ function formatDrawDate(iso: string): string {
   return `${d} ${months[m - 1]} ${y}`
 }
 
+// Matrix "Fit" cell: the occupation-eligibility result takes precedence over the coarse
+// field tag, so an affirmative list match reads as "On list" rather than just "Open".
+function fitLabel(m: PnpStreamMatch): string {
+  switch (m.occupationEligibility) {
+    case 'eligible-listed': return 'On list'
+    case 'unknown': return 'List unverified'
+    case 'conditional-employer': return 'Employer-set'
+    default: return m.relevance === 'targeted' ? 'Field match' : 'Open'
+  }
+}
+
 // Standing against the last 5 SINP EOI draws. The applicant's true grid total is a
 // band [floor, ceiling]; each draw cutoff is judged against it — never a probability.
 function SinpDrawsCard({ analysis }: { analysis: SinpDrawAnalysis }): React.JSX.Element {
@@ -449,6 +460,15 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
                     <div className="pnp-card-score">{m.score}<span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-body)', fontWeight: 400 }}>/100</span></div>
                   </div>
                   <div style={{ marginTop: '0.4rem' }}><Badge verdict={m.verdict} /></div>
+                  {m.occupationEligibility === 'eligible-listed' && (
+                    <div className="pnp-occ pnp-occ--listed">On {m.stream.province}&rsquo;s eligible occupation list</div>
+                  )}
+                  {m.occupationEligibility === 'unknown' && (
+                    <div className="pnp-occ pnp-occ--unknown">Occupation list not yet verified — confirm on the provincial source</div>
+                  )}
+                  {m.occupationEligibility === 'conditional-employer' && (
+                    <div className="pnp-occ">Occupation eligibility is set at the job-offer / employer-assessment stage</div>
+                  )}
                   <div className="pnp-why"><strong>Why this fits:</strong> {m.whyRelevant}</div>
                   <EligibilityChecks checks={m.eligibilityChecks} />
                   <ScoreBreakdown m={m} />
@@ -522,7 +542,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
                     <td>{m.stream.province}</td>
                     <td>{m.stream.streamName}</td>
                     <td>{m.stream.category === 'ee-linked' ? 'EE-linked' : 'Base'}</td>
-                    <td>{m.relevance === 'targeted' ? 'Field match' : 'Open'}</td>
+                    <td>{fitLabel(m)}</td>
                     <td><Badge verdict={m.verdict} /></td>
                     <td className="pnp-num">{m.score}</td>
                   </tr>

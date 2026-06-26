@@ -452,6 +452,24 @@
   color: var(--pnp-text);
 }
 
+/* Occupation-eligibility note on a shortlist card. Base style serves all viewports —
+   the note is plain text that reflows within the card, which already stacks at 375px. */
+.pnp-occ {
+  font-size: 0.78rem;
+  margin-top: 0.5rem;
+  line-height: 1.5;
+  color: var(--pnp-muted);
+}
+
+.pnp-occ--listed {
+  color: var(--pnp-teal);
+  font-weight: 600;
+}
+
+.pnp-occ--unknown {
+  color: var(--pnp-amber);
+}
+
 .pnp-conds {
   margin: 0.55rem 0 0;
   padding-left: 1.1rem;
