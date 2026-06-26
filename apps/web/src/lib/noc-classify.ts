@@ -19,6 +19,18 @@ export const RANKED_RETURNED = 3
 export const ALT_MIN_FIT_SCORE = 55
 export const ALT_MAX_FIT_GAP = 20
 
+// StatCan "Other ..." unit groups are residual catch-alls: they bundle several unrelated
+// minor occupations into one sprawling duty list, which makes loose keyword overlap easy
+// and lets them masquerade as a match (this is what put NOC 32109 ahead of 41404). By the
+// classification rule a SPECIFIC group wins whenever its fit is comparable, so a residual
+// leader is overruled by the best specific candidate within this fit margin.
+export const RESIDUAL_OVER_SPECIFIC_MARGIN = 15
+
+// A unit group is residual when StatCan titles it as the "Other ..." bucket of its family.
+function isResidualGroup(title: string): boolean {
+  return /^other\b/i.test(title.trim())
+}
+
 export const NOC_CLASSIFIER_SYSTEM = `You are an expert Canadian NOC 2021 (TEER) occupational classifier for immigration documentation. A wrong NOC code is the single highest-frequency PR refusal trigger — accuracy is paramount.
 
 You are given an applicant's DUTIES and a SHORTLIST of candidate NOC 2021 unit groups, each with its official Statistics Canada lead statement, example job titles and main duties.
@@ -31,6 +43,7 @@ Classification methodology — follow this order strictly:
 3. CRITICAL — paraphrase rule: an applicant's duties are real-world descriptions written by a consultant. They will NEVER match the Statistics Canada wording verbatim, and they are NOT supposed to. The absence of verbatim or word-for-word overlap is completely normal and must NEVER lower your confidence or your fitScore. Judge meaning and scope, never vocabulary.
 4. NEVER rank by job title similarity. Titles are unreliable and often misleading.
 5. Determine the correct TEER from the work actually performed and its level of responsibility: TEER 0 = senior management/executive, TEER 1 = professional (degree-level), TEER 2 = technical (diploma/apprenticeship), TEER 3 = intermediate (months of training), TEER 4 = labour (short training).
+6. RESIDUAL-GROUP RULE: a candidate whose title begins with "Other" is a Statistics Canada residual catch-all — a leftover bucket that merges several unrelated minor occupations, so its duty list is long and sprawling and loose keyword overlap with it is easy and misleading. Treat a residual "Other ..." group as a LAST RESORT: rank it as the best fit ONLY when no specific (non-"Other") candidate's scope contains the applicant's primary function. Never place a residual group above a specific group whose scope fits comparably well.
 
 For each chosen code, assign:
 - fitScore: an integer 0–100 for how fully that code's official scope contains the applicant's primary function and main tasks. 100 = the code's scope is a complete, unambiguous home for these duties; ~50 = partial or generic overlap; below 40 = only loosely related. Score on semantic scope, NEVER on shared words.
@@ -160,12 +173,29 @@ export function groundClassification(
 
   if (valid.length === 0) return null
 
-  // The leader always stands; a runner-up is shown only when it is genuinely competitive.
-  const winner = valid[0]!
+  // Residual-group guard: if the model led with an "Other ..." catch-all, hand the lead
+  // to the best specific candidate whose fit is within RESIDUAL_OVER_SPECIFIC_MARGIN. The
+  // residual group only keeps the lead when no specific group fits comparably well.
+  let leaderIndex = 0
+  if (isResidualGroup(valid[0]!.title)) {
+    const challenger = valid.findIndex(
+      (c, i) =>
+        i !== 0 &&
+        !isResidualGroup(c.title) &&
+        valid[0]!.fitScore - c.fitScore <= RESIDUAL_OVER_SPECIFIC_MARGIN
+    )
+    if (challenger !== -1) leaderIndex = challenger
+  }
+
+  // The leader stands; a runner-up is shown only when it is genuinely competitive.
+  const winner = valid[leaderIndex]!
   const candidates = [
     winner,
-    ...valid.slice(1).filter(
-      (c) => c.fitScore >= ALT_MIN_FIT_SCORE && winner.fitScore - c.fitScore <= ALT_MAX_FIT_GAP
+    ...valid.filter(
+      (c, i) =>
+        i !== leaderIndex &&
+        c.fitScore >= ALT_MIN_FIT_SCORE &&
+        winner.fitScore - c.fitScore <= ALT_MAX_FIT_GAP
     ),
   ]
   const teerSpread = new Set(candidates.map((c) => c.teer)).size > 1

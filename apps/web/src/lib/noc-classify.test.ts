@@ -155,6 +155,48 @@ describe('groundClassification — margin gating of weak ranked matches', () => 
   })
 })
 
+describe('groundClassification — residual "Other..." catch-all demotion', () => {
+  // Mirrors the Rashmi failure: the model leads with the residual catch-all 32109
+  // while a specific group (41404) sits just behind it. A residual group must never
+  // win over a specific group whose fit is comparable.
+  const CLINICAL_HITS: NocRetrievalHit[] = [hit('32109', 201), hit('41404', 129), hit('32103', 216)]
+
+  it('promotes the specific group over a residual leader within the margin', () => {
+    const raw: RawClassification = {
+      ranked: [
+        { nocCode: '32109', rationale: 'broad keyword overlap on assessment', fitScore: 80 },
+        { nocCode: '41404', rationale: 'health policy research and program administration', fitScore: 72 },
+      ],
+      confidence: 'medium',
+      ambiguityFlag: true,
+    }
+    const g = groundClassification(raw, CLINICAL_HITS)!
+    expect(g.nocCode).toBe('41404')
+    expect(g.title).not.toMatch(/^Other/)
+  })
+
+  it('keeps the residual leader when no specific group is within the margin', () => {
+    const raw: RawClassification = {
+      ranked: [
+        { nocCode: '32109', rationale: 'clearly the right residual bucket', fitScore: 84 },
+        { nocCode: '41404', rationale: 'only loosely related', fitScore: 50 },
+      ],
+      confidence: 'medium',
+      ambiguityFlag: false,
+    }
+    expect(groundClassification(raw, CLINICAL_HITS)!.nocCode).toBe('32109')
+  })
+
+  it('keeps a residual group that is the only valid pick', () => {
+    const raw: RawClassification = {
+      ranked: [{ nocCode: '32109', rationale: 'sole match', fitScore: 70 }],
+      confidence: 'low',
+      ambiguityFlag: false,
+    }
+    expect(groundClassification(raw, CLINICAL_HITS)!.nocCode).toBe('32109')
+  })
+})
+
 describe('classifier prompt contract', () => {
   it('asks the model for a fitScore (the schema requires it, so the prompt must request it)', () => {
     expect(NOC_CLASSIFIER_SYSTEM).toContain('fitScore')
@@ -163,6 +205,11 @@ describe('classifier prompt contract', () => {
     const p = NOC_CLASSIFIER_SYSTEM.toLowerCase()
     expect(p).toContain('verbatim')
     expect(p).toContain('paraphrase')
+  })
+  it('warns the model that residual "Other..." groups are a last resort', () => {
+    const p = NOC_CLASSIFIER_SYSTEM.toLowerCase()
+    expect(p).toContain('residual')
+    expect(p).toContain('other')
   })
   it('documents an output shape that parses against the schema', () => {
     const shape = extractJsonObject(NOC_CLASSIFIER_SYSTEM.slice(NOC_CLASSIFIER_SYSTEM.lastIndexOf('{"ranked"')))

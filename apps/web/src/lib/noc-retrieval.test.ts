@@ -45,4 +45,21 @@ describe('noc-retrieval', () => {
     expect(getGroupByCode('41404')?.teer).toBe(1)
     expect(getGroupByCode('99999')).toBeUndefined()
   })
+
+  it('NOC 32109 main duties carry no bare sub-occupation heading labels', () => {
+    // StatCan's "Main duties" element for residual groups embeds sub-occupation titles
+    // (e.g. "Hearing instrument practitioners") that are headings, not duties — they
+    // inflate keyword overlap and already live in `examples`. They must be removed.
+    const duties = getGroupByCode('32109')!.mainDuties
+    const headings = [
+      'Hearing instrument practitioners',
+      'Communicative disorders assistants and speech-language pathology assistants',
+      'Ophthalmic medical technologists and technicians',
+      'Physical rehabilitation therapists',
+      'Physiotherapy assistants and occupational therapy assistants',
+    ]
+    for (const heading of headings) expect(duties).not.toContain(heading)
+    // The genuine duty statements remain.
+    expect(duties.some((d) => d.startsWith('Examine adult clients to assess hearing loss'))).toBe(true)
+  })
 })
