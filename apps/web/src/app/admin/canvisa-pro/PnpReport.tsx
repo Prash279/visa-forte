@@ -12,6 +12,7 @@ import {
 import { scoreSinp, SINP_MAX_POINTS, type SinpScore } from '@/lib/sinp-points'
 import { analyzeSinpDraws, type SinpDrawAnalysis, type SinpDrawVerdict } from '@/lib/sinp-draws'
 import { classifySinpPathway, type SinpPathway } from '@/lib/sinp-pathway'
+import { titleCaseOccupation } from '@/lib/noc-format'
 import sinp2026 from '@/lib/sinp-2026.json'
 
 interface PnpReportProps {
@@ -277,29 +278,6 @@ function fitLabel(m: PnpStreamMatch): string {
     case 'conditional-employer': return 'Employer-set'
     default: return m.relevance === 'targeted' ? 'Field match' : 'Open'
   }
-}
-
-// Render an official NOC occupation title in professional Title Case for the report,
-// keeping short joining words (and, in, of, the…) lowercase unless they lead. Display-only:
-// the stored NocClassification title stays the verbatim StatCan title used for the citation.
-const TITLE_MINOR_WORDS = new Set([
-  'a', 'an', 'and', 'the', 'of', 'in', 'on', 'at', 'to', 'for', 'by', 'or', 'nor',
-  'but', 'with', 'as', 'from', 'into', 'per',
-])
-
-function titleCaseOccupation(title: string): string {
-  let wordIndex = 0
-  return title
-    .split(/(\s+)/)
-    .map((tok) => {
-      if (/^\s*$/.test(tok)) return tok
-      const isFirst = wordIndex === 0
-      wordIndex += 1
-      const lower = tok.toLowerCase()
-      if (!isFirst && TITLE_MINOR_WORDS.has(lower)) return lower
-      return lower.replace(/(^[^a-z]*|[-/(][^a-z]*)([a-z])/g, (_m, pre, c) => pre + c.toUpperCase())
-    })
-    .join('')
 }
 
 // Standing against the last 5 SINP EOI draws. The applicant's true grid total is a

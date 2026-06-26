@@ -6,6 +6,7 @@
 // PnpAssessmentResult that drives PnpReport.tsx, so the two never diverge.
 
 import { type ApplicantProfile } from './crs-calculator'
+import { titleCaseOccupation } from './noc-format'
 import {
   buildPnpInsights,
   type PnpAssessmentResult,
@@ -111,7 +112,7 @@ function titleSlide(pptx: Pptx, profile: ApplicantProfile, pnp: PnpAssessmentRes
     ],
     { x: 0.8, y: 3.7, w: 11, h: 0.4, fontFace: SANS, fontSize: 15 }
   )
-  s.addText(`NOC ${pnp.noc.nocCode} · TEER ${pnp.noc.teer} · ${pnp.noc.title}`, {
+  s.addText(`NOC ${pnp.noc.nocCode} · TEER ${pnp.noc.teer} · ${titleCaseOccupation(pnp.noc.title)}`, {
     x: 0.8, y: 4.1, w: 11.5, h: 0.4, fontFace: SANS, fontSize: 15, color: SAFFRON,
   })
   s.addShape(pptx.ShapeType.rect, { x: 0.8, y: 6.6, w: W - 1.6, h: 0.012, fill: { color: '33415588' } })
@@ -129,7 +130,7 @@ function executiveSummarySlide(pptx: Pptx, profile: ApplicantProfile, pnp: PnpAs
   const name = profile.name || 'The applicant'
   const topEe = pnp.eeLinked[0]
   const paras: string[] = [
-    `${name}'s documented duties classify to NOC ${pnp.noc.nocCode} (TEER ${pnp.noc.teer}), ${pnp.noc.title}. Of ${pnp.sourceLog.length} active Provincial and Territorial Nominee streams assessed (Quebec excluded), the ${pnp.shortlist.length} strongest, most occupation-relevant pathways are detailed in this deck.`,
+    `${name}'s documented duties classify to NOC ${pnp.noc.nocCode} (TEER ${pnp.noc.teer}), ${titleCaseOccupation(pnp.noc.title)}. Of ${pnp.sourceLog.length} active Provincial and Territorial Nominee streams assessed (Quebec excluded), the ${pnp.shortlist.length} strongest, most occupation-relevant pathways are detailed in this deck.`,
     topEe
       ? `The highest-leverage route is an Express Entry-linked nomination — strongest via ${streamTitle(topEe)} — which adds 600 CRS points and effectively guarantees an Invitation to Apply.`
       : `No Express Entry-linked stream currently matches this profile; the base pathways lead to a paper-based PR application after nomination.`,
@@ -147,7 +148,7 @@ function nocSlide(pptx: Pptx, profile: ApplicantProfile, pnp: PnpAssessmentResul
   s.background = { color: PEARL }
   sectionHeader(pptx, s, 'Occupation Classification', 'Closest NOC match')
   s.addShape(pptx.ShapeType.rect, { x: 0.8, y: 1.55, w: W - 1.6, h: 1.0, fill: { color: WHITE }, line: { color: SAND, width: 1 } })
-  s.addText(`NOC ${pnp.noc.nocCode} — ${pnp.noc.title}`, {
+  s.addText(`NOC ${pnp.noc.nocCode} — ${titleCaseOccupation(pnp.noc.title)}`, {
     x: 1.0, y: 1.65, w: W - 2.0, h: 0.5, fontFace: SERIF, fontSize: 22, color: PRUSSIAN, bold: true,
   })
   s.addText(
@@ -160,7 +161,7 @@ function nocSlide(pptx: Pptx, profile: ApplicantProfile, pnp: PnpAssessmentResul
     const rows = pnp.noc.candidates.slice(0, 4).map((c, i) => ([
       { text: `${i + 1}`, options: { color: SAFFRON, bold: true, align: 'center', valign: 'middle' } },
       { text: `NOC ${c.nocCode} (TEER ${c.teer})`, options: { color: PRUSSIAN, bold: true, valign: 'middle' } },
-      { text: c.title, options: { color: INK, valign: 'middle' } },
+      { text: titleCaseOccupation(c.title), options: { color: INK, valign: 'middle' } },
       { text: c.rationale, options: { color: MUTED, valign: 'middle' } },
     ]))
     s.addTable(rows, {

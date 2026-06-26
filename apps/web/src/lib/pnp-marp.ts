@@ -5,6 +5,7 @@
 // The legal disclaimer (immigration-consulting skill §17) is included verbatim.
 
 import { type ApplicantProfile } from './crs-calculator'
+import { titleCaseOccupation } from './noc-format'
 import { type PnpAssessmentResult, type PnpStreamMatch, type PnpVerdict } from './pnp-eligibility'
 
 const PEARL = '#F8F4EE'
@@ -142,7 +143,7 @@ function executiveSummary(profile: ApplicantProfile, pnp: PnpAssessmentResult): 
   const parts: string[] = []
 
   parts.push(
-    `${esc(name)}'s detailed duties classify to NOC ${pnp.noc.nocCode} (TEER ${pnp.noc.teer}), ${esc(pnp.noc.title)}. ` +
+    `${esc(name)}'s detailed duties classify to NOC ${pnp.noc.nocCode} (TEER ${pnp.noc.teer}), ${esc(titleCaseOccupation(pnp.noc.title))}. ` +
       `This assessment scores that profile against ${pnp.sourceLog.length} active Provincial and Territorial Nominee streams (Quebec excluded), and surfaces the ${pnp.shortlist.length} most occupation-relevant pathways below.`
   )
 
@@ -187,7 +188,7 @@ export function buildPnpMarpMarkdown(profile: ApplicantProfile, pnp: PnpAssessme
           (c, i) => `<div style="background:${WHITE};border:1px solid ${SAND};border-left:3px solid ${i === 0 ? SAFFRON : SAND};padding:8px 12px;margin-bottom:6px;">
             <span style="color:${SAFFRON};font-weight:700;font-family:${SERIF};font-size:15px;">${i + 1}.</span>
             <span style="color:${PRUSSIAN};font-weight:700;font-family:${SANS};font-size:12px;"> NOC ${c.nocCode} (TEER ${c.teer})</span>
-            <span style="color:${INK};font-size:12px;"> — ${esc(c.title)}</span>
+            <span style="color:${INK};font-size:12px;"> — ${esc(titleCaseOccupation(c.title))}</span>
             <div style="color:${MUTED};font-size:11px;line-height:1.5;margin-top:2px;">${esc(c.rationale)}</div>
           </div>`
         )
@@ -248,7 +249,7 @@ style: |
     <div style="width:48px;height:3px;background:${SAFFRON};margin:28px 0;"></div>
     <div style="color:${PEARL};font-family:${SERIF};font-size:52px;font-weight:600;line-height:1.05;">PNP Pathway Assessment</div>
     <div style="color:${SAND};font-size:15px;margin-top:14px;">Prepared for: <span style="color:${PEARL};font-weight:600;">${esc(name)}</span></div>
-    <div style="color:${SAFFRON};font-size:15px;margin-top:4px;">NOC ${pnp.noc.nocCode} · TEER ${pnp.noc.teer} · ${esc(pnp.noc.title)}</div>
+    <div style="color:${SAFFRON};font-size:15px;margin-top:4px;">NOC ${pnp.noc.nocCode} · TEER ${pnp.noc.teer} · ${esc(titleCaseOccupation(pnp.noc.title))}</div>
   </div>
   <div style="display:flex;justify-content:space-between;align-items:center;padding-top:16px;border-top:1px solid rgba(248,244,238,0.2);">
     <div style="color:${SAND};font-size:11px;">Verified ${pnp.dataVersion} · Source: canada.ca · ${pnp.sourceLog.length} streams assessed</div>
@@ -269,7 +270,7 @@ style: |
   ${sectionBar('Job Duties & NOC Classification')}
   ${ambiguityCallout}
   <div style="background:${WHITE};border:1px solid ${SAND};border-top:3px solid ${SAFFRON};padding:12px 16px;margin-bottom:12px;">
-    <div style="color:${PRUSSIAN};font-family:${SERIF};font-size:22px;">NOC ${pnp.noc.nocCode} — ${esc(pnp.noc.title)}</div>
+    <div style="color:${PRUSSIAN};font-family:${SERIF};font-size:22px;">NOC ${pnp.noc.nocCode} — ${esc(titleCaseOccupation(pnp.noc.title))}</div>
     <div style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <span style="background:${PRUSSIAN};color:${PEARL};padding:2px 8px;font-size:11px;font-weight:700;font-family:${SANS}">TEER ${pnp.noc.teer}</span>
       <span style="background:${AMBER};color:${PRUSSIAN};padding:2px 8px;font-size:11px;font-weight:700;font-family:${SANS}">${pnp.noc.confidence} confidence</span>
