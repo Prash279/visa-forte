@@ -153,6 +153,12 @@
   margin-bottom: 1.25rem;
 }
 
+/* A second/third heading inside one section (e.g. the Saskatchewan block) needs
+   breathing room from the card above it — the first heading sits on section padding. */
+.pnp-section-head:not(:first-child) {
+  margin-top: 1.75rem;
+}
+
 .pnp-section-head::before {
   content: '';
   display: block;

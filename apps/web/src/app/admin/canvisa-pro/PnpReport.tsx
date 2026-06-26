@@ -343,6 +343,9 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
   const sinpDraws = analyzeSinpDraws(sinp)
   const sinpPathway = classifySinpPathway(noc.nocCode, noc.teer)
   const showSinp = pnp.sourceLog.some((s) => s.province === 'Saskatchewan')
+  // Report generation date — today, taken from the profile (set when the form loads)
+  // and shown separately from the stream-data verification date so the two never blur.
+  const reportGenerated = formatDrawDate(profile.reportDate || new Date().toISOString().slice(0, 10))
 
   return (
     <div className="pnp">
@@ -355,7 +358,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
           <h1 className="pnp-doctitle">PNP Pathway Assessment</h1>
           <div className="pnp-prepared">Prepared for: <strong>{profile.name || 'Applicant'}</strong></div>
           <div className="pnp-meta">NOC {noc.nocCode} · TEER {noc.teer} · {noc.title}</div>
-          <div className="pnp-meta">Verified: {pnp.dataVersion} · Source: canada.ca</div>
+          <div className="pnp-meta">Report generated: {reportGenerated} · Stream data verified: {pnp.dataVersion} · Source: canada.ca</div>
           <div className="pnp-toolbar">
             <button className="pnp-btn" onClick={onBack}>← Back to form</button>
             <button className="pnp-btn" onClick={() => window.print()}>Print / Save PDF</button>
