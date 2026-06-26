@@ -30,7 +30,12 @@
       "processingTimeNote": "OINP issues Notifications of Interest from the federal Express Entry pool in periodic draws. Verify current draw activity on the OINP updates page.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": "bachelors",
         "minTotalWorkExperienceYears": null,
@@ -41,15 +46,35 @@
         "jobOfferRequired": "not-required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": false,
-        "otherConditions": ["Maintain an active IRCC Express Entry profile (OINP searches the pool and issues a Notification of Interest)."]
+        "otherConditions": [
+          "Maintain an active IRCC Express Entry profile (OINP searches the pool and issues a Notification of Interest)."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Enter the Express Entry pool", "detail": "Create an IRCC Express Entry profile eligible under FSW, CEC or FST." },
-        { "step": 2, "title": "Receive a Notification of Interest", "detail": "OINP searches the pool; if matched, a Notification of Interest appears in your IRCC account." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the OINP application within the deadline stated in the NOI." },
-        { "step": 4, "title": "Nomination + ITA", "detail": "Provincial nomination adds 600 CRS; update your EE profile and submit the e-APR within 60 days of the ITA." }
-      ]
+        {
+          "step": 1,
+          "title": "Enter the Express Entry pool",
+          "detail": "Create an IRCC Express Entry profile eligible under FSW, CEC or FST."
+        },
+        {
+          "step": 2,
+          "title": "Receive a Notification of Interest",
+          "detail": "OINP searches the pool; if matched, a Notification of Interest appears in your IRCC account."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the OINP application within the deadline stated in the NOI."
+        },
+        {
+          "step": 4,
+          "title": "Nomination + ITA",
+          "detail": "Provincial nomination adds 600 CRS; update your EE profile and submit the e-APR within 60 days of the ITA."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "on-french",
@@ -64,7 +89,12 @@
       "processingTimeNote": "Express Entry-aligned stream; periodic draws. Verify current activity on the OINP updates page.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": "bachelors",
         "minTotalWorkExperienceYears": null,
@@ -75,15 +105,36 @@
         "jobOfferRequired": "not-required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": false,
-        "otherConditions": ["Maintain an active IRCC Express Entry profile.", "Demonstrate French language proficiency plus strong English ability, as required by the stream."]
+        "otherConditions": [
+          "Maintain an active IRCC Express Entry profile.",
+          "Demonstrate French language proficiency plus strong English ability, as required by the stream."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Enter the Express Entry pool", "detail": "Create an IRCC Express Entry profile with qualifying French and English results." },
-        { "step": 2, "title": "Receive a Notification of Interest", "detail": "OINP issues a NOI to matched French-speaking candidates." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the OINP application by the NOI deadline." },
-        { "step": 4, "title": "Nomination + ITA", "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days." }
-      ]
+        {
+          "step": 1,
+          "title": "Enter the Express Entry pool",
+          "detail": "Create an IRCC Express Entry profile with qualifying French and English results."
+        },
+        {
+          "step": 2,
+          "title": "Receive a Notification of Interest",
+          "detail": "OINP issues a NOI to matched French-speaking candidates."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the OINP application by the NOI deadline."
+        },
+        {
+          "step": 4,
+          "title": "Nomination + ITA",
+          "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "on-trades",
@@ -91,7 +142,9 @@
       "programName": "OINP",
       "streamName": "Skilled Trades",
       "category": "ee-linked",
-      "occupationFocus": ["trades"],
+      "occupationFocus": [
+        "trades"
+      ],
       "status": "intermittent",
       "sourceUrl": "https://www.ontario.ca/page/ontario-immigrant-nominee-program-streams",
       "lastVerified": "2026-06-22",
@@ -99,7 +152,10 @@
       "processingTimeNote": "Express Entry-aligned; periodic draws. Verify current activity on the OINP updates page.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [2, 3],
+        "allowedTeers": [
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": null,
         "minTotalWorkExperienceYears": null,
@@ -110,15 +166,49 @@
         "jobOfferRequired": "not-required",
         "provincialConnectionRequired": true,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": true,
-        "otherConditions": ["Maintain an active IRCC Express Entry profile.", "Hold recent Ontario work experience in an eligible skilled trade."]
+        "otherConditions": [
+          "Maintain an active IRCC Express Entry profile.",
+          "Hold recent Ontario work experience in an eligible skilled trade."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Build Ontario trade experience", "detail": "Accumulate eligible Ontario work experience in a qualifying skilled trade." },
-        { "step": 2, "title": "Enter the Express Entry pool", "detail": "Create an IRCC Express Entry profile eligible under a federal program." },
-        { "step": 3, "title": "Receive a NOI + apply", "detail": "Receive the OINP Notification of Interest and submit the application." },
-        { "step": 4, "title": "Nomination + ITA", "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days." }
-      ]
+        {
+          "step": 1,
+          "title": "Build Ontario trade experience",
+          "detail": "Accumulate eligible Ontario work experience in a qualifying skilled trade."
+        },
+        {
+          "step": 2,
+          "title": "Enter the Express Entry pool",
+          "detail": "Create an IRCC Express Entry profile eligible under a federal program."
+        },
+        {
+          "step": 3,
+          "title": "Receive a NOI + apply",
+          "detail": "Receive the OINP Notification of Interest and submit the application."
+        },
+        {
+          "step": 4,
+          "title": "Nomination + ITA",
+          "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "include-rule",
+        "includeGroups": [
+          "72",
+          "73",
+          "82",
+          "83"
+        ],
+        "excludeGroups": [
+          "726"
+        ],
+        "source": "https://www.ontario.ca/page/ontarios-express-entry-skilled-trades-stream",
+        "lastVerified": "2026-06-26",
+        "documentDate": "2026-05-29",
+        "note": "NOC Major Groups 72 (excl. transportation officers, sub-major 726), 73, 82, 83 per ontario.ca. Major Group 93 (excl. aircraft assemblers) and Minor Group 6320 (excl. cooks) are also eligible but pending precise StatCan unit-group encoding."
+      }
     },
     {
       "id": "on-ejo-foreign",
@@ -133,7 +223,12 @@
       "processingTimeNote": "Expression of Interest stream; periodic targeted draws. Verify current activity on the OINP updates page.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": null,
         "minTotalWorkExperienceYears": null,
@@ -143,15 +238,33 @@
         "ecaRequired": false,
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
-        "eoiRegistrationRequired": true,
-        "occupationListRestricted": false
+        "eoiRegistrationRequired": true
       },
       "roadmap": [
-        { "step": 1, "title": "Secure an Ontario job offer", "detail": "Obtain a permanent, full-time job offer from an eligible Ontario employer in TEER 0–3." },
-        { "step": 2, "title": "Register an Expression of Interest", "detail": "Create an OINP EOI profile; you may be invited in a targeted draw." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the OINP application after invitation." },
-        { "step": 4, "title": "Apply for PR", "detail": "Use the provincial nomination to apply to IRCC for permanent residence (paper-based, outside Express Entry)." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure an Ontario job offer",
+          "detail": "Obtain a permanent, full-time job offer from an eligible Ontario employer in TEER 0–3."
+        },
+        {
+          "step": 2,
+          "title": "Register an Expression of Interest",
+          "detail": "Create an OINP EOI profile; you may be invited in a targeted draw."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the OINP application after invitation."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Use the provincial nomination to apply to IRCC for permanent residence (paper-based, outside Express Entry)."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "on-ejo-student",
@@ -166,7 +279,12 @@
       "processingTimeNote": "Expression of Interest stream; periodic draws. Verify current activity on the OINP updates page.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": null,
         "minTotalWorkExperienceYears": null,
@@ -177,15 +295,35 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": true,
         "eoiRegistrationRequired": true,
-        "occupationListRestricted": false,
-        "otherConditions": ["Hold an eligible credential from an Ontario post-secondary institution."]
+        "otherConditions": [
+          "Hold an eligible credential from an Ontario post-secondary institution."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Graduate in Ontario", "detail": "Complete an eligible Ontario credential and secure a qualifying Ontario job offer." },
-        { "step": 2, "title": "Register an Expression of Interest", "detail": "Create an OINP EOI profile." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the application after invitation." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Graduate in Ontario",
+          "detail": "Complete an eligible Ontario credential and secure a qualifying Ontario job offer."
+        },
+        {
+          "step": 2,
+          "title": "Register an Expression of Interest",
+          "detail": "Create an OINP EOI profile."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the application after invitation."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "on-ejo-indemand",
@@ -211,15 +349,37 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": true,
         "eoiRegistrationRequired": true,
-        "occupationListRestricted": true,
-        "otherConditions": ["Job offer must be in an eligible in-demand occupation (e.g. specific agriculture, construction or trucking NOCs) as listed by OINP."]
+        "otherConditions": [
+          "Job offer must be in an eligible in-demand occupation (e.g. specific agriculture, construction or trucking NOCs) as listed by OINP."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Secure an in-demand Ontario job offer", "detail": "Obtain a qualifying job offer in an OINP in-demand occupation." },
-        { "step": 2, "title": "Register an Expression of Interest", "detail": "Create an OINP EOI profile." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the application after invitation." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure an in-demand Ontario job offer",
+          "detail": "Obtain a qualifying job offer in an OINP in-demand occupation."
+        },
+        {
+          "step": 2,
+          "title": "Register an Expression of Interest",
+          "detail": "Create an OINP EOI profile."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the application after invitation."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unknown",
+        "note": "Stream restricts eligibility to a province-published occupation list not yet encoded; confirm the applicant's NOC against the current list on the provincial source.",
+        "source": "https://www.ontario.ca/page/ontario-immigrant-nominee-program-streams"
+      }
     },
     {
       "id": "on-masters",
@@ -245,15 +405,35 @@
         "jobOfferRequired": "not-required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": true,
-        "occupationListRestricted": false,
-        "otherConditions": ["Hold a master's degree from an eligible Ontario university (typically completed within the last 2 years)."]
+        "otherConditions": [
+          "Hold a master's degree from an eligible Ontario university (typically completed within the last 2 years)."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Complete an Ontario master's", "detail": "Graduate with an eligible master's degree from an Ontario university." },
-        { "step": 2, "title": "Register an Expression of Interest", "detail": "Create an OINP EOI profile within the eligibility window." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the application after invitation." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Complete an Ontario master's",
+          "detail": "Graduate with an eligible master's degree from an Ontario university."
+        },
+        {
+          "step": 2,
+          "title": "Register an Expression of Interest",
+          "detail": "Create an OINP EOI profile within the eligibility window."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the application after invitation."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "on-phd",
@@ -279,15 +459,35 @@
         "jobOfferRequired": "not-required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": true,
-        "occupationListRestricted": false,
-        "otherConditions": ["Hold a PhD from an eligible Ontario university (typically completed within the last 2 years)."]
+        "otherConditions": [
+          "Hold a PhD from an eligible Ontario university (typically completed within the last 2 years)."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Complete an Ontario PhD", "detail": "Graduate with an eligible doctoral degree from an Ontario university." },
-        { "step": 2, "title": "Register an Expression of Interest", "detail": "Create an OINP EOI profile within the eligibility window." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the application after invitation." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Complete an Ontario PhD",
+          "detail": "Graduate with an eligible doctoral degree from an Ontario university."
+        },
+        {
+          "step": 2,
+          "title": "Register an Expression of Interest",
+          "detail": "Create an OINP EOI profile within the eligibility window."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the application after invitation."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "bc-sw-eebc",
@@ -302,7 +502,12 @@
       "processingTimeNote": "Invitations issued through periodic Skills Immigration registration draws; EEBC option requires an active IRCC Express Entry profile.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": 4,
         "minEducation": null,
         "minTotalWorkExperienceYears": 2,
@@ -313,15 +518,36 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": true,
-        "occupationListRestricted": false,
-        "otherConditions": ["Maintain an active IRCC Express Entry profile with a Job Seeker Validation Code.", "Hold the minimum education credential required for your occupation."]
+        "otherConditions": [
+          "Maintain an active IRCC Express Entry profile with a Job Seeker Validation Code.",
+          "Hold the minimum education credential required for your occupation."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Secure a B.C. job offer", "detail": "Obtain a full-time, indeterminate job offer from an eligible B.C. employer in TEER 0–3." },
-        { "step": 2, "title": "Register with the EEBC option", "detail": "Submit a BC PNP Skills Immigration registration with a valid Express Entry profile number and Job Seeker code." },
-        { "step": 3, "title": "Receive an invitation + nomination", "detail": "Score on the SIRS grid, receive an ITA from BC PNP, apply, and receive nomination (+600 CRS)." },
-        { "step": 4, "title": "ITA + e-APR", "detail": "Update your EE profile and submit the federal e-APR within 60 days of the ITA." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure a B.C. job offer",
+          "detail": "Obtain a full-time, indeterminate job offer from an eligible B.C. employer in TEER 0–3."
+        },
+        {
+          "step": 2,
+          "title": "Register with the EEBC option",
+          "detail": "Submit a BC PNP Skills Immigration registration with a valid Express Entry profile number and Job Seeker code."
+        },
+        {
+          "step": 3,
+          "title": "Receive an invitation + nomination",
+          "detail": "Score on the SIRS grid, receive an ITA from BC PNP, apply, and receive nomination (+600 CRS)."
+        },
+        {
+          "step": 4,
+          "title": "ITA + e-APR",
+          "detail": "Update your EE profile and submit the federal e-APR within 60 days of the ITA."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "bc-sw-base",
@@ -336,7 +562,12 @@
       "processingTimeNote": "Invitations issued through periodic Skills Immigration registration draws.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": 4,
         "minEducation": null,
         "minTotalWorkExperienceYears": 2,
@@ -347,15 +578,35 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": true,
-        "occupationListRestricted": false,
-        "otherConditions": ["Hold the minimum education credential required for your occupation."]
+        "otherConditions": [
+          "Hold the minimum education credential required for your occupation."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Secure a B.C. job offer", "detail": "Obtain a full-time, indeterminate job offer from an eligible B.C. employer in TEER 0–3." },
-        { "step": 2, "title": "Register with BC PNP", "detail": "Submit a Skills Immigration registration and score on the SIRS grid." },
-        { "step": 3, "title": "Invitation + nomination", "detail": "Receive an ITA, apply, and receive provincial nomination." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination (paper-based)." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure a B.C. job offer",
+          "detail": "Obtain a full-time, indeterminate job offer from an eligible B.C. employer in TEER 0–3."
+        },
+        {
+          "step": 2,
+          "title": "Register with BC PNP",
+          "detail": "Submit a Skills Immigration registration and score on the SIRS grid."
+        },
+        {
+          "step": 3,
+          "title": "Invitation + nomination",
+          "detail": "Receive an ITA, apply, and receive provincial nomination."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination (paper-based)."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "bc-health",
@@ -363,7 +614,9 @@
       "programName": "BC PNP",
       "streamName": "Health Authority",
       "category": "base",
-      "occupationFocus": ["health"],
+      "occupationFocus": [
+        "health"
+      ],
       "status": "open",
       "sourceUrl": "https://www.welcomebc.ca/immigrate-to-b-c/skills-immigration",
       "lastVerified": "2026-06-22",
@@ -382,15 +635,37 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": true,
-        "otherConditions": ["Job offer must be from a B.C. health authority employer in a Health Authority-eligible occupation."]
+        "otherConditions": [
+          "Job offer must be from a B.C. health authority employer in a Health Authority-eligible occupation."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Secure a health authority offer", "detail": "Obtain a full-time, indeterminate offer from a B.C. health authority in an eligible occupation." },
-        { "step": 2, "title": "Register and apply", "detail": "Submit a BC PNP registration; eligible health occupations are prioritised." },
-        { "step": 3, "title": "Nomination", "detail": "Receive provincial nomination." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure a health authority offer",
+          "detail": "Obtain a full-time, indeterminate offer from a B.C. health authority in an eligible occupation."
+        },
+        {
+          "step": 2,
+          "title": "Register and apply",
+          "detail": "Submit a BC PNP registration; eligible health occupations are prioritised."
+        },
+        {
+          "step": 3,
+          "title": "Nomination",
+          "detail": "Receive provincial nomination."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unknown",
+        "note": "Stream restricts eligibility to a province-published occupation list not yet encoded; confirm the applicant's NOC against the current list on the provincial source.",
+        "source": "https://www.welcomebc.ca/immigrate-to-b-c/skills-immigration"
+      }
     },
     {
       "id": "ab-ee",
@@ -405,7 +680,12 @@
       "processingTimeNote": "AAIP selects candidates from the IRCC Express Entry pool in periodic, sometimes sector-targeted draws.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": null,
         "minTotalWorkExperienceYears": null,
@@ -416,15 +696,37 @@
         "jobOfferRequired": "optional",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": false,
-        "otherConditions": ["Maintain an active IRCC Express Entry profile; AAIP issues a Notification of Interest to selected candidates."]
+        "otherConditions": [
+          "Maintain an active IRCC Express Entry profile; AAIP issues a Notification of Interest to selected candidates."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Enter the Express Entry pool", "detail": "Create an IRCC Express Entry profile eligible under a federal program." },
-        { "step": 2, "title": "Receive a Notification of Interest", "detail": "AAIP searches the pool and issues a NOI to selected candidates (often sector- or connection-targeted)." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the AAIP application after the NOI." },
-        { "step": 4, "title": "Nomination + ITA", "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days." }
-      ]
+        {
+          "step": 1,
+          "title": "Enter the Express Entry pool",
+          "detail": "Create an IRCC Express Entry profile eligible under a federal program."
+        },
+        {
+          "step": 2,
+          "title": "Receive a Notification of Interest",
+          "detail": "AAIP searches the pool and issues a NOI to selected candidates (often sector- or connection-targeted)."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the AAIP application after the NOI."
+        },
+        {
+          "step": 4,
+          "title": "Nomination + ITA",
+          "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unknown",
+        "note": "Stream restricts eligibility to a province-published occupation list not yet encoded; confirm the applicant's NOC against the current list on the provincial source.",
+        "source": "https://www.alberta.ca/alberta-advantage-immigration-program"
+      }
     },
     {
       "id": "ab-aos",
@@ -450,15 +752,37 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": true,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": false,
-        "otherConditions": ["Be working in Alberta on a valid work permit with a qualifying Alberta job offer."]
+        "otherConditions": [
+          "Be working in Alberta on a valid work permit with a qualifying Alberta job offer."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Work in Alberta", "detail": "Hold a qualifying Alberta job offer and work permit in an eligible occupation." },
-        { "step": 2, "title": "Submit application", "detail": "Apply directly to the Alberta Opportunity Stream once eligibility criteria are met." },
-        { "step": 3, "title": "Nomination", "detail": "Receive provincial nomination." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination (paper-based)." }
-      ]
+        {
+          "step": 1,
+          "title": "Work in Alberta",
+          "detail": "Hold a qualifying Alberta job offer and work permit in an eligible occupation."
+        },
+        {
+          "step": 2,
+          "title": "Submit application",
+          "detail": "Apply directly to the Alberta Opportunity Stream once eligibility criteria are met."
+        },
+        {
+          "step": 3,
+          "title": "Nomination",
+          "detail": "Receive provincial nomination."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination (paper-based)."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unknown",
+        "note": "Stream restricts eligibility to a province-published occupation list not yet encoded; confirm the applicant's NOC against the current list on the provincial source.",
+        "source": "https://www.alberta.ca/alberta-advantage-immigration-program"
+      }
     },
     {
       "id": "ab-rural",
@@ -484,15 +808,35 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": true,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": false,
-        "otherConditions": ["Obtain a Community Recommendation Letter from a designated rural Alberta community plus a qualifying job offer there."]
+        "otherConditions": [
+          "Obtain a Community Recommendation Letter from a designated rural Alberta community plus a qualifying job offer there."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Find a participating community", "detail": "Secure a job offer in a designated rural Alberta community and obtain a community recommendation." },
-        { "step": 2, "title": "Submit application", "detail": "Apply to the Rural Renewal Stream with the recommendation letter." },
-        { "step": 3, "title": "Nomination", "detail": "Receive provincial nomination." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Find a participating community",
+          "detail": "Secure a job offer in a designated rural Alberta community and obtain a community recommendation."
+        },
+        {
+          "step": 2,
+          "title": "Submit application",
+          "detail": "Apply to the Rural Renewal Stream with the recommendation letter."
+        },
+        {
+          "step": 3,
+          "title": "Nomination",
+          "detail": "Receive provincial nomination."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "ab-tourism",
@@ -500,7 +844,9 @@
       "programName": "AAIP",
       "streamName": "Tourism and Hospitality Stream",
       "category": "base",
-      "occupationFocus": ["tourism"],
+      "occupationFocus": [
+        "tourism"
+      ],
       "status": "open",
       "sourceUrl": "https://www.alberta.ca/alberta-advantage-immigration-program",
       "lastVerified": "2026-06-22",
@@ -519,15 +865,37 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": true,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": true,
-        "otherConditions": ["Hold a full-time job offer with an approved Alberta tourism and hospitality employer in an eligible occupation."]
+        "otherConditions": [
+          "Hold a full-time job offer with an approved Alberta tourism and hospitality employer in an eligible occupation."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Work in tourism/hospitality", "detail": "Hold a qualifying job offer with an approved Alberta tourism and hospitality employer." },
-        { "step": 2, "title": "Submit application", "detail": "Apply to the Tourism and Hospitality Stream." },
-        { "step": 3, "title": "Nomination", "detail": "Receive provincial nomination." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Work in tourism/hospitality",
+          "detail": "Hold a qualifying job offer with an approved Alberta tourism and hospitality employer."
+        },
+        {
+          "step": 2,
+          "title": "Submit application",
+          "detail": "Apply to the Tourism and Hospitality Stream."
+        },
+        {
+          "step": 3,
+          "title": "Nomination",
+          "detail": "Receive provincial nomination."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unknown",
+        "note": "Stream restricts eligibility to a province-published occupation list not yet encoded; confirm the applicant's NOC against the current list on the provincial source.",
+        "source": "https://www.alberta.ca/alberta-advantage-immigration-program"
+      }
     },
     {
       "id": "sk-isw-ee",
@@ -542,7 +910,12 @@
       "processingTimeNote": "EOI pool ranked on a points grid; periodic draws. Requires an active IRCC Express Entry profile.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": 7,
         "minEducation": "one_year_post_secondary",
         "minTotalWorkExperienceYears": 1,
@@ -553,16 +926,38 @@
         "jobOfferRequired": "not-required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": true,
-        "occupationListRestricted": true,
-        "sinpPointsSubcategory": true,
-        "otherConditions": ["Maintain an active IRCC Express Entry profile.", "Score the minimum on the SINP points grid; occupation must be in an eligible (in-demand) category."]
+        "otherConditions": [
+          "Maintain an active IRCC Express Entry profile.",
+          "Score the minimum on the SINP points grid; occupation must be in an eligible (in-demand) category."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Enter the Express Entry pool", "detail": "Create an IRCC Express Entry profile and submit a SINP Expression of Interest." },
-        { "step": 2, "title": "Receive an invitation", "detail": "Be ranked in the EOI pool and invited in a SINP Express Entry draw." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the SINP application with supporting documents." },
-        { "step": 4, "title": "Nomination + ITA", "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days." }
-      ]
+        {
+          "step": 1,
+          "title": "Enter the Express Entry pool",
+          "detail": "Create an IRCC Express Entry profile and submit a SINP Expression of Interest."
+        },
+        {
+          "step": 2,
+          "title": "Receive an invitation",
+          "detail": "Be ranked in the EOI pool and invited in a SINP Express Entry draw."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the SINP application with supporting documents."
+        },
+        {
+          "step": 4,
+          "title": "Nomination + ITA",
+          "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "sinp-excluded",
+        "source": "https://www.saskatchewan.ca/residents/moving-to-saskatchewan/live-in-saskatchewan/by-immigrating/saskatchewan-immigrant-nominee-program",
+        "lastVerified": "2026-06-22"
+      }
     },
     {
       "id": "sk-isw-oid",
@@ -577,7 +972,12 @@
       "processingTimeNote": "EOI pool ranked on a points grid; periodic draws. No job offer and no Express Entry profile required.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": 4,
         "minEducation": "one_year_post_secondary",
         "minTotalWorkExperienceYears": 1,
@@ -588,16 +988,37 @@
         "jobOfferRequired": "not-required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": true,
-        "occupationListRestricted": true,
-        "sinpPointsSubcategory": true,
-        "otherConditions": ["Score the minimum on the SINP points grid; occupation must be on the in-demand list at the time of application."]
+        "otherConditions": [
+          "Score the minimum on the SINP points grid; occupation must be on the in-demand list at the time of application."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Submit an Expression of Interest", "detail": "Create a SINP EOI profile; no job offer is required." },
-        { "step": 2, "title": "Receive an invitation", "detail": "Be ranked and invited in an Occupations In-Demand draw." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the SINP application." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination (paper-based)." }
-      ]
+        {
+          "step": 1,
+          "title": "Submit an Expression of Interest",
+          "detail": "Create a SINP EOI profile; no job offer is required."
+        },
+        {
+          "step": 2,
+          "title": "Receive an invitation",
+          "detail": "Be ranked and invited in an Occupations In-Demand draw."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the SINP application."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination (paper-based)."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "sinp-excluded",
+        "source": "https://www.saskatchewan.ca/residents/moving-to-saskatchewan/live-in-saskatchewan/by-immigrating/saskatchewan-immigrant-nominee-program",
+        "lastVerified": "2026-06-22"
+      }
     },
     {
       "id": "sk-isw-offer",
@@ -612,7 +1033,12 @@
       "processingTimeNote": "Requires a Saskatchewan job offer; EOI-based.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": 4,
         "minEducation": "one_year_post_secondary",
         "minTotalWorkExperienceYears": 1,
@@ -622,15 +1048,33 @@
         "ecaRequired": true,
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
-        "eoiRegistrationRequired": true,
-        "occupationListRestricted": false
+        "eoiRegistrationRequired": true
       },
       "roadmap": [
-        { "step": 1, "title": "Secure a Saskatchewan job offer", "detail": "Obtain a qualifying job offer from a Saskatchewan employer in TEER 0–3." },
-        { "step": 2, "title": "Submit an Expression of Interest", "detail": "Create a SINP EOI profile referencing the job offer." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the SINP application after invitation." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure a Saskatchewan job offer",
+          "detail": "Obtain a qualifying job offer from a Saskatchewan employer in TEER 0–3."
+        },
+        {
+          "step": 2,
+          "title": "Submit an Expression of Interest",
+          "detail": "Create a SINP EOI profile referencing the job offer."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the SINP application after invitation."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "sk-exp-sw",
@@ -645,7 +1089,12 @@
       "processingTimeNote": "For workers already employed in Saskatchewan on a valid work permit.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": 4,
         "minEducation": null,
         "minTotalWorkExperienceYears": null,
@@ -656,15 +1105,35 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": true,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": false,
-        "otherConditions": ["Be currently working in Saskatchewan for the eligible employer on a valid work permit."]
+        "otherConditions": [
+          "Be currently working in Saskatchewan for the eligible employer on a valid work permit."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Work in Saskatchewan", "detail": "Hold an eligible Saskatchewan job and work permit for the required period." },
-        { "step": 2, "title": "Apply for nomination", "detail": "Submit the Saskatchewan Experience application with your job offer." },
-        { "step": 3, "title": "Nomination", "detail": "Receive provincial nomination." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Work in Saskatchewan",
+          "detail": "Hold an eligible Saskatchewan job and work permit for the required period."
+        },
+        {
+          "step": 2,
+          "title": "Apply for nomination",
+          "detail": "Submit the Saskatchewan Experience application with your job offer."
+        },
+        {
+          "step": 3,
+          "title": "Nomination",
+          "detail": "Receive provincial nomination."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "sk-tech",
@@ -672,7 +1141,9 @@
       "programName": "SINP",
       "streamName": "Tech Talent Pathway",
       "category": "base",
-      "occupationFocus": ["tech"],
+      "occupationFocus": [
+        "tech"
+      ],
       "status": "open",
       "sourceUrl": "https://www.saskatchewan.ca/residents/moving-to-saskatchewan/live-in-saskatchewan/by-immigrating/saskatchewan-immigrant-nominee-program",
       "lastVerified": "2026-06-22",
@@ -680,7 +1151,12 @@
       "processingTimeNote": "Sector pathway for tech workers with a Saskatchewan job offer.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": 6,
         "minEducation": null,
         "minTotalWorkExperienceYears": null,
@@ -691,15 +1167,37 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": true,
-        "otherConditions": ["Job offer must be in an eligible Saskatchewan tech occupation."]
+        "otherConditions": [
+          "Job offer must be in an eligible Saskatchewan tech occupation."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Secure a tech job offer", "detail": "Obtain a qualifying job offer in an eligible Saskatchewan tech occupation." },
-        { "step": 2, "title": "Apply for nomination", "detail": "Submit the Tech Talent Pathway application." },
-        { "step": 3, "title": "Nomination", "detail": "Receive provincial nomination." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure a tech job offer",
+          "detail": "Obtain a qualifying job offer in an eligible Saskatchewan tech occupation."
+        },
+        {
+          "step": 2,
+          "title": "Apply for nomination",
+          "detail": "Submit the Tech Talent Pathway application."
+        },
+        {
+          "step": 3,
+          "title": "Nomination",
+          "detail": "Receive provincial nomination."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unknown",
+        "note": "Stream restricts eligibility to a province-published occupation list not yet encoded; confirm the applicant's NOC against the current list on the provincial source.",
+        "source": "https://www.saskatchewan.ca/residents/moving-to-saskatchewan/live-in-saskatchewan/by-immigrating/saskatchewan-immigrant-nominee-program"
+      }
     },
     {
       "id": "mb-swm",
@@ -725,15 +1223,35 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": true,
         "eoiRegistrationRequired": true,
-        "occupationListRestricted": false,
-        "otherConditions": ["Have an established connection to Manitoba (ongoing employment, family, prior study/work, or community support)."]
+        "otherConditions": [
+          "Have an established connection to Manitoba (ongoing employment, family, prior study/work, or community support)."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Establish a Manitoba connection", "detail": "Hold a Manitoba job offer or qualifying connection to the province." },
-        { "step": 2, "title": "Submit an Expression of Interest", "detail": "Create an MPNP EOI profile and be ranked." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the MPNP application after a Letter of Advice to Apply." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Establish a Manitoba connection",
+          "detail": "Hold a Manitoba job offer or qualifying connection to the province."
+        },
+        {
+          "step": 2,
+          "title": "Submit an Expression of Interest",
+          "detail": "Create an MPNP EOI profile and be ranked."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the MPNP application after a Letter of Advice to Apply."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "mb-ies",
@@ -759,15 +1277,35 @@
         "jobOfferRequired": "optional",
         "provincialConnectionRequired": true,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": false,
-        "otherConditions": ["Have completed an eligible program of study at a Manitoba institution."]
+        "otherConditions": [
+          "Have completed an eligible program of study at a Manitoba institution."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Graduate in Manitoba", "detail": "Complete an eligible Manitoba post-secondary program." },
-        { "step": 2, "title": "Apply via the relevant pathway", "detail": "Apply under the International Education Stream pathway that fits your situation (e.g. graduate internship, career employment)." },
-        { "step": 3, "title": "Nomination", "detail": "Receive provincial nomination." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Graduate in Manitoba",
+          "detail": "Complete an eligible Manitoba post-secondary program."
+        },
+        {
+          "step": 2,
+          "title": "Apply via the relevant pathway",
+          "detail": "Apply under the International Education Stream pathway that fits your situation (e.g. graduate internship, career employment)."
+        },
+        {
+          "step": 3,
+          "title": "Nomination",
+          "detail": "Receive provincial nomination."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "ns-exp-ee",
@@ -782,7 +1320,12 @@
       "processingTimeNote": "For workers with Nova Scotia experience; requires an active IRCC Express Entry profile.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": null,
         "minTotalWorkExperienceYears": 1,
@@ -793,15 +1336,36 @@
         "jobOfferRequired": "not-required",
         "provincialConnectionRequired": true,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": false,
-        "otherConditions": ["Maintain an active IRCC Express Entry profile.", "Hold at least one year of recent Nova Scotia work experience."]
+        "otherConditions": [
+          "Maintain an active IRCC Express Entry profile.",
+          "Hold at least one year of recent Nova Scotia work experience."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Gain Nova Scotia experience", "detail": "Accumulate the required Nova Scotia work experience and enter the Express Entry pool." },
-        { "step": 2, "title": "Receive selection", "detail": "Be selected by the Nova Scotia Experience: Express Entry stream." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the NSNP application." },
-        { "step": 4, "title": "Nomination + ITA", "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days." }
-      ]
+        {
+          "step": 1,
+          "title": "Gain Nova Scotia experience",
+          "detail": "Accumulate the required Nova Scotia work experience and enter the Express Entry pool."
+        },
+        {
+          "step": 2,
+          "title": "Receive selection",
+          "detail": "Be selected by the Nova Scotia Experience: Express Entry stream."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the NSNP application."
+        },
+        {
+          "step": 4,
+          "title": "Nomination + ITA",
+          "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "ns-lmp",
@@ -816,7 +1380,12 @@
       "processingTimeNote": "Targeted selection from the Express Entry pool via periodic Letters of Interest.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": null,
         "minTotalWorkExperienceYears": null,
@@ -827,15 +1396,38 @@
         "jobOfferRequired": "not-required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": true,
-        "otherConditions": ["Maintain an active IRCC Express Entry profile.", "Match the specific occupation/profile targeted by a current Labour Market Priorities draw."]
+        "otherConditions": [
+          "Maintain an active IRCC Express Entry profile.",
+          "Match the specific occupation/profile targeted by a current Labour Market Priorities draw."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Enter the Express Entry pool", "detail": "Create an IRCC Express Entry profile." },
-        { "step": 2, "title": "Receive a Letter of Interest", "detail": "Be issued a Letter of Interest when your profile matches a targeted NSNP draw." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the NSNP application by the deadline." },
-        { "step": 4, "title": "Nomination + ITA", "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days." }
-      ]
+        {
+          "step": 1,
+          "title": "Enter the Express Entry pool",
+          "detail": "Create an IRCC Express Entry profile."
+        },
+        {
+          "step": 2,
+          "title": "Receive a Letter of Interest",
+          "detail": "Be issued a Letter of Interest when your profile matches a targeted NSNP draw."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the NSNP application by the deadline."
+        },
+        {
+          "step": 4,
+          "title": "Nomination + ITA",
+          "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unknown",
+        "note": "Stream restricts eligibility to a province-published occupation list not yet encoded; confirm the applicant's NOC against the current list on the provincial source.",
+        "source": "https://liveinnovascotia.com/"
+      }
     },
     {
       "id": "ns-sw",
@@ -850,7 +1442,12 @@
       "processingTimeNote": "Requires a Nova Scotia employer job offer.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": null,
         "minTotalWorkExperienceYears": null,
@@ -860,15 +1457,33 @@
         "ecaRequired": false,
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
-        "eoiRegistrationRequired": false,
-        "occupationListRestricted": false
+        "eoiRegistrationRequired": false
       },
       "roadmap": [
-        { "step": 1, "title": "Secure a Nova Scotia job offer", "detail": "Obtain a full-time, permanent job offer from a Nova Scotia employer." },
-        { "step": 2, "title": "Apply for nomination", "detail": "Submit the NSNP Skilled Worker application with employer support." },
-        { "step": 3, "title": "Nomination", "detail": "Receive provincial nomination." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure a Nova Scotia job offer",
+          "detail": "Obtain a full-time, permanent job offer from a Nova Scotia employer."
+        },
+        {
+          "step": 2,
+          "title": "Apply for nomination",
+          "detail": "Submit the NSNP Skilled Worker application with employer support."
+        },
+        {
+          "step": 3,
+          "title": "Nomination",
+          "detail": "Receive provincial nomination."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "ns-oid",
@@ -894,15 +1509,37 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": true,
-        "otherConditions": ["Job offer must be in a currently selected in-demand occupation."]
+        "otherConditions": [
+          "Job offer must be in a currently selected in-demand occupation."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Secure an in-demand job offer", "detail": "Obtain a qualifying Nova Scotia job offer in a selected in-demand occupation." },
-        { "step": 2, "title": "Apply for nomination", "detail": "Submit the Occupations In Demand application." },
-        { "step": 3, "title": "Nomination", "detail": "Receive provincial nomination." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure an in-demand job offer",
+          "detail": "Obtain a qualifying Nova Scotia job offer in a selected in-demand occupation."
+        },
+        {
+          "step": 2,
+          "title": "Apply for nomination",
+          "detail": "Submit the Occupations In Demand application."
+        },
+        {
+          "step": 3,
+          "title": "Nomination",
+          "detail": "Receive provincial nomination."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unknown",
+        "note": "Stream restricts eligibility to a province-published occupation list not yet encoded; confirm the applicant's NOC against the current list on the provincial source.",
+        "source": "https://liveinnovascotia.com/"
+      }
     },
     {
       "id": "ns-ccw",
@@ -910,7 +1547,9 @@
       "programName": "NSNP",
       "streamName": "Critical Construction Worker",
       "category": "base",
-      "occupationFocus": ["construction"],
+      "occupationFocus": [
+        "construction"
+      ],
       "status": "open",
       "sourceUrl": "https://liveinnovascotia.com/",
       "lastVerified": "2026-06-22",
@@ -929,15 +1568,37 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": true,
-        "otherConditions": ["Job offer must be in an eligible construction occupation."]
+        "otherConditions": [
+          "Job offer must be in an eligible construction occupation."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Secure a construction job offer", "detail": "Obtain a qualifying Nova Scotia job offer in an eligible construction occupation." },
-        { "step": 2, "title": "Apply for nomination", "detail": "Submit the Critical Construction Worker application." },
-        { "step": 3, "title": "Nomination", "detail": "Receive provincial nomination." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure a construction job offer",
+          "detail": "Obtain a qualifying Nova Scotia job offer in an eligible construction occupation."
+        },
+        {
+          "step": 2,
+          "title": "Apply for nomination",
+          "detail": "Submit the Critical Construction Worker application."
+        },
+        {
+          "step": 3,
+          "title": "Nomination",
+          "detail": "Receive provincial nomination."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unknown",
+        "note": "Stream restricts eligibility to a province-published occupation list not yet encoded; confirm the applicant's NOC against the current list on the provincial source.",
+        "source": "https://liveinnovascotia.com/"
+      }
     },
     {
       "id": "nb-ee",
@@ -952,7 +1613,12 @@
       "processingTimeNote": "Express Entry-aligned NB stream; selection via Information Sessions / Expressions of Interest. Verify current intake on the NB site.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": null,
         "minTotalWorkExperienceYears": null,
@@ -963,15 +1629,36 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": true,
         "eoiRegistrationRequired": true,
-        "occupationListRestricted": false,
-        "otherConditions": ["Maintain an active IRCC Express Entry profile.", "Hold a connection to New Brunswick (typically a job offer from an NB employer)."]
+        "otherConditions": [
+          "Maintain an active IRCC Express Entry profile.",
+          "Hold a connection to New Brunswick (typically a job offer from an NB employer)."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Enter the Express Entry pool", "detail": "Create an IRCC Express Entry profile and connect with New Brunswick (e.g. a job offer)." },
-        { "step": 2, "title": "Register interest with NB", "detail": "Submit an Expression of Interest / attend an NB information session as required." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the NB application after invitation." },
-        { "step": 4, "title": "Nomination + ITA", "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days." }
-      ]
+        {
+          "step": 1,
+          "title": "Enter the Express Entry pool",
+          "detail": "Create an IRCC Express Entry profile and connect with New Brunswick (e.g. a job offer)."
+        },
+        {
+          "step": 2,
+          "title": "Register interest with NB",
+          "detail": "Submit an Expression of Interest / attend an NB information session as required."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the NB application after invitation."
+        },
+        {
+          "step": 4,
+          "title": "Nomination + ITA",
+          "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "nb-sw",
@@ -986,7 +1673,12 @@
       "processingTimeNote": "Requires a New Brunswick employer job offer. Verify current intake on the NB site.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": null,
         "minTotalWorkExperienceYears": null,
@@ -996,15 +1688,33 @@
         "ecaRequired": false,
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
-        "eoiRegistrationRequired": true,
-        "occupationListRestricted": false
+        "eoiRegistrationRequired": true
       },
       "roadmap": [
-        { "step": 1, "title": "Secure an NB job offer", "detail": "Obtain a full-time, permanent job offer from a New Brunswick employer." },
-        { "step": 2, "title": "Register an Expression of Interest", "detail": "Submit an NB EOI referencing the job offer." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the NB Skilled Worker application after invitation." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure an NB job offer",
+          "detail": "Obtain a full-time, permanent job offer from a New Brunswick employer."
+        },
+        {
+          "step": 2,
+          "title": "Register an Expression of Interest",
+          "detail": "Submit an NB EOI referencing the job offer."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the NB Skilled Worker application after invitation."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "nb-strategic",
@@ -1019,7 +1729,12 @@
       "processingTimeNote": "For French-speaking workers with a connection to New Brunswick. Verify current intake on the NB site.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": null,
         "minTotalWorkExperienceYears": null,
@@ -1030,15 +1745,35 @@
         "jobOfferRequired": "optional",
         "provincialConnectionRequired": true,
         "eoiRegistrationRequired": true,
-        "occupationListRestricted": false,
-        "otherConditions": ["Demonstrate French language ability and a genuine connection/intention to settle in New Brunswick."]
+        "otherConditions": [
+          "Demonstrate French language ability and a genuine connection/intention to settle in New Brunswick."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Demonstrate French ability", "detail": "Establish qualifying French language proficiency and a connection to New Brunswick." },
-        { "step": 2, "title": "Register an Expression of Interest", "detail": "Submit an NB EOI under the Strategic Initiative." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the application after invitation." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Demonstrate French ability",
+          "detail": "Establish qualifying French language proficiency and a connection to New Brunswick."
+        },
+        {
+          "step": 2,
+          "title": "Register an Expression of Interest",
+          "detail": "Submit an NB EOI under the Strategic Initiative."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the application after invitation."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "nb-aip",
@@ -1064,14 +1799,30 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": false,
-        "otherConditions": ["Job offer must come from a designated Atlantic employer with a settlement plan endorsement."]
+        "otherConditions": [
+          "Job offer must come from a designated Atlantic employer with a settlement plan endorsement."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Secure a designated-employer offer", "detail": "Obtain a job offer from a designated Atlantic employer (NB, NS, PEI or NL)." },
-        { "step": 2, "title": "Get a Provincial Endorsement", "detail": "The employer secures a provincial endorsement and a settlement plan is prepared." },
-        { "step": 3, "title": "Apply for PR", "detail": "Apply directly to IRCC for permanent residence under the AIP (no separate nomination required)." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure a designated-employer offer",
+          "detail": "Obtain a job offer from a designated Atlantic employer (NB, NS, PEI or NL)."
+        },
+        {
+          "step": 2,
+          "title": "Get a Provincial Endorsement",
+          "detail": "The employer secures a provincial endorsement and a settlement plan is prepared."
+        },
+        {
+          "step": 3,
+          "title": "Apply for PR",
+          "detail": "Apply directly to IRCC for permanent residence under the AIP (no separate nomination required)."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "pe-ee",
@@ -1086,7 +1837,12 @@
       "processingTimeNote": "PEI selects Express Entry candidates from its EOI pool in periodic draws.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": null,
         "minTotalWorkExperienceYears": null,
@@ -1097,15 +1853,35 @@
         "jobOfferRequired": "not-required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": true,
-        "occupationListRestricted": false,
-        "otherConditions": ["Maintain an active IRCC Express Entry profile and submit a PEI Expression of Interest."]
+        "otherConditions": [
+          "Maintain an active IRCC Express Entry profile and submit a PEI Expression of Interest."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Enter the Express Entry pool", "detail": "Create an IRCC Express Entry profile and submit a PEI Expression of Interest." },
-        { "step": 2, "title": "Receive an invitation", "detail": "Be selected in a periodic PEI EOI draw." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the PEI application after invitation." },
-        { "step": 4, "title": "Nomination + ITA", "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days." }
-      ]
+        {
+          "step": 1,
+          "title": "Enter the Express Entry pool",
+          "detail": "Create an IRCC Express Entry profile and submit a PEI Expression of Interest."
+        },
+        {
+          "step": 2,
+          "title": "Receive an invitation",
+          "detail": "Be selected in a periodic PEI EOI draw."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the PEI application after invitation."
+        },
+        {
+          "step": 4,
+          "title": "Nomination + ITA",
+          "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "pe-sw",
@@ -1120,7 +1896,12 @@
       "processingTimeNote": "For workers with a PEI job offer; EOI-based periodic draws.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": null,
         "minTotalWorkExperienceYears": null,
@@ -1131,15 +1912,35 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": true,
         "eoiRegistrationRequired": true,
-        "occupationListRestricted": false,
-        "otherConditions": ["Be working in PEI for the employer on a valid work permit."]
+        "otherConditions": [
+          "Be working in PEI for the employer on a valid work permit."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Work in PEI", "detail": "Hold a qualifying PEI job offer and work permit." },
-        { "step": 2, "title": "Submit an Expression of Interest", "detail": "Create a PEI EOI profile." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the application after invitation." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Work in PEI",
+          "detail": "Hold a qualifying PEI job offer and work permit."
+        },
+        {
+          "step": 2,
+          "title": "Submit an Expression of Interest",
+          "detail": "Create a PEI EOI profile."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the application after invitation."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "pe-sw-outside",
@@ -1154,7 +1955,12 @@
       "processingTimeNote": "For overseas workers with a PEI job offer; EOI-based periodic draws.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": null,
         "minTotalWorkExperienceYears": null,
@@ -1164,15 +1970,33 @@
         "ecaRequired": false,
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
-        "eoiRegistrationRequired": true,
-        "occupationListRestricted": false
+        "eoiRegistrationRequired": true
       },
       "roadmap": [
-        { "step": 1, "title": "Secure a PEI job offer", "detail": "Obtain a full-time, long-term job offer from a PEI employer." },
-        { "step": 2, "title": "Submit an Expression of Interest", "detail": "Create a PEI EOI profile referencing the job offer." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the application after invitation." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure a PEI job offer",
+          "detail": "Obtain a full-time, long-term job offer from a PEI employer."
+        },
+        {
+          "step": 2,
+          "title": "Submit an Expression of Interest",
+          "detail": "Create a PEI EOI profile referencing the job offer."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the application after invitation."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "pe-oid",
@@ -1198,15 +2022,37 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": true,
-        "occupationListRestricted": true,
-        "otherConditions": ["Job offer must be in a currently selected in-demand occupation."]
+        "otherConditions": [
+          "Job offer must be in a currently selected in-demand occupation."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Secure an in-demand job offer", "detail": "Obtain a qualifying PEI job offer in a selected in-demand occupation." },
-        { "step": 2, "title": "Submit an Expression of Interest", "detail": "Create a PEI EOI profile." },
-        { "step": 3, "title": "Apply for nomination", "detail": "Submit the application after invitation." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure an in-demand job offer",
+          "detail": "Obtain a qualifying PEI job offer in a selected in-demand occupation."
+        },
+        {
+          "step": 2,
+          "title": "Submit an Expression of Interest",
+          "detail": "Create a PEI EOI profile."
+        },
+        {
+          "step": 3,
+          "title": "Apply for nomination",
+          "detail": "Submit the application after invitation."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unknown",
+        "note": "Stream restricts eligibility to a province-published occupation list not yet encoded; confirm the applicant's NOC against the current list on the provincial source.",
+        "source": "https://www.princeedwardisland.ca/en/topic/immigrate-to-pei-as-a-worker"
+      }
     },
     {
       "id": "nl-ee-sw",
@@ -1221,7 +2067,12 @@
       "processingTimeNote": "Express Entry-aligned NL stream; typically requires an NL job offer plus an active Express Entry profile.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": null,
         "minTotalWorkExperienceYears": null,
@@ -1232,14 +2083,30 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": false,
-        "otherConditions": ["Maintain an active IRCC Express Entry profile."]
+        "otherConditions": [
+          "Maintain an active IRCC Express Entry profile."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Secure an NL job offer", "detail": "Obtain a qualifying Newfoundland and Labrador job offer and enter the Express Entry pool." },
-        { "step": 2, "title": "Apply for nomination", "detail": "Submit the NLPNP Express Entry Skilled Worker application." },
-        { "step": 3, "title": "Nomination + ITA", "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure an NL job offer",
+          "detail": "Obtain a qualifying Newfoundland and Labrador job offer and enter the Express Entry pool."
+        },
+        {
+          "step": 2,
+          "title": "Apply for nomination",
+          "detail": "Submit the NLPNP Express Entry Skilled Worker application."
+        },
+        {
+          "step": 3,
+          "title": "Nomination + ITA",
+          "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "nl-sw",
@@ -1254,7 +2121,12 @@
       "processingTimeNote": "Requires a Newfoundland and Labrador employer job offer.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": null,
         "minTotalWorkExperienceYears": null,
@@ -1264,15 +2136,33 @@
         "ecaRequired": false,
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
-        "eoiRegistrationRequired": false,
-        "occupationListRestricted": false
+        "eoiRegistrationRequired": false
       },
       "roadmap": [
-        { "step": 1, "title": "Secure an NL job offer", "detail": "Obtain a full-time job offer from a Newfoundland and Labrador employer." },
-        { "step": 2, "title": "Apply for nomination", "detail": "Submit the NLPNP Skilled Worker application with employer support." },
-        { "step": 3, "title": "Nomination", "detail": "Receive provincial nomination." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure an NL job offer",
+          "detail": "Obtain a full-time job offer from a Newfoundland and Labrador employer."
+        },
+        {
+          "step": 2,
+          "title": "Apply for nomination",
+          "detail": "Submit the NLPNP Skilled Worker application with employer support."
+        },
+        {
+          "step": 3,
+          "title": "Nomination",
+          "detail": "Receive provincial nomination."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "nl-intl-grad",
@@ -1298,15 +2188,35 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": true,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": false,
-        "otherConditions": ["Have graduated from a recognised post-secondary institution (Canadian study typically required)."]
+        "otherConditions": [
+          "Have graduated from a recognised post-secondary institution (Canadian study typically required)."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Graduate and secure an offer", "detail": "Complete an eligible credential and obtain an NL job offer related to your field." },
-        { "step": 2, "title": "Apply for nomination", "detail": "Submit the NLPNP International Graduate application." },
-        { "step": 3, "title": "Nomination", "detail": "Receive provincial nomination." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Graduate and secure an offer",
+          "detail": "Complete an eligible credential and obtain an NL job offer related to your field."
+        },
+        {
+          "step": 2,
+          "title": "Apply for nomination",
+          "detail": "Submit the NLPNP International Graduate application."
+        },
+        {
+          "step": 3,
+          "title": "Nomination",
+          "detail": "Receive provincial nomination."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "yt-ee",
@@ -1321,7 +2231,12 @@
       "processingTimeNote": "Employer-driven; requires a full-time, year-round Yukon job offer plus an active IRCC Express Entry profile meeting IRCC language benchmarks.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": "secondary",
         "minTotalWorkExperienceYears": 1,
@@ -1332,14 +2247,31 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": false,
-        "otherConditions": ["Maintain an active IRCC Express Entry profile meeting IRCC language benchmarks.", "Hold a full-time, year-round job offer from an eligible Yukon employer."]
+        "otherConditions": [
+          "Maintain an active IRCC Express Entry profile meeting IRCC language benchmarks.",
+          "Hold a full-time, year-round job offer from an eligible Yukon employer."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Secure a Yukon job offer", "detail": "Obtain a full-time, year-round job offer from an eligible Yukon employer in TEER 0–3." },
-        { "step": 2, "title": "Employer nomination + EE", "detail": "The employer applies; you hold a valid Express Entry profile meeting IRCC benchmarks." },
-        { "step": 3, "title": "Nomination + ITA", "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure a Yukon job offer",
+          "detail": "Obtain a full-time, year-round job offer from an eligible Yukon employer in TEER 0–3."
+        },
+        {
+          "step": 2,
+          "title": "Employer nomination + EE",
+          "detail": "The employer applies; you hold a valid Express Entry profile meeting IRCC benchmarks."
+        },
+        {
+          "step": 3,
+          "title": "Nomination + ITA",
+          "detail": "Nomination adds 600 CRS; update EE and submit the e-APR within 60 days."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "yt-sw",
@@ -1354,7 +2286,12 @@
       "processingTimeNote": "Employer-driven base stream for TEER 0–3 occupations with a full-time, year-round Yukon job offer.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": 5,
         "minEducation": "secondary",
         "minTotalWorkExperienceYears": 1,
@@ -1365,15 +2302,36 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": false,
-        "otherConditions": ["TEER 0/1 occupations require CLB 6; TEER 2/3 require CLB 5.", "Hold a full-time, year-round job offer from an eligible Yukon employer."]
+        "otherConditions": [
+          "TEER 0/1 occupations require CLB 6; TEER 2/3 require CLB 5.",
+          "Hold a full-time, year-round job offer from an eligible Yukon employer."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Secure a Yukon job offer", "detail": "Obtain a full-time, year-round job offer in a TEER 0–3 occupation from an eligible Yukon employer." },
-        { "step": 2, "title": "Employer applies", "detail": "The Yukon employer submits the nomination application." },
-        { "step": 3, "title": "Nomination", "detail": "Receive provincial nomination." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure a Yukon job offer",
+          "detail": "Obtain a full-time, year-round job offer in a TEER 0–3 occupation from an eligible Yukon employer."
+        },
+        {
+          "step": 2,
+          "title": "Employer applies",
+          "detail": "The Yukon employer submits the nomination application."
+        },
+        {
+          "step": 3,
+          "title": "Nomination",
+          "detail": "Receive provincial nomination."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "yt-ciw",
@@ -1388,7 +2346,10 @@
       "processingTimeNote": "Employer-driven base stream for TEER 4–5 occupations with a full-time, year-round Yukon job offer.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [4, 5],
+        "allowedTeers": [
+          4,
+          5
+        ],
         "minClbOverall": 4,
         "minEducation": "secondary",
         "minTotalWorkExperienceYears": 1,
@@ -1399,15 +2360,36 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": false,
-        "otherConditions": ["At least 6 months relevant experience; CLB 4 minimum.", "Hold a full-time, year-round job offer from an eligible Yukon employer."]
+        "otherConditions": [
+          "At least 6 months relevant experience; CLB 4 minimum.",
+          "Hold a full-time, year-round job offer from an eligible Yukon employer."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Secure a Yukon job offer", "detail": "Obtain a full-time, year-round job offer in a TEER 4–5 occupation from an eligible Yukon employer." },
-        { "step": 2, "title": "Employer applies", "detail": "The Yukon employer submits the nomination application." },
-        { "step": 3, "title": "Nomination", "detail": "Receive provincial nomination." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Secure a Yukon job offer",
+          "detail": "Obtain a full-time, year-round job offer in a TEER 4–5 occupation from an eligible Yukon employer."
+        },
+        {
+          "step": 2,
+          "title": "Employer applies",
+          "detail": "The Yukon employer submits the nomination application."
+        },
+        {
+          "step": 3,
+          "title": "Nomination",
+          "detail": "Receive provincial nomination."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     },
     {
       "id": "nt-employer-driven",
@@ -1422,7 +2404,12 @@
       "processingTimeNote": "As of verification, NTNP had closed its 2025 intake after reaching its 300-nomination federal cap. Re-check the NTNP site for the next intake before relying on this stream.",
       "indicativeProcessingMonths": null,
       "criteria": {
-        "allowedTeers": [0, 1, 2, 3],
+        "allowedTeers": [
+          0,
+          1,
+          2,
+          3
+        ],
         "minClbOverall": null,
         "minEducation": null,
         "minTotalWorkExperienceYears": null,
@@ -1433,15 +2420,35 @@
         "jobOfferRequired": "required",
         "provincialConnectionRequired": false,
         "eoiRegistrationRequired": false,
-        "occupationListRestricted": false,
-        "otherConditions": ["Hold a full-time job offer from an eligible NWT employer."]
+        "otherConditions": [
+          "Hold a full-time job offer from an eligible NWT employer."
+        ]
       },
       "roadmap": [
-        { "step": 1, "title": "Confirm intake is open", "detail": "Check the NTNP site — 2025 intake was closed at the time of verification (300-nomination cap reached)." },
-        { "step": 2, "title": "Secure an NWT job offer", "detail": "Obtain a full-time job offer from an eligible NWT employer in a skilled occupation." },
-        { "step": 3, "title": "Employer-supported nomination", "detail": "The NWT employer supports the nomination application." },
-        { "step": 4, "title": "Apply for PR", "detail": "Apply to IRCC for permanent residence using the nomination." }
-      ]
+        {
+          "step": 1,
+          "title": "Confirm intake is open",
+          "detail": "Check the NTNP site — 2025 intake was closed at the time of verification (300-nomination cap reached)."
+        },
+        {
+          "step": 2,
+          "title": "Secure an NWT job offer",
+          "detail": "Obtain a full-time job offer from an eligible NWT employer in a skilled occupation."
+        },
+        {
+          "step": 3,
+          "title": "Employer-supported nomination",
+          "detail": "The NWT employer supports the nomination application."
+        },
+        {
+          "step": 4,
+          "title": "Apply for PR",
+          "detail": "Apply to IRCC for permanent residence using the nomination."
+        }
+      ],
+      "occupationEligibility": {
+        "mode": "unrestricted"
+      }
     }
   ]
 }

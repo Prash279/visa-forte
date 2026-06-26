@@ -53,7 +53,6 @@ const baseCriteria: PnpCriteria = {
   jobOfferRequired: 'not-required',
   provincialConnectionRequired: false,
   eoiRegistrationRequired: false,
-  occupationListRestricted: false,
 }
 
 let seq = 0
@@ -319,6 +318,36 @@ describe('pnp-streams.json — provenance & schema guard', () => {
     const ids = streams.map(s => s.id)
     expect(new Set(ids).size).toBe(ids.length)
   })
+
+  // Guardrail: a stream can no longer ASSERT an occupation restriction without proof.
+  // Every stream must declare occupationEligibility, and any restrictive mode must carry
+  // its list/rule plus a source — so the engine never silently scores an uncited restriction.
+  it('every stream declares a well-formed, sourced occupationEligibility', () => {
+    const MODES = ['unrestricted', 'teer-only', 'include-list', 'include-rule', 'exclude-list', 'sinp-excluded', 'employer-driven', 'unknown']
+    for (const s of streams) {
+      const e = s.occupationEligibility as { mode: string; [k: string]: unknown } | undefined
+      expect(e, `${s.id} occupationEligibility`).toBeTypeOf('object')
+      expect(MODES, `${s.id} mode`).toContain(e!.mode)
+      if (e!.mode === 'include-list' || e!.mode === 'exclude-list') {
+        expect(Array.isArray(e!.nocs) && (e!.nocs as string[]).length > 0, `${s.id} nocs`).toBe(true)
+        expect(e!.source, `${s.id} source`).toMatch(/^https?:\/\//)
+        expect(e!.lastVerified, `${s.id} lastVerified`).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      }
+      if (e!.mode === 'include-rule') {
+        expect(Array.isArray(e!.includeGroups) && (e!.includeGroups as string[]).length > 0, `${s.id} includeGroups`).toBe(true)
+        expect(e!.source, `${s.id} source`).toMatch(/^https?:\/\//)
+        expect(e!.lastVerified, `${s.id} lastVerified`).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      }
+      if (e!.mode === 'sinp-excluded' || e!.mode === 'employer-driven') {
+        expect(e!.source, `${s.id} source`).toMatch(/^https?:\/\//)
+        expect(e!.lastVerified, `${s.id} lastVerified`).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      }
+      if (e!.mode === 'unknown') {
+        expect(e!.source, `${s.id} source`).toMatch(/^https?:\/\//)
+        expect(typeof e!.note === 'string' && (e!.note as string).length > 0, `${s.id} note`).toBe(true)
+      }
+    }
+  })
 })
 
 // ── SINP Excluded Occupation List gate ───────────────────────────────────────
@@ -333,22 +362,24 @@ describe('assessPnp — SINP Excluded Occupation List gate', () => {
     return [...r.eeLinked, ...r.base, ...r.ineligible].find(m => m.stream.id === id)?.verdict
   }
 
-  it('marks a flagged SINP points stream ineligible for an excluded NOC', () => {
-    const stream = mkStream({ id: 'sk-pts', criteria: { sinpPointsSubcategory: true } })
+  const sinpElig = { mode: 'sinp-excluded', source: 'https://www.saskatchewan.ca/sinp', lastVerified: '2026-06-26' } as const
+
+  it('marks a SINP points stream ineligible for an excluded NOC', () => {
+    const stream = mkStream({ id: 'sk-pts', occupationEligibility: sinpElig })
     const r = assessPnp(strongProfile, excludedNoc(), [stream])
     expect(verdictFor(r, 'sk-pts')).toBe('ineligible')
     const m = r.ineligible.find(x => x.stream.id === 'sk-pts')
     expect(m?.unmetHardGates.some(g => /Excluded Occupation List/.test(g))).toBe(true)
   })
 
-  it('keeps a flagged stream eligible for a TEER 0-3 NOC that is not excluded', () => {
-    const stream = mkStream({ id: 'sk-pts2', criteria: { sinpPointsSubcategory: true } })
+  it('keeps a SINP points stream eligible for a TEER 0-3 NOC that is not excluded', () => {
+    const stream = mkStream({ id: 'sk-pts2', occupationEligibility: sinpElig })
     const r = assessPnp(strongProfile, mkNoc(1), [stream]) // 21211 — not on the list
     expect(verdictFor(r, 'sk-pts2')).not.toBe('ineligible')
   })
 
-  it('does not apply the exclusion to streams without the flag', () => {
-    const stream = mkStream({ id: 'sk-offer', criteria: {} })
+  it('does not apply the exclusion to streams without a SINP rule', () => {
+    const stream = mkStream({ id: 'sk-offer', occupationEligibility: { mode: 'unrestricted' } })
     const r = assessPnp(strongProfile, excludedNoc(), [stream])
     expect(verdictFor(r, 'sk-offer')).not.toBe('ineligible')
   })

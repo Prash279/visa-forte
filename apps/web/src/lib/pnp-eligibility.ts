@@ -11,7 +11,11 @@
 
 import { scoresToClb, type ApplicantProfile, type EducationLevel } from './crs-calculator'
 import { streamRelevance, type StreamRelevance } from './noc-focus'
-import { classifySinpPathway } from './sinp-pathway'
+import {
+  resolveOccupationEligibility,
+  type OccupationEligibility,
+  type OccupationEligibilityResult,
+} from './occupation-eligibility'
 import pnpData from './pnp-streams.json'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -39,10 +43,8 @@ export interface PnpCriteria {
   jobOfferRequired: RequirementMode      // an in-province job offer
   provincialConnectionRequired: boolean  // study / work / family / prior ties
   eoiRegistrationRequired: boolean       // must register an EOI and be invited
-  occupationListRestricted: boolean      // NOC must be on a stream-specific list
-  // Set only on the SINP Express Entry / Occupations In-Demand streams: those two
-  // sub-categories hard-exclude NOCs on the published Excluded Occupation List.
-  sinpPointsSubcategory?: boolean
+  // Whether the NOC is on the stream's occupation list is resolved from the stream's
+  // `occupationEligibility` rule (see occupation-eligibility.ts), not a criteria flag.
   // Free-text requirements the generic gates can't express (e.g. French at NCLC 7,
   // a degree from a named province, an EE profile). Each becomes a conditional
   // requirement so the engine never reports "confirmed" on something it can't verify.
@@ -70,6 +72,7 @@ export interface PnpStream {
   criteria: PnpCriteria
   roadmap: PnpRoadmapStep[]
   occupationFocus?: string[]             // stable occupation-field tags (e.g. ['health']); absent = general/open
+  occupationEligibility?: OccupationEligibility  // per-stream occupation rule; absent = unrestricted
   needsVerification?: boolean            // true → excluded from scoring, surfaced as [VERIFY]
 }
 
@@ -139,6 +142,7 @@ export interface PnpStreamMatch {
   eligibilityChecks: EligibilityCheck[]  // per-criterion eligibility breakdown shown on the report
   relevance: StreamRelevance             // fit between the NOC's field and this stream's focus
   whyRelevant: string                    // plain-English reason shown on the shortlist
+  occupationEligibility: OccupationEligibilityResult  // resolved occupation rule for THIS NOC
 }
 
 export interface PnpSourceLogEntry {
@@ -186,7 +190,13 @@ const PROCESSING_CEILING_MONTHS = 18
 
 // The report leads with a tight shortlist instead of every eligible stream.
 const SHORTLIST_MAX = 5
-const RELEVANCE_BONUS = 12  // lifts a field-matched stream up the shortlist without overriding strategic value
+const RELEVANCE_BONUS = 12      // lifts a field-matched stream (coarse focus tag) up the shortlist
+// A NOC that is affirmatively on a province's published occupation list is the strongest
+// possible occupation signal — it outranks generic eligibility. A restricted stream whose
+// list is not yet encoded is genuinely uncertain and is nudged down so it never crowds out
+// a confirmed-occupation match.
+const LISTED_BONUS = 25
+const UNKNOWN_PENALTY = 8
 
 // Education levels in ascending order, for minimum-education comparisons.
 const EDUCATION_ORDER: EducationLevel[] = [
@@ -249,11 +259,22 @@ function evaluateStream(
     reasons.push(`Occupation TEER ${noc.teer} is accepted.`)
   }
 
-  // The SINP EE / Occupations In-Demand sub-categories hard-exclude NOCs on the
-  // published Excluded Occupation List (TEER 4/5 is already caught by allowedTeers).
-  // Other SINP routes (Employment Offer, SK Experience, Tech) are not affected.
-  if (c.sinpPointsSubcategory && classifySinpPathway(noc.nocCode, noc.teer).status === 'excluded-occupation') {
-    unmetHardGates.push(`NOC ${noc.nocCode} is on the SINP Excluded Occupation List — not eligible for this points-based sub-category. The employer-driven Employer Position Assessment (EPA) route may still apply.`)
+  // Occupation eligibility resolved from the stream's own rule — a real list/rule, not a
+  // coarse field guess. An exclude/absent-from-include result is a hard gate; an
+  // affirmative listing is a positive signal; employer-driven / not-yet-curated lists
+  // become conditional requirements so the engine never reports "confirmed" on them.
+  const occEligibility = resolveOccupationEligibility(stream.occupationEligibility, noc.nocCode, noc.teer)
+  if (occEligibility === 'ineligible-listed') {
+    const mode = stream.occupationEligibility?.mode
+    if (mode === 'sinp-excluded') {
+      unmetHardGates.push(`NOC ${noc.nocCode} is on the SINP Excluded Occupation List — not eligible for this points-based sub-category. The employer-driven Employer Position Assessment (EPA) route may still apply.`)
+    } else if (mode === 'exclude-list') {
+      unmetHardGates.push(`NOC ${noc.nocCode} (${noc.title}) is on ${stream.province}'s ineligible-occupations list for this stream.`)
+    } else {
+      unmetHardGates.push(`NOC ${noc.nocCode} (${noc.title}) is not on ${stream.province}'s eligible occupation list for this stream.`)
+    }
+  } else if (occEligibility === 'eligible-listed') {
+    reasons.push(`NOC ${noc.nocCode} is on this stream's eligible occupation list.`)
   }
 
   if (c.minClbOverall !== null) {
@@ -303,8 +324,11 @@ function evaluateStream(
   if (c.eoiRegistrationRequired) {
     conditionalRequirements.push('Register an Expression of Interest and wait for an invitation (ranked selection).')
   }
-  if (c.occupationListRestricted) {
-    conditionalRequirements.push(`Confirm NOC ${noc.nocCode} is on this stream's current in-demand/priority occupation list.`)
+  if (occEligibility === 'conditional-employer') {
+    conditionalRequirements.push(`Occupation eligibility for this stream is confirmed at the job-offer / employer-assessment stage in ${stream.province}.`)
+  }
+  if (occEligibility === 'unknown') {
+    conditionalRequirements.push(`Confirm NOC ${noc.nocCode} is on this stream's current in-demand/priority occupation list (list not yet encoded — verify on the provincial source).`)
   }
   if (c.otherConditions) {
     for (const cond of c.otherConditions) conditionalRequirements.push(cond)
@@ -415,7 +439,7 @@ function evaluateStream(
         ? `Restricted to ${focus} occupations — outside your NOC's field.`
         : 'Open to your occupation — no field restriction on this stream.'
 
-  return { stream, verdict, score, scoreBreakdown, reasons, unmetHardGates, conditionalRequirements, eligibilityChecks, relevance, whyRelevant }
+  return { stream, verdict, score, scoreBreakdown, reasons, unmetHardGates, conditionalRequirements, eligibilityChecks, relevance, whyRelevant, occupationEligibility: occEligibility }
 }
 
 const ZERO_BREAKDOWN: ScoreBreakdown = { matchStrength: 0, strategicValue: 0, openStatus: 0, processingSpeed: 0 }
@@ -477,13 +501,25 @@ export function assessPnp(
   const eligible = matches.filter(m => m.verdict !== 'ineligible')
 
   // Shortlist: drop streams locked to a different occupation field, then rank by
-  // qualification score with a boost for field-matched streams — capped to a tight set.
+  // qualification score, lifting streams that affirmatively list the NOC and nudging down
+  // restricted streams whose list is not yet encoded — capped to a tight set.
   const shortlistScore = (m: PnpStreamMatch): number =>
-    m.score + (m.relevance === 'targeted' ? RELEVANCE_BONUS : 0)
+    m.score
+    + (m.relevance === 'targeted' ? RELEVANCE_BONUS : 0)
+    + (m.occupationEligibility === 'eligible-listed' ? LISTED_BONUS : 0)
+    + (m.occupationEligibility === 'unknown' ? -UNKNOWN_PENALTY : 0)
   const shortlist = eligible
     .filter(m => m.relevance !== 'mismatch')
     .sort((a, b) => shortlistScore(b) - shortlistScore(a))
     .slice(0, SHORTLIST_MAX)
+
+  // Surface restricted streams that made the shortlist but whose occupation list is not yet
+  // encoded — so an uncurated "likely" is never mistaken for a verified occupation match.
+  for (const m of shortlist) {
+    if (m.occupationEligibility === 'unknown') {
+      flags.push(`[VERIFY] ${m.stream.province} — ${m.stream.streamName}: occupation list not yet encoded; confirm NOC ${noc.nocCode} on ${m.stream.sourceUrl}.`)
+    }
+  }
 
   return {
     noc,
