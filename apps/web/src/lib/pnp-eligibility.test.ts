@@ -384,3 +384,54 @@ describe('assessPnp — SINP Excluded Occupation List gate', () => {
     expect(verdictFor(r, 'sk-offer')).not.toBe('ineligible')
   })
 })
+
+// ── End-to-end: Transport truck driver over the REAL curated data ─────────────
+// The scenario that drove the occupation-eligibility work. Encodes the Prashant Proof:
+// SINP points sub-categories exclude 73300; Ontario Skilled Trades affirmatively lists it;
+// Alberta does not exclude it; and the genuine occupation match leads the shortlist.
+describe('assessPnp — truck driver (NOC 73300) over real curated data', () => {
+  const truckerProfile: ApplicantProfile = {
+    ...strongProfile,
+    nocCode: '73300',
+    nocTeer: 3,
+    occupationTitle: 'Transport truck driver',
+    education: 'secondary',
+  }
+  const truckerNoc: NocClassification = {
+    nocCode: '73300',
+    teer: 3,
+    title: 'Transport truck drivers',
+    citationUrl: 'https://noc.esdc.gc.ca',
+    confidence: 'high',
+    verified: true,
+    candidates: [
+      { nocCode: '73300', teer: 3, title: 'Transport truck drivers', rationale: 'Operates heavy trucks.', matchScore: 100, fitScore: 90 },
+    ],
+    ambiguity: { flag: false, alternatives: [] },
+  }
+  const r = assessPnp(truckerProfile, truckerNoc)
+  const matchFor = (id: string) =>
+    [...r.eeLinked, ...r.base, ...r.ineligible].find(m => m.stream.id === id)
+
+  it('excludes 73300 from the SINP points sub-categories (on the Excluded Occupation List)', () => {
+    expect(matchFor('sk-isw-ee')?.verdict).toBe('ineligible')
+    expect(matchFor('sk-isw-oid')?.verdict).toBe('ineligible')
+    expect(matchFor('sk-isw-ee')?.occupationEligibility).toBe('ineligible-listed')
+  })
+
+  it('affirmatively lists 73300 on Ontario Skilled Trades', () => {
+    const on = matchFor('on-trades')
+    expect(on?.occupationEligibility).toBe('eligible-listed')
+    expect(on?.verdict).not.toBe('ineligible')
+  })
+
+  it('does not exclude 73300 from Alberta (not on the AOS ineligible list)', () => {
+    expect(matchFor('ab-aos')?.occupationEligibility).toBe('unrestricted')
+    expect(matchFor('ab-aos')?.verdict).not.toBe('ineligible')
+  })
+
+  it('leads the shortlist with the genuine occupation match (Ontario Skilled Trades)', () => {
+    expect(r.shortlist.some(m => m.stream.id === 'on-trades')).toBe(true)
+    expect(r.shortlist[0]?.occupationEligibility).toBe('eligible-listed')
+  })
+})
