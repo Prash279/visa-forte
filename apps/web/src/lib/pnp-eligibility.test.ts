@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   assessPnp,
+  manualNocClassification,
   type PnpStream,
   type PnpCriteria,
   type NocClassification,
@@ -477,5 +478,31 @@ describe('assessPnp — ranked pathways', () => {
     ]
     const r = assessPnp(strongProfile, mkNoc(1), streams)
     expect(r.rankedPathways.map(m => m.stream.id)).toEqual(['ok'])
+  })
+})
+
+// ── Manual NOC override (expert-in-the-loop) ───────────────────────────────────
+
+describe('manualNocClassification — consultant override', () => {
+  it('builds an authoritative single-candidate classification from the entered code', () => {
+    const noc = manualNocClassification('41404', 1, 'Health policy researcher')
+    expect(noc.nocCode).toBe('41404')
+    expect(noc.teer).toBe(1)
+    expect(noc.confidence).toBe('high')
+    expect(noc.ambiguity.flag).toBe(false)
+    expect(noc.candidates).toHaveLength(1)
+    expect(noc.candidates[0]?.fitScore).toBe(100)
+    expect(noc.citationUrl).toContain('41404')
+  })
+
+  it('falls back to a code-derived title when none is given', () => {
+    expect(manualNocClassification('41404', 1, '   ').title).toBe('NOC 41404')
+  })
+
+  it('drives the PNP assessment off the overridden code, not the duties', () => {
+    const noc = manualNocClassification('41404', 1, 'Health policy researcher')
+    const r = assessPnp(strongProfile, noc)
+    expect(r.noc.nocCode).toBe('41404')
+    expect(r.occupationProfile.broadCategory).toBe('4')
   })
 })

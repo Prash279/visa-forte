@@ -522,6 +522,32 @@ function rankScore(stream: PnpStream, verdict: PnpVerdict): { total: number; bre
   }
 }
 
+// Build a NocClassification from a consultant-entered NOC override — the expert-in-the-loop
+// path that bypasses the duties classifier entirely. The duties→NOC model is fallible (it can
+// rank a technical look-alike over the correct professional code), so when the consultant has
+// set the NOC themselves, that code is authoritative. TEER and title come from the admin form,
+// never the model. Kept here (not in the client) so the 516-group dataset is never bundled.
+export function manualNocClassification(code: string, teer: number, title: string): NocClassification {
+  const cleanTitle = title.trim() || `NOC ${code}`
+  return {
+    nocCode: code,
+    teer,
+    title: cleanTitle,
+    citationUrl: `https://noc.esdc.gc.ca/OaSIS/OaSISOccProfile?GocTemplateCulture=en-CA&code=${code}.00&version=2023.0`,
+    confidence: 'high',
+    verified: false, // consultant-set, not live-verified against StatCan
+    candidates: [{
+      nocCode: code,
+      teer,
+      title: cleanTitle,
+      rationale: 'Set manually by the consultant from the employment reference letter.',
+      matchScore: 0,
+      fitScore: 100,
+    }],
+    ambiguity: { flag: false, alternatives: [] },
+  }
+}
+
 // ── Public API ───────────────────────────────────────────────────────────────
 
 // Score the applicant against every curated stream, split EE-linked vs Base,

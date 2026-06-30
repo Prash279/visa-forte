@@ -20,7 +20,7 @@ import crsRules from '@/lib/crs-rules.json'
 import './canvisa-pro.css'
 import NocSearch from '@/components/NocSearch'
 import PnpReport from './PnpReport'
-import { assessPnp, type PnpAssessmentResult } from '@/lib/pnp-eligibility'
+import { assessPnp, manualNocClassification, type PnpAssessmentResult } from '@/lib/pnp-eligibility'
 import { buildPnpPptxBlob } from '@/lib/pnp-pptx'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -1098,28 +1098,36 @@ export default function CanVisaProTool() {
     URL.revokeObjectURL(url)
   }
 
-  // Classify the free-text duties → NOC (Claude backend), then score the profile
-  // against every curated PNP stream deterministically. The classifier is the only
-  // network call; eligibility scoring is local.
+  // Score the profile against every curated PNP stream deterministically. The NOC comes
+  // from one of two sources: if the consultant has set a NOC code (expert override), that
+  // code is authoritative and used directly; otherwise the free-text duties are sent to the
+  // Claude classifier. The duties→NOC model is fallible, so a consultant-set code always wins.
   async function generatePnp() {
     const duties = (profile.jobDuties ?? '').trim()
-    if (duties.length < 20) {
-      setPnpError('Enter the applicant’s detailed job duties (at least a sentence or two) before running the PNP assessment.')
+    const manualCode = (profile.nocCode ?? '').trim()
+    const useManual = /^\d{5}$/.test(manualCode)
+    if (!useManual && duties.length < 20) {
+      setPnpError('Enter the applicant’s detailed job duties (at least a sentence or two), or set a NOC code, before running the PNP assessment.')
       return
     }
     setPnpError(null)
     setPnpLoading(true)
     try {
-      const res = await fetch('/api/admin/pnp-noc', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ occupationTitle: profile.occupationTitle, jobDuties: duties }),
-      })
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string }
-        throw new Error(body.error ?? `Classification failed (${res.status}).`)
+      let noc: PnpAssessmentResult['noc']
+      if (useManual) {
+        noc = manualNocClassification(manualCode, profile.nocTeer, profile.occupationTitle)
+      } else {
+        const res = await fetch('/api/admin/pnp-noc', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ occupationTitle: profile.occupationTitle, jobDuties: duties }),
+        })
+        if (!res.ok) {
+          const body = (await res.json().catch(() => ({}))) as { error?: string }
+          throw new Error(body.error ?? `Classification failed (${res.status}).`)
+        }
+        noc = (await res.json()) as PnpAssessmentResult['noc']
       }
-      const noc = (await res.json()) as PnpAssessmentResult['noc']
       setPnpResult(assessPnp(profile, noc))
       setView('pnp')
       setTimeout(() => window.scrollTo({ top: 0 }), 50)
@@ -1269,7 +1277,7 @@ export default function CanVisaProTool() {
               <textarea className="cvp-input" rows={4} value={profile.jobDuties ?? ''}
                 onChange={e => set('jobDuties', e.target.value)}
                 placeholder="Paste the applicant's actual day-to-day duties (from the employment reference letter). Duties — not the job title — determine the NOC code." />
-              <p className="cvp-hint">Powers the PNP Pathway Assessment. The classifier maps these duties to a single best-fit NOC/TEER and flags ambiguity. Leave blank if you only need the CRS report.</p>
+              <p className="cvp-hint">Powers the PNP Pathway Assessment. The classifier maps these duties to a single best-fit NOC/TEER and flags ambiguity. If you set the NOC Code field above, the assessment uses your code instead of classifying — your code always wins. Leave both blank if you only need the CRS report.</p>
             </div>
             <div className="cvp-field">
               <label className="cvp-label">Country of Citizenship</label>
