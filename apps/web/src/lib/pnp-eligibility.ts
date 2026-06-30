@@ -153,9 +153,19 @@ export interface PnpSourceLogEntry {
   lastVerified: string
 }
 
+// NOC 2021 Broad Occupational Category — the first digit of the code. Deterministic
+// (no network); the category name and citation come from the StatCan NOC 2021 structure.
+export interface OccupationProfile {
+  broadCategory: string        // single digit, e.g. '4'
+  broadCategoryName: string
+  broadCategoryUrl: string
+}
+
 export interface PnpAssessmentResult {
   noc: NocClassification
+  occupationProfile: OccupationProfile   // broad category context for the classified NOC
   shortlist: PnpStreamMatch[]            // primary recommendation: top NOC-relevant eligible streams
+  rankedPathways: PnpStreamMatch[]       // every eligible, field-relevant stream, globally ranked best-first
   eeLinked: PnpStreamMatch[]             // ranked; NEVER merged with base
   base: PnpStreamMatch[]                 // ranked; NEVER merged with eeLinked
   ineligible: PnpStreamMatch[]           // shown in the matrix, excluded from the shortlist
@@ -226,7 +236,45 @@ const EDUCATION_LABEL: Record<EducationLevel, string> = {
   doctoral: 'Doctoral degree',
 }
 
+// NOC 2021 Broad Occupational Category names, keyed by the code's first digit.
+// Source: Statistics Canada NOC 2021 V1.0 structure (10 broad categories).
+const NOC_BROAD_CATEGORY_URL =
+  'https://www23.statcan.gc.ca/imdb/p3VD.pl?Function=getVDPage1&db=imdb&dis=2&adm=8&TVD=1322554'
+const BROAD_CATEGORY_NAME: Record<string, string> = {
+  '0': 'Legislative and senior management occupations',
+  '1': 'Business, finance and administration occupations',
+  '2': 'Natural and applied sciences and related occupations',
+  '3': 'Health occupations',
+  '4': 'Occupations in education, law and social, community and government services',
+  '5': 'Occupations in art, culture, recreation and sport',
+  '6': 'Sales and service occupations',
+  '7': 'Trades, transport and equipment operators and related occupations',
+  '8': 'Natural resources, agriculture and related production occupations',
+  '9': 'Occupations in manufacturing and utilities',
+}
+
+function occupationProfileFor(nocCode: string): OccupationProfile {
+  const digit = nocCode.charAt(0)
+  return {
+    broadCategory: digit,
+    broadCategoryName: BROAD_CATEGORY_NAME[digit] ?? 'Unrecognised category',
+    broadCategoryUrl: NOC_BROAD_CATEGORY_URL,
+  }
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
+
+// Shortlist/ranking score: the qualification score, lifted for a field-matched stream,
+// lifted again when the NOC is affirmatively listed, and nudged down when the stream
+// restricts by occupation but its list is not yet encoded.
+function shortlistScore(m: PnpStreamMatch): number {
+  return (
+    m.score +
+    (m.relevance === 'targeted' ? RELEVANCE_BONUS : 0) +
+    (m.occupationEligibility === 'eligible-listed' ? LISTED_BONUS : 0) +
+    (m.occupationEligibility === 'unknown' ? -UNKNOWN_PENALTY : 0)
+  )
+}
 
 function minClb(profile: ApplicantProfile): number {
   const b = scoresToClb(profile.firstLanguageScores)
@@ -520,18 +568,13 @@ export function assessPnp(
   const byScore = (a: PnpStreamMatch, b: PnpStreamMatch): number => b.score - a.score
   const eligible = matches.filter(m => m.verdict !== 'ineligible')
 
-  // Shortlist: drop streams locked to a different occupation field, then rank by
-  // qualification score, lifting streams that affirmatively list the NOC and nudging down
-  // restricted streams whose list is not yet encoded — capped to a tight set.
-  const shortlistScore = (m: PnpStreamMatch): number =>
-    m.score
-    + (m.relevance === 'targeted' ? RELEVANCE_BONUS : 0)
-    + (m.occupationEligibility === 'eligible-listed' ? LISTED_BONUS : 0)
-    + (m.occupationEligibility === 'unknown' ? -UNKNOWN_PENALTY : 0)
-  const shortlist = eligible
+  // Rank every eligible, field-relevant stream globally (best-first), then take the
+  // tight shortlist off the top. Streams locked to a different occupation field are
+  // dropped; the rest are ordered by shortlistScore (qualification + field/list signals).
+  const rankedPathways = eligible
     .filter(m => m.relevance !== 'mismatch')
     .sort((a, b) => shortlistScore(b) - shortlistScore(a))
-    .slice(0, SHORTLIST_MAX)
+  const shortlist = rankedPathways.slice(0, SHORTLIST_MAX)
 
   // Surface restricted streams that made the shortlist but whose occupation list is not yet
   // encoded — so an uncurated "likely" is never mistaken for a verified occupation match.
@@ -543,7 +586,9 @@ export function assessPnp(
 
   return {
     noc,
+    occupationProfile: occupationProfileFor(noc.nocCode),
     shortlist,
+    rankedPathways,
     eeLinked: eligible.filter(m => m.stream.category === 'ee-linked').sort(byScore),
     base: eligible.filter(m => m.stream.category === 'base').sort(byScore),
     ineligible: matches.filter(m => m.verdict === 'ineligible'),

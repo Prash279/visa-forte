@@ -269,6 +269,13 @@ function formatDrawDate(iso: string): string {
   return `${d} ${months[m - 1]} ${y}`
 }
 
+// Matrix "Key condition" cell: the single gate standing between this profile and a
+// Confirmed verdict — the first must-secure item, or a clean pass when there is none.
+function keyCondition(m: PnpStreamMatch): string {
+  if (m.verdict === 'confirmed') return 'Meets all checkable criteria'
+  return m.conditionalRequirements[0]?.replace(/\.$/, '') ?? `Verdict: ${m.verdict}`
+}
+
 // Matrix "Fit" cell: the occupation-eligibility result takes precedence over the coarse
 // field tag, so an affirmative list match reads as "On list" rather than just "Open".
 function fitLabel(m: PnpStreamMatch): string {
@@ -396,6 +403,16 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
             <div className="pnp-cite">
               <a href={noc.citationUrl} target="_blank" rel="noopener noreferrer">View the official occupational profile ↗</a>
             </div>
+          </div>
+
+          <div className="pnp-occprofile">
+            <span className="pnp-occprofile-label">Broad Occupational Category</span>
+            <span className="pnp-occprofile-val">
+              {pnp.occupationProfile.broadCategory} — {pnp.occupationProfile.broadCategoryName}
+            </span>
+            <a className="pnp-occprofile-cite" href={pnp.occupationProfile.broadCategoryUrl} target="_blank" rel="noopener noreferrer">
+              StatCan NOC 2021 structure ↗
+            </a>
           </div>
 
           {noc.candidates.length > 1 && (
@@ -529,21 +546,23 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
           </section>
         )}
 
-        {/* All jurisdictions matrix (secondary) */}
+        {/* Ranked pathways matrix (secondary) — every eligible stream, globally ranked,
+            with the single key condition gating each one. */}
         <section className="pnp-section">
-          <SectionHead eyebrow="Reference" title="All eligible jurisdictions" hint="full assessment" />
+          <SectionHead eyebrow="Reference" title="Ranked pathways" hint="every eligible stream" />
           <div className="pnp-table-wrap">
             <table className="pnp-table">
               <thead>
-                <tr><th>Province</th><th>Stream</th><th>Category</th><th>Fit</th><th>Verdict</th><th className="pnp-num">Score</th></tr>
+                <tr><th>Province</th><th>Stream</th><th>Category</th><th>Fit</th><th>Key condition</th><th>Verdict</th><th className="pnp-num">Score</th></tr>
               </thead>
               <tbody>
-                {eligible.map((m) => (
+                {pnp.rankedPathways.map((m) => (
                   <tr key={m.stream.id}>
                     <td>{m.stream.province}</td>
                     <td>{m.stream.streamName}</td>
                     <td>{m.stream.category === 'ee-linked' ? 'EE-linked' : 'Base'}</td>
                     <td>{fitLabel(m)}</td>
+                    <td className="pnp-table-cond">{keyCondition(m)}</td>
                     <td><Badge verdict={m.verdict} /></td>
                     <td className="pnp-num">{m.score}</td>
                   </tr>

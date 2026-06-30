@@ -435,3 +435,47 @@ describe('assessPnp — truck driver (NOC 73300) over real curated data', () => 
     expect(r.shortlist[0]?.occupationEligibility).toBe('eligible-listed')
   })
 })
+
+// ── Occupation profile (broad category from NOC first digit) ───────────────────
+
+describe('assessPnp — occupation profile', () => {
+  it('derives the broad occupational category from the NOC code first digit', () => {
+    const r = assessPnp(strongProfile, mkNoc(1), [mkStream({ id: 'p' })])
+    expect(r.occupationProfile.broadCategory).toBe('2') // 21211 → category 2
+    expect(r.occupationProfile.broadCategoryName).toMatch(/Natural and applied sciences/)
+  })
+
+  it('maps a health-policy NOC (41404) to category 4, not health (3)', () => {
+    const noc = { ...mkNoc(1), nocCode: '41404', title: 'Health policy researchers' }
+    const r = assessPnp(strongProfile, noc, [mkStream({ id: 'p' })])
+    expect(r.occupationProfile.broadCategory).toBe('4')
+    expect(r.occupationProfile.broadCategoryName).toMatch(/education, law and social/i)
+  })
+})
+
+// ── Ranked pathways (global ordering, shortlist is its head) ────────────────────
+
+describe('assessPnp — ranked pathways', () => {
+  it('ranks every eligible field-relevant stream best-first and seeds the shortlist from the top', () => {
+    const streams = [
+      mkStream({ id: 'slow', category: 'base', indicativeProcessingMonths: 16 }),
+      mkStream({ id: 'fast-ee', category: 'ee-linked', indicativeProcessingMonths: 3 }),
+    ]
+    const r = assessPnp(strongProfile, mkNoc(1), streams)
+    expect(r.rankedPathways.map(m => m.stream.id)).toEqual(['fast-ee', 'slow'])
+    // shortlist is the head of the ranked list, not a separately-sorted set
+    expect(r.shortlist).toEqual(r.rankedPathways.slice(0, r.shortlist.length))
+    // scores are monotonically non-increasing
+    const scores = r.rankedPathways.map(m => m.score)
+    expect([...scores].sort((a, b) => b - a)).toEqual(scores)
+  })
+
+  it('excludes ineligible streams from the ranked pathways', () => {
+    const streams = [
+      mkStream({ id: 'ok' }),
+      mkStream({ id: 'bad', criteria: { allowedTeers: [0] } }),
+    ]
+    const r = assessPnp(strongProfile, mkNoc(1), streams)
+    expect(r.rankedPathways.map(m => m.stream.id)).toEqual(['ok'])
+  })
+})

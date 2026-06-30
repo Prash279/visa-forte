@@ -278,6 +278,41 @@
 
 .pnp-cite a:hover { text-decoration: underline; }
 
+.pnp-occprofile {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.75rem;
+  margin-top: 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--pnp-border);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.pnp-occprofile-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pnp-muted);
+  font-weight: 600;
+}
+
+.pnp-occprofile-val {
+  font-size: 0.9rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+.pnp-occprofile-cite {
+  font-size: 0.75rem;
+  color: var(--pnp-teal);
+  text-decoration: none;
+  margin-left: auto;
+}
+
+.pnp-occprofile-cite:hover { text-decoration: underline; }
+
 .pnp-candidates {
   margin-top: 1rem;
   display: grid;
@@ -662,7 +697,12 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.82rem;
-  min-width: 480px;
+  min-width: 640px;
+}
+
+.pnp-table-cond {
+  max-width: 16rem;
+  color: var(--pnp-muted);
 }
 
 .pnp-table thead th {
