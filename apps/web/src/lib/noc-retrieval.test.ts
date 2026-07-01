@@ -12,6 +12,19 @@ Reviewed health programme data, monitored study conduct, maintained health infor
 analysed statistical information, and assessed compliance with health regulatory standards.
 `
 
+// Real CRC/CTA duties — no artificial health-policy language.
+// Used to verify that the domain anchor surfaces 41404 even when the TF-IDF
+// engine finds no overlap with the official NOC 2021 StatCan vocabulary.
+const REAL_CRC_DUTIES = `
+Managed ICF version control and distributed regulatory packages to sites.
+Coordinated with central and local IRBs on approvals and amendments.
+Managed end-to-end TMF/eTMF maintenance and inspection readiness activities.
+Performed periodic TMF QC reviews. Maintained CTMS accuracy.
+Supported study start-up activities: site identification, regulatory submissions,
+IRB approvals, and site activation. Conducted active patient recruitment and
+pre-screening. Supported the informed consent process. Documented AEs/SAEs.
+`
+
 const SOFTWARE_DUTIES = `
 Designed, developed and tested software applications and web services. Wrote and maintained source code in
 multiple programming languages, debugged programs, and built APIs and databases for production systems.
@@ -25,6 +38,13 @@ describe('noc-retrieval', () => {
   it('ranks NOC 41404 first in the candidate set for Rashmi-style health-policy duties', () => {
     const ranked = retrieveCandidates(RASHMI_DUTIES, 'Clinical Research Coordinator')
     expect(ranked[0]?.group.code).toBe('41404')
+  })
+
+  it('domain anchor forces NOC 41404 into the shortlist for real-world CRC/CTA duties', () => {
+    // Real CRC duties contain no NOC 2021 StatCan vocabulary — TF-IDF alone misses 41404.
+    // The domain anchor must guarantee 41404 appears in the returned hits.
+    const hits = retrieveCandidates(REAL_CRC_DUTIES, 'Clinical Trial Assistant')
+    expect(hits.some((h) => h.group.code === '41404')).toBe(true)
   })
 
   it('ranks software-developer duties to the 2123x family', () => {

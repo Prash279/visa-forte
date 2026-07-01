@@ -88,6 +88,24 @@ export function getGroupByCode(code: string): NocGroup | undefined {
   return CODE_INDEX.get(code)
 }
 
+// Domain anchors: occupations where real-world job-posting vocabulary differs so
+// much from the official NOC 2021 StatCan text that TF-IDF cannot surface the right
+// code. When a pattern fires the listed codes are appended to the shortlist (score 0)
+// so Claude still decides the final ranking — the anchor only guarantees visibility.
+// Each entry is Prash-verified against the ESDC NOC 2021 browser.
+const DOMAIN_ANCHORS: ReadonlyArray<{ pattern: RegExp; codes: ReadonlyArray<string> }> = [
+  {
+    // Clinical Research Coordinators / Associates / Clinical Trial Assistants.
+    // NOC 2021 StatCan text contains none of: clinical trial, IRB, TMF, ICF,
+    // informed consent, CRC, CRA, CTMS, eTMF, site activation, AE/SAE.
+    // ESDC-confirmed code: 41404 – Health policy researchers, consultants and
+    // program officers (TEER 1).
+    pattern:
+      /clinical[\s-]+trial|clinical[\s-]+research|\beTMF\b|\bTMF\b|\bIRB\b|\bICF\b|informed\s+consent|\bCRC\b|\bCRA\b|site[\s-]+activation|study[\s-]+start[\s-]?up|\bAE\/SAE\b|\bCTMS\b/i,
+    codes: ['41404'],
+  },
+]
+
 // Rank all unit groups against the applicant's duties (and optional title) and
 // return the top K candidates. Deterministic: identical input -> identical output.
 export function retrieveCandidates(
@@ -95,7 +113,8 @@ export function retrieveCandidates(
   occupationTitle?: string,
   topK: number = DEFAULT_TOP_K
 ): NocRetrievalHit[] {
-  const queryTokens = new Set(tokenize(`${occupationTitle ?? ''} ${jobDuties}`))
+  const input = `${occupationTitle ?? ''} ${jobDuties}`
+  const queryTokens = new Set(tokenize(input))
   if (queryTokens.size === 0) return []
 
   const scored: NocRetrievalHit[] = GROUPS.map((group, i) => {
@@ -109,8 +128,21 @@ export function retrieveCandidates(
     return { group, score }
   })
 
-  return scored
+  const hits = scored
     .filter((c) => c.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, topK)
+
+  // Append anchor codes that didn't make the TF-IDF cut when the input signals a
+  // domain whose terminology is absent from the NOC 2021 StatCan vocabulary.
+  for (const anchor of DOMAIN_ANCHORS) {
+    if (!anchor.pattern.test(input)) continue
+    for (const code of anchor.codes) {
+      if (hits.some((h) => h.group.code === code)) continue
+      const group = CODE_INDEX.get(code)
+      if (group) hits.push({ group, score: 0 })
+    }
+  }
+
+  return hits
 }
