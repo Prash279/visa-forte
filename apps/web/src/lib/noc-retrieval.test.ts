@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { retrieveCandidates, getGroupByCode } from './noc-retrieval'
+import { retrieveCandidates, getGroupByCode, getAnchoredCodes } from './noc-retrieval'
 
 // Representative of Rashmi's documented clinical-trial-operations duties.
 const RASHMI_DUTIES = `
@@ -38,6 +38,11 @@ describe('noc-retrieval', () => {
   it('ranks NOC 41404 first in the candidate set for Rashmi-style health-policy duties', () => {
     const ranked = retrieveCandidates(RASHMI_DUTIES, 'Clinical Research Coordinator')
     expect(ranked[0]?.group.code).toBe('41404')
+  })
+
+  it('getAnchoredCodes returns 41404 for CRC/CTA input and nothing for unrelated input', () => {
+    expect(getAnchoredCodes(REAL_CRC_DUTIES, 'Clinical Trial Assistant')).toContain('41404')
+    expect(getAnchoredCodes(SOFTWARE_DUTIES, 'Software Developer')).toEqual([])
   })
 
   it('domain anchor forces NOC 41404 into the shortlist for real-world CRC/CTA duties', () => {

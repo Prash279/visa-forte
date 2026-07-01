@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
 import { getCurrentAuthSession } from '@/lib/auth-server'
-import { retrieveCandidates } from '@/lib/noc-retrieval'
+import { retrieveCandidates, getAnchoredCodes } from '@/lib/noc-retrieval'
 import {
   NOC_CLASSIFIER_SYSTEM,
   RETRIEVE_TOP_K,
@@ -106,6 +106,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const raw = parseRawClassification(rawText)
     if (raw === null) {
       return NextResponse.json({ error: 'Classifier returned malformed output.' }, { status: 502 })
+    }
+
+    // Anchor-wins: when a domain anchor fired and Claude ranked the anchor code (even
+    // not first), promote it to winner. The anchor only fires for vocabulary-gap
+    // occupations where TF-IDF cannot surface the correct code; Claude acknowledging
+    // the anchor code in its ranked list is evidence of meaningful fit — it wins.
+    const anchoredCodes = getAnchoredCodes(jobDuties, occupationTitle)
+    if (anchoredCodes.length > 0) {
+      const anchorRank = raw.ranked.find((r) => anchoredCodes.includes(r.nocCode))
+      if (anchorRank) {
+        raw.ranked = [anchorRank, ...raw.ranked.filter((r) => r.nocCode !== anchorRank.nocCode)]
+      }
     }
 
     // 3) Ground: keep only shortlisted codes, join authoritative TEER + title.

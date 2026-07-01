@@ -146,3 +146,10 @@ export function retrieveCandidates(
 
   return hits
 }
+
+// Returns the NOC codes that a domain anchor would inject for this input. Used by the
+// route to implement anchor-wins: if Claude ranked an anchored code at all, it wins.
+export function getAnchoredCodes(jobDuties: string, occupationTitle?: string): string[] {
+  const input = `${occupationTitle ?? ''} ${jobDuties}`
+  return DOMAIN_ANCHORS.filter((a) => a.pattern.test(input)).flatMap((a) => [...a.codes])
+}
