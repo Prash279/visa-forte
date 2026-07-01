@@ -39,7 +39,7 @@ function DifficultyChips({ stream }: { stream: PnpStreamMatch['stream'] }): Reac
   return (
     <div className="pnp-difficulty-tags">
       {tags.map((t) => (
-        <span key={t} className={`pnp-difficulty-tag pnp-difficulty-tag--${t.replace('_', '-')}`}>
+        <span key={t} className={`pnp-difficulty-tag pnp-difficulty-tag--${t.replaceAll('_', '-')}`}>
           {DIFFICULTY_LABEL[t]}
         </span>
       ))}

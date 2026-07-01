@@ -641,6 +641,23 @@ export function assessPnp(
     }
   }
 
+  const ineligibleMatches = matches.filter(m => m.verdict === 'ineligible')
+
+  // Flag SINP points-based streams excluded by the Excluded Occupation List so the report
+  // explains why these sub-categories don't appear in the shortlist or matrix even though
+  // the SINP section is shown. Also note any co-occurring draw dormancy.
+  for (const m of ineligibleMatches) {
+    if (m.stream.occupationEligibility?.mode === 'sinp-excluded' &&
+        m.occupationEligibility === 'ineligible-listed') {
+      const dormancyNote = m.stream.drawPausedSince
+        ? ` EOI draws have also been paused since ${m.stream.drawPausedSince} (${monthsSinceIso(m.stream.drawPausedSince)} months).`
+        : ''
+      flags.push(
+        `${m.stream.province} — ${m.stream.streamName}: NOC ${noc.nocCode} is on the SINP Excluded Occupation List — not eligible for this points-based sub-category.${dormancyNote} The employer-driven EPA pathway (sk-isw-offer) remains open if an employer supports the application.`
+      )
+    }
+  }
+
   return {
     noc,
     occupationProfile: occupationProfileFor(noc.nocCode),
@@ -648,7 +665,7 @@ export function assessPnp(
     rankedPathways,
     eeLinked: eligible.filter(m => m.stream.category === 'ee-linked').sort(byScore),
     base: eligible.filter(m => m.stream.category === 'base').sort(byScore),
-    ineligible: matches.filter(m => m.verdict === 'ineligible'),
+    ineligible: ineligibleMatches,
     sourceLog: scorable.map(s => ({
       streamId: s.id,
       province: s.province,
