@@ -57,6 +57,8 @@ export interface PnpRoadmapStep {
   detail: string
 }
 
+export type DifficultyTag = 'high_competition' | 'low_draw_frequency' | 'annual_cap_risk'
+
 export interface PnpStream {
   id: string
   province: string
@@ -74,6 +76,8 @@ export interface PnpStream {
   occupationFocus?: string[]             // stable occupation-field tags (e.g. ['health']); absent = general/open
   occupationEligibility?: OccupationEligibility  // per-stream occupation rule; absent = unrestricted
   needsVerification?: boolean            // true → excluded from scoring, surfaced as [VERIFY]
+  drawPausedSince?: string               // ISO date — stream excluded from shortlist if ≥6 months ago
+  difficultyTags?: DifficultyTag[]       // static difficulty signals shown as chips on stream cards
 }
 
 interface PnpData {
@@ -103,6 +107,10 @@ export interface NocClassification {
   ambiguity: {
     flag: boolean
     alternatives: { nocCode: string; teer: number; title: string }[]
+  }
+  nocOverrideConflict?: {        // set when classifier corrected a manually entered NOC code
+    yourSelection: string
+    correctedTo: string
   }
 }
 
@@ -263,6 +271,13 @@ function occupationProfileFor(nocCode: string): OccupationProfile {
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
+
+// Full months elapsed between an ISO date string and a reference date (default: now).
+// Testable via the optional second argument.
+export function monthsSinceIso(isoDate: string, today: Date = new Date()): number {
+  const past = new Date(isoDate)
+  return (today.getFullYear() - past.getFullYear()) * 12 + (today.getMonth() - past.getMonth())
+}
 
 // Shortlist/ranking score: the qualification score, lifted for a field-matched stream,
 // lifted again when the NOC is affirmatively listed, and nudged down when the stream
@@ -600,7 +615,23 @@ export function assessPnp(
   const rankedPathways = eligible
     .filter(m => m.relevance !== 'mismatch')
     .sort((a, b) => shortlistScore(b) - shortlistScore(a))
-  const shortlist = rankedPathways.slice(0, SHORTLIST_MAX)
+
+  // Exclude streams whose EOI draws have been dormant for ≥6 months from the shortlist.
+  // They remain in rankedPathways (full matrix) with a flag explaining the exclusion.
+  const DRAW_DORMANCY_MONTHS = 6
+  const dormantExcluded = rankedPathways.filter(m => {
+    if (!m.stream.drawPausedSince) return false
+    return monthsSinceIso(m.stream.drawPausedSince) >= DRAW_DORMANCY_MONTHS
+  })
+  for (const m of dormantExcluded) {
+    const months = monthsSinceIso(m.stream.drawPausedSince!)
+    flags.push(
+      `${m.stream.province} — ${m.stream.streamName} excluded from shortlist: no EOI draws since ${m.stream.drawPausedSince} (${months} months). Shown in full pathway matrix — re-check when draws resume.`
+    )
+  }
+  const shortlist = rankedPathways
+    .filter(m => !dormantExcluded.includes(m))
+    .slice(0, SHORTLIST_MAX)
 
   // Surface restricted streams that made the shortlist but whose occupation list is not yet
   // encoded — so an uncurated "likely" is never mistaken for a verified occupation match.

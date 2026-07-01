@@ -385,6 +385,39 @@
   margin: 0.3rem 0 0;
 }
 
+.pnp-callout--override {
+  border-left-color: #7c6a9a;
+  background: rgba(124, 106, 154, 0.08);
+}
+
+.pnp-callout--override .pnp-callout-label {
+  color: #9b88b8;
+}
+
+/* Difficulty tag chips — shown on shortlist stream cards */
+.pnp-difficulty-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.pnp-difficulty-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 100px;
+  line-height: 1.4;
+}
+
+.pnp-difficulty-tag--high-competition  { background: rgba(217, 143, 30, 0.18); color: #d98f1e; }
+.pnp-difficulty-tag--employer-required  { background: rgba(100, 116, 139, 0.18); color: #94a3b8; }
+.pnp-difficulty-tag--low-draw-frequency { background: rgba(124, 106, 154, 0.18); color: #9b88b8; }
+.pnp-difficulty-tag--annual-cap-risk    { background: rgba(220, 80, 80, 0.16); color: #e07070; }
+
 .pnp-flag {
   background: rgba(201, 123, 30, 0.06);
   border-left: 3px solid var(--pnp-accent);

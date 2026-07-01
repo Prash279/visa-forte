@@ -4,6 +4,7 @@ import './pnp-report.css'
 import { type ApplicantProfile } from '@/lib/crs-calculator'
 import {
   buildPnpInsights,
+  type DifficultyTag,
   type EligibilityCheck,
   type PnpAssessmentResult,
   type PnpStreamMatch,
@@ -20,6 +21,30 @@ interface PnpReportProps {
   pnp: PnpAssessmentResult
   onBack: () => void
   onDownload: () => void
+}
+
+const DIFFICULTY_LABEL: Record<DifficultyTag | 'employer_required', string> = {
+  high_competition: 'Highly Competitive',
+  low_draw_frequency: 'Low Draw Frequency',
+  annual_cap_risk: 'Annual Cap Risk',
+  employer_required: 'Employer Required',
+}
+
+function DifficultyChips({ stream }: { stream: PnpStreamMatch['stream'] }): React.JSX.Element | null {
+  const tags: Array<DifficultyTag | 'employer_required'> = [
+    ...(stream.difficultyTags ?? []),
+    ...(stream.criteria.jobOfferRequired === 'required' ? (['employer_required'] as const) : []),
+  ]
+  if (tags.length === 0) return null
+  return (
+    <div className="pnp-difficulty-tags">
+      {tags.map((t) => (
+        <span key={t} className={`pnp-difficulty-tag pnp-difficulty-tag--${t.replace('_', '-')}`}>
+          {DIFFICULTY_LABEL[t]}
+        </span>
+      ))}
+    </div>
+  )
 }
 
 function Badge({ verdict }: { verdict: PnpVerdict }): React.JSX.Element {
@@ -405,6 +430,17 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
             </div>
           </div>
 
+          {noc.nocOverrideConflict && (
+            <div className="pnp-callout pnp-callout--override">
+              <div className="pnp-callout-label">NOC auto-corrected</div>
+              <p>
+                Your manual selection <strong>NOC {noc.nocOverrideConflict.yourSelection}</strong> was overridden.
+                The duties classifier identified <strong>NOC {noc.nocOverrideConflict.correctedTo}</strong> as the closer match based on the applicant&rsquo;s documented duties.
+                Review the occupation profile above and correct the NOC in the form if the classifier is wrong.
+              </p>
+            </div>
+          )}
+
           <div className="pnp-occprofile">
             <span className="pnp-occprofile-label">Broad Occupational Category</span>
             <span className="pnp-occprofile-val">
@@ -478,6 +514,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
                     <div className="pnp-card-score">{m.score}<span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-body)', fontWeight: 400 }}>/100</span></div>
                   </div>
                   <div style={{ marginTop: '0.4rem' }}><Badge verdict={m.verdict} /></div>
+                  <DifficultyChips stream={m.stream} />
                   {m.occupationEligibility === 'eligible-listed' && (
                     <div className="pnp-occ pnp-occ--listed">On {m.stream.province}&rsquo;s eligible occupation list</div>
                   )}

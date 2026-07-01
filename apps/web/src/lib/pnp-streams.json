@@ -764,7 +764,8 @@
         "documentDate": "2026-06-17",
         "lastVerified": "2026-06-26",
         "note": "Alberta Opportunity Stream Ineligible Occupations list; Alberta Express Entry excludes the same occupations. NOC 73300 (Transport truck drivers) is not on this list."
-      }
+      },
+      "difficultyTags": ["high_competition"]
     },
     {
       "id": "ab-aos",
@@ -1033,7 +1034,9 @@
         "mode": "sinp-excluded",
         "source": "https://www.saskatchewan.ca/residents/moving-to-saskatchewan/live-in-saskatchewan/by-immigrating/saskatchewan-immigrant-nominee-program",
         "lastVerified": "2026-06-22"
-      }
+      },
+      "drawPausedSince": "2024-09-12",
+      "difficultyTags": ["low_draw_frequency"]
     },
     {
       "id": "sk-isw-oid",
@@ -1094,7 +1097,9 @@
         "mode": "sinp-excluded",
         "source": "https://www.saskatchewan.ca/residents/moving-to-saskatchewan/live-in-saskatchewan/by-immigrating/saskatchewan-immigrant-nominee-program",
         "lastVerified": "2026-06-22"
-      }
+      },
+      "drawPausedSince": "2024-09-12",
+      "difficultyTags": ["low_draw_frequency"]
     },
     {
       "id": "sk-isw-offer",
@@ -1957,7 +1962,8 @@
       ],
       "occupationEligibility": {
         "mode": "unrestricted"
-      }
+      },
+      "difficultyTags": ["annual_cap_risk"]
     },
     {
       "id": "pe-sw",
@@ -2016,7 +2022,8 @@
       ],
       "occupationEligibility": {
         "mode": "unrestricted"
-      }
+      },
+      "difficultyTags": ["annual_cap_risk"]
     },
     {
       "id": "pe-sw-outside",
@@ -2072,7 +2079,8 @@
       ],
       "occupationEligibility": {
         "mode": "unrestricted"
-      }
+      },
+      "difficultyTags": ["annual_cap_risk"]
     },
     {
       "id": "pe-oid",
@@ -2128,7 +2136,8 @@
         "mode": "unknown",
         "note": "Stream restricts eligibility to a province-published occupation list not yet encoded; confirm the applicant's NOC against the current list on the provincial source.",
         "source": "https://www.princeedwardisland.ca/en/topic/immigrate-to-pei-as-a-worker"
-      }
+      },
+      "difficultyTags": ["annual_cap_risk"]
     },
     {
       "id": "nl-ee-sw",

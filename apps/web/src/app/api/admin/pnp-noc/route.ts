@@ -40,6 +40,7 @@ const requestSchema = z.object({
     .string()
     .min(20, 'Provide a detailed description of the job duties (at least a sentence or two).')
     .max(8000),
+  manualNocHint: z.string().regex(/^\d{5}$/).optional(),
 })
 
 // Best-effort confirmation that the winning code still exists on the official source.
@@ -75,7 +76,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         { status: 400 }
       )
     }
-    const { occupationTitle, jobDuties } = parsed.data
+    const { occupationTitle, jobDuties, manualNocHint } = parsed.data
 
     // 1) Retrieval: narrow 516 unit groups to a grounded shortlist.
     const hits = retrieveCandidates(jobDuties, occupationTitle, RETRIEVE_TOP_K)
@@ -123,6 +124,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       ...grounded,
       citationUrl: esdcProfileUrl(grounded.nocCode),
       verified,
+      ...(manualNocHint && manualNocHint !== grounded.nocCode
+        ? { nocOverrideConflict: { yourSelection: manualNocHint, correctedTo: grounded.nocCode } }
+        : {}),
     }
     return NextResponse.json(classification)
   } catch (error: unknown) {

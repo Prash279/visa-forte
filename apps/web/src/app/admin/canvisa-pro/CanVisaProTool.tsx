@@ -1099,34 +1099,40 @@ export default function CanVisaProTool() {
   }
 
   // Score the profile against every curated PNP stream deterministically. The NOC comes
-  // from one of two sources: if the consultant has set a NOC code (expert override), that
-  // code is authoritative and used directly; otherwise the free-text duties are sent to the
-  // Claude classifier. The duties→NOC model is fallible, so a consultant-set code always wins.
+  // from the duties classifier (always, when duties are provided). A manually entered NOC
+  // code is passed as a hint — if the classifier disagrees, it auto-corrects and the report
+  // flags the discrepancy. When no duties are present but a manual code is set, the manual
+  // code is used directly (nothing to classify).
   async function generatePnp() {
     const duties = (profile.jobDuties ?? '').trim()
     const manualCode = (profile.nocCode ?? '').trim()
-    const useManual = /^\d{5}$/.test(manualCode)
-    if (!useManual && duties.length < 20) {
-      setPnpError('Enter the applicant’s detailed job duties (at least a sentence or two), or set a NOC code, before running the PNP assessment.')
+    const hasManual = /^\d{5}$/.test(manualCode)
+    if (duties.length < 20 && !hasManual) {
+      setPnpError(`Enter the applicant's detailed job duties (at least a sentence or two), or set a NOC code, before running the PNP assessment.`)
       return
     }
     setPnpError(null)
     setPnpLoading(true)
     try {
       let noc: PnpAssessmentResult['noc']
-      if (useManual) {
-        noc = manualNocClassification(manualCode, profile.nocTeer, profile.occupationTitle)
-      } else {
+      if (duties.length >= 20) {
+        // Always run the classifier when duties are available. Pass the manual code as a
+        // hint so the route can flag any disagreement — but the classifier result wins.
+        const body: Record<string, string> = { occupationTitle: profile.occupationTitle ?? '', jobDuties: duties }
+        if (hasManual) body.manualNocHint = manualCode
         const res = await fetch('/api/admin/pnp-noc', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ occupationTitle: profile.occupationTitle, jobDuties: duties }),
+          body: JSON.stringify(body),
         })
         if (!res.ok) {
-          const body = (await res.json().catch(() => ({}))) as { error?: string }
-          throw new Error(body.error ?? `Classification failed (${res.status}).`)
+          const errBody = (await res.json().catch(() => ({}))) as { error?: string }
+          throw new Error(errBody.error ?? `Classification failed (${res.status}).`)
         }
         noc = (await res.json()) as PnpAssessmentResult['noc']
+      } else {
+        // No duties — manual code is the only input; use it directly.
+        noc = manualNocClassification(manualCode, profile.nocTeer, profile.occupationTitle)
       }
       setPnpResult(assessPnp(profile, noc))
       setView('pnp')

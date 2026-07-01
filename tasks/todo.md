@@ -1897,4 +1897,98 @@ All four phases built and verified locally. 231/231 Vitest pass; `tsc --noEmit` 
 
 ---
 
+### TASK CVP-9: PNP Assessment — Three Accuracy Fixes (grilled 2026-07-01)
+
+**Status:** 🔲 IN PROGRESS
+**Approved:** ✅ All three decisions locked via grilling session (2026-07-01)
+**Trigger:** Real-world report review (Rashmi Anupoju follow-up) surfaced three classes of error.
+
+---
+
+**Three problems and their fixes:**
+
+**Problem 1 — Wrong NOC despite manual selection (DECIDED)**
+Root cause: `generatePnp()` in `CanVisaProTool.tsx` (~line 1108) short-circuits the duties classifier entirely when any 5-digit NOC is set in the form. If the consultant accidentally typed the wrong NOC code, the tool uses it with full confidence and the entire PNP report is wrong.
+
+Decision: Always run the classifier when duties are provided (≥20 chars). The manually entered NOC becomes a hint passed to the route. If classifier result differs from the hint, auto-correct to the classifier and flag the discrepancy visibly in the report.
+
+**Problem 2 — SINP shown as top stream despite no draws since Sep 2024 (DECIDED: Option C)**
+Root cause: `pnp-streams.json` stream `sk-isw-ee` has `status: "open"` which gives it `openStatus: 20/20` in the ranking score. The engine has no concept of draw dormancy — only intake status. SINP EOI draws have been paused since 2024-09-12 (verified), which is 9+ months with no restart date.
+
+Decision (Option C): Exclude from shortlist when a stream's draws have been paused ≥6 months. It stays in the full pathway matrix with a stale-draw notice. Implementation: add a `drawPausedSince` field to `PnpStream` type and set it on `sk-isw-ee`; filter in `assessPnp()`.
+
+**Problem 3 — Hard-to-get nominations shown with no difficulty signal (DECIDED)**
+Root cause: Verdict logic checks hard gates and conditional requirements only. It has no concept of practical selectivity, draw competitiveness, employer difficulty, or annual cap risk. Four categories of difficulty exist: hyper-competitive draws, employer-required streams, low-draw-frequency streams, and annual-cap-risk streams.
+
+Decision: Add a `difficultyTags` array to each stream in `pnp-streams.json`. Tags: `high_competition`, `low_draw_frequency`, `annual_cap_risk`. Employer-required is derived at render time from existing `criteria.jobOfferRequired === 'required'` (no duplication needed). Tags render as small chip badges on each stream card in `PnpReport.tsx`. Employer-required streams stay in the shortlist, just tagged.
+
+---
+
+**Step plan:**
+
+**Step 1 — `pnp-eligibility.ts`: extend `PnpStream` type**
+- [ ] Add `drawPausedSince?: string` (ISO date, e.g. `"2024-09-12"`) — when set, stream is excluded from shortlist if months elapsed ≥ 6
+- [ ] Add `difficultyTags?: ReadonlyArray<'high_competition' | 'low_draw_frequency' | 'annual_cap_risk'>` — static chips shown on stream card
+- [ ] Add `nocOverrideConflict?: { yourSelection: string; correctedTo: string }` to `NocClassification` — populated by the route when classifier corrects a manual entry
+- [ ] Add private helper `monthsSinceIso(isoDate: string, today?: Date): number` — computes full months elapsed (testable via `today` param)
+
+**Step 2 — `pnp-eligibility.ts`: SINP shortlist filter in `assessPnp()`**
+- [ ] After `rankedPathways` is built (line ~602), before `.slice(0, SHORTLIST_MAX)`:
+  - Filter out any stream where `stream.drawPausedSince` is set AND `monthsSinceIso(stream.drawPausedSince) >= 6`
+  - If any stream was excluded, push a flag: `"${province} — ${streamName} excluded from shortlist: no EOI draws since ${drawPausedSince} (${N} months). Shown in full pathway matrix — re-check when draws resume."`
+
+**Step 3 — `pnp-streams.json`: tag `sk-isw-ee` + curate difficulty tags across all streams**
+- [ ] Add `"drawPausedSince": "2024-09-12"` to `sk-isw-ee`
+- [ ] Add `difficultyTags` to every stream (empty array `[]` for most; populated for known difficult streams):
+  - `high_competition`: AB AAIP streams (Alberta routinely sees CRS 300+ cutoffs in provincial draws)
+  - `low_draw_frequency`: `sk-isw-ee` and any other streams with documented infrequent or paused draws
+  - `annual_cap_risk`: Streams from provinces known to fill their annual nomination cap mid-year (MB MPNP, NB SNB, PE PEI)
+- [ ] Note: `employer_required` is NOT stored in `difficultyTags`; it is derived at render time from `stream.criteria.jobOfferRequired === 'required'` (data already present)
+
+**Step 4 — `/api/admin/pnp-noc/route.ts`: accept `manualNocHint`, return conflict flag**
+- [ ] Add `manualNocHint?: string` to the request body Zod schema
+- [ ] After the classifier picks its winning code: if `manualNocHint` is set and differs from the winner's `nocCode`, attach `nocOverrideConflict: { yourSelection: manualNocHint, correctedTo: winner.nocCode }` to the response alongside the normal NOC classification fields
+
+**Step 5 — `CanVisaProTool.tsx`: remove the `useManual` short-circuit in `generatePnp()`**
+- [ ] Current guard at ~line 1108–1130: if `useManual` (valid 5-digit code set), skip the classifier entirely
+- [ ] New logic:
+  - If `duties.length < 20` AND no valid manual code → show "Enter duties or set a NOC code" error (unchanged)
+  - If `duties.length >= 20` → ALWAYS call `/api/admin/pnp-noc`; if a manual code is set, include `manualNocHint` in the request body
+  - If no duties (`duties.length < 20`) BUT valid manual code → use `manualNocClassification()` as before (no duties to classify)
+- [ ] On API response: store `noc` as before; `noc.nocOverrideConflict` is passed through transparently (already on the type)
+
+**Step 6 — `PnpReport.tsx`: show NOC correction notice + difficulty tag chips**
+- [ ] At the top of the occupation classification section: if `noc.nocOverrideConflict` is set, render a visible notice:
+  `"NOC auto-corrected: your selection [22110] → [41404] based on duties analysis. Duties were used to determine the correct code."`
+- [ ] On each stream card (shortlist cards AND full matrix rows): after the stream name, render difficulty chips for:
+  - All tags in `stream.difficultyTags` (mapped to human labels: `high_competition` → "Highly Competitive", `low_draw_frequency` → "Low Draw Frequency", `annual_cap_risk` → "Annual Cap Risk")
+  - If `stream.criteria.jobOfferRequired === 'required'`: also render "Employer Required" chip (derived, not from JSON)
+
+**Step 7 — `pnp-report.css`: style difficulty chips**
+- [ ] `.cvp2-difficulty-tag` base style: small, pill-shaped, 0.7rem, uppercase
+- [ ] Four colour variants: `--tag-competition` (amber), `--tag-employer` (slate), `--tag-frequency` (violet), `--tag-cap` (rose)
+- [ ] Mobile breakpoint: chips wrap to next line cleanly on 375px (fit inside `.cvp2-card`)
+
+**Step 8 — Tests**
+- [ ] `pnp-eligibility.test.ts`: add test — sk-isw-ee excluded from shortlist when `drawPausedSince` is 7 months ago; present in `rankedPathways`; flag message added
+- [ ] `pnp-eligibility.test.ts`: add test — `monthsSinceIso` returns correct value for a known date pair
+- [ ] `pnp-golden-cases.test.ts`: add test — when `manualNocHint` differs from classifier result, `nocOverrideConflict` fields are populated
+
+**Step 9 — TypeScript check + deploy**
+- [ ] `cd apps/web && npx tsc --noEmit` — zero errors
+- [ ] `npx vitest run` — all tests pass, zero regressions
+- [ ] Commit: `fix(canvisa-pro): noc auto-correct, sinp shortlist exclusion, pnp difficulty tags`
+- [ ] `git push origin main` after Prash gives the word
+
+---
+
+**Prashant Proof:**
+1. Go to `/admin/canvisa-pro` — enter Rashmi's health policy duties with NOC manually set to `22110` (wrong code). Run PNP assessment.
+2. Confirm the report shows a NOC correction notice: "Your selection: 22110 → Corrected to: 41404 based on duties analysis."
+3. Confirm the shortlist does NOT include SINP ISW Express Entry. Confirm SINP still appears in the full pathway matrix with a "Draws paused since Sep 2024" notice.
+4. Confirm stream cards show difficulty chips where applicable (e.g., Alberta AAIP shows "Highly Competitive", any employer-required stream shows "Employer Required").
+5. Enter a profile with duties only (no manual NOC) — confirm the classifier still runs normally and no correction notice appears.
+
+---
+
 *todo.md is the single source of task truth. If it's not here, it's not in scope.*

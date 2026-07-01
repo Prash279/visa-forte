@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   assessPnp,
   manualNocClassification,
+  monthsSinceIso,
   type PnpStream,
   type PnpCriteria,
   type NocClassification,
@@ -504,5 +505,59 @@ describe('manualNocClassification — consultant override', () => {
     const r = assessPnp(strongProfile, noc)
     expect(r.noc.nocCode).toBe('41404')
     expect(r.occupationProfile.broadCategory).toBe('4')
+  })
+})
+
+// ── monthsSinceIso helper ─────────────────────────────────────────────────────
+
+describe('monthsSinceIso', () => {
+  it('returns 0 when the date is the same month', () => {
+    expect(monthsSinceIso('2026-07-01', new Date('2026-07-15'))).toBe(0)
+  })
+
+  it('returns 6 for a date exactly 6 months prior', () => {
+    expect(monthsSinceIso('2026-01-10', new Date('2026-07-10'))).toBe(6)
+  })
+
+  it('returns 22 for the SINP pause date vs 2026-07-01', () => {
+    // SINP EOI draws paused 2024-09-12; verified 2026-07-01 = 22 months
+    expect(monthsSinceIso('2024-09-12', new Date('2026-07-01'))).toBe(22)
+  })
+})
+
+// ── Draw dormancy filter ──────────────────────────────────────────────────────
+
+describe('assessPnp — draw dormancy shortlist exclusion', () => {
+  it('excludes a drawPausedSince stream from the shortlist when ≥6 months have passed', () => {
+    // A stream paused 7 months ago should be excluded from the shortlist but
+    // kept in rankedPathways (the full reference matrix).
+    const pausedDate = new Date()
+    pausedDate.setMonth(pausedDate.getMonth() - 7)
+    const isoDate = pausedDate.toISOString().slice(0, 10)
+
+    const dormant = mkStream({ id: 'dormant-stream', drawPausedSince: isoDate })
+    const active  = mkStream({ id: 'active-stream' })
+
+    const r = assessPnp(strongProfile, mkNoc(1), [dormant, active])
+    expect(r.shortlist.some(m => m.stream.id === 'dormant-stream')).toBe(false)
+    expect(r.rankedPathways.some(m => m.stream.id === 'dormant-stream')).toBe(true)
+    expect(r.flags.some(f => /dormant-stream/.test(f) || /excluded from shortlist/.test(f))).toBe(true)
+  })
+
+  it('keeps a drawPausedSince stream in the shortlist when <6 months have passed', () => {
+    const pausedDate = new Date()
+    pausedDate.setMonth(pausedDate.getMonth() - 3)
+    const isoDate = pausedDate.toISOString().slice(0, 10)
+
+    const recent = mkStream({ id: 'recent-pause', drawPausedSince: isoDate })
+    const r = assessPnp(strongProfile, mkNoc(1), [recent])
+    expect(r.shortlist.some(m => m.stream.id === 'recent-pause')).toBe(true)
+  })
+
+  it('sk-isw-ee is excluded from the shortlist over real curated data (draws paused Sep 2024)', () => {
+    // As of 2026-07-01, that is 22 months — well over the 6-month threshold.
+    const r = assessPnp(strongProfile, mkNoc(1))
+    expect(r.shortlist.some(m => m.stream.id === 'sk-isw-ee')).toBe(false)
+    expect(r.rankedPathways.some(m => m.stream.id === 'sk-isw-ee')).toBe(true)
   })
 })
