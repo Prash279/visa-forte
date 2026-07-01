@@ -380,7 +380,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
   const allPassing = [...pnp.eeLinked, ...pnp.base]
   const eligible = allPassing.filter((m) => m.relevance !== 'mismatch')
   const fieldExcluded = allPassing.length - eligible.length
-  const topEe = pnp.eeLinked[0]
+  const topEe = pnp.eeLinked.find(m => !m.stream.drawPausedSince)
   const insights = buildPnpInsights(pnp)
   // Saskatchewan-specific points estimate (pilot). Shown only when SINP is assessed.
   const sinp = scoreSinp(profile)
@@ -596,7 +596,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
                 {pnp.rankedPathways.map((m) => (
                   <tr key={m.stream.id}>
                     <td>{m.stream.province}</td>
-                    <td>{m.stream.streamName}</td>
+                    <td><div>{m.stream.streamName}</div><DifficultyChips stream={m.stream} /></td>
                     <td>{m.stream.category === 'ee-linked' ? 'EE-linked' : 'Base'}</td>
                     <td>{fitLabel(m)}</td>
                     <td className="pnp-table-cond">{keyCondition(m)}</td>

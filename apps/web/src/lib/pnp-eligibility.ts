@@ -689,7 +689,7 @@ export interface PnpInsight {
 export function buildPnpInsights(pnp: PnpAssessmentResult): PnpInsight[] {
   const out: PnpInsight[] = []
   const shortlist = pnp.shortlist
-  const topEe = pnp.eeLinked[0]
+  const topEe = pnp.eeLinked.find(m => !m.stream.drawPausedSince)
 
   if (topEe) {
     out.push({
