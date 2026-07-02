@@ -260,13 +260,11 @@ export default function AssessmentTool() {
   const dateOfBirth = dobDay && dobMonth && dobYear
     ? `${dobYear}-${dobMonth}-${dobDay}` : ''
 
-  // Contact capture state — mandatory before Check My Eligibility
-  const [contactName, setContactName]       = useState('')
-  const [contactEmail, setContactEmail]     = useState('')
-  const [contactPhone, setContactPhone]     = useState('')
-  const [contactConsent, setContactConsent] = useState(false)
+  // Post-result lead capture (optional — shown after result, never gates the form)
+  const [leadName, setLeadName]         = useState('')
+  const [leadEmail, setLeadEmail]       = useState('')
 
-  // RT-1 additions: weakness chips, best pathway, email/alert
+  // Weakness chips, best pathway, email/alert
   const [weaknesses, setWeaknesses]     = useState<WeaknessChip[]>([])
   const [pathway, setPathway]           = useState<BestPathway | null>(null)
   const [eeCategory, setEeCategory]     = useState('')
@@ -316,14 +314,6 @@ export default function AssessmentTool() {
     setWeaknesses(getWeaknesses(r))
     setPathway(getBestPathway(r.breakdown.total, catsForPathway))
     setEeCategory(cats[0] ?? 'Express Entry Pool')
-    // Fire-and-forget: save lead — never blocks the result display
-    const fd = new FormData()
-    fd.append('name', contactName.trim())
-    fd.append('email', contactEmail.trim())
-    fd.append('phone', contactPhone.trim())
-    fd.append('crsScore', String(r.breakdown.total))
-    fd.append('consentGiven', 'true')
-    fetch('/api/assessment-lead', { method: 'POST', body: fd }).catch(() => undefined)
     setResult(r)
     setView('result')
     setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50)
@@ -335,10 +325,8 @@ export default function AssessmentTool() {
     setNumberOfChildren(0)
     setResult(null)
     setView('form')
-    setContactName('')
-    setContactEmail('')
-    setContactPhone('')
-    setContactConsent(false)
+    setLeadName('')
+    setLeadEmail('')
     setDobDay('')
     setDobMonth('')
     setDobYear('')
@@ -359,8 +347,8 @@ export default function AssessmentTool() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: contactName,
-          email: contactEmail,
+          name: leadName,
+          email: leadEmail,
           crsScore: result.breakdown.total,
           eeCategory,
           toolName: 'assessment',
@@ -378,13 +366,6 @@ export default function AssessmentTool() {
       setEmailSending(false)
     }
   }
-
-  // Button is enabled only when all three contact fields are valid and consent is given
-  const contactReady =
-    contactName.trim().length > 0 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim()) &&
-    contactPhone.trim().length >= 7 &&
-    contactConsent
 
   // ── FORM ───────────────────────────────────────────────────────────────────
 
@@ -1033,72 +1014,15 @@ export default function AssessmentTool() {
               </div>
             )}
 
-            {/* ── Contact Details — Mandatory Before Check ────────── */}
-            <div className="asx-contact-section">
-              <p className="asx-section-label">Your Contact Details</p>
-              <p className="asx-contact-note">
-                Required to send you your results and for Prash to follow up personally.
-              </p>
-              <div className="asx-grid-2">
-                <div className="asx-field asx-full">
-                  <label className="asx-label" htmlFor="contact-name">Full Name</label>
-                  <input
-                    id="contact-name"
-                    className="asx-input"
-                    type="text"
-                    placeholder="Your full name"
-                    value={contactName}
-                    onChange={e => setContactName(e.target.value)}
-                    autoComplete="name"
-                  />
-                </div>
-                <div className="asx-field">
-                  <label className="asx-label" htmlFor="contact-email">Email Address</label>
-                  <input
-                    id="contact-email"
-                    className="asx-input"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={contactEmail}
-                    onChange={e => setContactEmail(e.target.value)}
-                    autoComplete="email"
-                  />
-                </div>
-                <div className="asx-field">
-                  <label className="asx-label" htmlFor="contact-phone">Mobile Number</label>
-                  <input
-                    id="contact-phone"
-                    className="asx-input"
-                    type="tel"
-                    placeholder="+91 98765 43210"
-                    value={contactPhone}
-                    onChange={e => setContactPhone(e.target.value)}
-                    autoComplete="tel"
-                  />
-                </div>
-              </div>
-              <label className="asx-checkbox-row" style={{ marginTop: '0.75rem' }}>
-                <input
-                  type="checkbox"
-                  checked={contactConsent}
-                  onChange={e => setContactConsent(e.target.checked)}
-                />
-                <span className="asx-checkbox-label">
-                  I consent to Visa Forte contacting me about my immigration assessment.
-                </span>
-              </label>
-            </div>
-
             <div className="asx-submit-row">
               <button
                 className="asx-submit-btn"
                 onClick={runAssessment}
-                disabled={!contactReady}
               >
                 Check My Eligibility →
               </button>
               <p className="asx-submit-note">
-                Instant result. Your details are saved securely and never shared.
+                Instant result. No login or email required.
               </p>
             </div>
 
@@ -1546,7 +1470,33 @@ export default function AssessmentTool() {
               <p className="asx-email-success">Check your inbox ✓</p>
             ) : (
               <>
-                <h3 className="asx-email-heading">Get a copy + draw alert</h3>
+                <h3 className="asx-email-heading">Want a copy in your inbox?</h3>
+                <div className="asx-grid-2" style={{ marginBottom: '1rem' }}>
+                  <div className="asx-field">
+                    <label className="asx-label" htmlFor="lead-name">Your Name</label>
+                    <input
+                      id="lead-name"
+                      className="asx-input"
+                      type="text"
+                      placeholder="Full name"
+                      value={leadName}
+                      onChange={e => setLeadName(e.target.value)}
+                      autoComplete="name"
+                    />
+                  </div>
+                  <div className="asx-field">
+                    <label className="asx-label" htmlFor="lead-email">Email Address</label>
+                    <input
+                      id="lead-email"
+                      className="asx-input"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={leadEmail}
+                      onChange={e => setLeadEmail(e.target.value)}
+                      autoComplete="email"
+                    />
+                  </div>
+                </div>
                 <label className="asx-checkbox-row" style={{ marginBottom: '0.5rem' }}>
                   <input type="checkbox" checked readOnly />
                   <span className="asx-checkbox-label">Email me my CRS results and top improvement tips</span>
@@ -1555,7 +1505,11 @@ export default function AssessmentTool() {
                   <input type="checkbox" checked={wantsAlert} onChange={e => setWantsAlert(e.target.checked)} />
                   <span className="asx-checkbox-label">Alert me when a {eeCategory || 'relevant'} draw opens</span>
                 </label>
-                <button className="asx-submit-btn" onClick={handleSendResults} disabled={emailSending}>
+                <button
+                  className="asx-submit-btn"
+                  onClick={handleSendResults}
+                  disabled={emailSending || !leadName.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(leadEmail.trim())}
+                >
                   {emailSending ? 'Sending…' : 'Send My Results →'}
                 </button>
               </>
