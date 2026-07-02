@@ -64,10 +64,16 @@ export default function ResourcesPage(): JSX.Element {
             </a>
           </div>
 
-          {/* 2×2 coming-soon grid */}
+          {/* Tools grid — first card is live, rest coming soon */}
           <div className="tools-grid r d3">
+            <a href="/tools/crs-modeller" className="tools-card" style={{ textDecoration: 'none' }}>
+              <div className="tools-card-badge">Free · No Login Required</div>
+              <h4 className="tools-card-title">CRS What-If Modeller</h4>
+              <p className="tools-card-desc">
+                Move one lever — language, education, or Canadian experience — and see the exact point gain. Find the fastest path to the cutoff.
+              </p>
+            </a>
             {[
-              { name: 'CRS What-If Modeller', desc: 'Simulate how improving language, education, or Canadian experience moves your score.' },
               { name: '60-Day Countdown Planner', desc: 'Generate a personalised day-by-day document preparation timeline from your ITA date.' },
               { name: 'NOC Code Verifier', desc: 'Confirm your 5-digit NOC 2021 code and TEER level against the official Statistics Canada CSV.' },
               { name: 'Refusal Pattern Analyser', desc: 'Identify the most common refusal grounds for your NOC and build a pre-emption strategy.' },

@@ -1439,8 +1439,10 @@ export default function AssessmentTool() {
               <p className="asx-scenarios-note">
                 All projections assume current IRCC scoring rules. Verify live draw cutoffs at{' '}
                 <a href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry.html"
-                  target="_blank" rel="noopener noreferrer">canada.ca</a>{' '}
-                before acting on any scenario.
+                  target="_blank" rel="noopener noreferrer">canada.ca</a>{' · '}
+                <Link href={`/tools/crs-modeller?age=${profile.age}&edu=${profile.education}&spouse=${profile.hasSpouse}&l=${firstClb.listening}&r=${firstClb.reading}&w=${firstClb.writing}&s=${firstClb.speaking}&cwe=${Math.floor(profile.canadianWorkExperienceYears)}&fwe=${Math.floor(profile.foreignWorkExperienceYears)}`}>
+                  Try the What-If Modeller →
+                </Link>
               </p>
             </div>
           )}

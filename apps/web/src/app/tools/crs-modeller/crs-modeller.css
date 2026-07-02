@@ -1,0 +1,286 @@
+/* crs-modeller.css — /tools/crs-modeller interactive lever tool
+   mod-* prefix for all new classes. asx-* classes come from imported assessment.css.
+   Visa Forte brand: Prussian #0C2340 · Saffron #C97B1E · Pearl #F8F4EE · Ink #1A2B3C */
+
+/* ── Score hero row ─────────────────────────────────────────────── */
+.mod-score-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.mod-score-block {
+  background: var(--prussian);
+  color: var(--pearl);
+  border-radius: 8px;
+  padding: 1.25rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  min-width: 140px;
+}
+
+.mod-score-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(248, 244, 238, 0.55);
+}
+
+.mod-score-num {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--pearl);
+  letter-spacing: -0.02em;
+}
+
+.mod-delta {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.mod-delta.pos {
+  background: rgba(34, 197, 94, 0.18);
+  color: #22c55e;
+}
+
+.mod-delta.neg {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.mod-arrow {
+  font-size: 1.4rem;
+  color: var(--saffron);
+  align-self: center;
+  display: none; /* hidden on mobile, shown on tablet+ */
+}
+
+.mod-cutoff-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1.25rem 1.75rem;
+  border: 1px solid var(--sand, rgba(12, 35, 64, 0.12));
+  border-radius: 8px;
+  min-width: 180px;
+}
+
+.mod-cutoff-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #4A5568;
+}
+
+.mod-cutoff-val {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.mod-gap {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  margin-top: 0.2rem;
+}
+
+.mod-gap.above { color: #22c55e; }
+.mod-gap.below { color: #ef4444; }
+
+/* ── Cutoff progress bar ─────────────────────────────────────────── */
+.mod-cutoff-bar {
+  position: relative;
+  height: 10px;
+  background: rgba(12, 35, 64, 0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.mod-cutoff-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.2s ease, background-color 0.2s ease;
+}
+
+.mod-fill-above  { background: #22c55e; }
+.mod-fill-close  { background: var(--saffron); }
+.mod-fill-below  { background: #ef4444; }
+
+/* ── Draw context bar ────────────────────────────────────────────── */
+.mod-context-bar {
+  font-size: 0.78rem;
+  color: #4A5568;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  align-items: center;
+  margin-bottom: 0;
+  line-height: 1.5;
+}
+
+.mod-context-item { white-space: nowrap; }
+.mod-context-divider { color: rgba(12, 35, 64, 0.3); }
+.mod-context-link {
+  color: var(--saffron);
+  text-decoration: none;
+  font-weight: 500;
+}
+.mod-context-link:hover { text-decoration: underline; }
+
+/* ── Lever controls ──────────────────────────────────────────────── */
+.mod-levers {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 0;
+}
+
+.mod-lever-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 64px;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mod-lever-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #4A5568;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.mod-range {
+  width: 100%;
+  min-height: 44px; /* touch target */
+  cursor: pointer;
+  accent-color: var(--prussian);
+}
+
+.mod-lever-val {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--prussian);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ── Delta table ─────────────────────────────────────────────────── */
+.mod-delta-table {
+  border: 1px solid rgba(12, 35, 64, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.85rem;
+}
+
+.mod-delta-head {
+  display: grid;
+  grid-template-columns: 1fr 80px 80px 72px;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: var(--prussian);
+  color: rgba(248, 244, 238, 0.65);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mod-delta-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 80px 72px;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  border-top: 1px solid rgba(12, 35, 64, 0.07);
+  align-items: center;
+  transition: background 0.15s;
+}
+
+.mod-delta-row.has-gain {
+  background: rgba(201, 123, 30, 0.05);
+}
+
+.mod-delta-name   { color: var(--ink); font-weight: 500; }
+.mod-delta-current { color: #4A5568; }
+.mod-delta-projected { color: var(--ink); font-weight: 600; }
+
+.mod-delta-gain {
+  font-weight: 700;
+  color: #4A5568;
+  text-align: right;
+}
+
+.mod-delta-gain.positive { color: #22c55e; }
+
+/* ── Path to cutoff blurb ────────────────────────────────────────── */
+.mod-path-blurb {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: var(--ink);
+  margin: 0 0 0.5rem;
+}
+
+.mod-path-blurb:last-child { margin-bottom: 0; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE — tablet (640px+)
+   ═══════════════════════════════════════════════════════════════════ */
+@media (min-width: 640px) {
+  .mod-score-row {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .mod-arrow {
+    display: block;
+  }
+
+  .mod-lever-row {
+    grid-template-columns: 130px 1fr 72px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE — mobile overrides (≤ 479px)
+   Delta table collapses to card-per-lever
+   ═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 479px) {
+  .mod-delta-head { display: none; }
+
+  .mod-delta-row {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    row-gap: 0.25rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .mod-delta-name     { grid-column: 1 / -1; font-weight: 600; }
+  .mod-delta-current  { font-size: 0.78rem; }
+  .mod-delta-projected { font-size: 0.78rem; }
+  .mod-delta-gain     { text-align: left; }
+
+  .mod-score-num { font-size: 2.4rem; }
+  .mod-cutoff-val { font-size: 2rem; }
+
+  .mod-lever-row {
+    grid-template-columns: 90px 1fr 56px;
+    gap: 0.5rem;
+  }
+}
