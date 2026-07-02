@@ -2144,7 +2144,7 @@ Decision: Add a `difficultyTags` array to each stream in `pnp-streams.json`. Tag
 ---
 
 ### TASK RT-2: CRS What-If Modeller — `/tools/crs-modeller`
-**Status:** 🔲 NOT STARTED
+**Status:** ✅ COMPLETE — 2026-07-03 (visual confirmation of age alert redesign pending Prash's proof below)
 **What this delivers:** An interactive score simulator. The applicant starts from their base CRS score (entered manually or pre-filled via URL params from the /assessment handoff) and adjusts four live levers — language band (CLB per ability), education level, Canadian WE years, and foreign WE years — to see the score and point-delta update in real-time. Shows which lever combination clears the most recent draw cutoff for their pool category. Free, ungated, no login.
 
 ---
@@ -2230,13 +2230,145 @@ Layout (top to bottom):
 
 ---
 
+#### Review — RT-2 (2026-07-03)
+Three bug-fix commits shipped after initial build, all merged to main and auto-deployed to visaforte.com:
+
+- `1fe8976` — **Modeller link visibility fix**: "Try the CRS What-If Modeller →" pill was hidden on profiles with 0 Canadian WE (the condition only surfaced the link for CEC pool members). Fixed so the pill shows for all profiles.
+- `447514d` — **getRelevantDraw fallback removed**: `draws[0]` was returned as a catch-all when no CEC or PNP draw existed in history. That fallback used the wrong draw category (often an All-Programs draw) producing a misleading "no matching draw" message. Removed entirely — the function now returns `null` and the UI shows an honest "no recent draw found" note.
+- `32913eb` — **Age alert brand redesign**: The old age-band warning was an amber system-warning bar with emoji. Redesigned to a saffron left-border advisory card with "AGE ALERT" small-caps label and Prussian body text — consistent with the Visa Forte brand colour system.
+
+Visual confirmation of the age alert redesign is pending (Prashant Proof above). All other RT-2 steps were verified at completion.
+
 ---
 
 ### TASK RT-3: 60-Day Countdown Planner — `/tools/ita-countdown`
-**Status:** 🔲 NOT STARTED — step plan written when RT-2 is complete
-**What this delivers:** A premium tool for post-ITA applicants. Accepts ITA date → generates a personalised 60-day document checklist with deadlines (police certificates, medicals, reference letters, translations, biometrics) based on country of residence and family size. Results emailed as a PDF via Resend. Gated: free fictional sample → Razorpay inline pay (₹2,997 basic / ₹3,997 premium) → tool unlocks immediately. Token stored in DB, result emailed as PDF.
+**Status:** 🔲 NOT STARTED — awaiting Prash approval on step plan below
+**What this delivers:** A premium tool for post-ITA applicants. Accepts ITA date → generates a personalised 60-day document checklist with exact start-by and deadline dates per task, based on citizenship country, residence countries, and family size. Gated: free fictional sample preview → Razorpay inline pay (₹2,997 standard / ₹3,997 premium) → tool unlocks immediately. Result delivered as: (a) printable result page with `window.print()` button and (b) HTML email via Resend. Token stored in DB; result accessible at `/tools/ita-countdown/result?token=<uuid>`. Premium tier triggers a Resend notification to Prash to manually schedule a 30-min document review consultation.
 **Price:** ₹2,997 (standard) / ₹3,997 (+ document review consultation slot)
-**Step plan:** Written after RT-2 is shipped.
+
+---
+
+**Key logic decisions (locked):**
+- Police certificates: start Day 0 — longest lead time. India/Pakistan flagged as 6–8 weeks.
+- Medical exams: start Day 3 (book appointment). Deadline Day 40.
+- Language test: verify still valid (≤ 2 years from ITA date). Action due Day 7.
+- Employment reference letters: start Day 7. Deadline Day 30.
+- Document translations: Deadline Day 42.
+- Biometrics: check if previously enrolled. Deadline Day 45.
+- Final upload and submit: Days 50–58. Submission deadline = ITA date + 58 (2-day buffer before Day 60).
+- No PDF library: HTML email from Resend + `@media print` CSS + `window.print()` button on result page.
+- Premium ₹3,997: triggers Resend notification to prashant@visaforte.com to manually schedule the doc review call.
+
+**DB table: `itaCountdownOrders`**
+Columns: id (uuid PK), name (text), email (text), itaDate (date), citizenshipCountry (text), residenceCountries (text array), hasSpouse (boolean), numDependentChildren (integer), tier (text: 'standard' | 'premium'), token (uuid, unique), razorpayOrderId (text), razorpayPaymentId (text), paymentStatus (text: 'pending' | 'paid'), emailSent (boolean), createdAt (timestamp)
+
+---
+
+**Step plan:**
+
+**Step 0 — Commit plan (Task 0 rule)**
+- [ ] Commit this plan to git before any code: `docs: add rt-3 ita-countdown plan`
+
+**Step 1 — Logic function: `ita-countdown-logic.ts`**
+- [ ] Create `apps/web/src/lib/ita-countdown-logic.ts`
+  - Types: `ItaInput { itaDate, citizenshipCountry, residenceCountries, hasSpouse, numDependentChildren, tier }`, `ChecklistItem { id, task, startByDate, deadlineDate, notes }`
+  - Pure function: `generateChecklist(input: ItaInput): ChecklistItem[]`
+  - Per-country police cert notes: India/Pakistan flagged "6–8 weeks — start immediately"; all other countries get standard "4–6 weeks" note
+  - Family branching: spouse adds "Sponsor's letter of support" item; each child adds "Birth certificate + translation" item
+  - Delivery method: HTML email (Resend) + printable result page — no PDF library
+- [ ] Unit tests in `apps/web/src/lib/__tests__/ita-countdown-logic.test.ts`:
+  - India profile: police cert item exists with "6–8 weeks" note, startByDate = ITA date
+  - With-spouse profile: sponsor letter item present
+  - No-children profile: no birth certificate item
+  - All items have startByDate ≤ deadlineDate
+  - Submission deadline = itaDate + 58 days
+
+**Step 2 — DB migration 0015: `itaCountdownOrders`**
+- [ ] Add `itaCountdownOrders` table to `apps/web/drizzle/schema.ts` (columns listed above)
+- [ ] Run `drizzle-kit generate` → review SQL → `drizzle-kit migrate`
+- [ ] Verify: table exists in Supabase dashboard
+
+**Step 3 — Pricing constants**
+- [ ] In `apps/web/src/lib/constants.ts`, add:
+  - `ITA_COUNTDOWN_STANDARD_PAISE = 299700` (₹2,997)
+  - `ITA_COUNTDOWN_PREMIUM_PAISE = 399700` (₹3,997)
+
+**Step 4 — API: `POST /api/tools/ita-countdown/create-order`**
+- [ ] Create `apps/web/src/app/api/tools/ita-countdown/create-order/route.ts`
+  - Input (Zod): `{ name, email, itaDate, citizenshipCountry, residenceCountries, hasSpouse, numDependentChildren, tier: 'standard' | 'premium' }`
+  - Create Razorpay order for the matching price constant
+  - Return `{ orderId, amount, currency: 'INR' }`
+  - No auth required
+
+**Step 5 — API: `POST /api/tools/ita-countdown/verify`**
+- [ ] Create `apps/web/src/app/api/tools/ita-countdown/verify/route.ts`
+  - Input (Zod): `{ razorpayOrderId, razorpayPaymentId, razorpaySignature, itaInput: ItaInput }`
+  - HMAC-SHA256 verify Razorpay signature — reject on mismatch (400)
+  - Generate `token = crypto.randomUUID()`
+  - Call `generateChecklist(itaInput)` — produce the checklist
+  - Insert row into `itaCountdownOrders` with `paymentStatus: 'paid'`
+  - Send HTML checklist email to subscriber via Resend (brand-styled, includes all items, print CTA)
+  - If `tier === 'premium'`: send Resend notification to prashant@visaforte.com: "RT-3 premium purchase — [name] [email] — ITA date [date] — schedule doc review"
+  - Update DB row: `emailSent: true`
+  - Return `{ token }`
+
+**Step 6 — API: `GET /api/tools/ita-countdown/result`**
+- [ ] Create `apps/web/src/app/api/tools/ita-countdown/result/route.ts`
+  - Query param: `token` (uuid)
+  - Look up `itaCountdownOrders` by token — 404 if not found or `paymentStatus !== 'paid'`
+  - Regenerate checklist from stored inputs via `generateChecklist()`
+  - Return `{ checklist: ChecklistItem[], name, itaDate, tier }`
+
+**Step 7 — Component: `ItaCountdownTool.tsx`**
+- [ ] Create `apps/web/src/app/tools/ita-countdown/ItaCountdownTool.tsx` (`'use client'`)
+  - Four states: `'form' | 'sample' | 'payment' | 'result'`
+  - **form**: Inputs — ITA date, citizenship country (dropdown, common list: India, Pakistan, Philippines, Nigeria, UK, Other), residence countries (multi-select or comma text), spouse toggle, number of children (0–5), tier selector (standard / premium with price shown)
+  - **sample**: Shows 3 fictional checklist items with dates blurred/locked — "Preview only — purchase to unlock your personalised plan". CTA: "Get My Checklist →" → triggers Razorpay
+  - **payment**: Razorpay inline checkout. On success: POST to `/api/tools/ita-countdown/verify` → receive `{ token }` → transition to `'result'`
+  - **result**: Render full checklist (date-sorted, grouped by phase). "Print / Save as PDF" button calls `window.print()`. "Email sent ✓" confirmation note. Shareable URL: `/tools/ita-countdown/result?token=<uuid>`
+
+**Step 8 — CSS: `ita-countdown.css`**
+- [ ] Create `apps/web/src/app/tools/ita-countdown/ita-countdown.css`
+  - Mobile-first (375px base). Checklist items: card layout on mobile, table layout at 768px+
+  - Phase headers: saffron left-border, Prussian text
+  - Deadline highlighting: items with deadline ≤ Day 10 get a saffron accent; Day 40+ get standard
+  - `@media print`: hide nav, payment UI, and sample state; show only the checklist cards full-width; ensure each phase starts on a fresh line; `window.print()` produces a clean A4 document
+
+**Step 9 — Page: `apps/web/src/app/tools/ita-countdown/page.tsx`**
+- [ ] Create server component — no auth required
+  - Renders `<ItaCountdownTool />` client component
+  - Standard page metadata: title, description
+
+**Step 10 — Result page: `apps/web/src/app/tools/ita-countdown/result/page.tsx`**
+- [ ] Server component — reads `token` from `searchParams`
+  - Fetches from `/api/tools/ita-countdown/result?token=<token>`
+  - If not found: renders "Link expired or invalid" with a CTA back to `/tools/ita-countdown`
+  - If found: renders full checklist (same markup as `ItaCountdownTool` result state)
+
+**Step 11 — Resources page card**
+- [ ] In `apps/web/src/app/resources/page.tsx`, update the RT-3 card from "Coming Soon" to "Launch Tool →" linking to `/tools/ita-countdown`
+
+**Step 12 — Tests + verification**
+- [ ] Logic tests in Step 1 must pass (run `vitest run`)
+- [ ] Verify route unit test in `apps/web/src/app/api/tools/ita-countdown/__tests__/verify.test.ts`:
+  - Rejects invalid HMAC (returns 400)
+  - Valid HMAC → returns `{ token }` (mock Razorpay + Resend + DB)
+- [ ] `tsc --noEmit` must pass
+- [ ] `vitest run` must stay green (currently 328/328)
+- [ ] Commit each step with scoped prefix (`feat:`, `fix:`, `test:`)
+- [ ] Push only after Prash gives the word
+
+#### Prashant Proof (RT-3)
+1. Go to `visaforte.com/tools/ita-countdown`
+2. Fill the form with: ITA date = today + 5 days, India citizenship, standard tier
+3. Confirm the sample preview shows 3 blurred items with a "Purchase to unlock" CTA
+4. Complete Razorpay payment (use test mode)
+5. Confirm the full checklist loads with correct dates (police cert = today, medical = today + 3, etc.)
+6. Click "Print / Save as PDF" — confirm a clean print-layout appears
+7. Check prash.279@gmail.com — confirm the HTML checklist email arrived
+8. Copy the result URL and open in a new tab — confirm checklist reloads from DB
+9. Repeat with premium tier — confirm prashant@visaforte.com receives the consultation notification
+10. On mobile (375px): confirm checklist cards readable, dates not clipped
 
 ---
 

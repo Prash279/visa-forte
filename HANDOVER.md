@@ -14,57 +14,60 @@ A handover is only authoritative on the day it was written.
 ---
 
 ## Goal
-RT-2 (CRS What-If Modeller) — three bug fixes shipped this session.
-Awaiting Prash's visual confirmation of the age alert redesign before RT-2 is closed and RT-3 begins.
+Confirm RT-2 age alert spacing fix is visually correct → get Prash approval on RT-3 plan → begin RT-3 Step 0.
 
 ---
 
-## Completed this session (all 331/331, tsc clean, pushed to origin/main)
+## What happened this session
 
-| Commit | Fix |
+| Action | Status |
 |---|---|
-| `1fe8976` | Added visible teal pill button "Try the CRS What-If Modeller →" in `AssessmentTool.tsx` below the scenarios note. Previously the link was 12px grey footnote text — easy to miss. Added `.asx-modeller-link` CSS in `assessment.css`. |
-| `447514d` | Removed `draws[0]` fallback in `getRelevantDraw` (`CrsModeller.tsx`). Was showing "Healthcare and Social Services Occupations" as the cutoff benchmark for any user with 0 Canadian WE (because Healthcare happened to be `draws[0]`). Now returns `null` and shows a saffron-bordered note: "Express Entry is currently running category-based draws only — no All-Programs draw in the current cycle." |
-| `32913eb` | Redesigned the age alert banner in `AssessmentTool.tsx` + `assessment.css`. Replaced ⚠ emoji + generic amber (`#F59E0B`) with brand-consistent treatment: saffron left-border strip, `rgba(201,123,30,0.06)` tint, small-caps "AGE ALERT" label, Prussian body text, saffron bold on key numbers. Mobile override added at `max-width: 860px` breakpoint. |
+| HANDOVER.md date confirmed (2026-07-03) | ✅ |
+| tasks/lessons.md read | ✅ |
+| RT-2 Review section written to tasks/todo.md | ✅ |
+| RT-3 full step plan (Steps 0–12 + Prashant Proof) written to tasks/todo.md | ✅ |
+| Age alert bottom spacing fixed (`margin: 1.75rem auto 0` → `margin: 1.75rem auto`) | ✅ commit `8e08e16` |
+| Age alert top margin-collapse fixed (`display: flow-root` on `.asx-result`) | ✅ commit `112453f` |
+| Age alert top spacing root cause fixed (fixed nav overlap) — `min-height: 81.34px` on `.asx-toolbar` | ✅ commit `32c3ba0` — pushed, deployed |
+| Prash visual confirmation of equal top/bottom spacing on age alert | ❌ NOT CONFIRMED — last push just deployed |
 
 ---
 
-## Awaiting — Prashant Proof
+## Root cause of the spacing fix (for reference)
 
-Prash needs to verify the age alert redesign visually (Vercel auto-deployed after `32913eb`):
+The fixed site nav is 81.34px tall. The result-view toolbar (Edit Profile / New Assessment / Save Print) is only 62.48px tall, meaning `.asx-result` started at y=62.48 — entirely behind the fixed nav. The card's `margin-top: 1.75rem = 28px` placed the card at y=90.47, leaving only 9px of visible pearl above the card vs 28px below. Fix: `min-height: 81.34px` on `.asx-toolbar` forces `.asx-result` to start at the nav bottom (y=81.34px), so the full 28px margin is visible on both sides.
+
+---
+
+## Awaiting — Prashant Proof (age alert spacing)
+
+Prash needs to confirm the final spacing fix is correct:
 
 1. Go to **visaforte.com/assessment**
-2. Complete an assessment with a birth date that triggers the age alert (within 12 months of a birthday that crosses a CRS age band)
-3. Confirm the age alert looks like a brand-consistent advisory card — saffron left border, "AGE ALERT" small-caps label, Prussian body text — NOT the old amber/emoji system-warning bar
-4. Also confirm: the teal "Try the CRS What-If Modeller →" pill button appears after the scenarios card
-5. Also confirm: clicking it → `/tools/crs-modeller` loads with profile pre-filled, and shows the saffron "no matching draw" note (not Healthcare) for profiles with 0 Canadian WE
-
-If all three look correct → **RT-2 is fully done.** Begin RT-3 planning.
+2. Submit a profile with a DOB that triggers the age alert (e.g. turning 35 in the next 12 months)
+3. Confirm the saffron age alert card has **equal pearl space above and below** — not more below than above
+4. If confirmed → RT-2 is fully and finally done
 
 ---
 
-## Key Decisions (locked, RT-2)
+## RT-3 Plan — written, awaiting Prash approval
 
-| Decision | Rationale |
-|---|---|
-| `calculate(buildProfile(state)).breakdown.total` | CrsResult has no `totalScore` — total is at `breakdown.total` |
-| CELPIP testType + CLB integers as scores | CELPIP level 4–12 maps 1:1 to CLB — passes CLB directly into calculator |
-| `useEffect` + `window.location.search` for URL params | Avoids Next.js searchParams-as-Promise complexity; clean client-side parse on mount |
-| `getRelevantDraw`: CEC if canadianWE ≥ 1, else null | No All-Programs draw in current history; `draws[0]` fallback removed — was wrong occupation category |
-| Import `assessment.css` first in CrsModeller.tsx | assessment.css is NOT globally loaded — must import `'../../assessment/assessment.css'` for asx-* classes |
-| Age alert: `var(--saffron)` + `var(--prussian)` throughout | Replaces hardcoded Tailwind amber — ties alert into brand colour system |
+The full step plan for RT-3 (60-Day ITA Countdown Planner) is now in `tasks/todo.md` under `### TASK RT-3`. It includes Steps 0–12 and the Prashant Proof checklist.
 
----
+Key decisions locked (from previous session, carried forward):
+- No PDF library: HTML email (Resend) + `@media print` + `window.print()`
+- Token system: UUID in `itaCountdownOrders` DB table, result at `/tools/ita-countdown/result?token=<uuid>`
+- Razorpay gated: ₹2,997 standard / ₹3,997 premium (₹399,700 paise)
+- Premium tier triggers manual Resend notification to prashant@visaforte.com for doc review booking
+- Police certs: Day 0 (India/Pakistan flagged 6–8 weeks); Medical: Day 3; Language verify: Day 7; Employment refs: Day 30; Translations: Day 42; Biometrics: Day 45; Submit: Days 50–58
 
-## Draw history note (for RT-3 planning context)
-
-`crs-draw-history.json` currently has no All-Programs or STEM/Tech draws — only Healthcare, Trades, CEC, French-Language, PNP, and two specialty CWE draws (Physicians, Senior Managers). If/when an All-Programs draw is issued by IRCC, the modeller will automatically surface it without code changes (the regex `/all.programs|general/i` is already in place). The draw history JSON just needs updating.
+**Prash has not yet approved the RT-3 plan.** No code should be written until approval is given.
 
 ---
 
-## Next steps (after Prash confirms)
+## Immediate Next Steps
 
-1. Mark RT-2 done in `tasks/todo.md`
-2. Read `spec.md` to identify what RT-3 covers
-3. Write the RT-3 step plan in `tasks/todo.md`
-4. Get Prash approval before any code
+1. **First**: Ask Prash to confirm the age alert spacing looks equal on visaforte.com/assessment (steps in Awaiting section above). If confirmed, RT-2 is done.
+2. Ask Prash to read the RT-3 step plan in `tasks/todo.md` (under `### TASK RT-3`) and give approval or feedback.
+3. Only after approval: begin RT-3 Step 0 (commit plan to git: `docs: add rt-3 ita-countdown plan`) then Step 1 (logic function).
+4. Follow the step plan exactly — one step, verify, commit, move on.
