@@ -1089,14 +1089,14 @@ export default function AssessmentTool() {
         {/* ── CVP-5: Age Alert Banner ──────────────────────────────── */}
         {ageAlert && (
           <div className="asx-age-alert">
-            <span className="asx-age-alert-icon">⚠</span>
-            <div className="asx-age-alert-body">
-              <strong>Age Alert:</strong> You turn {ageAlert.birthdayAge} in{' '}
+            <p className="asx-age-alert-label">Age Alert</p>
+            <p className="asx-age-alert-text">
+              You turn <strong>{ageAlert.birthdayAge}</strong> in{' '}
               {ageAlert.monthsUntilChange} month{ageAlert.monthsUntilChange === 1 ? '' : 's'}{' '}
-              ({ageAlert.birthdayMonthYear}). Your CRS age points decrease by{' '}
-              {ageAlert.pointsLost} — from {ageAlert.currentPts} to {ageAlert.nextPts}.
-              Improving your score or submitting your profile before this date preserves those points.
-            </div>
+              ({ageAlert.birthdayMonthYear}) — your CRS age points drop by{' '}
+              <strong>{ageAlert.pointsLost}</strong> ({ageAlert.currentPts} → {ageAlert.nextPts}).
+              {' '}Improve your score or submit your profile before this date to preserve those points.
+            </p>
           </div>
         )}
 

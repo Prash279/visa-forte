@@ -1027,6 +1027,8 @@
 
   .asx-result-body { padding: 2rem 1.5rem 4rem; }
 
+  .asx-age-alert { width: calc(100% - 3rem); margin-top: 1.25rem; }
+
   .asx-elig-row {
     grid-template-columns: 1fr auto;
     grid-template-rows: auto auto;
@@ -1063,32 +1065,34 @@
 /* ── Age Alert Banner (CVP-5) ────────────────────────────── */
 .asx-age-alert {
   display: flex;
-  align-items: flex-start;
-  gap: 0.875rem;
-  background: #FFFBEB;
-  border: 1.5px solid #F59E0B;
-  border-left: 4px solid #F59E0B;
-  border-radius: 6px;
-  padding: 1rem 1.25rem;
-  margin: 1.5rem auto 0;
-  max-width: var(--max-w, 860px);
+  flex-direction: column;
+  gap: 0.35rem;
+  background: rgba(201, 123, 30, 0.06);
+  border-left: 3px solid var(--saffron);
+  border-radius: 0 6px 6px 0;
+  padding: 1rem 1.5rem;
+  max-width: 860px;
+  margin: 1.75rem auto 0;
+  width: calc(100% - 5rem);
 }
 
-.asx-age-alert-icon {
-  font-size: 1.25rem;
-  line-height: 1;
-  color: #D97706;
-  flex-shrink: 0;
-  margin-top: 0.1rem;
+.asx-age-alert-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  margin: 0;
 }
 
-.asx-age-alert-body {
-  font-size: 0.9rem;
+.asx-age-alert-text {
+  font-size: 0.875rem;
   line-height: 1.65;
-  color: #92400E;
+  color: var(--prussian);
+  margin: 0;
 }
 
-.asx-age-alert-body strong { color: #B45309; font-weight: 700; }
+.asx-age-alert-text strong { color: var(--saffron); font-weight: 700; }
 
 /* ── Weakness Chips ──────────────────────────────────────── */
 .asx-weaknesses-card .asx-chips {
