@@ -279,7 +279,7 @@
 .asx-print-btn:hover { background: rgba(201,123,30,0.1); }
 
 /* ── Result: score hero ──────────────────────────────────────── */
-.asx-result { background: var(--pearl); }
+.asx-result { background: var(--pearl); display: flow-root; }
 
 .asx-score-hero {
   background: var(--prussian);
