@@ -2144,9 +2144,91 @@ Decision: Add a `difficultyTags` array to each stream in `pnp-streams.json`. Tag
 ---
 
 ### TASK RT-2: CRS What-If Modeller — `/tools/crs-modeller`
-**Status:** 🔲 NOT STARTED — step plan written when RT-1 is complete
-**What this delivers:** An interactive score simulator. The applicant starts from their base CRS score (entered or imported from RT-1 handoff) and adjusts sliders/dropdowns for language band, education, Canadian WE to see the resulting score change in real-time. Shows how many points each lever is worth and which combination clears the most recent draw cutoff. Free, ungated.
-**Step plan:** Written after RT-1 is shipped.
+**Status:** 🔲 NOT STARTED
+**What this delivers:** An interactive score simulator. The applicant starts from their base CRS score (entered manually or pre-filled via URL params from the /assessment handoff) and adjusts four live levers — language band (CLB per ability), education level, Canadian WE years, and foreign WE years — to see the score and point-delta update in real-time. Shows which lever combination clears the most recent draw cutoff for their pool category. Free, ungated, no login.
+
+---
+
+#### Step 0 — Route + skeleton (commit: `feat: scaffold /tools/crs-modeller route`)
+- Create `apps/web/src/app/tools/crs-modeller/page.tsx` — server component shell, imports `CrsModeller` client component
+- Create `apps/web/src/app/tools/crs-modeller/CrsModeller.tsx` — `'use client'` component, empty for now
+- Create `apps/web/src/app/tools/crs-modeller/crs-modeller.css` — empty, imported at top of `CrsModeller.tsx`
+- Verify: `tsc --noEmit` passes, route loads at `/tools/crs-modeller`
+
+#### Step 1 — State model (commit: `feat: rt-2 state model + url param handoff`)
+- State interface: `{ age, maritalStatus, education, ecaCompleted, langL, langR, langW, langS, canadianWE, foreignWE }` — mirrors the subset of `AssessmentProfile` used by the CRS calculator
+- Read URL params on mount: `?age=34&edu=6&l=7&r=7&w=7.5&s=7&cwe=2` — pre-fill state if present (handoff from /assessment)
+- Update `/assessment/AssessmentTool.tsx`: in the "How to Improve Your Score" section, wire the existing "Try the What-If Modeller →" handoff link (already present in the UI) to `/tools/crs-modeller?age=…&edu=…&l=…&r=…&w=…&s=…&cwe=…&fwe=…`
+- Verify: navigating from /assessment to /crs-modeller pre-fills the form
+
+#### Step 2 — Live score engine (commit: `feat: rt-2 real-time delta engine`)
+- Import `calculate()` from `apps/web/src/lib/crs-calculator.ts` — no new logic, pure reuse
+- On every lever change: call `calculate(baseProfile)` → `calculate(adjustedProfile)` → delta = adjusted − base
+- Track per-lever delta: run `calculate()` once per lever with only that lever changed to isolate its contribution
+- Read latest draw cutoff from `crs-draw-history.json` for the applicant's likely pool category (CEC if cwe ≥ 1, else All-Programs)
+- State: `{ baseScore, adjustedScore, deltaTotal, perLeverDelta, cutoff, gapToCutoff }`
+
+#### Step 3 — Lever UI (commit: `feat: rt-2 lever controls`)
+Four lever groups, each with a label, current-value badge, and a point-delta chip that updates live:
+
+| Lever | Control | Range |
+|---|---|---|
+| Listening (CLB) | `<input type="range">` + number | 4–12 |
+| Reading (CLB) | `<input type="range">` + number | 4–12 |
+| Writing (CLB) | `<input type="range">` + number | 4–12 |
+| Speaking (CLB) | `<input type="range">` + number | 4–12 |
+| Education | `<select>` | same 8 options as /assessment |
+| Canadian WE | `<input type="range">` + number | 0–5 (capped at 5 for scoring) |
+| Foreign WE | `<input type="range">` + number | 0–5 |
+
+- CLB inputs: the lever stores CLB directly (integer 4–12). Conversion from IELTS band → CLB already exists in `crs-calculator.ts` (`scoresToClb`) — use it in reverse: display CLB on the lever, compute points from CLB.
+- Education + marital status: dropdowns matching /assessment options exactly. Age and marital status are read from URL params and shown as read-only context (not editable here — full profile editing stays on /assessment).
+
+#### Step 4 — Score display (commit: `feat: rt-2 score display + cutoff comparison`)
+Layout (top to bottom):
+1. **Score hero row** — Base: `NNN` → Adjusted: `NNN` (+/- delta in saffron/green/red)
+2. **Cutoff bar** — horizontal bar showing base and adjusted vs. most recent cutoff. Green fill if adjusted ≥ cutoff, amber if within 20 pts, red if further.
+3. **Per-lever delta table** — one row per lever: lever name | current value | points this lever is worth | if maxed, projected score. Sorted highest-gain first.
+4. **"What clears the cutoff?"** — auto-computed: minimum combination of lever improvements that reaches cutoff (greedy, highest-gain first). Plain-English sentence: "Raising language to CLB 10 across all abilities (+23 pts) would put you at 482 — still 34 pts short. Adding 1 more year of foreign WE (+13 pts) would reach 495 — 21 pts short. A Provincial Nomination clears it."
+5. **Draw context footer** — same data as /assessment: last draw type, cutoff, date, source link.
+
+#### Step 5 — Lead capture (commit: `feat: rt-2 lead capture`)
+- Same "Want a copy in your inbox?" block as /assessment — copy the component markup from `AssessmentTool.tsx`, not the full component (avoid premature abstraction)
+- Same `/api/tools/lead-capture/route.ts` API endpoint — no new endpoint needed
+- Payload addition: include `toolSource: 'crs-modeller'` alongside the score so admin emails are labelled correctly
+- Verify: "Check your inbox ✓" appears after valid name + email submitted
+
+#### Step 6 — Resources page card (commit: `feat: rt-2 resources page card`)
+- In `apps/web/src/app/resources/page.tsx`, add a second tool card in the "Interactive Tools" section below the CanVisa Pro Lite card:
+  - Title: "CRS What-If Modeller"
+  - Tagline: "Move one lever. See the exact point gain. Find the fastest path to the cutoff."
+  - Badge: Free · No Login Required
+  - CTA: "Try the Modeller →" → `/tools/crs-modeller`
+
+#### Step 7 — Polish + mobile (commit: `fix: rt-2 mobile responsive pass`)
+- All range inputs: min touch target 44px height, thumb large enough to drag on mobile
+- Lever table: collapses to card-per-lever at 480px
+- Score hero: stacks vertically at 480px
+- Run through 375px → 768px → 1280px before marking done
+
+#### Step 8 — Tests + verification (commit: `test: rt-2 unit tests`)
+- Unit tests in `apps/web/src/lib/__tests__/crs-modeller.test.ts`:
+  - `calculate()` called with maxed language returns expected delta (verify against IRCC table)
+  - `calculate()` called with 3yr foreign WE returns +25 vs 0yr foreign WE
+  - URL param parsing: `?cwe=2&l=8` populates state correctly
+- `vitest run` must pass (currently 328/328 — must stay green)
+- `tsc --noEmit` must pass
+
+#### Prashant Proof (RT-2)
+1. Go to `visaforte.com/assessment`, fill a profile, submit → on the result page click "Try the What-If Modeller →" — confirm you land on `/tools/crs-modeller` with the form pre-filled
+2. Move the Listening slider from CLB 8 to CLB 10 — confirm the adjusted score updates and the per-lever delta shows the correct point gain
+3. Set Canadian WE to 3 years — confirm score updates
+4. Confirm the cutoff bar turns green when adjusted score meets/exceeds the cutoff
+5. Enter name + email → click "Send My Results →" → confirm "Check your inbox ✓"
+6. On mobile (375px): confirm sliders are draggable, score hero readable, table not clipped
+7. Go to `visaforte.com/resources` — confirm the CRS What-If Modeller card is visible in the Interactive Tools section
+
+---
 
 ---
 
