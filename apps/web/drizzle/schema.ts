@@ -294,3 +294,39 @@ export const crsAuditLog = pgTable('crs_audit_log', {
 })
 
 export type CrsAuditLogRow = typeof crsAuditLog.$inferSelect
+
+// Custom analytics for public tools — records tool usage events without PII.
+// eventType: 'result_shown' | 'lead_captured' | 'draw_alert_subscribed'
+export const toolEvents = pgTable('tool_events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  toolName: text('tool_name').notNull(),
+  eventType: text('event_type').notNull(),
+  crsScore: integer('crs_score'),
+  eeCategory: text('ee_category'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+})
+
+export type ToolEvent = typeof toolEvents.$inferSelect
+
+// Key/value configuration flags. e.g. posthog_enabled: 'true' | 'false'.
+// PostHog auto-activates via daily cron at 500 draw alert subscribers.
+export const settings = pgTable('settings', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+
+export type Setting = typeof settings.$inferSelect
+
+// Subscribers who opted in to draw alert emails from the tools page.
+// Unique on email — upsert on re-subscribe updates CRS score and category.
+export const drawAlertSubscribers = pgTable('draw_alert_subscribers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  crsScore: integer('crs_score').notNull(),
+  eeCategory: text('ee_category').notNull(),
+  enrolledAt: timestamp('enrolled_at').notNull().defaultNow(),
+})
+
+export type DrawAlertSubscriber = typeof drawAlertSubscribers.$inferSelect

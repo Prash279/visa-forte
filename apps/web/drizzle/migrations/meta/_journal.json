@@ -134,6 +134,13 @@
       "when": 1779941190873,
       "tag": "0018_crs_audit_log",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1783007630968,
+      "tag": "0019_lame_the_stranger",
+      "breakpoints": true
     }
   ]
 }
