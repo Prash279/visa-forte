@@ -246,6 +246,7 @@
 .asx-toolbar {
   background: var(--prussian);
   padding: 0.85rem 2.5rem;
+  min-height: 81.34px; /* ponytail: matches fixed nav height so .asx-result starts at nav bottom */
   display: flex;
   align-items: center;
   gap: 1rem;
