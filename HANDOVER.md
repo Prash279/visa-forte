@@ -14,119 +14,191 @@ A handover is only authoritative on the day it was written.
 ---
 
 ## Goal
-The Assessment page (`/assessment`) is fully consolidated, ungated, and live. Next step is
-Prashant Proof, then plan and build RT-2: CRS What-If Modeller at `/tools/crs-modeller`.
+Build RT-2: CRS What-If Modeller at `/tools/crs-modeller`. Plan approved by Prash.
+Prashant Proof on /assessment was completed and passed all 6 checks this session.
 
 ---
 
 ## What Was Done This Session
 
-### All changes committed and live on visaforte.com
+### Prashant Proof — /assessment (all 6 checks passed)
+- Form submits with no contact gate ✅
+- Score 459, 3 weakness chips (PNP +600, FWE +25, Lang +23), Best Pathway CEC 516 ✅
+- "Check your inbox ✓" after name+email send ✅
+- Resources "Check My Score Free →" → /assessment ✅
+- /tools/canvisa → /assessment (301, no 404) ✅
+- Age Alert banner working correctly ✅
 
-**Commit `6ad1ca4` — CanVisa Pro Lite consolidated into /assessment:**
-- Weakness chips (top 3), best pathway card, post-result email/alert block added to `AssessmentTool.tsx`
-- `/tools/canvisa` route deleted (1,127 lines removed)
-- Resources page "Check My Score Free →" CTA links to `/assessment`
-- Permanent 301 redirect `/tools/canvisa` → `/assessment` in `next.config.ts`
-- "Tools" nav link removed — nav is: About · Services · Visas · Resources · Assessment · Contact
+### RT-2 Step Plan (commit `1a46796`)
+- 8-step plan written in `tasks/todo.md` at line ~2146
+- Committed: `docs: add rt-2 step plan — CRS What-If Modeller`
+- Prash approved the plan
 
-**Commit `1e055f8` — Contact gate removed:**
-- The mandatory name/email/phone/consent block that was gating the form submit has been deleted
-- Form now submits immediately — no personal data required to see results
-- Post-result "Want a copy in your inbox?" card has its own name + email inputs
-- Lead send button is disabled until both name and valid email are entered
-- tsc clean · 328/328 vitest green · Vercel deployed (Ready)
-
-### NOT done this session
-- Prashant Proof on /assessment not yet completed (awaiting Prash)
-- RT-2 step plan not yet written (session ended before writing)
+### RT-2 Build — NOT STARTED (session interrupted before writing any files)
+All source files were read and understood. No code written yet.
 
 ---
 
-## Immediate Next Steps
+## Immediate Next Steps — BUILD RT-2
 
-### Step 1 — Prashant Proof (FIRST, before any RT-2 work)
+### What to build
+`/tools/crs-modeller` — CRS What-If Modeller. Free, ungated. Reuses `calculate()` from
+`apps/web/src/lib/crs-calculator.ts`. No new DB tables, no new API endpoint.
 
-Go to **visaforte.com/assessment**:
+### Files to CREATE (none exist yet)
+```
+apps/web/src/app/tools/crs-modeller/page.tsx          ← server component (metadata + shell)
+apps/web/src/app/tools/crs-modeller/CrsModeller.tsx   ← 'use client' — all logic here
+apps/web/src/app/tools/crs-modeller/crs-modeller.css  ← styles, imported by CrsModeller.tsx
+```
 
-a. Fill the profile (age 34, Master's + ECA, IELTS 7/7/7.5/7, 2yr Canadian WE TEER 1, single)
-   — click **"Check My Eligibility →"** WITHOUT entering any contact details.
-   Confirm: results appear immediately. No gate.
+### Files to MODIFY
+```
+apps/web/src/app/assessment/AssessmentTool.tsx         ← wire handoff URL in scenarios section
+apps/web/src/app/resources/page.tsx                    ← convert "Coming Soon" card to live link
+```
 
-b. On the result page confirm:
-   - Score hero at top
-   - "Top Improvement Opportunities" — 3 weakness chips
-   - "Best Pathway" card
-   - Full analysis cards below (draws, programs, breakdown, scenarios)
-   - "Want a copy in your inbox?" block near the bottom
+---
 
-c. In the email block: enter name + email, leave both checkboxes ticked,
-   click **"Send My Results →"** — confirm "Check your inbox ✓"
+## Key Architecture Decisions (locked — don't re-derive)
 
-d. Check inbox for CRS score email.
-   Check prashant@visaforte.com for admin notification.
+### State model
+The modeller holds a **base profile** (from URL params or defaults) + **lever overrides**.
+On every lever change, call `calculate(baseProfile with overrides)` → get new total → delta = new − base.
 
-e. Go to visaforte.com/resources — confirm "Check My Score Free →" goes to `/assessment`.
+```typescript
+interface ModState {
+  age: number
+  hasSpouse: boolean
+  education: EducationLevel
+  // Language stored as CLB (4–12), not raw IELTS/CELPIP bands
+  langL: number; langR: number; langW: number; langS: number
+  foreignWE: number   // years (0–5)
+  canadianWE: number  // years (0–5)
+}
+```
 
-f. Visit visaforte.com/tools/canvisa — confirm 301 redirect to `/assessment` (no 404).
+### URL params for handoff from /assessment
+`/tools/crs-modeller?age=34&edu=masters&spouse=false&l=8&r=8&w=9&s=8&cwe=2&fwe=0`
 
-**If any step fails: fix it before writing the RT-2 plan.**
+- `edu` = EducationLevel string (e.g. `masters`, `bachelors`)
+- `l/r/w/s` = CLB integers (4–12) — already converted from IELTS bands by /assessment
+- `cwe` = Canadian WE years, `fwe` = foreign WE years
+- `age` = integer, `spouse` = `true` | `false`
 
-### Step 2 — Write RT-2 step plan in tasks/todo.md
+### CLB → CRS points approach
+The `calculate()` function needs a full `ApplicantProfile` with `firstLanguageScores` (raw test scores).
+To avoid storing test type in URL params, build a **synthetic CELPIP profile** in the modeller:
+- CELPIP scores are 1:1 with CLB (CLB 4 = CELPIP 4, CLB 12 = CELPIP 12)
+- Set `firstLanguageScores: { testType: 'CELPIP', listening: clbL, reading: clbR, writing: clbW, speaking: clbS }`
+- This means the modeller works entirely in CLB space — no lossy conversion
 
-RT-2 section is at `tasks/todo.md` line 2146. Replace the placeholder with a full step plan.
+### Base profile for calculate() (all non-lever fields use safe defaults)
+```typescript
+const baseProfile: ApplicantProfile = {
+  name: '', nocCode: '', nocTeer: 1, occupationTitle: '',
+  countryOfCitizenship: '', countryOfResidence: '',
+  reportDate: new Date().toISOString().split('T')[0] ?? '',
+  age: state.age,
+  education: state.education,
+  hasEca: true,
+  firstLanguageScores: { testType: 'CELPIP', listening: state.langL, reading: state.langR, writing: state.langW, speaking: state.langS },
+  hasSecondLanguage: false,
+  foreignWorkExperienceYears: state.foreignWE,
+  canadianWorkExperienceYears: state.canadianWE,
+  hasSpouse: state.hasSpouse,
+  hasProvincialNomination: false,
+  hasSiblingInCanada: false,
+  hasJobOffer: 'none',
+  hasCanadianEducation: false,
+  hasFamilyInCanada: false,
+  settlementFunds: 15263, familySize: 1,
+  hasCriminalRecord: false, hasMedicalCondition: false, hasPriorRefusal: false,
+}
+```
 
-**RT-2: CRS What-If Modeller — `/tools/crs-modeller`**
-- Free, ungated
-- Applicant enters (or imports from Assessment handoff) their base CRS profile
-- Adjusts sliders/dropdowns: language band, education level, Canadian WE years
-- Score updates in real-time showing point gain per lever
-- Shows which combination clears the most recent draw cutoff for their category
-- Same DB tables as RT-1 (tool_events, draw_alert_subscribers)
-- The Assessment result already has a handoff link to `/tools/crs-modeller`
+### Per-lever delta isolation
+Run `calculate()` once with current state → `baseScore`.
+For each lever, call `calculate()` with only THAT lever changed to its max → compute max gain.
+Display: `current value | points if maxed | max gain chip`.
 
-After writing the plan, commit: `docs: add rt-2 step plan` then await Prash approval.
+### Cutoff comparison
+Use CEC draw if `canadianWE >= 1`, else General/All-Programs.
+Pull from `crs-draw-history.json` (already imported in assess tool — import same file).
 
-### Step 3 — Build RT-2 (only after Prash approves the plan)
+### Lead capture
+Same block as /assessment. Same API. Pass `toolName: 'crs-modeller'`.
+The existing `Schema` in `/api/tools/lead-capture/route.ts` already accepts any `toolName` string.
+
+### Resources page change
+In `apps/web/src/app/resources/page.tsx`, the tools-grid maps over 4 items statically.
+The first entry is `{ name: 'CRS What-If Modeller', desc: '...' }` with a "Coming Soon" badge.
+Change it to a live card matching the hero card pattern — with `href="/tools/crs-modeller"`.
+
+### Assessment handoff link
+In `AssessmentTool.tsx`, in the "How to Improve Your Score" `asx-scenarios-note` paragraph
+at the bottom of the scenarios card (line ~1439), add:
+```tsx
+{' · '}
+<Link href={`/tools/crs-modeller?age=${profile.age}&edu=${profile.education}&spouse=${profile.hasSpouse}&l=${firstClb.listening}&r=${firstClb.reading}&w=${firstClb.writing}&s=${firstClb.speaking}&cwe=${Math.floor(profile.canadianWorkExperienceYears)}&fwe=${Math.floor(profile.foreignWorkExperienceYears)}`}>
+  Try the What-If Modeller →
+</Link>
+```
 
 ---
 
 ## Key Code Locations
-
 ```
-# Primary CRS tool
-apps/web/src/app/assessment/AssessmentTool.tsx   ← main component (fully updated)
-apps/web/src/app/assessment/assessment.css       ← includes chip/pathway/email styles
+# Engine (do NOT modify)
+apps/web/src/lib/crs-calculator.ts         ← calculate(), scoresToClb(), all types
+apps/web/src/lib/crs-rules.json            ← CRS point tables
+apps/web/src/lib/crs-draw-history.json     ← live draw data
 
-# Shared logic (used by AssessmentTool)
-apps/web/src/lib/canvisa-lite-logic.ts           ← getWeaknesses, getBestPathway
-apps/web/src/lib/crs-calculator.ts               ← calculate(), scoresToClb()
-apps/web/src/lib/crs-draw-history.json           ← live draw data
+# Patterns to match
+apps/web/src/app/assessment/AssessmentTool.tsx   ← CSS class names, lead capture block pattern
+apps/web/src/app/assessment/assessment.css       ← asx-* classes (reuse these, don't invent new ones)
 
-# Lead capture APIs (unchanged, still active)
+# Lead capture API (unchanged)
 apps/web/src/app/api/tools/lead-capture/route.ts
-apps/web/src/app/api/tools/draw-alert/route.ts
 
 # Resources page
 apps/web/src/app/resources/page.tsx
 
-# RT-2 plan location
+# RT-2 step plan (full detail)
 tasks/todo.md  line ~2146  → "TASK RT-2: CRS What-If Modeller"
-
-# CRS engine (do not modify — shared by Assessment + RT-2)
-apps/web/src/lib/crs-calculator.ts
-apps/web/src/lib/crs-rules.json
 ```
 
 ---
 
-## Decisions Locked (do not re-ask)
+## CSS strategy
+Reuse all `asx-*` classes from `assessment.css` — they are already global via the import.
+Create `crs-modeller.css` only for the lever-specific UI (range sliders, delta chips, cutoff bar).
+Naming: `mod-*` prefix for new classes to avoid collisions.
 
+---
+
+## Commit sequence
+```
+feat: scaffold /tools/crs-modeller route
+feat: rt-2 state model + url param handoff
+feat: rt-2 real-time delta engine
+feat: rt-2 lever controls
+feat: rt-2 score display + cutoff comparison
+feat: rt-2 lead capture
+feat: rt-2 resources page card + assessment handoff link
+fix: rt-2 mobile responsive pass
+test: rt-2 unit tests
+```
+Commit after each step. Don't batch.
+
+---
+
+## Decisions Locked (do not re-ask Prash)
 | Decision | Detail |
 |---|---|
-| Single CRS tool page | `/assessment` — no separate `/tools/canvisa` |
-| Contact capture | Post-result only; never gates the form |
-| Result layout | Score hero → chips → pathway → draw context → programs → breakdown → scenarios → CTA → email block → disclaimer |
-| Resources page | CanVisa Pro Lite card links to `/assessment` |
-| Nav | About · Services · Visas · Resources · Assessment · Contact |
-| RT-2 plan | Written in tasks/todo.md BEFORE any RT-2 code |
+| Single CRS tool page | `/assessment` — RT-2 is a separate page at `/tools/crs-modeller` |
+| CLB approach in modeller | Synthetic CELPIP profile (CLB = CELPIP score 1:1), not raw IELTS bands |
+| No new DB tables | Reuse `tool_events` + `draw_alert_subscribers` via existing lead-capture API |
+| Resources page | Convert first tools-grid card from "Coming Soon" to live link |
+| Assessment handoff | Link added in scenarios-note at bottom of "How to Improve" card |
+| Prashant Proof required | Must test live at visaforte.com before marking RT-2 done |
