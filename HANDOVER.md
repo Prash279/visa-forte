@@ -14,71 +14,38 @@ A handover is only authoritative on the day it was written.
 ---
 
 ## Goal
-RT-2 (CRS What-If Modeller) is **fully built and deployed**. An open bug report from Prash needs diagnosis and fix before RT-3 begins.
+RT-2 (CRS What-If Modeller) — **fully built, deployed, and link-visibility bug fixed.**
+Awaiting Prash's Prashant Proof to close RT-2 and begin RT-3 planning.
 
 ---
 
 ## Completed (this session)
 
-- ✅ `apps/web/src/app/tools/crs-modeller/CrsModeller.tsx` — written verbatim from handover, committed
-- ✅ `apps/web/src/app/tools/crs-modeller/crs-modeller.css` — committed (existed from prior session)
-- ✅ `apps/web/src/app/tools/crs-modeller/page.tsx` — committed (existed from prior session)
-- ✅ `apps/web/src/app/assessment/AssessmentTool.tsx` — handoff link added at line 1439
-- ✅ `apps/web/src/app/resources/page.tsx` — first tools-grid card converted to live link
-- ✅ `apps/web/src/lib/crs-modeller.test.ts` — 3 delta assertions
+- ✅ Confirmed `/tools/crs-modeller` loads correctly in production (Playwright verified — title, sliders, lever table all render)
+- ✅ Console error was benign Cloudflare analytics CSP block — not a page error
+- ✅ Added `.asx-modeller-link` teal pill button in `AssessmentTool.tsx` (line ~1447) — same URL params as the footnote link
+- ✅ Added `.asx-modeller-link` + hover CSS in `assessment.css`
 - ✅ `tsc --noEmit` clean, `vitest run` 331/331 green
-- ✅ Committed as `163756e` + handover `1a1f643`, pushed to `origin/main`
-- ✅ Vercel deployment READY — confirmed via Vercel API (`dpl_BhKqRwfN9vEty5o2zuXL2XJUhU5x`)
+- ✅ Committed as `1fe8976`, pushed to `origin/main`
+- ✅ Vercel auto-deploy triggered (GitHub integration)
 
 ---
 
-## Open Issue — Prash Bug Report
+## Awaiting — Prashant Proof
 
-**Prash says:** "I completed an assessment but am not able to view the What-if Modeller."
+**Prash must verify before RT-2 is marked done:**
 
-He attached a screenshot showing the full assessment result for Rakesh Sharma (CRS 396, Express Entry Pool ELIGIBLE, 4 CRS improvement scenarios rendered). The screenshot was taken on the live production site after the RT-2 deployment was live.
+1. Go to **visaforte.com/assessment**
+2. Complete an assessment (fill all fields, submit)
+3. Scroll to the "CRS Improvement Scenarios" section
+4. Confirm a teal pill button **"Try the CRS What-If Modeller →"** is visible below the scenarios note
+5. Click it → confirm `/tools/crs-modeller` loads with your profile pre-filled (age, education, CLB scores, work experience)
 
-### Investigation completed this session
-
-1. **Deployment confirmed READY** — latest Vercel deploy has commit `1a1f643` (all RT-2 code).
-2. **CrsModeller.tsx confirmed on disk** — Read tool verified file exists and reads correctly.
-3. **The "Try the What-If Modeller →" link IS in the rendered HTML** — it's inside the `{result.eligibility.expressEntryPool.eligible && scenarios.length > 0 && ...}` block, which IS rendering (4 scenarios visible in screenshot).
-4. **Root cause identified — link is visually buried:**
-   ```css
-   .asx-scenarios-note {
-     font-size: 0.75rem;   /* 12px — very small */
-     color: #718096;       /* grey */
-   }
-   .asx-scenarios-note a { color: var(--teal); }
-   ```
-   The "Try the What-If Modeller →" link appears as 12px teal text in a grey disclaimer footnote at the bottom of the scenarios card. It is easy to overlook.
-5. **Could also be a page load issue** — unable to fully verify in this session because Bash cwd drifted to `apps/web/src/lib` (hook error), blocking further shell commands. Prash may have found the link but hit an error on /tools/crs-modeller itself.
-
-### Two possible root causes (verify first thing next session)
-
-| Cause | Evidence | Fix |
-|---|---|---|
-| Link too small to see | CSS `0.75rem` footnote styling, Prash said "not able to view" (could mean "can't find") | Add a visible CTA button/pill below the scenarios card pointing to /tools/crs-modeller |
-| /tools/crs-modeller page fails on load | Unconfirmed — investigation interrupted | Navigate to visaforte.com/tools/crs-modeller directly and check for errors |
+If the button is not visible or the modeller page errors, report what you see and the next session will diagnose.
 
 ---
 
-## Immediate Next Steps
-
-1. **Navigate to `visaforte.com/tools/crs-modeller` directly** — confirm the page loads without errors.
-2. **Make the What-If Modeller link prominent** — the `asx-scenarios-note` is 12px grey footnote text. Add a standalone teal button or pill-link after the scenarios card:
-   - Style: match the `asx-cta-btn` or create an `asx-tool-link` pill
-   - Text: "Try the CRS What-If Modeller →"
-   - Placement: between the scenarios card and the "What Happens Next" CTA card
-3. **Run `tsc --noEmit` and `vitest run`** — must stay 331/331
-4. **Commit + push** the visibility fix
-5. **Ask Prash to re-verify** — Prashant Proof: go to /assessment → complete → see the modeller button → click → confirm /tools/crs-modeller loads with pre-filled values
-
-Then mark RT-2 fully done and begin RT-3 step planning.
-
----
-
-## Key Decisions (locked)
+## Key Decisions (locked, from RT-2)
 
 | Decision | Rationale |
 |---|---|
@@ -87,49 +54,11 @@ Then mark RT-2 fully done and begin RT-3 step planning.
 | `useEffect` + `window.location.search` for URL params | Avoids Next.js searchParams-as-Promise complexity; clean client-side parse on mount |
 | `getRelevantDraw`: CEC if canadianWE ≥ 1, else draws[0] | No All-Programs draw in current history; draws[0] is safe fallback |
 | Import `assessment.css` first in CrsModeller.tsx | assessment.css is NOT globally loaded — must import `'../../assessment/assessment.css'` for asx-* classes |
+| Teal pill button over replacing footnote link | Both now coexist — footnote stays for disclosure context, pill ensures discoverability |
 
 ---
 
-## AssessmentTool.tsx — current state of the modeller link (line 1439)
+## Next Steps (after Prash confirms)
 
-```tsx
-<p className="asx-scenarios-note">
-  All projections assume current IRCC scoring rules. Verify live draw cutoffs at{' '}
-  <a href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry.html"
-    target="_blank" rel="noopener noreferrer">canada.ca</a>{' · '}
-  <Link href={`/tools/crs-modeller?age=${profile.age}&edu=${profile.education}&spouse=${profile.hasSpouse}&l=${firstClb.listening}&r=${firstClb.reading}&w=${firstClb.writing}&s=${firstClb.speaking}&cwe=${Math.floor(profile.canadianWorkExperienceYears)}&fwe=${Math.floor(profile.foreignWorkExperienceYears)}`}>
-    Try the What-If Modeller →
-  </Link>
-</p>
-```
-
-This is correct code. The fix is to ALSO add a more visible standalone link element immediately after this paragraph (or replace the inline link with a button), not to change the note itself.
-
----
-
-## Suggested fix code — add after the `</p>` at line 1446, before `</div>` at line 1447
-
-```tsx
-<Link
-  href={`/tools/crs-modeller?age=${profile.age}&edu=${profile.education}&spouse=${profile.hasSpouse}&l=${firstClb.listening}&r=${firstClb.reading}&w=${firstClb.writing}&s=${firstClb.speaking}&cwe=${Math.floor(profile.canadianWorkExperienceYears)}&fwe=${Math.floor(profile.foreignWorkExperienceYears)}`}
-  className="asx-modeller-link"
->
-  Try the CRS What-If Modeller →
-</Link>
-```
-
-Add to `assessment.css`:
-```css
-.asx-modeller-link {
-  display: inline-block;
-  margin-top: 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--teal);
-  text-decoration: none;
-  border: 1.5px solid var(--teal);
-  border-radius: 4px;
-  padding: 0.45rem 1rem;
-}
-.asx-modeller-link:hover { background: var(--teal); color: #fff; }
-```
+1. Mark RT-2 fully done in `tasks/todo.md`
+2. Begin RT-3 step planning — review `spec.md` for what RT-3 covers and write the plan
