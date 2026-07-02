@@ -34,6 +34,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }];
   },
+  async redirects() {
+    return [
+      { source: '/tools/canvisa', destination: '/assessment', permanent: true },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {

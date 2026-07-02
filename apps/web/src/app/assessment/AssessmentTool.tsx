@@ -18,6 +18,7 @@ import fundsData from '@/lib/proof-of-funds.json'
 import crsRules from '@/lib/crs-rules.json'
 import './assessment.css'
 import NocSearch from '@/components/NocSearch'
+import { getWeaknesses, getBestPathway, type WeaknessChip, type BestPathway } from '@/lib/canvisa-lite-logic'
 
 // ── Draw history helpers ───────────────────────────────────────────────────────
 
@@ -265,6 +266,14 @@ export default function AssessmentTool() {
   const [contactPhone, setContactPhone]     = useState('')
   const [contactConsent, setContactConsent] = useState(false)
 
+  // RT-1 additions: weakness chips, best pathway, email/alert
+  const [weaknesses, setWeaknesses]     = useState<WeaknessChip[]>([])
+  const [pathway, setPathway]           = useState<BestPathway | null>(null)
+  const [eeCategory, setEeCategory]     = useState('')
+  const [wantsAlert, setWantsAlert]     = useState(true)
+  const [emailSent, setEmailSent]       = useState(false)
+  const [emailSending, setEmailSending] = useState(false)
+
   const firstClb  = scoresToClb(profile.firstLanguageScores)
   const secondClb = profile.hasSecondLanguage && profile.secondLanguageScores
     ? scoresToClb(profile.secondLanguageScores)
@@ -302,6 +311,11 @@ export default function AssessmentTool() {
 
   function runAssessment() {
     const r = calculate(profile)
+    const cats = getEligibleDrawCategories(profile, r.eligibility, r.secondLanguageBands)
+    const catsForPathway = cats.length === 0 && r.eligibility.expressEntryPool.eligible ? [...cats, 'General'] : cats
+    setWeaknesses(getWeaknesses(r))
+    setPathway(getBestPathway(r.breakdown.total, catsForPathway))
+    setEeCategory(cats[0] ?? 'Express Entry Pool')
     // Fire-and-forget: save lead — never blocks the result display
     const fd = new FormData()
     fd.append('name', contactName.trim())
@@ -328,7 +342,41 @@ export default function AssessmentTool() {
     setDobDay('')
     setDobMonth('')
     setDobYear('')
+    setWeaknesses([])
+    setPathway(null)
+    setEeCategory('')
+    setWantsAlert(true)
+    setEmailSent(false)
+    setEmailSending(false)
     setTimeout(() => window.scrollTo({ top: 0 }), 50)
+  }
+
+  async function handleSendResults(): Promise<void> {
+    if (!result) return
+    setEmailSending(true)
+    try {
+      await fetch('/api/tools/lead-capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: contactName,
+          email: contactEmail,
+          crsScore: result.breakdown.total,
+          eeCategory,
+          toolName: 'assessment',
+          wantsDrawAlert: wantsAlert,
+          weaknesses,
+          bestPathway: pathway
+            ? { category: pathway.category, cutoffScore: pathway.cutoffScore, gap: pathway.gap }
+            : undefined,
+        }),
+      })
+      setEmailSent(true)
+    } catch {
+      // non-critical — user already has their result on screen
+    } finally {
+      setEmailSending(false)
+    }
   }
 
   // Button is enabled only when all three contact fields are valid and consent is given
@@ -1160,6 +1208,42 @@ export default function AssessmentTool() {
 
         <div className="asx-result-body">
 
+          {/* ── Weakness Chips ───────────────────────────────────── */}
+          {weaknesses.length > 0 && (
+            <div className="asx-card asx-weaknesses-card">
+              <h2 className="asx-card-title">Top Improvement Opportunities</h2>
+              <div className="asx-chips">
+                {weaknesses.map((w, i) => (
+                  <div key={i} className={`asx-chip ${i === 0 ? 'asx-chip-primary' : 'asx-chip-secondary'}`}>
+                    <span className="asx-chip-label">{w.label}</span>
+                    <span className="asx-chip-gain">+{w.pointGain} pts</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Best Pathway ─────────────────────────────────────── */}
+          {pathway && (
+            <div className="asx-card asx-pathway-block">
+              <h2 className="asx-card-title">Best Pathway</h2>
+              <p className="asx-pathway-name">{pathway.category}</p>
+              <div className="asx-pathway-row">
+                <span className="asx-pathway-key">Last cutoff</span>
+                <span className="asx-pathway-val">{pathway.cutoffScore}</span>
+              </div>
+              <div className="asx-pathway-row">
+                <span className="asx-pathway-key">Draw date</span>
+                <span className="asx-pathway-val">{fmtDate(pathway.drawDate)}</span>
+              </div>
+              <p className={`asx-pathway-gap ${pathway.gap >= 0 ? 'above' : 'below'}`}>
+                {pathway.gap >= 0
+                  ? `You are ${pathway.gap} pts above the last cutoff`
+                  : `You are ${Math.abs(pathway.gap)} pts below the last cutoff`}
+              </p>
+            </div>
+          )}
+
           {/* ── Recent Draw Context ──────────────────────────────── */}
           {hasDrawData && (
             <div className="asx-card asx-draws-card">
@@ -1454,6 +1538,28 @@ export default function AssessmentTool() {
             <p className="asx-cta-sub">
               Pre-Application Eligibility Assessment · From $99 / ₹4,999
             </p>
+          </div>
+
+          {/* ── Email / Draw Alert ───────────────────────────────── */}
+          <div className="asx-email-card">
+            {emailSent ? (
+              <p className="asx-email-success">Check your inbox ✓</p>
+            ) : (
+              <>
+                <h3 className="asx-email-heading">Get a copy + draw alert</h3>
+                <label className="asx-checkbox-row" style={{ marginBottom: '0.5rem' }}>
+                  <input type="checkbox" checked readOnly />
+                  <span className="asx-checkbox-label">Email me my CRS results and top improvement tips</span>
+                </label>
+                <label className="asx-checkbox-row" style={{ marginBottom: '1.25rem' }}>
+                  <input type="checkbox" checked={wantsAlert} onChange={e => setWantsAlert(e.target.checked)} />
+                  <span className="asx-checkbox-label">Alert me when a {eeCategory || 'relevant'} draw opens</span>
+                </label>
+                <button className="asx-submit-btn" onClick={handleSendResults} disabled={emailSending}>
+                  {emailSending ? 'Sending…' : 'Send My Results →'}
+                </button>
+              </>
+            )}
           </div>
 
           {/* ── Legal Disclaimer ─────────────────────────────────── */}

@@ -1077,6 +1077,94 @@
 
 .asx-age-alert-body strong { color: #B45309; font-weight: 700; }
 
+/* ── Weakness Chips ──────────────────────────────────────── */
+.asx-weaknesses-card .asx-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.asx-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 1rem;
+  border: 1.5px solid var(--prussian);
+  border-radius: 2px;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+}
+
+.asx-chip-primary   { background: var(--prussian); color: var(--pearl); }
+.asx-chip-secondary { background: transparent; color: var(--prussian); }
+
+.asx-chip-gain {
+  font-weight: 700;
+  font-size: 0.8125rem;
+  opacity: 0.9;
+}
+
+/* ── Best Pathway ────────────────────────────────────────── */
+.asx-pathway-name {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--prussian);
+  margin: 0 0 1rem;
+}
+
+.asx-pathway-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(10,24,51,0.1);
+  font-size: 0.9rem;
+}
+
+.asx-pathway-key { color: rgba(10,24,51,0.55); }
+.asx-pathway-val { font-weight: 600; color: var(--prussian); }
+
+.asx-pathway-gap {
+  margin-top: 1rem;
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+.asx-pathway-gap.above { color: #1a6e35; }
+.asx-pathway-gap.below { color: #c0392b; }
+
+/* ── Email / Draw Alert card ─────────────────────────────── */
+.asx-email-card {
+  background: var(--pearl);
+  border: 1.5px solid rgba(10,24,51,0.15);
+  border-radius: 4px;
+  padding: 1.75rem 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.asx-email-heading {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--prussian);
+  margin: 0 0 1rem;
+}
+
+.asx-email-success {
+  font-weight: 700;
+  color: #1a6e35;
+  font-size: 1rem;
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .asx-weaknesses-card .asx-chips { gap: 0.5rem; }
+  .asx-chip { font-size: 0.8125rem; padding: 0.45rem 0.75rem; }
+  .asx-email-card { padding: 1.25rem 1rem; }
+}
+
 @media print {
   .asx-toolbar,
   .asx-cta-card,

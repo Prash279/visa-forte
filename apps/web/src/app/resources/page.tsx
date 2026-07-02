@@ -59,7 +59,7 @@ export default function ResourcesPage(): JSX.Element {
                 under 3 minutes.
               </p>
             </div>
-            <a href="/tools/canvisa" className="tools-hero-cta">
+            <a href="/assessment" className="tools-hero-cta">
               Check My Score Free →
             </a>
           </div>
