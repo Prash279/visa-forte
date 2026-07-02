@@ -1,5 +1,5 @@
 # Session Handoff
-**Date:** 2026-07-02
+**Date:** 2026-07-03
 **Branch:** main
 **Mode:** chain
 
@@ -14,110 +14,117 @@ A handover is only authoritative on the day it was written.
 ---
 
 ## Goal
-RT-1 (CanVisa Pro Lite at `/tools/canvisa`) is fully built and committed. The next session's
-job is to deploy, verify in the browser (Prashant Proof), then plan and build RT-2: CRS
-What-If Modeller at `/tools/crs-modeller`.
+The Assessment page (`/assessment`) is now the primary CRS tool. RT-1 features (weakness
+chips, best pathway card, post-result email/alert) have been added to it. The `/tools/canvisa`
+route has been deleted and redirects to `/assessment`. One uncommitted fix is in progress:
+removing the mandatory contact gate that blocks the form submit.
 
 ---
 
 ## What Was Done This Session
 
-### 1. Schema + migration committed and applied
-- `feat(db)` commit `75e9da5`: three new tables — `tool_events`, `settings`, `draw_alert_subscribers`
-- Migration 0019 applied to live Supabase DB by Prash (`npx drizzle-kit migrate` — additive only)
+### 1. RT-1 deployed to production
+- All 5 uncommitted commits from the previous session were pushed
+- Verified live at visaforte.com — screenshot confirmed working
 
-### 2. RT-1 fully built — commit `cbfa558`
-All Steps 2–10 complete in a single commit:
+### 2. CanVisa Pro Lite consolidated into /assessment — commit `6ad1ca4`
+Changes in this commit:
+- `AssessmentTool.tsx` — weakness chips (top 3), best pathway card, post-result
+  email/alert block added to result view using `canvisa-lite-logic.ts`
+- `assessment.css` — CSS for chips, pathway block, email card (all `asx-` prefix, mobile-responsive)
+- `resources/page.tsx` — CanVisa Pro Lite "Check My Score Free →" CTA now links to `/assessment`
+- `next.config.ts` — permanent 301 redirect `/tools/canvisa` → `/assessment`
+- `SiteNav.tsx` — removed redundant "Tools" nav link (Assessment IS the tool)
+- `/tools/canvisa/` directory deleted — 1,127 lines removed (CanVisaLite.tsx, canvisa-lite.css, page.tsx)
+- This commit is **live on visaforte.com**
 
-- **`POST /api/tools/lead-capture`** — Zod-validated; upserts `draw_alert_subscribers` (if `wantsDrawAlert`);
-  inserts `tool_events` row; sends Resend email to subscriber (score + weaknesses + pathway) and
-  admin notification to prashant@visaforte.com
-- **`POST /api/tools/draw-alert`** — upserts subscriber on email conflict; inserts event row
-- **`apps/web/src/lib/canvisa-lite-logic.ts`** — `getWeaknesses`, `getEligibleDrawCategories`,
-  `getBestPathway` — pure functions, fully tested
-- **`apps/web/src/app/tools/canvisa/CanVisaLite.tsx`** — full CRS form (DOB, education,
-  language L/R/W/S, second language, CWE, FWE, spouse section, PNP, sibling, Canadian education,
-  family size, funds); result view with score hero card, 3 weakness chips, best pathway card,
-  handoff copy, lead capture block (2 pre-checked boxes), legal disclaimer
-- **`apps/web/src/app/tools/canvisa/canvisa-lite.css`** — mobile-first 375→768→1280px
-- **`apps/web/src/app/tools/canvisa/page.tsx`** — server component, SEO metadata
-- **`apps/web/src/app/resources/page.tsx`** — Tools section added above Free Resources:
-  CanVisa Pro Lite hero card + 2×2 coming-soon grid (Modeller / Countdown / NOC Verifier / Refusal)
-- **`apps/web/src/app/resources/resources.css`** — tools section styles (mobile-first)
-- **`apps/web/src/components/SiteNav.tsx`** — "Tools" link → `/resources#tools`
-- **Tests**: `canvisa-lite-logic.test.ts` (3 tests) + `lead-capture/route.test.ts` (4 tests)
-- **Gates**: `tsc --noEmit` clean · 328/328 vitest green
+### 3. Contact gate removal — IN PROGRESS, NOT YET COMMITTED
+**Problem:** The current Assessment form has a mandatory contact section (name, email, phone,
+consent) that locks the submit button until all fields are filled. Per the RT-1 plan, contact
+capture must be POST-result (optional, after the applicant sees their score).
 
-### 3. NOT done this session
-- No `git push` / Vercel deploy (Prash has not explicitly requested a push)
-- Prashant Proof not yet completed (awaiting deploy)
+**Edits already made to `AssessmentTool.tsx`** (uncommitted, 41 insertions / 87 deletions):
+- Removed `contactName`, `contactEmail`, `contactPhone`, `contactConsent` state
+- Added `leadName`, `leadEmail` state (used in post-result card only)
+- Removed `contactReady` gate — submit button is now always enabled
+- Removed the entire "Contact Details" form section (name/email/phone/consent block)
+- Updated submit note to "Instant result. No login or email required."
+- Removed the `assessment-lead` fire-and-forget from `runAssessment()`
+- Added `leadName`/`leadEmail` inputs directly inside the post-result email card
+- Button in email card is disabled only until name + valid email are entered
 
----
-
-## ⚠ Required Before Next Session Can Start
-
-**Prash must deploy and verify:**
-
-1. **Deploy** (from repo root — never from inside `apps/web`):
-   ```
-   git push origin main
-   ```
-   Or: `vercel deploy --prod` from `c:\Users\hp\visaforte`
-
-2. **Prashant Proof** (once live):
-   - Go to visaforte.com/tools/canvisa (no login) → fill in: age 34, Master's + ECA,
-     IELTS 7/7/7.5/7, 2yr Canadian WE TEER 1, single, family 1
-   - Click "Check My Score →" → confirm score card + 3 weakness chips + pathway card appear
-   - Enter name + email, leave both checkboxes ticked, click "Send My Results →" → "Check your inbox ✓"
-   - Check inbox — confirm CRS score email arrives
-   - Check prashant@visaforte.com — confirm admin lead notification arrived
-   - Go to visaforte.com/resources → confirm Tools section appears above Free Resources
-   - On mobile (375px) → confirm score card and chips are readable and not clipped
+**Status:** TypeScript check and vitest were about to run when session ended. These changes
+have NOT been verified or committed yet.
 
 ---
 
-## Immediate Next Steps (after Prashant Proof passes)
+## ⚠ Required: FIRST thing next session
+
+1. **Verify the uncommitted changes compile and tests pass:**
+   ```
+   cd /c/Users/hp/visaforte/apps/web && npx tsc --noEmit && npx vitest run
+   ```
+   Expected: 0 TypeScript errors, 328/328 tests green.
+
+2. **If clean, commit and push:**
+   ```
+   git -C /c/Users/hp/visaforte add apps/web/src/app/assessment/AssessmentTool.tsx
+   git -C /c/Users/hp/visaforte commit -m "fix(assessment): remove contact gate — capture leads post-result only"
+   git -C /c/Users/hp/visaforte push origin main
+   ```
+
+3. **Prashant Proof on /assessment:**
+   - Go to visaforte.com/assessment — fill in profile (age 34, Master's + ECA, IELTS 7/7/7.5/7,
+     2yr Canadian WE TEER 1, single) and click "Check My Eligibility →" WITHOUT entering any
+     contact details — confirm results appear immediately
+   - Confirm weakness chips, best pathway card, all analysis cards appear
+   - Scroll to "Want a copy in your inbox?" — enter name + email, click "Send My Results →"
+   - Confirm "Check your inbox ✓" appears
+   - Check inbox for CRS email · check prashant@visaforte.com for admin notification
+
+4. **Only after Prash confirms Proof passes:** Plan and build RT-2
+
+---
+
+## Immediate Next Steps (after Proof passes)
 
 **RT-2: CRS What-If Modeller — `/tools/crs-modeller`**
 
-The plan for RT-2 has NOT been written yet. From `tasks/todo.md` (line ~2147):
-> "Status: 🔲 NOT STARTED — step plan written when RT-1 is complete"
+Not yet planned. From `tasks/todo.md`:
 > "What this delivers: An interactive score simulator. The applicant starts from their base CRS
 > score (entered or imported from RT-1 handoff) and adjusts sliders/dropdowns for language band,
 > education, Canadian WE to see the resulting score change in real-time. Shows how many points
 > each lever is worth and which combination clears the most recent draw cutoff. Free, ungated."
 
-**The next session's Task 0**: write the RT-2 step plan in `tasks/todo.md`, get Prash approval,
-then build. Do NOT start any RT-2 code before the step plan is committed.
+**Next session's Task 0:** Write the RT-2 step plan in `tasks/todo.md`, commit it, get Prash
+approval, then build.
 
 ---
 
 ## Key Code Locations
 
 ```
-# RT-1 deliverables
-apps/web/src/app/tools/canvisa/          ← CanVisaLite.tsx, canvisa-lite.css, page.tsx
-apps/web/src/app/api/tools/lead-capture/ ← route.ts, route.test.ts
-apps/web/src/app/api/tools/draw-alert/   ← route.ts
-apps/web/src/lib/canvisa-lite-logic.ts   ← weakness + pathway logic (tested)
-apps/web/src/lib/canvisa-lite-logic.test.ts
+# Primary CRS tool (Assessment = the tool)
+apps/web/src/app/assessment/AssessmentTool.tsx   ← main component (has uncommitted changes)
+apps/web/src/app/assessment/assessment.css       ← includes new chip/pathway/email styles
 
-# Resources page (updated)
+# Shared logic (used by AssessmentTool)
+apps/web/src/lib/canvisa-lite-logic.ts           ← getWeaknesses, getBestPathway
+apps/web/src/lib/crs-calculator.ts               ← calculate(), scoresToClb()
+apps/web/src/lib/crs-draw-history.json           ← live draw data
+
+# Lead capture API
+apps/web/src/app/api/tools/lead-capture/route.ts ← Resend email + DB insert
+apps/web/src/app/api/tools/draw-alert/route.ts   ← draw alert subscriber upsert
+
+# Resources page (tools section links to /assessment)
 apps/web/src/app/resources/page.tsx
-apps/web/src/app/resources/resources.css
 
-# Nav (updated)
-apps/web/src/components/SiteNav.tsx
+# Redirect config
+apps/web/next.config.ts                          ← /tools/canvisa → /assessment (301)
 
-# Plan for RT-2 (not yet written)
-tasks/todo.md  → "TASK RT-2: CRS What-If Modeller"
-
-# CRS engine (shared — do not modify)
-apps/web/src/lib/crs-calculator.ts
-apps/web/src/lib/crs-rules.json
-
-# DB schema
-apps/web/drizzle/schema.ts               ← tool_events, settings, drawAlertSubscribers all live here
+# RT-2 plan (not yet written)
+tasks/todo.md → "TASK RT-2: CRS What-If Modeller"
 ```
 
 ---
@@ -126,12 +133,11 @@ apps/web/drizzle/schema.ts               ← tool_events, settings, drawAlertSub
 
 | Decision | Detail |
 |---|---|
-| RT-1 result view | CRS score + top 3 weakness chips + single best pathway card |
-| Withheld from RT-1 | Multi-pathway table, full action plan, MARP/PPTX download, PNP section |
-| Lead capture | Post-result, ungated. Name + Email + two pre-checked boxes |
-| Email delivery | Plain-text Resend email (no PDF on Day 1) |
-| Draw alert | Upserts to `draw_alert_subscribers` (unique on email) |
-| Tools route | `/tools/canvisa` — dedicated route (not under /assessment) |
-| Resources page | CanVisa Pro Lite hero card + 2×2 tool grid above existing PDFs |
-| Nav link | "Tools" → `/resources#tools` |
+| Single CRS tool page | `/assessment` — no separate `/tools/canvisa` |
+| Contact capture | Post-result only; never gates the form |
+| Weakness chips | Top 3 from `getWeaknesses(result)`, shown right after score hero |
+| Best pathway | `getBestPathway(score, categories)`, shown after chips |
+| Email/alert block | Post-result, optional. Name + email entered in result view |
+| Resources page | CanVisa Pro Lite card links to `/assessment` |
+| Nav | About · Services · Visas · Resources · Assessment · Contact (no separate Tools link) |
 | RT-2 plan | Written in tasks/todo.md BEFORE any RT-2 code |
