@@ -14,135 +14,124 @@ A handover is only authoritative on the day it was written.
 ---
 
 ## Goal
-Write and approve the Resources Tools Phase 1 plan, then build RT-1: CanVisa Pro lite at
-`/tools/canvisa`. This session wrote the plan to `tasks/todo.md` under the section
-"Resources Tools — Phase 1". No code was written. The next session's job is to get Prash's
-approval on the plan, commit it (Task 0 rule), then build RT-1 step by step.
+RT-1 (CanVisa Pro Lite at `/tools/canvisa`) is fully built and committed. The next session's
+job is to deploy, verify in the browser (Prashant Proof), then plan and build RT-2: CRS
+What-If Modeller at `/tools/crs-modeller`.
 
 ---
 
 ## What Was Done This Session
 
-### 1. Reviewed uncommitted changes (git diff on two files)
-Both changes are safe, self-contained, and do NOT touch the CRS engine or PNP eligibility.
+### 1. Schema + migration committed and applied
+- `feat(db)` commit `75e9da5`: three new tables — `tool_events`, `settings`, `draw_alert_subscribers`
+- Migration 0019 applied to live Supabase DB by Prash (`npx drizzle-kit migrate` — additive only)
 
-**`apps/web/src/app/admin/canvisa-pro/CanVisaProTool.tsx`**
-PPTX download fix in `downloadPnpPptx()`:
-- Stamps correct MIME type (`application/vnd.openxmlformats...`) on the raw blob from `buildPnpPptxBlob`
-- Appends anchor to `document.body` before `.click()` (required by some browsers)
-- Defers `URL.revokeObjectURL` by 100ms to prevent Firefox `blob:null` race
+### 2. RT-1 fully built — commit `cbfa558`
+All Steps 2–10 complete in a single commit:
 
-**`apps/web/src/app/admin/canvisa-pro/PnpReport.tsx`**
-One-line display fix: "Stream data verified" now shows `reportGenerated` (the report date) instead of `pnp.dataVersion` (which was undefined for some profiles).
+- **`POST /api/tools/lead-capture`** — Zod-validated; upserts `draw_alert_subscribers` (if `wantsDrawAlert`);
+  inserts `tool_events` row; sends Resend email to subscriber (score + weaknesses + pathway) and
+  admin notification to prashant@visaforte.com
+- **`POST /api/tools/draw-alert`** — upserts subscriber on email conflict; inserts event row
+- **`apps/web/src/lib/canvisa-lite-logic.ts`** — `getWeaknesses`, `getEligibleDrawCategories`,
+  `getBestPathway` — pure functions, fully tested
+- **`apps/web/src/app/tools/canvisa/CanVisaLite.tsx`** — full CRS form (DOB, education,
+  language L/R/W/S, second language, CWE, FWE, spouse section, PNP, sibling, Canadian education,
+  family size, funds); result view with score hero card, 3 weakness chips, best pathway card,
+  handoff copy, lead capture block (2 pre-checked boxes), legal disclaimer
+- **`apps/web/src/app/tools/canvisa/canvisa-lite.css`** — mobile-first 375→768→1280px
+- **`apps/web/src/app/tools/canvisa/page.tsx`** — server component, SEO metadata
+- **`apps/web/src/app/resources/page.tsx`** — Tools section added above Free Resources:
+  CanVisa Pro Lite hero card + 2×2 coming-soon grid (Modeller / Countdown / NOC Verifier / Refusal)
+- **`apps/web/src/app/resources/resources.css`** — tools section styles (mobile-first)
+- **`apps/web/src/components/SiteNav.tsx`** — "Tools" link → `/resources#tools`
+- **Tests**: `canvisa-lite-logic.test.ts` (3 tests) + `lead-capture/route.test.ts` (4 tests)
+- **Gates**: `tsc --noEmit` clean · 328/328 vitest green
 
-**Neither file has been committed.** They were pre-existing at session start.
-
-### 2. Wrote Resources Tools — Phase 1 plan to `tasks/todo.md`
-New section appended at the end of the file: `## Resources Tools — Phase 1`.
-
-Covers all five tools with what-it-delivers, and a full 10-step build plan for RT-1.
-RT-2 through RT-5 have their what-it-delivers and a "step plan written when predecessor ships" placeholder.
-
-**Plan is awaiting Prash approval. Zero code written.**
-
----
-
-## Decisions Made (locked — do not re-ask)
-
-All product decisions were locked in the previous session's grilling (see prior handover entry
-in git history). The plan in `tasks/todo.md` faithfully implements those decisions. Key ones:
-
-| Decision | Detail |
-|---|---|
-| RT-1 result view | CRS score + top 3 weakness chips + single best pathway card |
-| Withheld from RT-1 | Multi-pathway table, full action plan, MARP/PPTX download |
-| Lead capture | Post-result, ungated. Name + Email + two pre-checked boxes |
-| Email delivery | Plain-text Resend email for now (PDF delivery is a future enhancement, not Day 1) |
-| Draw alert | Upserts to `draw_alert_subscribers` table (unique on email) |
-| DB tables (ship with RT-1) | `tool_events`, `settings`, `draw_alert_subscribers` (migration 0014) |
-| Resources page update | CanVisa Pro Lite hero card + 2×2 tool grid above existing PDFs |
+### 3. NOT done this session
+- No `git push` / Vercel deploy (Prash has not explicitly requested a push)
+- Prashant Proof not yet completed (awaiting deploy)
 
 ---
 
-## Immediate Next Steps
+## ⚠ Required Before Next Session Can Start
 
-**1. Prash approves the plan in `tasks/todo.md`** (section "Resources Tools — Phase 1")
-Read it at the bottom of the file. If changes needed, edit before approving.
+**Prash must deploy and verify:**
 
-**2. Step 0 — commit the plan before any code (Task 0 / lessons.md Planning L1)**
-```
-git add tasks/todo.md HANDOVER.md
-git commit -m "docs: add resources tools phase 1 plan"
-```
+1. **Deploy** (from repo root — never from inside `apps/web`):
+   ```
+   git push origin main
+   ```
+   Or: `vercel deploy --prod` from `c:\Users\hp\visaforte`
 
-**3. Start RT-1 build — follow the step plan in `tasks/todo.md` exactly:**
-- Step 1: DB — add `toolEvents`, `settings`, `drawAlertSubscribers` to `schema.ts` → `drizzle-kit generate` → `drizzle-kit migrate`
-- Step 2: API `POST /api/tools/lead-capture`
-- Step 3: API `POST /api/tools/draw-alert`
-- Step 4: `CanVisaLite.tsx` client component
-- Step 5: `canvisa-lite.css` (mobile-first, Visa Forte brand)
-- Step 6: `apps/web/src/app/tools/canvisa/page.tsx`
-- Step 7: Resources page Tools section
-- Step 8: Nav "Tools" link
-- Step 9: Tests
-- Step 10: TypeScript check + commit
+2. **Prashant Proof** (once live):
+   - Go to visaforte.com/tools/canvisa (no login) → fill in: age 34, Master's + ECA,
+     IELTS 7/7/7.5/7, 2yr Canadian WE TEER 1, single, family 1
+   - Click "Check My Score →" → confirm score card + 3 weakness chips + pathway card appear
+   - Enter name + email, leave both checkboxes ticked, click "Send My Results →" → "Check your inbox ✓"
+   - Check inbox — confirm CRS score email arrives
+   - Check prashant@visaforte.com — confirm admin lead notification arrived
+   - Go to visaforte.com/resources → confirm Tools section appears above Free Resources
+   - On mobile (375px) → confirm score card and chips are readable and not clipped
 
-**4. ⚠ Commit the two uncommitted admin files at the same time or before Step 1:**
-```
-git add apps/web/src/app/admin/canvisa-pro/CanVisaProTool.tsx
-git add apps/web/src/app/admin/canvisa-pro/PnpReport.tsx
-git commit -m "fix(canvisa-pro): pptx mime type + deferred revoke + stream data date display"
-```
-These are clean fixes that should be in git before building on top of them.
+---
+
+## Immediate Next Steps (after Prashant Proof passes)
+
+**RT-2: CRS What-If Modeller — `/tools/crs-modeller`**
+
+The plan for RT-2 has NOT been written yet. From `tasks/todo.md` (line ~2147):
+> "Status: 🔲 NOT STARTED — step plan written when RT-1 is complete"
+> "What this delivers: An interactive score simulator. The applicant starts from their base CRS
+> score (entered or imported from RT-1 handoff) and adjusts sliders/dropdowns for language band,
+> education, Canadian WE to see the resulting score change in real-time. Shows how many points
+> each lever is worth and which combination clears the most recent draw cutoff. Free, ungated."
+
+**The next session's Task 0**: write the RT-2 step plan in `tasks/todo.md`, get Prash approval,
+then build. Do NOT start any RT-2 code before the step plan is committed.
 
 ---
 
 ## Key Code Locations
 
 ```
-# Plan (read this first)
-tasks/todo.md  — "Resources Tools — Phase 1" section at the bottom
+# RT-1 deliverables
+apps/web/src/app/tools/canvisa/          ← CanVisaLite.tsx, canvisa-lite.css, page.tsx
+apps/web/src/app/api/tools/lead-capture/ ← route.ts, route.test.ts
+apps/web/src/app/api/tools/draw-alert/   ← route.ts
+apps/web/src/lib/canvisa-lite-logic.ts   ← weakness + pathway logic (tested)
+apps/web/src/lib/canvisa-lite-logic.test.ts
 
-# CRS engine (import — do not copy)
-apps/web/src/lib/crs-calculator.ts
-
-# PNP eligibility engine (import — do not copy)
-apps/web/src/lib/pnp-eligibility.ts
-
-# Live draw data (cron-updated daily)
-apps/web/src/lib/crs-draw-history.json
-
-# Public assessment tool (reference for form shape and result helpers)
-apps/web/src/app/assessment/AssessmentTool.tsx
-apps/web/src/app/assessment/assessment.css
-
-# Internal admin tool (reference — do not copy wholesale)
-apps/web/src/app/admin/canvisa-pro/CanVisaProTool.tsx
-apps/web/src/app/admin/canvisa-pro/PnpReport.tsx
-
-# DB schema (add new tables here)
-apps/web/drizzle/schema.ts
-
-# Razorpay payment routes (reuse for RT-3 and RT-5 premium tools)
-apps/web/src/app/api/payment/create-order/route.ts
-apps/web/src/app/api/payment/verify/route.ts
-
-# Resources page (add Tools section here)
+# Resources page (updated)
 apps/web/src/app/resources/page.tsx
 apps/web/src/app/resources/resources.css
-apps/web/src/lib/resources.json
 
-# Nav (add Tools link here)
-apps/web/src/components/SiteNav.tsx  (or NavBar.tsx — grep for the nav component)
+# Nav (updated)
+apps/web/src/components/SiteNav.tsx
+
+# Plan for RT-2 (not yet written)
+tasks/todo.md  → "TASK RT-2: CRS What-If Modeller"
+
+# CRS engine (shared — do not modify)
+apps/web/src/lib/crs-calculator.ts
+apps/web/src/lib/crs-rules.json
+
+# DB schema
+apps/web/drizzle/schema.ts               ← tool_events, settings, drawAlertSubscribers all live here
 ```
 
 ---
 
-## What Is NOT Done
+## Decisions Locked (do not re-ask)
 
-- Plan not yet approved by Prash
-- The two uncommitted admin files have not been committed
-- Zero RT-1 code written
-- `tool_events`, `settings`, `draw_alert_subscribers` tables do not exist yet
-- `/tools/canvisa` route does not exist yet
-- Resources page Tools section does not exist yet
+| Decision | Detail |
+|---|---|
+| RT-1 result view | CRS score + top 3 weakness chips + single best pathway card |
+| Withheld from RT-1 | Multi-pathway table, full action plan, MARP/PPTX download, PNP section |
+| Lead capture | Post-result, ungated. Name + Email + two pre-checked boxes |
+| Email delivery | Plain-text Resend email (no PDF on Day 1) |
+| Draw alert | Upserts to `draw_alert_subscribers` (unique on email) |
+| Tools route | `/tools/canvisa` — dedicated route (not under /assessment) |
+| Resources page | CanVisa Pro Lite hero card + 2×2 tool grid above existing PDFs |
+| Nav link | "Tools" → `/resources#tools` |
+| RT-2 plan | Written in tasks/todo.md BEFORE any RT-2 code |
