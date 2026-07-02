@@ -144,6 +144,19 @@
 }
 .mod-context-link:hover { text-decoration: underline; }
 
+.mod-no-draw-note {
+  font-size: 0.8rem;
+  color: #718096;
+  line-height: 1.6;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(201, 123, 30, 0.07);
+  border-left: 3px solid var(--saffron);
+  border-radius: 0 4px 4px 0;
+}
+.mod-no-draw-note a { color: var(--saffron); font-weight: 500; }
+.mod-no-draw-note a:hover { text-decoration: underline; }
+
 /* ── Lever controls ──────────────────────────────────────────────── */
 .mod-levers {
   display: flex;

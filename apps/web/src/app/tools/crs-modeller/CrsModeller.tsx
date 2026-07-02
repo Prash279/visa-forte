@@ -105,7 +105,8 @@ function buildProfile(s: ModState): ApplicantProfile {
 function getRelevantDraw(canadianWE: number): DrawEntry | null {
   if (canadianWE >= 1)
     return draws.find(d => /canadian experience class/i.test(d.type)) ?? null
-  return draws.find(d => /all.programs|general/i.test(d.type)) ?? draws[0] ?? null
+  // ponytail: no draws[0] fallback — category draws (Healthcare, Trades) are wrong benchmarks for general-pool applicants
+  return draws.find(d => /all.programs|general/i.test(d.type)) ?? null
 }
 
 function fmtEdu(val: EducationLevel): string {
@@ -335,6 +336,16 @@ export default function CrsModeller(): React.JSX.Element {
                 className="mod-context-link"
               >
                 Verify at canada.ca →
+              </a>
+            </p>
+          )}
+
+          {/* No-draw notice — shown when no CEC or All-Programs draw is found */}
+          {draw === null && (
+            <p className="mod-no-draw-note">
+              Express Entry is currently running category-based draws only — no All-Programs draw in the current cycle.{' '}
+              <a href={drawData.url} target="_blank" rel="noopener noreferrer">
+                Check canada.ca for your occupation&apos;s category draw →
               </a>
             </p>
           )}
