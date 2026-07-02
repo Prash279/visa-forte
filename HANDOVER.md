@@ -14,54 +14,57 @@ A handover is only authoritative on the day it was written.
 ---
 
 ## Goal
-RT-2 (CRS What-If Modeller) — **fully built, deployed, and link-visibility bug fixed.**
-Awaiting Prash's Prashant Proof to close RT-2 and begin RT-3 planning.
+RT-2 (CRS What-If Modeller) — three bug fixes shipped this session.
+Awaiting Prash's visual confirmation of the age alert redesign before RT-2 is closed and RT-3 begins.
 
 ---
 
-## Completed (this session)
+## Completed this session (all 331/331, tsc clean, pushed to origin/main)
 
-- ✅ Confirmed `/tools/crs-modeller` loads correctly in production (Playwright verified)
-- ✅ Added `.asx-modeller-link` teal pill button in `AssessmentTool.tsx` — committed `1fe8976`
-- ✅ Fixed `getRelevantDraw` bug: removed `draws[0]` fallback that was showing Healthcare as the cutoff for Software Developer (0 CWE). Now returns `null` and renders a saffron-bordered note: "Express Entry is currently running category-based draws only — no All-Programs draw in the current cycle." — committed `447514d`
-- ✅ `tsc --noEmit` clean, `vitest run` 331/331 green across both fixes
-- ✅ Both commits pushed to `origin/main`, Vercel auto-deploy triggered
-
----
-
-## Bug post-mortem (for lessons.md if Prash agrees)
-
-`getRelevantDraw` fell back to `draws[0]` when no CEC or All-Programs draw was found. The draw history has no All-Programs draws — only Healthcare, Trades, CEC, French, PNP categories. For a user with 0 Canadian WE, `draws[0]` = "Healthcare and Social Services Occupations" — shown as their cutoff benchmark. Wrong. Fix: return `null` + honest note instead.
+| Commit | Fix |
+|---|---|
+| `1fe8976` | Added visible teal pill button "Try the CRS What-If Modeller →" in `AssessmentTool.tsx` below the scenarios note. Previously the link was 12px grey footnote text — easy to miss. Added `.asx-modeller-link` CSS in `assessment.css`. |
+| `447514d` | Removed `draws[0]` fallback in `getRelevantDraw` (`CrsModeller.tsx`). Was showing "Healthcare and Social Services Occupations" as the cutoff benchmark for any user with 0 Canadian WE (because Healthcare happened to be `draws[0]`). Now returns `null` and shows a saffron-bordered note: "Express Entry is currently running category-based draws only — no All-Programs draw in the current cycle." |
+| `32913eb` | Redesigned the age alert banner in `AssessmentTool.tsx` + `assessment.css`. Replaced ⚠ emoji + generic amber (`#F59E0B`) with brand-consistent treatment: saffron left-border strip, `rgba(201,123,30,0.06)` tint, small-caps "AGE ALERT" label, Prussian body text, saffron bold on key numbers. Mobile override added at `max-width: 860px` breakpoint. |
 
 ---
 
 ## Awaiting — Prashant Proof
 
-**Prash must verify before RT-2 is marked done:**
+Prash needs to verify the age alert redesign visually (Vercel auto-deployed after `32913eb`):
 
 1. Go to **visaforte.com/assessment**
-2. Complete an assessment with Software Developer NOC (fill all fields, submit)
-3. Scroll to the "CRS Improvement Scenarios" section
-4. Confirm a teal pill button **"Try the CRS What-If Modeller →"** is visible
-5. Click it → confirm `/tools/crs-modeller` loads with profile pre-filled
-6. Confirm the score section shows your CRS number with a **saffron-bordered note** ("Express Entry is currently running category-based draws only…") — NOT "Healthcare and Social Services Occupations"
+2. Complete an assessment with a birth date that triggers the age alert (within 12 months of a birthday that crosses a CRS age band)
+3. Confirm the age alert looks like a brand-consistent advisory card — saffron left border, "AGE ALERT" small-caps label, Prussian body text — NOT the old amber/emoji system-warning bar
+4. Also confirm: the teal "Try the CRS What-If Modeller →" pill button appears after the scenarios card
+5. Also confirm: clicking it → `/tools/crs-modeller` loads with profile pre-filled, and shows the saffron "no matching draw" note (not Healthcare) for profiles with 0 Canadian WE
+
+If all three look correct → **RT-2 is fully done.** Begin RT-3 planning.
 
 ---
 
-## Key Decisions (locked, from RT-2)
+## Key Decisions (locked, RT-2)
 
 | Decision | Rationale |
 |---|---|
 | `calculate(buildProfile(state)).breakdown.total` | CrsResult has no `totalScore` — total is at `breakdown.total` |
 | CELPIP testType + CLB integers as scores | CELPIP level 4–12 maps 1:1 to CLB — passes CLB directly into calculator |
 | `useEffect` + `window.location.search` for URL params | Avoids Next.js searchParams-as-Promise complexity; clean client-side parse on mount |
-| `getRelevantDraw`: CEC if canadianWE ≥ 1, else draws[0] | No All-Programs draw in current history; draws[0] is safe fallback |
+| `getRelevantDraw`: CEC if canadianWE ≥ 1, else null | No All-Programs draw in current history; `draws[0]` fallback removed — was wrong occupation category |
 | Import `assessment.css` first in CrsModeller.tsx | assessment.css is NOT globally loaded — must import `'../../assessment/assessment.css'` for asx-* classes |
-| Teal pill button over replacing footnote link | Both now coexist — footnote stays for disclosure context, pill ensures discoverability |
+| Age alert: `var(--saffron)` + `var(--prussian)` throughout | Replaces hardcoded Tailwind amber — ties alert into brand colour system |
 
 ---
 
-## Next Steps (after Prash confirms)
+## Draw history note (for RT-3 planning context)
 
-1. Mark RT-2 fully done in `tasks/todo.md`
-2. Begin RT-3 step planning — review `spec.md` for what RT-3 covers and write the plan
+`crs-draw-history.json` currently has no All-Programs or STEM/Tech draws — only Healthcare, Trades, CEC, French-Language, PNP, and two specialty CWE draws (Physicians, Senior Managers). If/when an All-Programs draw is issued by IRCC, the modeller will automatically surface it without code changes (the regex `/all.programs|general/i` is already in place). The draw history JSON just needs updating.
+
+---
+
+## Next steps (after Prash confirms)
+
+1. Mark RT-2 done in `tasks/todo.md`
+2. Read `spec.md` to identify what RT-3 covers
+3. Write the RT-3 step plan in `tasks/todo.md`
+4. Get Prash approval before any code
