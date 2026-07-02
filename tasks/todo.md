@@ -1991,4 +1991,187 @@ Decision: Add a `difficultyTags` array to each stream in `pnp-streams.json`. Tag
 
 ---
 
+---
+
+## Resources Tools — Phase 1 (Plan written 2026-07-02, awaiting Prash approval)
+
+**Context:** Full product strategy grilled and locked 2026-07-01 (see HANDOVER.md). No code written yet. All decisions below are approved — this plan translates them into build steps.
+
+**Goal:** Five interactive tools at `/tools/*` that convert free traffic into consultation leads and direct premium revenue. A trust-first funnel: free tools give real value, post-result capture drives leads, premium tools charge upfront.
+
+**Three new DB tables shipped with RT-1 (all tools share them):**
+- `tool_events` — custom analytics: tool name, event type, user CRS/category, timestamp
+- `settings` — key/value flags (e.g., `posthog_enabled: false`); PostHog auto-activates via daily cron at 500 subscribers
+- `draw_alert_subscribers` — name, email, CRS score, Express Entry category, enrolled_at
+
+**Build sequence (each task approved before code is written for that task):**
+1. RT-1: CanVisa Pro lite — `/tools/canvisa` (free, ungated)
+2. RT-2: CRS What-If Modeller — `/tools/crs-modeller` (free, ungated)
+3. RT-3: 60-Day Countdown Planner — `/tools/ita-countdown` (premium ₹2,997–₹3,997)
+4. RT-4: NOC Code Verifier — `/tools/noc-verifier` (free, ungated)
+5. RT-5: Refusal Pattern Analyser — `/tools/refusal-analyser` (premium ₹1,997–₹2,997)
+
+**Resources page update (done at RT-1):** `/resources` gets a new "Tools" section above the existing PDFs — CanVisa Pro lite hero (full-width card) + 2×2 grid of the four remaining tools with "Launch Tool →" links.
+
+---
+
+### TASK RT-1: CanVisa Pro Lite — `/tools/canvisa`
+**Status:** 🔲 NOT STARTED — awaiting Prash approval on this plan
+**What this delivers:** A public, ungated CRS assessment tool at visaforte.com/tools/canvisa. It gives the applicant their CRS score, the top 2–3 reasons their score is lower than the last draw cutoff, and the single highest-probability pathway. It withholds the multi-pathway comparison table, full action plan, and MARP download — those stay admin-only. After the result, a lead capture form offers "Email me my results" and "Alert me when my draw opens". Both offers have their own API routes and DB tables.
+
+**What is NOT included in this tool:**
+- Multi-pathway comparison table (admin tool only)
+- Full action plan (admin tool only)
+- MARP / PPTX download (admin tool only)
+- PNP Pathway Assessment section (admin tool only)
+- NOC auto-population search (admin tool has it; this tool uses a manual NOC field for simplicity)
+
+**What IS included:**
+- Full CRS form (identical fields to public `/assessment` tool — DOB, education, language, CWE, FWE, etc.)
+- CRS score hero card (score number + pool eligibility badge)
+- Top 2–3 weakness chips (e.g., "Language: CLB 7 → CLB 9 adds +32 pts")
+- Single best pathway card (highest-probability draw category + most recent cutoff + gap)
+- Contextual handoff copy below result, e.g. "23 pts below the last draw → See what moves your score fastest →" linking to `/tools/crs-modeller`
+- Lead capture (post-result, never gated): "Email me my results" + "Alert me when my draw opens"
+- Standard legal disclaimer
+- Visa Forte brand: Pearl ground, Prussian headers, Saffron accents, Cormorant/DM Sans typography
+
+**Key reuse decisions:**
+- Import `calculateCRS` from `@/lib/crs-calculator` — do NOT copy the engine
+- Import `getEligibleDrawCategories` logic pattern from `AssessmentTool.tsx` — lift it as a local function
+- Import `crs-draw-history.json` from `@/lib/crs-draw-history.json`
+- The form state shape mirrors `AssessmentTool.tsx` — adapt, do not duplicate
+
+**Step plan:**
+
+**Step 0 — Plan committed (Task 0 rule)**
+- [ ] Commit this plan to git before any code: `docs: add resources tools phase 1 plan`
+
+**Step 1 — DB: three shared tables (migration 0014)**
+- [ ] Add to `apps/web/drizzle/schema.ts`:
+  - `toolEvents`: id (uuid PK), toolName (text), eventType (text, e.g. 'result_shown' | 'lead_captured' | 'draw_alert_subscribed'), crsScore (integer, nullable), eeCategory (text, nullable), createdAt (timestamp)
+  - `settings`: key (text PK), value (text), updatedAt (timestamp)
+  - `drawAlertSubscribers`: id (uuid PK), name (text), email (text), crsScore (integer), eeCategory (text), enrolledAt (timestamp)
+- [ ] Run `drizzle-kit generate` → review SQL → `drizzle-kit migrate`
+
+**Step 2 — API: lead capture (`POST /api/tools/lead-capture`)**
+- [ ] Create `apps/web/src/app/api/tools/lead-capture/route.ts`
+  - Input (Zod): `{ name: string, email: string, crsScore: number, eeCategory: string, toolName: string }`
+  - Insert into `drawAlertSubscribers` (if `wantsDrawAlert: true`)
+  - Insert `toolEvents` row: `{ toolName, eventType: 'lead_captured', crsScore, eeCategory }`
+  - Send Resend email to the subscriber: "Your CanVisa Pro results — CRS [score]" with the score, weakness summary, and pathway — plain-text template, not a PDF (PDF delivery is a future enhancement)
+  - Send Resend notification to prashant@visaforte.com: new lead from tools page
+  - Return `{ success: true }`
+  - No auth required (public tool)
+
+**Step 3 — API: draw alert subscribe (`POST /api/tools/draw-alert`)**
+- [ ] Create `apps/web/src/app/api/tools/draw-alert/route.ts`
+  - Input (Zod): `{ name: string, email: string, crsScore: number, eeCategory: string }`
+  - Upsert into `drawAlertSubscribers` (unique on email — if already subscribed, update CRS and category)
+  - Insert `toolEvents` row: `{ toolName: 'canvisa-lite', eventType: 'draw_alert_subscribed', crsScore, eeCategory }`
+  - Return `{ success: true, alreadySubscribed: boolean }`
+
+**Step 4 — Component: `CanVisaLite.tsx`**
+- [ ] Create `apps/web/src/app/tools/canvisa/CanVisaLite.tsx` ("use client")
+  - Same form fields as `AssessmentTool.tsx` (DOB, education, language, CWE, FWE, partner section, additional factors)
+  - On submit: call `calculateCRS(profile)` client-side — no server round-trip needed
+  - Fire `POST /api/tools/tool-event` (or inline in lead-capture) with `eventType: 'result_shown'` after score renders
+  - Result view renders four sections:
+    1. **CRS Score hero card** — large score number, pool eligibility badge (Eligible / Not Yet Eligible)
+    2. **Top weaknesses** — up to 3 chips derived from `result.improvements`, each showing: factor name + "→ +N pts". Logic: sort `improvements` by point gain descending, take top 3
+    3. **Best pathway card** — from `getEligibleDrawCategories()` logic, pick the category where gap is smallest (or positive). Show: category name, most recent cutoff, draw date, applicant gap, 3-month cutoff range
+    4. **Contextual handoff** — if gap > 0: "Your score is [N] pts below the last [category] draw cutoff. → See what moves your score fastest" linking to `/tools/crs-modeller`
+  - **Lead capture block** (below result, always visible after score renders):
+    - Heading: "Want a copy in your inbox?"
+    - Two-field form: Name + Email
+    - Two checkboxes (both pre-checked): "Email me my results" + "Alert me when a [category] draw opens"
+    - Submit button: "Send My Results →"
+    - On submit: POST to `/api/tools/lead-capture`; success state shows "Check your inbox ✓"
+  - Legal disclaimer block (same text as all other tools — extract to a shared component `LegalDisclaimer.tsx` if one doesn't already exist)
+
+**Step 5 — CSS: `canvisa-lite.css`**
+- [ ] Create `apps/web/src/app/tools/canvisa/canvisa-lite.css`
+  - Base styles: mobile-first (375px base)
+  - Breakpoints: `@media (min-width: 768px)` and `@media (min-width: 1280px)` in same file
+  - Brand tokens (already in globals.css: `--prussian`, `--saffron`, `--pearl`, `--ink`)
+  - Score hero: large Cormorant Garamond score number in `--prussian`, Saffron eligibility badge
+  - Weakness chips: small pill badges, Saffron fill for top chip, Prussian fill for secondary chips
+  - Best pathway card: Pearl card, Prussian border-left 4px, DM Sans body
+  - Handoff copy: Saffron link, understated styling
+  - Lead capture block: Pearl card, Prussian CTA button, input styling matching booking form
+  - All text ≥ 0.75rem (brand floor — lessons.md UI L1)
+  - Eyebrows on dark sections get `color: var(--saffron)` scoped override (lessons.md UI L2)
+
+**Step 6 — Page: `apps/web/src/app/tools/canvisa/page.tsx`**
+- [ ] Create the server component (no auth, no dynamic = no `export const dynamic`)
+  - Import `./canvisa-lite.css`
+  - SEO metadata: title "Free CRS Score Check — Visa Forte | CanVisa Pro Lite"
+  - Render `<CanVisaLite />`
+
+**Step 7 — Resources page: add Tools section**
+- [ ] Edit `apps/web/src/app/resources/page.tsx` — insert a new `<section>` between the hero and the existing Free Resources section:
+  - Hero sub-section (full-width): CanVisa Pro Lite — headline, 2-line description, "Check My Score Free →" CTA linking to `/tools/canvisa`
+  - 2×2 tool grid below: CRS What-If Modeller · NOC Verifier · 60-Day Countdown Planner · Refusal Analyser — each as a card with tool name, one-line description, and "Coming Soon" or "Launch Tool →" badge
+- [ ] Edit `apps/web/src/app/resources/resources.css` — add styles for the new tools section (mobile-first)
+
+**Step 8 — Nav: add "Tools" link**
+- [ ] In `apps/web/src/components/SiteNav.tsx` (or NavBar.tsx), add "Tools" link pointing to `/resources#tools` (or `/tools` if we want a dedicated tools index — keep it simple: anchor on resources page for now)
+
+**Step 9 — Tests**
+- [ ] `apps/web/src/app/api/tools/lead-capture/route.test.ts`: 4 tests — valid input inserts subscriber + event + sends email; missing email returns 400; invalid CRS returns 400; duplicate email on draw-alert upserts cleanly
+- [ ] `apps/web/src/lib/canvisa-lite-logic.test.ts`: 3 tests — weakness extraction returns top 3 sorted by point gain; best pathway picks closest-gap category; handoff copy renders correct gap number
+
+**Step 10 — TypeScript check + commit**
+- [ ] `cd apps/web && npx tsc --noEmit` — zero errors
+- [ ] `npx vitest run` — all tests pass, zero regressions
+- [ ] Commit: `feat(tools): CanVisa Pro lite at /tools/canvisa + lead capture + draw alert subscribe`
+
+**Prashant Proof:**
+1. Go to visaforte.com/tools/canvisa (no login required)
+2. Fill in a profile: age 34, Master's degree with ECA, IELTS 7.0/7.0/7.5/7.0, 2yr Canadian WE TEER 1, single, family of 1
+3. Click "Check My Score →" — confirm the result appears with:
+   - A CRS score card showing the score and pool eligibility badge
+   - Up to 3 weakness chips showing the top improvement opportunities
+   - A "Best Pathway" card with the most relevant draw category, its last cutoff, and your gap
+   - A contextual handoff line (if gap > 0) with a link to /tools/crs-modeller
+4. Enter name and email in the lead capture form, leave both checkboxes ticked, click "Send My Results →"
+5. Confirm "Check your inbox ✓" appears
+6. Check your email inbox — confirm an email arrives with your CRS score and weakness summary
+7. Check prashant@visaforte.com — confirm a lead notification email arrived
+8. Go to visaforte.com/resources — confirm the new Tools section is visible above the Free Resources section, with CanVisa Pro Lite as the hero card and four tool preview cards below it
+9. On mobile (375px) — confirm score card, weakness chips, and lead capture form are all readable and not clipped
+
+---
+
+### TASK RT-2: CRS What-If Modeller — `/tools/crs-modeller`
+**Status:** 🔲 NOT STARTED — step plan written when RT-1 is complete
+**What this delivers:** An interactive score simulator. The applicant starts from their base CRS score (entered or imported from RT-1 handoff) and adjusts sliders/dropdowns for language band, education, Canadian WE to see the resulting score change in real-time. Shows how many points each lever is worth and which combination clears the most recent draw cutoff. Free, ungated.
+**Step plan:** Written after RT-1 is shipped.
+
+---
+
+### TASK RT-3: 60-Day Countdown Planner — `/tools/ita-countdown`
+**Status:** 🔲 NOT STARTED — step plan written when RT-2 is complete
+**What this delivers:** A premium tool for post-ITA applicants. Accepts ITA date → generates a personalised 60-day document checklist with deadlines (police certificates, medicals, reference letters, translations, biometrics) based on country of residence and family size. Results emailed as a PDF via Resend. Gated: free fictional sample → Razorpay inline pay (₹2,997 basic / ₹3,997 premium) → tool unlocks immediately. Token stored in DB, result emailed as PDF.
+**Price:** ₹2,997 (standard) / ₹3,997 (+ document review consultation slot)
+**Step plan:** Written after RT-2 is shipped.
+
+---
+
+### TASK RT-4: NOC Code Verifier — `/tools/noc-verifier`
+**Status:** 🔲 NOT STARTED — step plan written when RT-3 is complete
+**What this delivers:** The applicant enters their job title and a brief duty description. The tool returns the most likely NOC 2021 code, TEER level, official occupation title, and a direct link to the ESDC page. Uses the existing `noc-2021.json` index (already committed) + the `noc-retrieval.ts` deterministic lexical scorer. No Claude API call needed — deterministic output only. Free, ungated.
+**Reuse:** `noc-2021.json` + `noc-retrieval.ts` already in the codebase. Zero new ML costs.
+**Step plan:** Written after RT-3 is shipped.
+
+---
+
+### TASK RT-5: Refusal Pattern Analyser — `/tools/refusal-analyser`
+**Status:** 🔲 NOT STARTED — step plan written when RT-4 is complete
+**What this delivers:** A premium tool for applicants with a previous refusal. The applicant uploads or pastes their refusal letter. The tool classifies the refusal type against a pattern library (initially prompt-encoded; Prash adds 3–5 real cases/month), identifies the most likely root cause, and recommends the strongest reapplication strategy. Gated: free fictional example → Razorpay pay (₹1,997–₹2,997) → tool unlocks. Result emailed as PDF.
+**Knowledge source (initial):** Heuristics rules prompt-encoded + common IRCC refusal code library built by Claude Code from documented patterns. Prash sharpens with real anonymised cases over time.
+**Step plan:** Written after RT-4 is shipped.
+
+---
+
 *todo.md is the single source of task truth. If it's not here, it's not in scope.*

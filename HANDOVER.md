@@ -1,68 +1,148 @@
-# HANDOVER.md — Session Checkpoint
-**Project:** Visa Forte · `c:\Users\hp\visaforte`
-**Branch:** main (uncommitted working tree — not yet committed or pushed)
-**Written:** 2026-06-25
-**Session outcome:** PNP Assessment — four engine corrections — COMPLETE. Nothing in flight.
+# Session Handoff
+**Date:** 2026-07-02
+**Branch:** main
+**Mode:** chain
 
 ---
 
-## Trust check (read first)
-This file is rewritten at the END of each session. If the **Written** date above is not
-the current session's date, do NOT act on its contents — treat it as historical and
-re-verify from source. (The previous handover was a 3-week-old CVP-5 file that mis-briefed
-this session; that is the failure this date-stamp guards against.)
+## ⚠ Trust check — read before acting on anything below
+This handover is a snapshot taken on the **Date** above. At the start of a session, compare
+that date to today. If it is not the current session's date, treat everything below as
+history: re-verify every fact from source and do NOT act on its "Immediate Next Steps".
+A handover is only authoritative on the day it was written.
 
 ---
 
-## What this session did
-PNP Assessment report — four issues raised on the Rashmi Anupozu review, fixed TDD:
-
-- **3a — "requires Required" cosmetic** — eligibility checks tagged `threshold` vs `binary`;
-  "requires" prefix only on threshold rows. (carried in green, re-verified)
-- **2 — Weak ranked matches** — classifier returns a 0–100 `fitScore`; runner-ups shown
-  only above an absolute floor AND within margin of the leader. (carried in green, re-verified)
-- **1 — Unfair "low confidence"** — confidence rubric reframed to semantic scope containment +
-  TEER clarity + margin, verbatim overlap not expected. (carried in green, re-verified)
-- **3b — SINP points grid (pilot)** — NEW. Built this session.
-
-### 3b detail
-- New `apps/web/src/lib/sinp-points.ts` + `sinp-points.test.ts` (19 tests).
-- Grid values read **directly from saskatchewan.ca "Assess Your Eligibility"** — the PDF has
-  no text layer, so it was rendered with pypdfium2 and read crop-by-crop. NOT training data.
-- Verified: Education 23/20/20/15/12 · Work-exp(5yr) 10/8/6/4/2 · First-lang 20/18/16/14/12 ·
-  Second-lang 10/8/6/4/2 · Age <18:0/18-21:8/22-34:12/35-45:10/46-50:8/>50:0.
-  Factor I max 80, Factor II max 30, total 110, pass mark 60.
-- Only Factor I is derivable from the profile; Factor II (SK connection) and a missing
-  second-language test render as **"to confirm"**, never silently zero.
-- New `SinpCard` in `PnpReport.tsx` (+ CSS in `pnp-report.css`) shows total/110, the 60-point
-  pass-mark marker, and a counted-vs-to-confirm breakdown. Gated on Saskatchewan being assessed.
-- Also fixed two pre-existing `NocCandidate` fixtures (pnp-marp/pnp-pptx) missing the issue-2
-  `fitScore` field so `tsc` is clean.
+## Goal
+Write and approve the Resources Tools Phase 1 plan, then build RT-1: CanVisa Pro lite at
+`/tools/canvisa`. This session wrote the plan to `tasks/todo.md` under the section
+"Resources Tools — Phase 1". No code was written. The next session's job is to get Prash's
+approval on the plan, commit it (Task 0 rule), then build RT-1 step by step.
 
 ---
 
-## Verification state
-- `tsc --noEmit` — clean (exit 0).
-- `npx vitest run` — **261/261 green**.
-- Source-of-truth note saved at scratchpad `SINP_GRID_VERIFIED.md` (session-scoped, disposable).
+## What Was Done This Session
 
-## Uncommitted — pending your commit decision
-Modified: `PnpReport.tsx`, `pnp-report.css`, `noc-classify.ts/.test.ts`,
-`pnp-eligibility.ts/.test.ts`, `pnp-marp.test.ts`, `pnp-pptx.test.ts`, `tasks/todo.md`.
-New (untracked): `apps/web/src/lib/sinp-points.ts`, `apps/web/src/lib/sinp-points.test.ts`.
-Nothing has been committed or pushed (awaiting Prash's go-ahead).
+### 1. Reviewed uncommitted changes (git diff on two files)
+Both changes are safe, self-contained, and do NOT touch the CRS engine or PNP eligibility.
+
+**`apps/web/src/app/admin/canvisa-pro/CanVisaProTool.tsx`**
+PPTX download fix in `downloadPnpPptx()`:
+- Stamps correct MIME type (`application/vnd.openxmlformats...`) on the raw blob from `buildPnpPptxBlob`
+- Appends anchor to `document.body` before `.click()` (required by some browsers)
+- Defers `URL.revokeObjectURL` by 100ms to prevent Firefox `blob:null` race
+
+**`apps/web/src/app/admin/canvisa-pro/PnpReport.tsx`**
+One-line display fix: "Stream data verified" now shows `reportGenerated` (the report date) instead of `pnp.dataVersion` (which was undefined for some profiles).
+
+**Neither file has been committed.** They were pre-existing at session start.
+
+### 2. Wrote Resources Tools — Phase 1 plan to `tasks/todo.md`
+New section appended at the end of the file: `## Resources Tools — Phase 1`.
+
+Covers all five tools with what-it-delivers, and a full 10-step build plan for RT-1.
+RT-2 through RT-5 have their what-it-delivers and a "step plan written when predecessor ships" placeholder.
+
+**Plan is awaiting Prash approval. Zero code written.**
 
 ---
 
-## Prashant Proof (whole session)
-Go to `/admin/canvisa-pro`, run a PNP assessment for a Master's-degree health-policy profile,
-and confirm: (1) no "requires Required" text anywhere, (2) only genuinely-close codes appear
-under "Ranked matches considered", (3) the **Saskatchewan · SINP** section shows a points total
-out of 110 with the 60-point pass mark.
+## Decisions Made (locked — do not re-ask)
+
+All product decisions were locked in the previous session's grilling (see prior handover entry
+in git history). The plan in `tasks/todo.md` faithfully implements those decisions. Key ones:
+
+| Decision | Detail |
+|---|---|
+| RT-1 result view | CRS score + top 3 weakness chips + single best pathway card |
+| Withheld from RT-1 | Multi-pathway table, full action plan, MARP/PPTX download |
+| Lead capture | Post-result, ungated. Name + Email + two pre-checked boxes |
+| Email delivery | Plain-text Resend email for now (PDF delivery is a future enhancement, not Day 1) |
+| Draw alert | Upserts to `draw_alert_subscribers` table (unique on email) |
+| DB tables (ship with RT-1) | `tool_events`, `settings`, `draw_alert_subscribers` (migration 0014) |
+| Resources page update | CanVisa Pro Lite hero card + 2×2 tool grid above existing PDFs |
 
 ---
 
-## Next session — no work in flight
-The PNP four-issue session is complete. There is no pending task to resume. A fresh session
-should start from whatever Prash raises next. If committing this work first: it is a single
-logical change — suggested message `feat(canvisa-pro): SINP points grid + PNP report corrections`.
+## Immediate Next Steps
+
+**1. Prash approves the plan in `tasks/todo.md`** (section "Resources Tools — Phase 1")
+Read it at the bottom of the file. If changes needed, edit before approving.
+
+**2. Step 0 — commit the plan before any code (Task 0 / lessons.md Planning L1)**
+```
+git add tasks/todo.md HANDOVER.md
+git commit -m "docs: add resources tools phase 1 plan"
+```
+
+**3. Start RT-1 build — follow the step plan in `tasks/todo.md` exactly:**
+- Step 1: DB — add `toolEvents`, `settings`, `drawAlertSubscribers` to `schema.ts` → `drizzle-kit generate` → `drizzle-kit migrate`
+- Step 2: API `POST /api/tools/lead-capture`
+- Step 3: API `POST /api/tools/draw-alert`
+- Step 4: `CanVisaLite.tsx` client component
+- Step 5: `canvisa-lite.css` (mobile-first, Visa Forte brand)
+- Step 6: `apps/web/src/app/tools/canvisa/page.tsx`
+- Step 7: Resources page Tools section
+- Step 8: Nav "Tools" link
+- Step 9: Tests
+- Step 10: TypeScript check + commit
+
+**4. ⚠ Commit the two uncommitted admin files at the same time or before Step 1:**
+```
+git add apps/web/src/app/admin/canvisa-pro/CanVisaProTool.tsx
+git add apps/web/src/app/admin/canvisa-pro/PnpReport.tsx
+git commit -m "fix(canvisa-pro): pptx mime type + deferred revoke + stream data date display"
+```
+These are clean fixes that should be in git before building on top of them.
+
+---
+
+## Key Code Locations
+
+```
+# Plan (read this first)
+tasks/todo.md  — "Resources Tools — Phase 1" section at the bottom
+
+# CRS engine (import — do not copy)
+apps/web/src/lib/crs-calculator.ts
+
+# PNP eligibility engine (import — do not copy)
+apps/web/src/lib/pnp-eligibility.ts
+
+# Live draw data (cron-updated daily)
+apps/web/src/lib/crs-draw-history.json
+
+# Public assessment tool (reference for form shape and result helpers)
+apps/web/src/app/assessment/AssessmentTool.tsx
+apps/web/src/app/assessment/assessment.css
+
+# Internal admin tool (reference — do not copy wholesale)
+apps/web/src/app/admin/canvisa-pro/CanVisaProTool.tsx
+apps/web/src/app/admin/canvisa-pro/PnpReport.tsx
+
+# DB schema (add new tables here)
+apps/web/drizzle/schema.ts
+
+# Razorpay payment routes (reuse for RT-3 and RT-5 premium tools)
+apps/web/src/app/api/payment/create-order/route.ts
+apps/web/src/app/api/payment/verify/route.ts
+
+# Resources page (add Tools section here)
+apps/web/src/app/resources/page.tsx
+apps/web/src/app/resources/resources.css
+apps/web/src/lib/resources.json
+
+# Nav (add Tools link here)
+apps/web/src/components/SiteNav.tsx  (or NavBar.tsx — grep for the nav component)
+```
+
+---
+
+## What Is NOT Done
+
+- Plan not yet approved by Prash
+- The two uncommitted admin files have not been committed
+- Zero RT-1 code written
+- `tool_events`, `settings`, `draw_alert_subscribers` tables do not exist yet
+- `/tools/canvisa` route does not exist yet
+- Resources page Tools section does not exist yet
