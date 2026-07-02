@@ -317,15 +317,124 @@
   margin-bottom: 2.5rem;
 }
 
+/* ── TOOLS SECTION ────────────────────────────────────────── */
+.resources-tools { background: var(--pearl); }
+
+/* Hero tool card */
+.tools-hero-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: var(--prussian);
+  padding: 2.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.tools-hero-label {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  margin: 0 0 0.5rem;
+}
+
+.tools-hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-weight: 400;
+  color: var(--pearl);
+  margin: 0 0 0.75rem;
+  line-height: 1.15;
+}
+
+.tools-hero-desc {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 300;
+  line-height: 1.78;
+  color: rgba(248, 244, 238, 0.78);
+  margin: 0;
+  max-width: 560px;
+}
+
+.tools-hero-cta {
+  display: inline-block;
+  align-self: flex-start;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--saffron);
+  color: var(--prussian);
+  padding: 0.85rem 1.75rem;
+  text-decoration: none;
+  transition: background 0.18s ease;
+  white-space: nowrap;
+}
+
+.tools-hero-cta:hover { background: #e88e20; }
+
+/* 2×2 tool preview grid */
+/* 2×2 on desktop; responsive overrides below collapse it */
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.tools-card {
+  background: #ffffff;
+  border: 1px solid var(--sand);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.tools-card-badge {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  background: var(--sand);
+  color: rgba(26, 43, 60, 0.55);
+  align-self: flex-start;
+}
+
+.tools-card-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--prussian);
+  margin: 0;
+}
+
+.tools-card-desc {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 300;
+  line-height: 1.68;
+  color: rgba(26, 43, 60, 0.7);
+  margin: 0;
+}
+
 /* ── RESPONSIVE ───────────────────────────────────────────── */
 @media (max-width: 900px) {
   .resources-grid { grid-template-columns: repeat(2, 1fr); }
+  .tools-grid     { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 860px) {
   /* Tablet breakpoint matches nav hamburger breakpoint (lessons.md #3) */
   .resources-hero  { padding: 9rem 1.5rem 5rem; }
   .resources-trust { padding: 6rem 1.5rem; }
+  .tools-hero-card { padding: 1.75rem; }
 }
 
 @media (max-width: 640px) {
@@ -344,4 +453,7 @@
   .filter-pills::-webkit-scrollbar { display: none; }
 
   .resources-grid { grid-template-columns: 1fr; }
+  .tools-grid     { grid-template-columns: 1fr; }
+  .tools-hero-card { padding: 1.5rem; }
+  .tools-hero-cta  { align-self: stretch; text-align: center; }
 }

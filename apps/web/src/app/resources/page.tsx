@@ -41,6 +41,47 @@ export default function ResourcesPage(): JSX.Element {
         </div>
       </section>
 
+      {/* ── TOOLS ─────────────────────────────────────────────── */}
+      <section id="tools" className="sec resources-tools">
+        <div className="sec-inner">
+          <p className="eyebrow r">Interactive Tools</p>
+          <h2 className="headline r d1">Check Your Score. Plan Your Move.</h2>
+          <div className="rule r d2" />
+
+          {/* Hero tool: CanVisa Pro Lite */}
+          <div className="tools-hero-card r d2">
+            <div className="tools-hero-content">
+              <p className="tools-hero-label">Free · No Login Required</p>
+              <h3 className="tools-hero-title">CanVisa Pro Lite — CRS Score Check</h3>
+              <p className="tools-hero-desc">
+                Enter your profile and get your Express Entry CRS score, the top 2–3 reasons
+                it&apos;s lower than the last draw cutoff, and the highest-probability pathway — in
+                under 3 minutes.
+              </p>
+            </div>
+            <a href="/tools/canvisa" className="tools-hero-cta">
+              Check My Score Free →
+            </a>
+          </div>
+
+          {/* 2×2 coming-soon grid */}
+          <div className="tools-grid r d3">
+            {[
+              { name: 'CRS What-If Modeller', desc: 'Simulate how improving language, education, or Canadian experience moves your score.' },
+              { name: '60-Day Countdown Planner', desc: 'Generate a personalised day-by-day document preparation timeline from your ITA date.' },
+              { name: 'NOC Code Verifier', desc: 'Confirm your 5-digit NOC 2021 code and TEER level against the official Statistics Canada CSV.' },
+              { name: 'Refusal Pattern Analyser', desc: 'Identify the most common refusal grounds for your NOC and build a pre-emption strategy.' },
+            ].map(tool => (
+              <div key={tool.name} className="tools-card">
+                <div className="tools-card-badge">Coming Soon</div>
+                <h4 className="tools-card-title">{tool.name}</h4>
+                <p className="tools-card-desc">{tool.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── FREE RESOURCES ────────────────────────────────────── */}
       <section className="sec resources-free">
         <div className="sec-inner">

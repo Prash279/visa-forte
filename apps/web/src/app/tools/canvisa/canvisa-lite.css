@@ -1,0 +1,442 @@
+/* canvisa-lite.css — /tools/canvisa — mobile-first (375px base) */
+
+/* ── Page wrapper ─────────────────────────────────────────────────────────── */
+.cvl-form,
+.cvl-result {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+/* ── Sections ─────────────────────────────────────────────────────────────── */
+.cvl-section {
+  background: #ffffff;
+  border: 1px solid var(--sand);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.cvl-section-title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--prussian);
+  margin: 0 0 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--sand);
+}
+
+.cvl-section-sub {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: rgba(26, 43, 60, 0.65);
+  margin: -0.5rem 0 1rem;
+  line-height: 1.6;
+}
+
+/* ── Field primitives ─────────────────────────────────────────────────────── */
+.cvl-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.cvl-label {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.cvl-label-sm {
+  font-size: 0.78rem;
+}
+
+.cvl-input,
+.cvl-select {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--ink);
+  background: #ffffff;
+  border: 1px solid var(--sand);
+  padding: 0.6rem 0.85rem;
+  width: 100%;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.18s ease;
+}
+
+.cvl-input:focus,
+.cvl-select:focus {
+  outline: none;
+  border-color: var(--prussian);
+}
+
+.cvl-input-sm {
+  padding: 0.5rem 0.6rem;
+  font-size: 0.9rem;
+}
+
+.cvl-input-year {
+  width: 90px;
+  flex-shrink: 0;
+}
+
+/* DOB row */
+.cvl-dob-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cvl-dob-row .cvl-select {
+  flex: 1;
+  min-width: 70px;
+}
+
+/* ── Two-column grid ──────────────────────────────────────────────────────── */
+.cvl-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+/* ── Checkbox rows ────────────────────────────────────────────────────────── */
+.cvl-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.cvl-checkbox-row input[type="checkbox"] {
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--prussian);
+}
+
+/* ── Language block ───────────────────────────────────────────────────────── */
+.cvl-lang-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cvl-lang-scores {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.cvl-lang-score-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+/* ── Indent (spouse, second lang) ─────────────────────────────────────────── */
+.cvl-indent {
+  border-left: 3px solid var(--saffron);
+  padding-left: 1rem;
+  margin-top: 1rem;
+}
+
+.cvl-spouse-block {
+  background: rgba(248, 244, 238, 0.5);
+  padding: 1rem;
+}
+
+/* ── Field row (inline label + control) ───────────────────────────────────── */
+.cvl-field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* ── Submit ───────────────────────────────────────────────────────────────── */
+.cvl-submit-row {
+  padding: 0.5rem 0 0;
+  text-align: center;
+}
+
+.cvl-btn-primary {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--prussian);
+  color: var(--pearl);
+  border: none;
+  padding: 0.9rem 2.4rem;
+  cursor: pointer;
+  transition: background 0.18s ease;
+  width: 100%;
+}
+
+.cvl-btn-primary:hover:not(:disabled) { background: #0a1e35; }
+.cvl-btn-primary:disabled { opacity: 0.65; cursor: not-allowed; }
+
+/* ── Result view ──────────────────────────────────────────────────────────── */
+
+/* Score hero */
+.cvl-score-hero {
+  text-align: center;
+  background: var(--prussian);
+  color: var(--pearl);
+  padding: 2.5rem 1.5rem 2rem;
+  margin-bottom: 1.25rem;
+}
+
+.cvl-score-number {
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 15vw, 7rem);
+  font-weight: 400;
+  line-height: 1;
+  color: var(--pearl);
+  letter-spacing: -0.02em;
+}
+
+.cvl-score-label {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(248, 244, 238, 0.65);
+  margin-top: 0.25rem;
+}
+
+.cvl-pool-badge {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.35rem 1rem;
+  margin-top: 1rem;
+}
+
+.cvl-pool-badge.eligible     { background: var(--saffron); color: var(--prussian); }
+.cvl-pool-badge.not-eligible { background: rgba(248,244,238,0.18); color: var(--pearl); }
+
+/* Section eyebrow (result cards) */
+.cvl-section-eyebrow {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  margin: 0 0 0.85rem;
+}
+
+/* Weakness chips */
+.cvl-weaknesses {
+  background: #ffffff;
+  border: 1px solid var(--sand);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.cvl-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.cvl-chip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  gap: 0.75rem;
+}
+
+.cvl-chip-primary   { background: var(--saffron); color: var(--prussian); }
+.cvl-chip-secondary { background: var(--prussian); color: var(--pearl); }
+
+.cvl-chip-label { flex: 1; font-weight: 400; }
+.cvl-chip-gain  { font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+
+/* Pathway card */
+.cvl-pathway-card {
+  background: var(--pearl);
+  border: 1px solid var(--sand);
+  border-left: 4px solid var(--prussian);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.cvl-pathway-name {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--prussian);
+  margin-bottom: 1rem;
+}
+
+.cvl-pathway-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--sand);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+}
+
+.cvl-pathway-key { color: rgba(26, 43, 60, 0.6); }
+.cvl-pathway-val { font-weight: 600; color: var(--ink); }
+
+.cvl-pathway-gap {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-top: 0.85rem;
+  padding: 0.45rem 0.85rem;
+  display: inline-block;
+}
+
+.cvl-pathway-gap.above { background: rgba(56, 161, 105, 0.12); color: #276749; }
+.cvl-pathway-gap.below { background: rgba(201, 123, 30, 0.12); color: #92530d; }
+
+/* Handoff copy */
+.cvl-handoff {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: rgba(26, 43, 60, 0.75);
+  line-height: 1.65;
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.25rem;
+  background: rgba(201, 123, 30, 0.06);
+  border-left: 3px solid var(--saffron);
+}
+
+.cvl-handoff-link {
+  color: var(--saffron);
+  font-weight: 600;
+  text-decoration: none;
+}
+.cvl-handoff-link:hover { text-decoration: underline; }
+
+/* Lead capture card */
+.cvl-lead-card {
+  background: #ffffff;
+  border: 1px solid var(--sand);
+  padding: 1.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.cvl-lead-heading {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+  color: var(--prussian);
+  margin: 0 0 1.25rem;
+}
+
+.cvl-lead-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.cvl-lead-success {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #276749;
+  text-align: center;
+  padding: 1.5rem 0;
+  margin: 0;
+}
+
+.cvl-lead-error {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: #c53030;
+  margin: 0;
+}
+
+/* Restart + disclaimer */
+.cvl-restart-row {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.cvl-btn-ghost {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(26, 43, 60, 0.6);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  transition: color 0.18s ease;
+}
+.cvl-btn-ghost:hover { color: var(--prussian); }
+
+.cvl-disclaimer {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  line-height: 1.7;
+  color: rgba(26, 43, 60, 0.5);
+  padding: 1rem 0;
+  border-top: 1px solid var(--sand);
+  margin-top: 0.5rem;
+}
+
+/* ── Tablet: 768px+ ───────────────────────────────────────────────────────── */
+@media (min-width: 768px) {
+  .cvl-form,
+  .cvl-result {
+    padding: 3rem 2rem 5rem;
+  }
+
+  .cvl-section { padding: 2rem; }
+
+  .cvl-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .cvl-lang-scores { grid-template-columns: repeat(4, 1fr); }
+
+  .cvl-btn-primary { width: auto; min-width: 220px; }
+
+  .cvl-chips { flex-direction: row; flex-wrap: wrap; }
+
+  .cvl-chip {
+    flex: 1;
+    min-width: 200px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+
+  .cvl-chip-gain { font-size: 1.05rem; }
+}
+
+/* ── Desktop: 1280px+ ─────────────────────────────────────────────────────── */
+@media (min-width: 1280px) {
+  .cvl-form,
+  .cvl-result {
+    padding: 4rem 2rem 6rem;
+  }
+
+  .cvl-score-number { font-size: 7rem; }
+}
