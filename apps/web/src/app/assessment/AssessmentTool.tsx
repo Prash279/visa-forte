@@ -1444,6 +1444,12 @@ export default function AssessmentTool() {
                   Try the What-If Modeller →
                 </Link>
               </p>
+              <Link
+                href={`/tools/crs-modeller?age=${profile.age}&edu=${profile.education}&spouse=${profile.hasSpouse}&l=${firstClb.listening}&r=${firstClb.reading}&w=${firstClb.writing}&s=${firstClb.speaking}&cwe=${Math.floor(profile.canadianWorkExperienceYears)}&fwe=${Math.floor(profile.foreignWorkExperienceYears)}`}
+                className="asx-modeller-link"
+              >
+                Try the CRS What-If Modeller →
+              </Link>
             </div>
           )}
 

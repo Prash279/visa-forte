@@ -652,6 +652,19 @@
 
 .asx-scenarios-note a { color: var(--teal); }
 
+.asx-modeller-link {
+  display: inline-block;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--teal);
+  text-decoration: none;
+  border: 1.5px solid var(--teal);
+  border-radius: 4px;
+  padding: 0.45rem 1rem;
+}
+.asx-modeller-link:hover { background: var(--teal); color: #fff; }
+
 /* Competitive tag on scenario rows */
 .asx-competitive-tag {
   display: inline-block;
