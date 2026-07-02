@@ -21,13 +21,17 @@ Awaiting Prash's Prashant Proof to close RT-2 and begin RT-3 planning.
 
 ## Completed (this session)
 
-- ✅ Confirmed `/tools/crs-modeller` loads correctly in production (Playwright verified — title, sliders, lever table all render)
-- ✅ Console error was benign Cloudflare analytics CSP block — not a page error
-- ✅ Added `.asx-modeller-link` teal pill button in `AssessmentTool.tsx` (line ~1447) — same URL params as the footnote link
-- ✅ Added `.asx-modeller-link` + hover CSS in `assessment.css`
-- ✅ `tsc --noEmit` clean, `vitest run` 331/331 green
-- ✅ Committed as `1fe8976`, pushed to `origin/main`
-- ✅ Vercel auto-deploy triggered (GitHub integration)
+- ✅ Confirmed `/tools/crs-modeller` loads correctly in production (Playwright verified)
+- ✅ Added `.asx-modeller-link` teal pill button in `AssessmentTool.tsx` — committed `1fe8976`
+- ✅ Fixed `getRelevantDraw` bug: removed `draws[0]` fallback that was showing Healthcare as the cutoff for Software Developer (0 CWE). Now returns `null` and renders a saffron-bordered note: "Express Entry is currently running category-based draws only — no All-Programs draw in the current cycle." — committed `447514d`
+- ✅ `tsc --noEmit` clean, `vitest run` 331/331 green across both fixes
+- ✅ Both commits pushed to `origin/main`, Vercel auto-deploy triggered
+
+---
+
+## Bug post-mortem (for lessons.md if Prash agrees)
+
+`getRelevantDraw` fell back to `draws[0]` when no CEC or All-Programs draw was found. The draw history has no All-Programs draws — only Healthcare, Trades, CEC, French, PNP categories. For a user with 0 Canadian WE, `draws[0]` = "Healthcare and Social Services Occupations" — shown as their cutoff benchmark. Wrong. Fix: return `null` + honest note instead.
 
 ---
 
@@ -36,12 +40,11 @@ Awaiting Prash's Prashant Proof to close RT-2 and begin RT-3 planning.
 **Prash must verify before RT-2 is marked done:**
 
 1. Go to **visaforte.com/assessment**
-2. Complete an assessment (fill all fields, submit)
+2. Complete an assessment with Software Developer NOC (fill all fields, submit)
 3. Scroll to the "CRS Improvement Scenarios" section
-4. Confirm a teal pill button **"Try the CRS What-If Modeller →"** is visible below the scenarios note
-5. Click it → confirm `/tools/crs-modeller` loads with your profile pre-filled (age, education, CLB scores, work experience)
-
-If the button is not visible or the modeller page errors, report what you see and the next session will diagnose.
+4. Confirm a teal pill button **"Try the CRS What-If Modeller →"** is visible
+5. Click it → confirm `/tools/crs-modeller` loads with profile pre-filled
+6. Confirm the score section shows your CRS number with a **saffron-bordered note** ("Express Entry is currently running category-based draws only…") — NOT "Healthcare and Social Services Occupations"
 
 ---
 
