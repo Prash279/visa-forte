@@ -402,7 +402,7 @@ export default function PnpReport({ profile, pnp, onBack, onDownload }: PnpRepor
           <h1 className="pnp-doctitle">PNP Pathway Assessment</h1>
           <div className="pnp-prepared">Prepared for: <strong>{profile.name || 'Applicant'}</strong></div>
           <div className="pnp-meta">NOC {noc.nocCode} · TEER {noc.teer} · {titleCaseOccupation(noc.title)}</div>
-          <div className="pnp-meta">Report generated: {reportGenerated} · Stream data verified: {pnp.dataVersion} · Source: canada.ca</div>
+          <div className="pnp-meta">Report generated: {reportGenerated} · Stream data verified: {reportGenerated} · Source: canada.ca</div>
           <div className="pnp-toolbar">
             <button className="pnp-btn" onClick={onBack}>← Back to form</button>
             <button className="pnp-btn" onClick={() => window.print()}>Print / Save PDF</button>

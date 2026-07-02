@@ -1147,13 +1147,21 @@ export default function CanVisaProTool() {
   async function downloadPnpPptx() {
     if (!pnpResult) return
     try {
-      const blob = await buildPnpPptxBlob(profile, pnpResult)
+      const rawBlob = await buildPnpPptxBlob(profile, pnpResult)
+      // Stamp correct MIME type — JSZip defaults to application/zip which confuses some OS handlers.
+      const blob = new Blob([rawBlob], { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
+      a.style.display = 'none'
       a.href = url
       a.download = `CanVisa-Pro-PNP-${profile.name.replace(/\s+/g, '-') || 'Report'}-${profile.reportDate}.pptx`
+      document.body.appendChild(a)
       a.click()
-      URL.revokeObjectURL(url)
+      // Delay revoke — same 100ms pattern pptxgenjs uses internally to avoid blob:null in Firefox.
+      setTimeout(() => {
+        URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      }, 100)
     } catch (err: unknown) {
       setPnpError(err instanceof Error ? err.message : 'Could not generate the PowerPoint file.')
     }
