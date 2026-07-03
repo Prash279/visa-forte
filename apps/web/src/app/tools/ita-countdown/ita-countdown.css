@@ -1,0 +1,152 @@
+/* ita-countdown.css — /tools/ita-countdown RT-3 60-Day Countdown Planner
+   itc-* prefix for all new classes. asx-* classes come from imported assessment.css.
+   Mobile-first: base styles target 375px, overrides layer up at 768px.
+   Visa Forte brand: Prussian #0C2340 · Saffron #C97B1E · Pearl #F8F4EE */
+
+.itc-sample-note,
+.itc-result-intro {
+  font-size: 0.95rem;
+  color: #444;
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
+}
+
+.itc-email-note {
+  font-size: 0.85rem;
+  color: #1a7a4a;
+  margin: -1rem 0 1.5rem;
+}
+
+/* ── Checklist ─────────────────────────────────────────────────────── */
+.itc-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+
+.itc-card {
+  border: 1px solid rgba(12, 35, 64, 0.12);
+  border-left: 4px solid var(--prussian);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  background: #fff;
+}
+
+.itc-card--urgent {
+  border-left-color: var(--saffron);
+}
+
+.itc-card--sample {
+  opacity: 0.85;
+}
+
+.itc-card-task {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--prussian);
+  margin: 0 0 0.4rem;
+}
+
+.itc-card-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 0.4rem;
+}
+
+.itc-blurred strong {
+  filter: blur(4px);
+  user-select: none;
+}
+
+.itc-card-notes {
+  font-size: 0.85rem;
+  color: #777;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Tier selector pills ───────────────────────────────────────────── */
+.itc-tier-pills {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 1.25rem 0;
+}
+
+.itc-tier-pill {
+  border: 1px solid rgba(12, 35, 64, 0.2);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  background: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--prussian);
+  cursor: pointer;
+  text-align: left;
+}
+
+.itc-tier-pill--active {
+  border-color: var(--saffron);
+  background: rgba(201, 123, 30, 0.08);
+}
+
+.itc-tier-pill-note {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #777;
+  margin-top: 0.2rem;
+}
+
+.itc-error {
+  color: #b91c1c;
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
+}
+
+.itc-link-btn {
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+}
+
+.itc-loading {
+  text-align: center;
+  color: #666;
+  padding: 3rem 0;
+}
+
+/* ── Tablet and up ──────────────────────────────────────────────────── */
+@media (min-width: 768px) {
+  .itc-tier-pills {
+    flex-direction: row;
+  }
+
+  .itc-tier-pill {
+    flex: 1;
+  }
+
+  .itc-card {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1.5fr;
+    align-items: start;
+    gap: 1rem;
+  }
+
+  .itc-card-task {
+    margin: 0;
+  }
+}
+
+/* ── Print — clean A4 checklist, no chrome ─────────────────────────── */
+@media print {
+  .itc-no-print { display: none !important; }
+  .asx-wrap { background: #fff; }
+  .itc-card { break-inside: avoid; border: 1px solid #ddd; }
+  .itc-blurred strong { filter: none; }
+}

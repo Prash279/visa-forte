@@ -2242,7 +2242,7 @@ Visual confirmation of the age alert redesign is pending (Prashant Proof above).
 ---
 
 ### TASK RT-3: 60-Day Countdown Planner — `/tools/ita-countdown`
-**Status:** 🔲 NOT STARTED — awaiting Prash approval on step plan below
+**Status:** ✅ COMPLETE — 2026-07-04
 **What this delivers:** A premium tool for post-ITA applicants. Accepts ITA date → generates a personalised 60-day document checklist with exact start-by and deadline dates per task, based on citizenship country, residence countries, and family size. Gated: free fictional sample preview → Razorpay inline pay (₹2,997 standard / ₹3,997 premium) → tool unlocks immediately. Result delivered as: (a) printable result page with `window.print()` button and (b) HTML email via Resend. Token stored in DB; result accessible at `/tools/ita-countdown/result?token=<uuid>`. Premium tier triggers a Resend notification to Prash to manually schedule a 30-min document review consultation.
 **Price:** ₹2,997 (standard) / ₹3,997 (+ document review consultation slot)
 
@@ -2267,96 +2267,102 @@ Columns: id (uuid PK), name (text), email (text), itaDate (date), citizenshipCou
 **Step plan:**
 
 **Step 0 — Commit plan (Task 0 rule)**
-- [ ] Commit this plan to git before any code: `docs: add rt-3 ita-countdown plan`
+- [x] Commit this plan to git before any code: `docs: add rt-3 ita-countdown plan` (already committed in de9e6cf)
 
 **Step 1 — Logic function: `ita-countdown-logic.ts`**
-- [ ] Create `apps/web/src/lib/ita-countdown-logic.ts`
+- [x] Create `apps/web/src/lib/ita-countdown-logic.ts`
   - Types: `ItaInput { itaDate, citizenshipCountry, residenceCountries, hasSpouse, numDependentChildren, tier }`, `ChecklistItem { id, task, startByDate, deadlineDate, notes }`
   - Pure function: `generateChecklist(input: ItaInput): ChecklistItem[]`
   - Per-country police cert notes: India/Pakistan flagged "6–8 weeks — start immediately"; all other countries get standard "4–6 weeks" note
   - Family branching: spouse adds "Sponsor's letter of support" item; each child adds "Birth certificate + translation" item
   - Delivery method: HTML email (Resend) + printable result page — no PDF library
-- [ ] Unit tests in `apps/web/src/lib/__tests__/ita-countdown-logic.test.ts`:
+- [x] Unit tests in `apps/web/src/lib/__tests__/ita-countdown-logic.test.ts` (7 tests):
   - India profile: police cert item exists with "6–8 weeks" note, startByDate = ITA date
   - With-spouse profile: sponsor letter item present
   - No-children profile: no birth certificate item
   - All items have startByDate ≤ deadlineDate
   - Submission deadline = itaDate + 58 days
 
-**Step 2 — DB migration 0015: `itaCountdownOrders`**
-- [ ] Add `itaCountdownOrders` table to `apps/web/drizzle/schema.ts` (columns listed above)
-- [ ] Run `drizzle-kit generate` → review SQL → `drizzle-kit migrate`
-- [ ] Verify: table exists in Supabase dashboard
+**Step 2 — DB migration: `itaCountdownOrders`**
+- [x] Add `itaCountdownOrders` table to `apps/web/drizzle/schema.ts` (columns listed above)
+- [x] Run `drizzle-kit generate` → review SQL → `drizzle-kit migrate` — landed as migration **0020** (0015 was already taken by the time this task started; purely additive `CREATE TABLE`, no existing columns touched)
+- [x] Verify: table exists in Supabase (confirmed via successful `drizzle-kit migrate` run)
 
 **Step 3 — Pricing constants**
-- [ ] In `apps/web/src/lib/constants.ts`, add:
+- [x] Added to `apps/web/src/lib/pricing.ts` (no standalone `constants.ts` exists in this repo yet — pricing.ts is the established home for pricing values, so the two constants were added there instead of creating a new file):
   - `ITA_COUNTDOWN_STANDARD_PAISE = 299700` (₹2,997)
   - `ITA_COUNTDOWN_PREMIUM_PAISE = 399700` (₹3,997)
 
 **Step 4 — API: `POST /api/tools/ita-countdown/create-order`**
-- [ ] Create `apps/web/src/app/api/tools/ita-countdown/create-order/route.ts`
-  - Input (Zod): `{ name, email, itaDate, citizenshipCountry, residenceCountries, hasSpouse, numDependentChildren, tier: 'standard' | 'premium' }`
-  - Create Razorpay order for the matching price constant
-  - Return `{ orderId, amount, currency: 'INR' }`
+- [x] Create `apps/web/src/app/api/tools/ita-countdown/create-order/route.ts`
+  - Input (Zod): `{ tier: 'standard' | 'premium' }` — amount resolved server-side from the pricing constants; name/email aren't needed until `/verify`
+  - Create Razorpay order for the matching price constant, currency fixed to INR
+  - Return `{ orderId, amount, currency, keyId }`
   - No auth required
 
 **Step 5 — API: `POST /api/tools/ita-countdown/verify`**
-- [ ] Create `apps/web/src/app/api/tools/ita-countdown/verify/route.ts`
-  - Input (Zod): `{ razorpayOrderId, razorpayPaymentId, razorpaySignature, itaInput: ItaInput }`
+- [x] Create `apps/web/src/app/api/tools/ita-countdown/verify/route.ts`
+  - Input (Zod): flat body — `{ name, email, itaDate, citizenshipCountry, residenceCountries, hasSpouse, numDependentChildren, tier, razorpayOrderId, razorpayPaymentId, razorpaySignature }` (matches the existing `/api/payment/verify` flat-body convention rather than a nested `itaInput` object)
   - HMAC-SHA256 verify Razorpay signature — reject on mismatch (400)
   - Generate `token = crypto.randomUUID()`
   - Call `generateChecklist(itaInput)` — produce the checklist
   - Insert row into `itaCountdownOrders` with `paymentStatus: 'paid'`
   - Send HTML checklist email to subscriber via Resend (brand-styled, includes all items, print CTA)
-  - If `tier === 'premium'`: send Resend notification to prashant@visaforte.com: "RT-3 premium purchase — [name] [email] — ITA date [date] — schedule doc review"
+  - If `tier === 'premium'`: send Resend notification to prashant@visaforte.com
   - Update DB row: `emailSent: true`
   - Return `{ token }`
 
 **Step 6 — API: `GET /api/tools/ita-countdown/result`**
-- [ ] Create `apps/web/src/app/api/tools/ita-countdown/result/route.ts`
+- [x] Create `apps/web/src/app/api/tools/ita-countdown/result/route.ts`
   - Query param: `token` (uuid)
   - Look up `itaCountdownOrders` by token — 404 if not found or `paymentStatus !== 'paid'`
   - Regenerate checklist from stored inputs via `generateChecklist()`
   - Return `{ checklist: ChecklistItem[], name, itaDate, tier }`
 
 **Step 7 — Component: `ItaCountdownTool.tsx`**
-- [ ] Create `apps/web/src/app/tools/ita-countdown/ItaCountdownTool.tsx` (`'use client'`)
-  - Four states: `'form' | 'sample' | 'payment' | 'result'`
-  - **form**: Inputs — ITA date, citizenship country (dropdown, common list: India, Pakistan, Philippines, Nigeria, UK, Other), residence countries (multi-select or comma text), spouse toggle, number of children (0–5), tier selector (standard / premium with price shown)
-  - **sample**: Shows 3 fictional checklist items with dates blurred/locked — "Preview only — purchase to unlock your personalised plan". CTA: "Get My Checklist →" → triggers Razorpay
-  - **payment**: Razorpay inline checkout. On success: POST to `/api/tools/ita-countdown/verify` → receive `{ token }` → transition to `'result'`
-  - **result**: Render full checklist (date-sorted, grouped by phase). "Print / Save as PDF" button calls `window.print()`. "Email sent ✓" confirmation note. Shareable URL: `/tools/ita-countdown/result?token=<uuid>`
+- [x] Create `apps/web/src/app/tools/ita-countdown/ItaCountdownTool.tsx` (`'use client'`)
+  - States: `'form' | 'sample' | 'processing' | 'result' | 'error'` (the plan's separate `'payment'` state is handled inline inside the `sample` CTA's purchase handler — Razorpay's modal is a blocking overlay, not a distinct page state, matching how `BookingForm.tsx` already does this)
+  - **form**: ITA date, citizenship country dropdown (India, Pakistan, Philippines, Nigeria, UK, Other), residence countries (comma-separated text), spouse toggle, dependent children (0–5), tier pills (standard/premium with price) — plus name + email (required by `/verify` and not listed elsewhere in the plan, so added here) and the DPDP `ConsentCheckbox`
+  - **sample**: 3 fictional checklist items with blurred placeholder dates — "Preview only" note. CTA opens Razorpay directly (loads checkout.js → create-order → modal → verify → fetch result)
+  - **result**: full checklist, sorted by deadline, saffron accent on items due ≤10 days from the ITA date. "Print / Save as PDF" button, "✓ emailed" note, reused directly by the `/result` page via an `initialToken` prop
 
 **Step 8 — CSS: `ita-countdown.css`**
-- [ ] Create `apps/web/src/app/tools/ita-countdown/ita-countdown.css`
-  - Mobile-first (375px base). Checklist items: card layout on mobile, table layout at 768px+
-  - Phase headers: saffron left-border, Prussian text
-  - Deadline highlighting: items with deadline ≤ Day 10 get a saffron accent; Day 40+ get standard
-  - `@media print`: hide nav, payment UI, and sample state; show only the checklist cards full-width; ensure each phase starts on a fresh line; `window.print()` produces a clean A4 document
+- [x] Create `apps/web/src/app/tools/ita-countdown/ita-countdown.css`
+  - Mobile-first (375px base): cards stack; a `768px` breakpoint switches the card layout to a 3-column grid
+  - Urgency accent: saffron left-border on items with deadline ≤10 days from the ITA date (simpler than an explicit "phase" grouping, since the logic module doesn't define phases — the accent alone satisfies the underlying goal of surfacing what's urgent)
+  - `@media print`: `.itc-no-print` hides nav/toolbar/print-button/email-note; blur filter removed so real dates print clearly
 
 **Step 9 — Page: `apps/web/src/app/tools/ita-countdown/page.tsx`**
-- [ ] Create server component — no auth required
-  - Renders `<ItaCountdownTool />` client component
-  - Standard page metadata: title, description
+- [x] Server component, no auth required, renders `<ItaCountdownTool />`, standard metadata
 
 **Step 10 — Result page: `apps/web/src/app/tools/ita-countdown/result/page.tsx`**
-- [ ] Server component — reads `token` from `searchParams`
-  - Fetches from `/api/tools/ita-countdown/result?token=<token>`
-  - If not found: renders "Link expired or invalid" with a CTA back to `/tools/ita-countdown`
-  - If found: renders full checklist (same markup as `ItaCountdownTool` result state)
+- [x] Async server component reads `token` from `searchParams` and passes it straight to `<ItaCountdownTool initialToken={token ?? null} />` — reuses the tool component's own fetch/error/result handling instead of duplicating that markup in a second place (the plan asked for "same markup as the result state", which this achieves by literally being the same component)
 
 **Step 11 — Resources page card**
-- [ ] In `apps/web/src/app/resources/page.tsx`, update the RT-3 card from "Coming Soon" to "Launch Tool →" linking to `/tools/ita-countdown`
+- [x] In `apps/web/src/app/resources/page.tsx`, RT-3 card pulled out of the "Coming Soon" map into its own linked card, badge now reads "₹2,997 · Launch Tool →", links to `/tools/ita-countdown`
 
 **Step 12 — Tests + verification**
-- [ ] Logic tests in Step 1 must pass (run `vitest run`)
-- [ ] Verify route unit test in `apps/web/src/app/api/tools/ita-countdown/__tests__/verify.test.ts`:
+- [x] Logic tests in Step 1 pass (`vitest run`)
+- [x] Verify route unit test in `apps/web/src/app/api/tools/ita-countdown/verify/route.test.ts` (co-located with the route, matching this repo's existing test convention rather than a separate `__tests__` folder):
   - Rejects invalid HMAC (returns 400)
-  - Valid HMAC → returns `{ token }` (mock Razorpay + Resend + DB)
-- [ ] `tsc --noEmit` must pass
-- [ ] `vitest run` must stay green (currently 328/328)
-- [ ] Commit each step with scoped prefix (`feat:`, `fix:`, `test:`)
-- [ ] Push only after Prash gives the word
+  - Valid HMAC → returns `{ token }` (mocked Razorpay signature math, `@/lib/db`, and `resend`)
+- [x] `tsc --noEmit` — zero errors
+- [x] `vitest run` — 340/340 passing (was 328/328 before this task; +12 new tests: 7 logic + 2 verify + 3 already added by an untracked prior change)
+- [x] `npx eslint` clean on all new/changed files (one `react-hooks/set-state-in-effect` suppressed with the same established pattern already used in `BookingForm.tsx` for a one-time fetch-on-mount)
+- [ ] Commit each step with scoped prefix (`feat:`, `fix:`, `test:`) — landed as fewer, larger commits instead (schema+pricing, API routes, UI+docs) since the whole feature was built and verified together in one sitting
+- [ ] Push only after Prash gives the word — **not pushed**, awaiting explicit push instruction per git-workflow.md
+
+**Review (2026-07-04):**
+Full RT-3 flow built end-to-end: `ita-countdown-logic.ts` (pure checklist generator, 7 unit
+tests), migration 0020 (`ita_countdown_orders`, purely additive), pricing constants in
+`pricing.ts`, three API routes (`create-order`, `verify` with HMAC + Resend email + premium
+notification, `result`), `ItaCountdownTool.tsx` (form → sample preview → Razorpay → result,
+reused directly by the `/result` share-link page via an `initialToken` prop), and mobile-first
+`ita-countdown.css` with print styles. Resources page card is now live. `tsc --noEmit` clean,
+`eslint` clean, `vitest run` 340/340 green. Not pushed — commits are local only, awaiting the
+word per git-workflow.md. Visual/browser verification (Razorpay test-mode payment, email
+delivery, print layout, mobile at 375px) has **not** been done and requires the Prashant Proof
+steps below — this is a code-complete, not a visually-verified, delivery.
 
 #### Prashant Proof (RT-3)
 1. Go to `visaforte.com/tools/ita-countdown`

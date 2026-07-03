@@ -73,8 +73,14 @@ export default function ResourcesPage(): JSX.Element {
                 Move one lever — language, education, or Canadian experience — and see the exact point gain. Find the fastest path to the cutoff.
               </p>
             </a>
+            <a href="/tools/ita-countdown" className="tools-card" style={{ textDecoration: 'none' }}>
+              <div className="tools-card-badge">₹2,997 · Launch Tool →</div>
+              <h4 className="tools-card-title">60-Day Countdown Planner</h4>
+              <p className="tools-card-desc">
+                Generate a personalised day-by-day document preparation timeline from your ITA date.
+              </p>
+            </a>
             {[
-              { name: '60-Day Countdown Planner', desc: 'Generate a personalised day-by-day document preparation timeline from your ITA date.' },
               { name: 'NOC Code Verifier', desc: 'Confirm your 5-digit NOC 2021 code and TEER level against the official Statistics Canada CSV.' },
               { name: 'Refusal Pattern Analyser', desc: 'Identify the most common refusal grounds for your NOC and build a pre-emption strategy.' },
             ].map(tool => (
