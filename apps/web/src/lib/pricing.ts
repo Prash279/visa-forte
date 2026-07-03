@@ -39,6 +39,10 @@ export function getAmountInSmallestUnit(tier: string, currency: Currency): numbe
   return currency === 'INR' ? price.inr * 100 : price.usd * 100;
 }
 
+// RT-3: 60-Day Countdown Planner pricing (INR only, in paise).
+export const ITA_COUNTDOWN_STANDARD_PAISE = 299700; // ₹2,997
+export const ITA_COUNTDOWN_PREMIUM_PAISE = 399700;  // ₹3,997
+
 // Returns the numeric price for a tier in the given currency.
 // Returns null if the tier is not recognised — callers must handle this case.
 export function getPrice(tier: string, currency: Currency): number | null {

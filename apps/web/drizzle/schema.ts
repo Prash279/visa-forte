@@ -330,3 +330,26 @@ export const drawAlertSubscribers = pgTable('draw_alert_subscribers', {
 })
 
 export type DrawAlertSubscriber = typeof drawAlertSubscribers.$inferSelect
+
+// RT-3: 60-Day Countdown Planner orders. One row per paid purchase.
+// A row only exists once Razorpay payment is verified — no payment, no row.
+// The stored profile fields let /result regenerate the checklist deterministically from the token.
+export const itaCountdownOrders = pgTable('ita_countdown_orders', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  itaDate: text('ita_date').notNull(),                       // ISO date string YYYY-MM-DD
+  citizenshipCountry: text('citizenship_country').notNull(),
+  residenceCountries: jsonb('residence_countries').notNull(), // string[]
+  hasSpouse: boolean('has_spouse').notNull().default(false),
+  numDependentChildren: integer('num_dependent_children').notNull().default(0),
+  tier: text('tier').notNull(),                              // 'standard' | 'premium'
+  token: uuid('token').notNull().unique(),
+  razorpayOrderId: text('razorpay_order_id').notNull().default(''),
+  razorpayPaymentId: text('razorpay_payment_id').notNull().default(''),
+  paymentStatus: text('payment_status').notNull().default('pending'), // 'pending' | 'paid'
+  emailSent: boolean('email_sent').notNull().default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+})
+
+export type ItaCountdownOrder = typeof itaCountdownOrders.$inferSelect
