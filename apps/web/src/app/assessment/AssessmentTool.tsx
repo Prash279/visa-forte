@@ -1070,7 +1070,7 @@ export default function AssessmentTool() {
   const ageAlert = getAgeAlert(dateOfBirth ? { dob: dateOfBirth } : null, ageTable)
 
   return (
-    <div className="asx-wrap">
+    <div className="asx-wrap asx-result-view">
       {/* Result toolbar */}
       <div className="asx-toolbar">
         <button className="asx-back-btn" onClick={() => setView('form')}>
