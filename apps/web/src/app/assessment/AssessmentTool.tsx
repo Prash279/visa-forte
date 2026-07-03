@@ -92,7 +92,7 @@ function getEligibleDrawCategories(
 // ── Age bracket alert ─────────────────────────────────────────────────────────
 
 type AgeAlertResult = {
-  monthsUntilChange: number
+  timeUntilLabel: string
   pointsLost: number
   currentPts: number
   nextPts: number
@@ -125,11 +125,10 @@ function getAgeAlert(
     return null
   }
 
-  const monthsDiff =
-    (nextBirthdayDate.getFullYear() - today.getFullYear()) * 12 +
-    nextBirthdayDate.getMonth() - today.getMonth()
+  const MS_PER_DAY = 24 * 60 * 60 * 1000
+  const daysUntilChange = Math.max(1, Math.ceil((nextBirthdayDate.getTime() - today.getTime()) / MS_PER_DAY))
 
-  if (monthsDiff > 12 || monthsDiff < 0) return null
+  if (daysUntilChange > 366) return null
 
   const currentAge = birthdayAge - 1
   const currentPts = agePointsTable[String(Math.min(currentAge, 44))] ?? 0
@@ -140,8 +139,16 @@ function getAgeAlert(
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
   const birthdayMonthYear = `${MONTHS[nextBirthdayDate.getMonth()]} ${nextBirthdayDate.getFullYear()}`
 
+  // Birthdays under a month out read clearer in days than as "1 month".
+  const timeUntilLabel = daysUntilChange < 31
+    ? `${daysUntilChange} day${daysUntilChange === 1 ? '' : 's'}`
+    : (() => {
+        const months = Math.max(1, Math.round(daysUntilChange / 30.44))
+        return `${months} month${months === 1 ? '' : 's'}`
+      })()
+
   return {
-    monthsUntilChange: Math.max(1, monthsDiff),
+    timeUntilLabel,
     pointsLost: currentPts - nextPts,
     currentPts,
     nextPts,
@@ -1092,7 +1099,7 @@ export default function AssessmentTool() {
             <p className="asx-age-alert-label">Age Alert</p>
             <p className="asx-age-alert-text">
               You turn <strong>{ageAlert.birthdayAge}</strong> in{' '}
-              {ageAlert.monthsUntilChange} month{ageAlert.monthsUntilChange === 1 ? '' : 's'}{' '}
+              {ageAlert.timeUntilLabel}{' '}
               ({ageAlert.birthdayMonthYear}) — your CRS age points drop by{' '}
               <strong>{ageAlert.pointsLost}</strong> ({ageAlert.currentPts} → {ageAlert.nextPts}).
               {' '}Improve your score or submit your profile before this date to preserve those points.
