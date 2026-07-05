@@ -7,11 +7,11 @@ import { withSentryConfig } from '@sentry/nextjs';
 
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://static.cloudflareinsights.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https://o4511213768540160.ingest.us.sentry.io https://api.razorpay.com https://lumberjack.razorpay.com",
+  "connect-src 'self' https://o4511213768540160.ingest.us.sentry.io https://api.razorpay.com https://lumberjack.razorpay.com https://cloudflareinsights.com",
   "frame-src https://api.razorpay.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
