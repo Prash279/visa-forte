@@ -3,7 +3,6 @@
    Mobile-first: base styles target 375px, overrides layer up at 768px.
    Visa Forte brand: Prussian #0C2340 · Saffron #C97B1E · Pearl #F8F4EE */
 
-.itc-sample-note,
 .itc-result-intro {
   font-size: 0.95rem;
   color: #444;
@@ -18,6 +17,9 @@
 }
 
 /* ── Checklist ─────────────────────────────────────────────────────── */
+/* Cards match the site's established flat/sharp convention (.asx-card,
+   .asx-funds-card in assessment.css): pearl fill, 1px sand border, 3px
+   TOP accent — never rounded corners or a left-side stripe. */
 .itc-checklist {
   display: flex;
   flex-direction: column;
@@ -26,19 +28,18 @@
 }
 
 .itc-card {
-  border: 1px solid rgba(12, 35, 64, 0.12);
-  border-left: 4px solid var(--prussian);
-  border-radius: 8px;
-  padding: 1rem 1.1rem;
-  background: #fff;
+  border: 1px solid var(--sand);
+  border-top: 3px solid var(--prussian);
+  padding: 1.1rem 1.25rem;
+  background: var(--pearl);
 }
 
 .itc-card--urgent {
-  border-left-color: var(--saffron);
+  border-top-color: var(--saffron);
 }
 
 .itc-card--sample {
-  opacity: 0.85;
+  border-top-color: var(--sand);
 }
 
 .itc-card-task {
@@ -58,9 +59,28 @@
   margin-bottom: 0.4rem;
 }
 
-.itc-blurred strong {
-  filter: blur(4px);
-  user-select: none;
+/* Locked-date placeholder (sample preview only) — a muted redacted value,
+   not a blur filter on real text, which renders as an ugly font smear. */
+.itc-locked-value {
+  color: rgba(26, 43, 60, 0.32);
+  letter-spacing: 0.15em;
+  font-weight: 600;
+}
+
+/* Reuses the site's one established tag style (saffron text, thin saffron
+   border, no fill — see .visas-nav-tag in visas.css) rather than inventing
+   a new lock icon or badge colour. */
+.itc-locked-tag {
+  display: inline-block;
+  margin-top: 0.3rem;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  padding: 0.15rem 0.5rem;
+  border: 1px solid rgba(201, 123, 30, 0.3);
 }
 
 .itc-card-notes {
@@ -71,6 +91,9 @@
 }
 
 /* ── Tier selector pills ───────────────────────────────────────────── */
+/* Active state matches the site's one established "selected" treatment
+   (.filter-pill.active in resources.css): solid Prussian fill, not a
+   faint tint — so the choice reads as clearly made, not half-disabled. */
 .itc-tier-pills {
   display: flex;
   flex-direction: column;
@@ -79,20 +102,21 @@
 }
 
 .itc-tier-pill {
-  border: 1px solid rgba(12, 35, 64, 0.2);
-  border-radius: 8px;
+  border: 1px solid var(--sand);
   padding: 0.85rem 1rem;
-  background: #fff;
+  background: var(--pearl);
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--prussian);
   cursor: pointer;
   text-align: left;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
 .itc-tier-pill--active {
-  border-color: var(--saffron);
-  background: rgba(201, 123, 30, 0.08);
+  border-color: var(--prussian);
+  background: var(--prussian);
+  color: var(--pearl);
 }
 
 .itc-tier-pill-note {
@@ -101,6 +125,17 @@
   font-weight: 400;
   color: #777;
   margin-top: 0.2rem;
+}
+
+.itc-tier-pill--active .itc-tier-pill-note {
+  color: rgba(248, 244, 238, 0.65);
+}
+
+/* Invisible label spacer — gives the spouse checkbox the same top offset
+   as its neighbouring .asx-field's visible label, so both controls in
+   the grid row start at the same vertical position. */
+.itc-label-spacer {
+  visibility: hidden;
 }
 
 .itc-error {
@@ -148,5 +183,4 @@
   .itc-no-print { display: none !important; }
   .asx-wrap { background: #fff; }
   .itc-card { break-inside: avoid; border: 1px solid #ddd; }
-  .itc-blurred strong { filter: none; }
 }

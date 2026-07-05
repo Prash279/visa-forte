@@ -40,6 +40,69 @@ against an existing site-wide tag/badge pattern before introducing a new one).
 
 ---
 
+## Active Session (2026-07-06): 60-Day Countdown Planner — consistency fix + Sample Checklist redesign
+
+Prash flagged the `/tools/ita-countdown` form page as inconsistent with the rest of the site, and
+asked for the Sample Checklist preview page to be rethought and made significantly better.
+
+**Root causes found (reading `ItaCountdownTool.tsx` + `ita-countdown.css` + `assessment.css`):**
+- `.itc-card` and `.itc-tier-pill` use `border-radius: 8px` + a left-side accent border. No other
+  card/component on the site uses rounded corners (`.asx-card`, `.resource-card`, `.tools-card`,
+  `.visas-stream` are all sharp, 0-radius, 1px sand border) or a left-side stripe accent — the
+  established pattern for a card accent is a 3px **top** border (`.asx-funds-card`, `.asx-draws-card`).
+  This is what reads as "off the rest of the site" in the screenshot.
+- The "Applying with spouse" checkbox row sits visibly lower than the "Dependent Children" dropdown
+  next to it. Cause: `.asx-checkbox-group` carries `margin-top: 1.25rem` (meant for when it follows
+  a full-width block), but here it's placed as a grid cell next to a `.asx-field`, which has no such
+  margin because its label fills that space. The checkbox needs the same label-height spacer its
+  neighbour gets, not extra margin.
+- The grey "See Sample Checklist →" button in the screenshot is not a bug — it's the correct
+  disabled state (`asx-submit-btn:disabled`) because the consent checkbox above it was unchecked.
+  Leaving this as-is; adding one small hint line so it reads as "disabled until you check the box"
+  rather than "broken."
+- The Sample Checklist page's blurred dates use `filter: blur(4px)` directly on real text, which
+  renders as an ugly jagged smear (visible in the screenshot) rather than a clean "locked" look.
+
+**Plan:**
+- [x] Form page: restyled `.itc-card` and `.itc-tier-pill` to the site's flat/sharp convention —
+      removed border-radius and the left border, added a 3px top-accent instead (matches
+      `.asx-funds-card` pattern). Selected tier pill now fills solid Prussian/pearl-text, matching
+      `.filter-pill.active` on `/resources`, so the choice reads as clearly "chosen."
+- [x] Form page: fixed the spouse-checkbox/dependent-children row alignment with an invisible
+      label spacer (`.itc-label-spacer`) matching its neighbour's `.asx-label`, reusing `.asx-field`'s
+      existing label+gap structure rather than inventing new CSS.
+- [x] Form page: added a one-line `.asx-submit-note` hint ("Check the box above to continue.")
+      under the submit button when consent isn't checked yet.
+- [x] Sample Checklist page: replaced the blurred-text placeholder with a clean redacted dash
+      pattern (`.itc-locked-value`) plus a reused saffron tag (`.itc-locked-tag`, same style as
+      `.visas-nav-tag`) instead of an emoji/lock icon.
+- [x] Sample Checklist page: now shows the applicant's REAL personalised checklist (via
+      `generateChecklist()`, correct task count including spouse/children extras) instead of a
+      generic hardcoded 3-item list. Copy states the total task count, references their actual
+      ITA date, and names the tier/price they're about to buy.
+- [x] Sample Checklist page: cards now share the corrected `.itc-card` styling (sharp, muted
+      sand top-accent to read as "locked" vs. the real result view's Prussian/saffron accent).
+- [x] Added a reassurance line under the purchase CTA (secure payment via Razorpay, instant
+      email delivery).
+- [x] Verified at 375px / 768px / 1280px via Playwright screenshots — form and sample states
+      both clean, no overflow, checkbox/dropdown alignment holds, full 10-item checklist
+      (7 base + spouse + 2 children in test) renders correctly at all three widths.
+- [x] Scope held to `/tools/ita-countdown` only (form + sample states) — `tsc --noEmit` and
+      `eslint` both clean on the two changed files, no other page touched.
+
+**Prashant Proof:** Go to `/tools/ita-countdown`, confirm the form's cards/pills look sharp-edged
+like the rest of the site and the spouse checkbox lines up with the children dropdown next to it.
+Fill the form and submit to reach "Sample Checklist" — confirm the dates read as cleanly locked
+(not blurred/smeared) and the page explains what you get and what it costs before asking you to pay.
+
+**Review (2026-07-06):** Complete. Biggest change: the Sample Checklist page used to show 3
+hardcoded generic tasks regardless of the applicant's actual profile — it now calls the same
+`generateChecklist()` function the paid result uses, so a spouse/children applicant sees their
+real, correctly-sized checklist (task names + notes) with only the exact dates locked. This is
+the "10x" lever — real personalisation instead of a generic teaser.
+
+---
+
 ## Active Session (2026-06-25): PNP Assessment — four engine corrections (Rashmi Anupozu report review)
 
 Prash reviewed the generated PNP report and raised four issues. Fixing each one at a time, TDD.

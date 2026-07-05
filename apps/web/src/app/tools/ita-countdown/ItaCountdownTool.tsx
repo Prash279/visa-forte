@@ -5,15 +5,17 @@ import './ita-countdown.css'
 
 import { useState, useEffect, useCallback } from 'react'
 import { ConsentCheckbox } from '@/components/ConsentCheckbox'
+import { generateChecklist } from '@/lib/ita-countdown-logic'
 import type { ChecklistItem } from '@/lib/ita-countdown-logic'
 
 const CITIZENSHIP_OPTIONS = ['India', 'Pakistan', 'Philippines', 'Nigeria', 'UK', 'Other']
 
-const SAMPLE_ITEMS: { task: string; note: string }[] = [
-  { task: 'Police clearance certificate(s)', note: '6–8 weeks processing — start immediately.' },
-  { task: 'Immigration medical exam', note: 'Book your appointment with a panel physician as soon as possible.' },
-  { task: 'Final document upload and submission', note: 'Submit with a 2-day buffer before the 60-day ITA deadline.' },
-]
+function formatDate(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
+  })
+}
 
 type ToolState = 'form' | 'sample' | 'processing' | 'result' | 'error'
 
@@ -70,6 +72,11 @@ function loadRazorpayScript(): Promise<boolean> {
 // date is urgent, everything else is standard.
 function daysBetween(a: string, b: string): number {
   return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86_400_000)
+}
+
+function parseResidenceCountries(form: FormValues): string[] {
+  const countries = form.residenceCountries.split(',').map((c) => c.trim()).filter((c) => c.length > 0)
+  return countries.length > 0 ? countries : [form.citizenshipCountry]
 }
 
 interface Props {
@@ -147,10 +154,7 @@ export default function ItaCountdownTool({ initialToken }: Props) {
       return
     }
 
-    const residenceCountries = form.residenceCountries
-      .split(',')
-      .map((c) => c.trim())
-      .filter((c) => c.length > 0)
+    const residenceCountries = parseResidenceCountries(form)
 
     await new Promise<void>((resolve) => {
       const rzp = new window.Razorpay({
@@ -177,7 +181,7 @@ export default function ItaCountdownTool({ initialToken }: Props) {
                 email: form.email,
                 itaDate: form.itaDate,
                 citizenshipCountry: form.citizenshipCountry,
-                residenceCountries: residenceCountries.length > 0 ? residenceCountries : [form.citizenshipCountry],
+                residenceCountries,
                 hasSpouse: form.hasSpouse,
                 numDependentChildren: form.numDependentChildren,
                 tier: form.tier,
@@ -295,36 +299,70 @@ export default function ItaCountdownTool({ initialToken }: Props) {
   }
 
   // ── Sample preview state ─────────────────────────────────────────────────
+  // Shows the applicant's REAL, personalised checklist (correct task count,
+  // correct extra tasks for spouse/children) — only the exact dates are
+  // locked. This replaced a generic 3-item hardcoded list that ignored the
+  // applicant's actual profile.
   if (state === 'sample') {
+    const previewChecklist = generateChecklist({
+      itaDate: form.itaDate,
+      citizenshipCountry: form.citizenshipCountry,
+      residenceCountries: parseResidenceCountries(form),
+      hasSpouse: form.hasSpouse,
+      numDependentChildren: form.numDependentChildren,
+      tier: form.tier,
+    })
+
+    const profileParts = ['citizenship']
+    if (form.hasSpouse) profileParts.push('spouse')
+    if (form.numDependentChildren > 0) {
+      profileParts.push(`${form.numDependentChildren} dependent ${form.numDependentChildren > 1 ? 'children' : 'child'}`)
+    }
+    const profileDescription = profileParts.length > 1
+      ? `${profileParts.slice(0, -1).join(', ')}, and ${profileParts[profileParts.length - 1]}`
+      : profileParts[0]
+
+    const tierLabel = form.tier === 'premium' ? 'Premium' : 'Standard'
+    const priceLabel = form.tier === 'premium' ? '₹3,997' : '₹2,997'
+
     return (
       <div className="asx-wrap">
         <section className="asx-hero">
           <div className="asx-hero-inner">
             <p className="asx-eyebrow r">Preview</p>
-            <h1 className="asx-hero-headline r d1">Sample Checklist</h1>
+            <h1 className="asx-hero-headline r d1">Your Checklist. Dates Locked.</h1>
+            <div className="rule r d2" />
+            <p className="asx-hero-lead r d2">
+              All {previewChecklist.length} tasks below are generated from your profile
+              ({profileDescription}) for an ITA date of {formatDate(form.itaDate)}. Purchase to unlock
+              the exact start-by and deadline date for every task.
+            </p>
           </div>
         </section>
         <section className="asx-form-section">
           <div className="asx-form-inner">
-            <p className="itc-sample-note">
-              Preview only — purchase to unlock your personalised plan with exact dates for your ITA.
-            </p>
             <div className="itc-checklist">
-              {SAMPLE_ITEMS.map((item) => (
-                <div key={item.task} className="itc-card itc-card--sample">
+              {previewChecklist.map((item) => (
+                <div key={item.id} className="itc-card itc-card--sample">
                   <h3 className="itc-card-task">{item.task}</h3>
-                  <div className="itc-card-dates itc-blurred">
-                    <span>Start by <strong>██ ██, 2026</strong></span>
-                    <span>Deadline <strong>██ ██, 2026</strong></span>
+                  <div className="itc-card-dates">
+                    <span>Start by <span className="itc-locked-value">•• •••, ••••</span></span>
+                    <span>Deadline <span className="itc-locked-value">•• •••, ••••</span></span>
+                    <span className="itc-locked-tag">Unlocks After Purchase</span>
                   </div>
-                  <p className="itc-card-notes">{item.note}</p>
+                  <p className="itc-card-notes">{item.notes}</p>
                 </div>
               ))}
             </div>
             {errorMessage && <p className="itc-error" role="alert">{errorMessage}</p>}
-            <button type="button" className="asx-submit-btn" onClick={() => void handlePurchase()}>
-              Get My Checklist — {form.tier === 'premium' ? '₹3,997' : '₹2,997'} →
-            </button>
+            <div className="asx-submit-row">
+              <button type="button" className="asx-submit-btn" onClick={() => void handlePurchase()}>
+                Get My Full Checklist — {tierLabel}, {priceLabel} →
+              </button>
+              <p className="asx-submit-note">
+                Secure payment via Razorpay. Your personalised checklist is emailed to you instantly.
+              </p>
+            </div>
           </div>
         </section>
       </div>
@@ -402,7 +440,8 @@ export default function ItaCountdownTool({ initialToken }: Props) {
             </div>
 
             <div className="asx-grid-2">
-              <div className="asx-checkbox-group">
+              <div className="asx-field">
+                <span className="asx-label itc-label-spacer" aria-hidden="true">&nbsp;</span>
                 <label className="asx-checkbox-row">
                   <input
                     type="checkbox"
@@ -447,6 +486,9 @@ export default function ItaCountdownTool({ initialToken }: Props) {
               <button className="asx-submit-btn" type="submit" disabled={!consentGiven}>
                 See Sample Checklist →
               </button>
+              {!consentGiven && (
+                <p className="asx-submit-note">Check the box above to continue.</p>
+              )}
             </div>
           </form>
 
