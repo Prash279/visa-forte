@@ -125,27 +125,18 @@
   flex-wrap: wrap;
 }
 
-/* Type badge — colour varies by resource type */
+/* Type badge — single saffron-accent style, consistent with .visas-nav-tag */
 .resource-type-badge {
   display: inline-block;
   font-family: var(--font-body);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  color: var(--saffron);
   padding: 0.18rem 0.55rem;
+  border: 1px solid rgba(201, 123, 30, 0.3);
 }
-
-.resource-type-badge--guide,
-.resource-type-badge--timeline    { background: var(--prussian); color: var(--pearl); }
-
-.resource-type-badge--checklist,
-.resource-type-badge--letter      { background: var(--teal);     color: var(--pearl); }
-
-.resource-type-badge--cheatsheet  { background: var(--saffron);  color: var(--prussian); }
-
-.resource-type-badge--sample,
-.resource-type-badge--comparison  { background: var(--ink);      color: var(--pearl); }
 
 /* Category tag */
 .resource-category {

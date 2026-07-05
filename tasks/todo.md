@@ -17,6 +17,29 @@ Before starting any task with more than 1 step:
 
 ---
 
+## Active Session (2026-07-05): Resources page badge colours — brand consistency fix
+
+Prash flagged the CHECKLIST / CHEAT SHEET / TIMELINE resource-type badges on `/resources` as using
+too many different colours, inconsistent with the rest of the Visa Forte site.
+
+- [x] Found the cause: `.resource-type-badge--{type}` in `resources.css` assigned four different
+      solid fill colours (Prussian, Teal, Saffron, Ink) by resource type — never established
+      anywhere else on the site and in tension with the brand rule that Saffron is accent-only.
+- [x] Found the site's actual established pattern: `.visas-nav-tag` / `.visas-pnp-type-tag` in
+      `visas.css` — saffron uppercase text, thin saffron border, transparent fill, no per-item colour.
+- [x] Replaced all four coloured badge variants with that single consistent style in `resources.css`.
+- [x] Verified live via Playwright screenshot at `/resources` — all badge types now render identically.
+
+**Prashant Proof:** Go to /resources, scroll to "Start Here. No Email Required.", confirm every
+resource badge (Checklist, Cheat Sheet, Timeline, Guide, etc.) renders in the same saffron-outline
+style with no solid colour fills.
+
+**Review (2026-07-05):** Complete. See `tasks/lessons.md` → Category: UI & Brand Standards →
+Lesson 5 for the rule preventing recurrence (new component-level colour choices must be checked
+against an existing site-wide tag/badge pattern before introducing a new one).
+
+---
+
 ## Active Session (2026-06-25): PNP Assessment — four engine corrections (Rashmi Anupozu report review)
 
 Prash reviewed the generated PNP report and raised four issues. Fixing each one at a time, TDD.

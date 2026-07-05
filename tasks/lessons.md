@@ -150,6 +150,11 @@ If the lesson contains words like "useEffect", "state mismatch", "hydration erro
 - **Why it happened:** Each issue was small and invisible during normal development on a large desktop monitor. None were caught by tests.
 - **The rule going forward:** Before marking any UI milestone complete, capture screenshots at desktop (1280px), tablet (768px), and mobile (375px) for every page and visually check: (1) no text below 0.75rem, (2) all eyebrows are saffron on dark backgrounds, (3) the hamburger shows on tablet, (4) footer and nav tagline are legible.
 
+**Lesson 5 — Small labels/badges must reuse the one existing tag style, never invent a new colour-per-category scheme**
+- **What went wrong:** The `/resources` page gave each resource-type badge (Checklist, Cheat Sheet, Timeline, Guide, Sample, Letter, Comparison) its own solid fill colour — Prussian, Teal, Saffron, or Ink depending on type. This produced a busy, four-colour badge row that Prash immediately flagged as off-brand. The site already had an established single-style tag pattern (`.visas-nav-tag` / `.visas-pnp-type-tag` in `visas.css`: saffron text, thin saffron border, no fill) — it was just never checked before the resources badges were built.
+- **Why it happened:** Each resource type "needed a colour to stand out," so a colour was picked per type from the available brand palette (Prussian/Teal/Saffron/Ink) without first checking whether the site already had a small-label/tag component to reuse. This is the same mistake the brand rule already warns against — Saffron used as a solid background fill — plus a new one: building a redundant, inconsistent variant of an existing UI pattern.
+- **The rule going forward:** Before styling any new badge, tag, pill, or small uppercase label, search the codebase for existing patterns first (grep for `-tag`, `-badge`, `eyebrow`, `pill`). Visa Forte has exactly one small-label style: saffron uppercase text + thin saffron border + transparent/pearl fill — no solid colour fills, and never a different colour per category or item type. If a new label needs visual distinction between categories, add an icon or reorder — never a new fill colour. This also reinforces the existing brand rule: Saffron is accent-only, never a dominant background across many repeated elements on a page.
+
 ---
 
 ## Category: Workflow
