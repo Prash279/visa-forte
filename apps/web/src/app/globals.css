@@ -386,6 +386,15 @@ footer.site-footer {
 .footer-legal a:hover { color: var(--saffron); }
 
 /* ── 6. SHARED SECTION LAYOUT ─────────────────────────────── */
+/* Every .sec gets this full padding on BOTH its top and bottom. That's fine
+   when a section's background differs from its neighbour — the colour
+   change justifies the gap. But if two adjacent sections share the same
+   background, their padding stacks into an 11rem dead gap with nothing to
+   explain it (see /resources fix + tasks/lessons.md, UI & Brand Standards
+   Lesson 6). When adding a new section, check its neighbours' backgrounds;
+   if either matches, override that shared boundary's padding down to
+   ~2rem desktop / 1.5rem mobile in the page's own CSS file instead of
+   leaving both sections at the full 5.5rem. */
 .sec {
   padding: 5.5rem 2.5rem;
 }
