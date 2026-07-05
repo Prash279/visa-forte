@@ -39,7 +39,10 @@
 }
 
 /* ── FREE RESOURCES SECTION ───────────────────────────────── */
-.resources-free { background: var(--pearl); }
+/* Shares pearl background with .resources-tools directly above it, so the
+   default .sec top padding stacks with that section's bottom padding into
+   an 11rem dead gap with no colour break to justify it. Trim just the top. */
+.resources-free { background: var(--pearl); padding-top: 2rem; }
 
 /* Lead paragraph below the section headline in premium section */
 .resources-section-sub {
@@ -432,6 +435,7 @@
   /* Match .sec horizontal padding (1.25rem) for visual consistency with all other pages */
   .resources-hero  { padding: 9rem 1.25rem 5rem; }
   .resources-trust { padding: 5rem 1.25rem; }
+  .resources-free  { padding-top: 1.5rem; }
 
   /* Filter pills scroll horizontally instead of wrapping (lessons.md UX) */
   .filter-pills {
