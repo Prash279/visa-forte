@@ -318,7 +318,7 @@
 }
 
 /* ── TOOLS SECTION ────────────────────────────────────────── */
-.resources-tools { background: var(--pearl); scroll-margin-top: 90px; } /* clears the fixed nav (~82px desktop / ~70px tablet+); --nav-h isn't reliable here, see note in tasks/lessons.md */
+.resources-tools { background: var(--pearl); scroll-margin-top: var(--nav-h); }
 
 /* Hero tool card */
 .tools-hero-card {

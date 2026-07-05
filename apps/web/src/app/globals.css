@@ -35,6 +35,11 @@
   --max-w: 1200px;
   --text-w: 740px;
   --nav-h: 81.4px; /* logo 42px + padding 2×1.2rem + border 1px */
+
+  /* Nested (not a second :root selector) — see lessons.md re: build tool dropping --nav-h */
+  @media (max-width: 860px) {
+    --nav-h: 69.8px; /* logo 40px + padding 2×0.9rem + border 1px */
+  }
 }
 
 /* ── 2. TAILWIND THEME TOKENS ─────────────────────────────── */
@@ -494,8 +499,6 @@ footer.site-footer {
 }
 
 @media (max-width: 860px) {
-  :root { --nav-h: 69.8px; } /* logo 40px + padding 2×0.9rem + border 1px */
-
   nav#nav { padding: 0.9rem 1.5rem; }
   nav#nav.scrolled { padding: 0.75rem 1.5rem; }
 
