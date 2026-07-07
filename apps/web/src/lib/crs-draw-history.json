@@ -1,8 +1,14 @@
 {
   "source": "canada.ca",
   "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/submit-profile/rounds-invitations.html",
-  "lastUpdated": "2026-06-26",
+  "lastUpdated": "2026-07-07",
   "draws": [
+    {
+      "date": "2026-07-06",
+      "type": "Provincial Nominee Program",
+      "cutoffScore": 708,
+      "invitationsIssued": 534
+    },
     {
       "date": "2026-06-25",
       "type": "Healthcare and Social Services Occupations, 2026-Version 3",
@@ -146,12 +152,6 @@
       "type": "Provincial Nominee Program",
       "cutoffScore": 710,
       "invitationsIssued": 264
-    },
-    {
-      "date": "2026-02-20",
-      "type": "Healthcare and Social Services Occupations, 2026-Version 3",
-      "cutoffScore": 467,
-      "invitationsIssued": 4000
     }
   ]
 }
