@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import SiteNav     from "@/components/SiteNav";
 import SiteFooter  from "@/components/SiteFooter";
@@ -101,6 +102,11 @@ export default function RootLayout({
         {/* SiteFooter: rendered on all public pages via layout */}
         <SiteFooter />
       </body>
+      {/* Google Analytics 4 — loads only when the measurement ID is configured
+          in Vercel env vars. No ID set = no tracking script, site behaves as before. */}
+      {process.env.NEXT_PUBLIC_GA_ID && (
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+      )}
     </html>
   );
 }
