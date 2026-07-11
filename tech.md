@@ -25,22 +25,13 @@
 
 ## 2. Hosting Decision Framework
 
-**Long-term default: Render.** It deploys both Next.js and Python (FastAPI) from the same dashboard, manages the PostgreSQL database visually, and auto-deploys on every push to `main` — no server configuration required. For a solo non-coder, zero-ops always outweighs cost optimisation at the start.
+**Hosting: Vercel.** The entire application — pages, API routes, cron jobs, blob storage — runs on Vercel, fronted by Cloudflare. Backend needs that once justified a separate Python host (data-retention cron, background jobs) are all served by Next.js API routes + Vercel Cron in TypeScript. For a solo non-coder, one platform with zero ops beats a split stack every time.
 
-| Platform | Use When | Trade-off |
-|---|---|---|
-| **Render** ✅ Long-term default | Full stack (Next.js + FastAPI + PostgreSQL) — unified dashboard, managed DB, zero ops | Slightly higher cost than VPS at scale |
-| **Vercel** ✅ Phase 1 only | Next.js-only phases before the FastAPI backend exists | Cannot host Python servers — forces a second platform the moment FastAPI is needed |
-| **DigitalOcean App Platform** | If Render has availability issues in your region | Less mature Next.js support |
-| **VPS + Coolify** | Only when monthly cost becomes a constraint (Phase 2+) | Requires basic server management comfort |
+**Current hosting (July 2026):** Vercel (web + API + cron + blob) + Supabase (PostgreSQL).
 
-**Current hosting (May 2026):** Vercel (web) + Supabase (PostgreSQL). `render.yaml` is written and ready for Phase 2 migration.
+**Database decision:** Supabase is the permanent database host. The postgres-js driver connects via `DATABASE_URL`; `prepare: false` and `max: 1` are required for Supabase's pgBouncer transaction pooling.
 
-**Database decision:** Supabase is the permanent database host regardless of which platform runs the web server. The postgres-js driver connects via `DATABASE_URL`; `prepare: false` and `max: 1` are required for Supabase's pgBouncer transaction pooling. When hosting migrates to Render, set `DATABASE_URL` in the Render dashboard to the existing Supabase connection string. No data migration needed.
-
-**Migration trigger:** Phase 1 is entirely Next.js — server actions, API routes, and Drizzle ORM cover all backend needs. No FastAPI is required in Phase 1. Migrate to Render at the start of Phase 2 when Python background jobs (data retention cron, pipeline automation) require a persistent process that Vercel cannot host.
-
-**Decision rule:** Stay on Vercel until FastAPI is needed. Switch to Render at that point — never run a split stack (Vercel + Render simultaneously). Migrate to VPS + Coolify only if hosting cost becomes a constraint in Phase 2.
+**Decision rule:** Stay on Vercel. Re-open the hosting question only if a genuine persistent-process need appears (e.g. a server-side Python AI component for CanVisa Pro) — decide the platform then, vendor-agnostic, based on what that workload actually needs.
 
 ---
 
@@ -262,11 +253,11 @@ RATE_LIMIT_REQUESTS_PER_MINUTE: int = 60
 ### The Non-Coder Principle
 Prash does not debug YAML. The deployment pipeline must be as hands-off as possible. Two tiers:
 
-**Tier 1 — Render Auto-Deploy (Default for Prash)**
-Render watches the `main` branch. Every merged pull request deploys automatically. No terminal commands required from Prash. This is the default deployment model.
+**Tier 1 — Vercel Auto-Deploy (Default for Prash)**
+Vercel watches the `main` branch via the GitHub integration. Every merged pull request deploys automatically. No terminal commands required from Prash. This is the default deployment model.
 
-- Push to `main` → Render builds and deploys automatically
-- If the build fails, Render sends an email and keeps the previous version live
+- Push to `main` → Vercel builds and deploys to production automatically
+- If the build fails, Vercel keeps the previous version live and reports the failure
 - Prash's job: merge the PR when the Prashant Proof passes. That's it.
 
 **Tier 2 — GitHub Actions (Claude Code manages, Prash does not debug)**
@@ -341,7 +332,7 @@ npx husky init
 
 | Branch | Purpose | Deploy target |
 |---|---|---|
-| `main` | Production-ready code only | Production (Render auto-deploy) |
+| `main` | Production-ready code only | Production (Vercel auto-deploy) |
 | `staging` | Integration testing | Staging environment |
 | `feature/*` | Individual features | Preview deploy (ephemeral) |
 | `fix/*` | Bug fixes | Preview deploy (ephemeral) |

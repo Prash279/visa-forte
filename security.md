@@ -317,7 +317,7 @@ Enforce at the schema level. Every column in the `clients` table must have a doc
 
 ### 8.3 Automated Deletion Cron
 
-**Implementation:** TypeScript Next.js API route (`GET /api/cron/data-retention`) called by Vercel Cron daily at 02:00 IST (20:30 UTC). No FastAPI or Render required — all operations use existing Drizzle + `@vercel/blob` + Resend integrations already in the stack.
+**Implementation:** TypeScript Next.js API route (`GET /api/cron/data-retention`) called by Vercel Cron daily at 02:00 IST (20:30 UTC). No separate backend host required — all operations use existing Drizzle + `@vercel/blob` + Resend integrations already in the stack.
 
 **Batch cap:** Processes max 20 clients per run to stay within Vercel's serverless timeout limit. Any overflow is handled on the next nightly run.
 
