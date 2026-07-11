@@ -3,6 +3,14 @@ import { db } from '@/lib/db';
 import { availability } from '../../../drizzle/schema';
 import BookingForm from './BookingForm';
 import './booking.css';
+import { buildMetadata } from '@/lib/seo';
+
+export const metadata = buildMetadata({
+  title: 'Book a Consultation — Visa Forte',
+  description:
+    'Book a one-on-one consultation with Prashant Thirthingoth — 20 years of Canadian immigration documentation experience. Live availability, instant confirmation.',
+  path: '/booking',
+});
 
 // Force server-side rendering on every request so available dates are always live.
 // Without this, Next.js statically caches the page at build time (when no slots exist).

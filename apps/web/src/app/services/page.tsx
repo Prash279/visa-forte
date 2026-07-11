@@ -1,16 +1,17 @@
 // Services page — visaforte.com/services
 // Server component. Lists all 8 service tiers from spec.md §2.
 
-import type { Metadata } from "next";
 import Link from "next/link";
 import MailtoButton from "@/components/MailtoButton";
 import "./services.css";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
   title: "Services — Visa Forte | Eight Immigration Documentation Mandates",
   description:
     "Eight service tiers for Canadian PR applicants — from initial eligibility assessment to retainer-based ongoing support. Every engagement personally delivered.",
-};
+  path: "/services",
+});
 
 const SERVICES = [
   {
@@ -112,8 +113,31 @@ const SERVICES = [
   },
 ] as const;
 
+// Structured data: tells Google each of the 8 mandates is a professional
+// service offered by Visa Forte — powers richer search listings.
+const SERVICES_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  itemListElement: SERVICES.map((s, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    item: {
+      "@type": "Service",
+      name: s.name,
+      description: s.description,
+      provider: { "@type": "ProfessionalService", name: "Visa Forte" },
+      areaServed: "CA",
+    },
+  })),
+};
+
 export default function ServicesPage() {
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(SERVICES_JSONLD) }}
+      />
     <main className="services-main">
 
       {/* ── HERO ───────────────────────────────────────────── */}
@@ -225,5 +249,6 @@ export default function ServicesPage() {
       </section>
 
     </main>
+    </>
   );
 }

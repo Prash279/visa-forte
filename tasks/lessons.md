@@ -193,6 +193,12 @@ If the lesson contains words like "useEffect", "state mismatch", "hydration erro
 
 ## Category: Planning & Documentation
 
+**Lesson 3 — Verify a plan's central claim against the repo before executing its remediation**
+- **What went wrong:** A saved plan declared a P0 emergency — ".env.local is committed to the remote with real secrets, rotate everything today." A full scan of every commit on every branch showed the file was never committed anywhere; the emergency did not exist, and 30 minutes of credential rotation plus a risky git history rewrite were about to be spent on a false premise.
+- **Why it happened:** The audit that produced the plan most likely saw the .env.local file sitting in the local folder and assumed it was tracked by git, without running the one command that checks. The plan was then trusted as fact because it was written down and looked authoritative.
+- **The rule going forward:** Before executing any remediation plan, re-verify its central factual claim directly against the source (for git claims: `git log --all -- <path>` and a full-ref scan) — a plan document is a snapshot of what an earlier session believed, not evidence. The scarier the claimed emergency, the more important the two-minute check before acting.
+
+
 **Lesson 1 — Plan documents must be committed before implementation begins**
 - **What went wrong:** Two planning docs (`docs/superpowers/plans/2026-05-24-resources-page.md` and the matching spec) were never committed to git, staying untracked through 15 implementation commits and only noticed after the feature was complete.
 - **Why it happened:** The plan generator writes files to `docs/superpowers/plans/` but does not include a step to commit them. Every per-task commit in the plan used `git add src/...` paths, so the plan file itself was never staged.

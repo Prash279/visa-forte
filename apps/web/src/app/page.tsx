@@ -2,6 +2,14 @@ import "./home.css";
 import AccordionSection from "@/components/AccordionSection";
 import HeroPrecision from "@/components/HeroPrecision";
 import MailtoButton from "@/components/MailtoButton";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata = buildMetadata({
+  title: "Visa Forte — Forensic Immigration Documentation | Engineered for Passage.",
+  description:
+    "20 years of forensic immigration documentation expertise. Express Entry, FSW, PNP. Every file personally reviewed. Zero margin for error.",
+  path: "/",
+});
 
 export default function Home() {
   return (

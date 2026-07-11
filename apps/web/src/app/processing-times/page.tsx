@@ -1,12 +1,13 @@
 import './processing-times.css'
 import timesData from '@/lib/processing-times.json'
+import { buildMetadata } from '@/lib/seo';
 
-export const metadata = {
+export const metadata = buildMetadata({
   title: 'IRCC Processing Times | Visa Forte',
   description:
     'Current IRCC processing times for Express Entry, Provincial Nominee Program, and spousal sponsorship — updated daily from canada.ca.',
-}
-
+  path: '/processing-times',
+});
 const STREAM_ICONS: Record<string, string> = {
   ee_fswp:            '⚖',
   ee_cec:             '🍁',

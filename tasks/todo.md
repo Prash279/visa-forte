@@ -1,3 +1,11 @@
+## Session 2026-07-11 — Secrets verification + SEO foundation (PR #1)
+
+- [x] Phase 0: verified `.env.local` never committed on any ref (371+ commits scanned) — no rotation, no history rewrite needed; plan annotated
+- [x] Phase 1: Render removed — `render.yaml` deleted, tech.md/todo.md/security.md Vercel-only
+- [x] Phase 2: robots.ts, sitemap.ts, opengraph-image.tsx, metadataBase + JSON-LD in layout, `buildMetadata()` canonical/OG on all 13 public pages; build + tsc + 340/340 tests green; code-reviewed
+- [x] Fixed stale test: canvisa-lite PNP cutoff now derived from live draw JSON
+- [ ] **Prash: merge PR #1** → then Phase 3 runbook in `tasks/secrets-seo-launch-plan.md` (Cloudflare bot check, Search Console + sitemap submission, GA4 decision)
+
 # tasks/todo.md — Active Task List
 > Written by Claude Code before implementation begins.
 > Approved by Prash before any code is written.
@@ -153,8 +161,7 @@ No subdomains. No split deployments.
 7. Task 8: CI/CD and observability (Phase 1 closer)
 
 **Hosting decision confirmed:** Stay on Vercel for all of Phase 1. FastAPI is not needed — all
-backend work uses Next.js server actions and API routes. Render migration deferred to Phase 2
-when Python background jobs (data retention cron, pipeline automation) are needed.
+backend work uses Next.js server actions and API routes.
 
 ---
 
@@ -524,8 +531,7 @@ fails and the branch is blocked from merging to main.
 
 **Phase 2 architecture decision (April 2026):** Stay on Vercel. FastAPI is not needed for Phase 2 — all
 CRM and client portal features use Next.js server actions + Drizzle ORM, exactly like Phase 1.
-FastAPI migration to Render is deferred to Phase 3 when Python background jobs (data retention cron)
-require a persistent process.
+No separate Python host is needed — background jobs (data retention cron) run as Vercel Cron jobs.
 
 **Data model:** A new `clients` table is the CRM backbone. It is separate from `leads` (intake form
 submissions). When Prash promotes a lead to a client (or creates one directly), a `clients` row is
@@ -1022,7 +1028,7 @@ Per `spec.md §8`, DPDP consent interface and automated deletion cron are Phase 
 3. DPDP consent interface + automated deletion cron
 4. Post-submission monitoring workflow
 
-**Hosting:** Stays on Vercel throughout Phase 3. The deletion cron runs as a Vercel Cron job (TypeScript API route) — no FastAPI, no Render migration needed. `render.yaml` is written and ready; Render migration is deferred to when FastAPI is genuinely needed (Phase 4 or when CanVisa Pro gets a server-side Python AI component).
+**Hosting:** Stays on Vercel throughout Phase 3. The deletion cron runs as a Vercel Cron job (TypeScript API route) — no separate Python host needed.
 
 **Build sequence:**
 1. Complete P3-2B (open task, Phase 2 carryover)
@@ -1222,9 +1228,9 @@ Also add to `.env.local` for local testing.
 ### TASK P3-3: DPDP Consent Interface + Automated Deletion Cron
 
 **Status:** ✅ COMPLETE — May 2026
-**Stack:** Next.js + Vercel Cron throughout — no Render migration needed for Phase 3
+**Stack:** Next.js + Vercel Cron throughout
 
-**Architecture decision (confirmed):** The deletion cron runs as a Vercel Cron job calling a Next.js API route in TypeScript. All operations (DB via Drizzle, blob delete via `@vercel/blob`, email via Resend) already have working implementations in this codebase. The Render + FastAPI migration is deferred to when Python is genuinely needed — most likely when CanVisa Pro gets a server-side AI component. `render.yaml` remains ready for that trigger.
+**Architecture decision (confirmed):** The deletion cron runs as a Vercel Cron job calling a Next.js API route in TypeScript. All operations (DB via Drizzle, blob delete via `@vercel/blob`, email via Resend) already have working implementations in this codebase. A separate Python host would only be revisited if CanVisa Pro ever gets a server-side AI component.
 
 **Timeout safeguard:** The deletion API route processes clients in batches of 20 per run to stay well within Vercel's 60-second serverless limit. Vercel Cron runs daily — any overflow is processed the following day.
 
