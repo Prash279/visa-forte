@@ -30,10 +30,12 @@ const PUBLIC_ROUTES: PublicRoute[] = [
   { path: "/refund-policy", priority: 0.3, changeFrequency: "yearly" },
 ];
 
+// lastModified is deliberately omitted: stamping every page with the build
+// date would tell Google "everything changed" on every deploy, which dilutes
+// the signal for pages that genuinely did change.
 export default function sitemap(): MetadataRoute.Sitemap {
   return PUBLIC_ROUTES.map(({ path, priority, changeFrequency }) => ({
     url: `${SITE_URL}${path === "/" ? "" : path}`,
-    lastModified: new Date(),
     changeFrequency,
     priority,
   }));

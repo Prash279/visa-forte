@@ -2,14 +2,15 @@
 // Server component. All sections use .r class for scroll-reveal
 // (PageEffects in layout.tsx runs the observer).
 
-import type { Metadata } from "next";
 import "./about.css";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
   title: "About — Visa Forte | Prashant Thirthingoth, Senior Documentation Consultant",
   description:
     "Twenty years of forensic immigration documentation practice. One consultant. Every file personally reviewed. Based in Secunderabad, India.",
-};
+  path: "/about",
+});
 
 export default function AboutPage() {
   return (
