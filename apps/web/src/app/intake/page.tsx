@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ConsentCheckbox } from '@/components/ConsentCheckbox';
+import { REFERRAL_SOURCES } from '@/lib/referral-sources';
 import './intake.css';
 
 // The 7 Visa Forte service tiers.
@@ -14,17 +15,6 @@ const SERVICE_TIERS = [
   'ITA Response Preparation',
   'Full Application File Management',
   'Post-Submission Monitoring',
-];
-
-// Marketing channels shown in the "How did you hear about us?" dropdown.
-// Must stay in sync with REFERRAL_SOURCES in the intake API route.
-const REFERRAL_SOURCES = [
-  'Google Search',
-  'LinkedIn',
-  'YouTube',
-  'Instagram / Facebook',
-  'Referral from a friend or family member',
-  'Other',
 ];
 
 type FormState = 'idle' | 'submitting' | 'success' | 'error';

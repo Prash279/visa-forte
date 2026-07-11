@@ -3,17 +3,7 @@ import { z } from 'zod';
 import { db } from '@/lib/db';
 import { leads } from '../../../../drizzle/schema';
 import { log } from '@/lib/logger';
-
-// Marketing channels accepted for "How did you hear about us?".
-// Must stay in sync with REFERRAL_SOURCES in the intake form page.
-const REFERRAL_SOURCES = [
-  'Google Search',
-  'LinkedIn',
-  'YouTube',
-  'Instagram / Facebook',
-  'Referral from a friend or family member',
-  'Other',
-] as const;
+import { REFERRAL_SOURCES } from '@/lib/referral-sources';
 
 // Validates the intake form payload before anything touches the database.
 const IntakeSchema = z.object({
