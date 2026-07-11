@@ -8,7 +8,8 @@
 - [x] **Privacy policy**: update Section 7 (Cookies) — it currently promises "no analytics cookies", which becomes false the moment GA4 is on
 - [x] **Migration**: applied to Supabase 2026-07-11 (Prash approved). Note: `drizzle.__drizzle_migrations` journal on Supabase is empty (earlier migrations were pushed, not journaled), so `drizzle-kit migrate` replays from 0000 and fails — additive migrations are applied by running the generated SQL directly; column verified via information_schema after apply
 - [x] Tests (340/340) + tsc + prod build green — 2026-07-11. Note: local `.env.local` lacks `RESEND_API_KEY`/`BETTER_AUTH_SECRET`, so local `next build` needs dummy values; Vercel has the real ones
-- [x] Diff summary shown → Prash approved → committed. PR not yet opened
+- [x] Diff summary shown → Prash approved → committed → PR #2 merged to main 2026-07-11
+- [x] Follow-up: PR #3 fixed 6 pre-existing `react/no-unescaped-entities` lint errors in `page.tsx` (red since PR #1) — main CI green again (verified: run "Merge pull request #3" = success)
 - [ ] **Prash**: create GA4 property at analytics.google.com → add `NEXT_PUBLIC_GA_ID` (G-XXXXXXX) in Vercel env vars → redeploy
 - **Scoped out**: booking form source field (payment route is a halt-and-ask zone; first-touch attribution lives on the lead form — add to bookings later only if needed); GA4 property creation itself (Prash does this in analytics.google.com, ~5 min, steps provided at the end)
 
