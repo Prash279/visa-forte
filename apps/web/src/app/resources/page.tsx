@@ -2,20 +2,20 @@
 // Server component — SEO metadata, data loading, page layout.
 // All interactivity is delegated to FreeResourcesGrid (client component).
 
-import type { Metadata } from "next";
 import type { JSX } from "react";
 import "./resources.css";
 import { getAllFreeResources, getAllPremiumResources } from "@/lib/resources";
 import FreeResourcesGrid from "./FreeResourcesGrid";
 import ResourceCard from "@/components/ResourceCard";
 import MailtoButton from "@/components/MailtoButton";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title:
-    "Immigration Resources — Visa Forte | Checklists, Guides & Templates",
+export const metadata = buildMetadata({
+  title: "Immigration Resources — Visa Forte | Checklists, Guides & Templates",
   description:
     "Free and premium immigration resources for Express Entry, PNP, and spousal sponsorship applicants. Checklists, application guides, cheat sheets, letter templates, and timelines — reviewed personally by Prashant Thirthingoth.",
-};
+  path: "/resources",
+});
 
 export default function ResourcesPage(): JSX.Element {
   const freeResources    = getAllFreeResources();

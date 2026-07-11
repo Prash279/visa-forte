@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { getWeaknesses, getBestPathway } from './canvisa-lite-logic'
 import type { CrsResult } from './crs-calculator'
+import drawData from './crs-draw-history.json'
 
 // Minimal CrsResult stub — only the fields getWeaknesses and getBestPathway touch.
 function makeResult(scenarios: { name: string; delta: number; currentCrs: number; projectedCrs: number; competitive: boolean; change: string }[]): CrsResult {
@@ -67,11 +68,13 @@ describe('getWeaknesses', () => {
 
 describe('getBestPathway', () => {
   it('picks the above-cutoff category with smallest gap', () => {
-    // CEC cutoff in draw history is around 516; score 530 is above.
-    // If we pass a fake eligible categories list, it finds the right match.
-    // Using known categories from the draw history JSON.
-    const pathway = getBestPathway(730, ['PNP'])
-    // PNP draw: cutoff 730 (from the test draw history data)
+    // The draw-history JSON is refreshed automatically from canada.ca, so the
+    // PNP cutoff moves over time. Derive the expected cutoff from the same
+    // JSON the logic reads instead of hardcoding a value that goes stale.
+    const latestPnp = (drawData.draws as { type: string; cutoffScore: number }[])
+      .find(d => /provincial nominee/i.test(d.type))
+    expect(latestPnp).toBeDefined()
+    const pathway = getBestPathway(latestPnp!.cutoffScore, ['PNP'])
     expect(pathway).not.toBeNull()
     expect(pathway!.category).toBe('PNP')
     expect(pathway!.gap).toBe(0)

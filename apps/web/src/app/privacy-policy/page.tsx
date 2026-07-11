@@ -2,14 +2,15 @@
 // Required by Razorpay and all payment processors before account activation.
 // Server component — no interactivity needed.
 
-import type { Metadata } from "next";
 import "../refund-policy/policy.css";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
   title: "Privacy Policy — Visa Forte",
   description:
     "How Visa Forte collects, uses, and protects your personal information.",
-};
+  path: "/privacy-policy",
+});
 
 export default function PrivacyPolicyPage() {
   return (

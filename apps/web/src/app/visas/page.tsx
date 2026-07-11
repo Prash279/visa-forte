@@ -1,18 +1,19 @@
 // visas/page.tsx — Canadian immigration programs overview
 // Server component — no client-side interactivity needed
 
-import type { Metadata } from "next";
 import Link from "next/link";
 import "./visas.css";
 import timesData from "@/lib/processing-times.json";
 import drawHistory from "@/lib/crs-draw-history.json";
 import feeData from "@/lib/fee-schedule.json";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
   title: "Canadian Immigration Programs — Visa Forte | Express Entry · PNP · Pathways",
   description:
     "Every Canadian PR pathway explained — eligibility, steps, documents, fees, and processing times. Express Entry (FSWP, CEC, FSTP), Provincial Nominee Programs, and more.",
-};
+  path: "/visas",
+});
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"] as const;
 

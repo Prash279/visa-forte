@@ -2,14 +2,15 @@
 // Required by Razorpay and all payment processors before account activation.
 // Server component — no interactivity needed.
 
-import type { Metadata } from "next";
 import "./policy.css";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
   title: "Refund & Cancellation Policy — Visa Forte",
   description:
     "Visa Forte's refund and cancellation policy for consultation bookings.",
-};
+  path: "/refund-policy",
+});
 
 export default function RefundPolicyPage() {
   return (
