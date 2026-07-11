@@ -389,19 +389,6 @@ function reportId(name: string, date: string) {
   return `CVP-${d}-${initials}-001`
 }
 
-// Gauge arc path — score out of 1200 mapped to 0-315 degrees of arc.
-function gaugeOffset(score: number, max = 1200): number {
-  const pathLength = 314.16
-  const pct = Math.min(score / max, 1)
-  return pathLength * (1 - pct)
-}
-
-function dotPosition(score: number, max = 1200): { x: number; y: number } {
-  const pct = Math.min(score / max, 1)
-  const angle = Math.PI - pct * Math.PI
-  return { x: 130 + 100 * Math.cos(angle), y: 180 - 100 * Math.sin(angle) }
-}
-
 // ── Date-of-birth helpers ─────────────────────────────────────────────────────
 
 function calcAgeFromDob(dob: string): number {
@@ -485,34 +472,6 @@ const INITIAL: ApplicantProfile = {
 }
 
 // ── MARP Report Builder ───────────────────────────────────────────────────────
-
-function pill(label: string, type: 'eligible' | 'not-eligible' | 'borderline' | 'likely'): string {
-  const styles: Record<string, string> = {
-    'eligible':     'background:rgba(134,239,172,0.15);color:#86EFAC;',
-    'likely':       'background:rgba(45,212,191,0.15);color:#2DD4BF;',
-    'borderline':   'background:rgba(253,224,71,0.15);color:#FDE047;',
-    'not-eligible': 'background:rgba(252,165,165,0.15);color:#FCA5A5;',
-  }
-  return `<span style="${styles[type]}padding:3px 10px;font-size:0.65em;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;">${label}</span>`
-}
-
-function metricCard(label: string, value: string | number, note: string, accent = '#2DD4BF'): string {
-  return `<div style="background:#1E293B;border-top:3px solid ${accent};padding:18px 20px;text-align:center;">
-  <div style="color:#94A3B8;font-size:0.58em;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:8px;">${label}</div>
-  <div style="color:${accent};font-size:2.4em;line-height:1;font-weight:700;margin-bottom:6px;">${value}</div>
-  <div style="color:#64748B;font-size:0.62em;">${note}</div>
-</div>`
-}
-
-function gapCard(level: 'critical' | 'high' | 'medium', title: string, desc: string): string {
-  const colours: Record<string, string> = { critical: '#FCA5A5', high: '#FDE047', medium: '#2DD4BF' }
-  const c = colours[level]
-  return `<div style="background:#1E293B;border-left:4px solid ${c};padding:14px 18px;margin:8px 0;">
-  <div style="color:${c};font-size:0.6em;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:4px;">${level}</div>
-  <div style="color:#F1F5F9;font-size:0.88em;font-weight:600;">${title}</div>
-  <div style="color:#94A3B8;font-size:0.78em;margin-top:4px;">${desc}</div>
-</div>`
-}
 
 function buildMarpMarkdown(p: ApplicantProfile, r: CrsResult, maritalStatusStr: string): string {
   const { breakdown, fswGrid, eligibility, scenarios } = r

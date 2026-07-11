@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { eq, inArray, asc } from 'drizzle-orm';
+import { inArray, asc } from 'drizzle-orm';
 import { getCurrentAuthSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { clients, applicationMonitoring, irccQueries } from '../../../../drizzle/schema';

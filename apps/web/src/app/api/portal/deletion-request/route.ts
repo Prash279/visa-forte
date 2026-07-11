@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { and, eq } from 'drizzle-orm';
 import { getCurrentAuthSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
@@ -37,7 +37,7 @@ export async function GET(): Promise<NextResponse> {
 // POST /api/portal/deletion-request
 // Submits a data deletion request for the authenticated client.
 // Rejects if a pending request already exists (one at a time).
-export async function POST(_req: NextRequest): Promise<NextResponse> {
+export async function POST(): Promise<NextResponse> {
   const authSession = await getCurrentAuthSession();
   if (!authSession?.session) {
     return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });

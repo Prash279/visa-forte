@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { desc } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { clients } from '../../../../../../drizzle/schema'
@@ -22,7 +22,7 @@ function escapeCsv(value: string | null | undefined): string {
 }
 
 // GET /api/admin/clients/export — streams all clients as a UTF-8 CSV download
-export async function GET(req: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   const deny = await requireAdmin()
   if (deny) return deny
 

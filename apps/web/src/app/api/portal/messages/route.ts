@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { and, eq, asc } from 'drizzle-orm';
+import { eq, asc } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { messages, clients } from '../../../../../drizzle/schema';
 import { getCurrentAuthSession } from '@/lib/auth-server';

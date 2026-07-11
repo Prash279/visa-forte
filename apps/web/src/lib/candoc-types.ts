@@ -28,7 +28,6 @@ const FindingsJsonSchema = z.object({
 })
 
 export type Finding = z.infer<typeof FindingSchema>
-type SopLayerResult = z.infer<typeof SopLayerResultSchema>
 export type FindingsJson = z.infer<typeof FindingsJsonSchema>
 
 export function parseFindings(json: unknown): FindingsJson {
