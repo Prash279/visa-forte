@@ -1,3 +1,17 @@
+## Session 2026-07-11 (later) — GA4 + lead attribution (branch `feat/ga4-attribution`)
+
+> Approved by Prash in-session ("complete the GA4 decision"). Phase 3 config steps all done: Search Console verified, sitemap submitted, indexing requested on 4 key URLs.
+
+- [ ] **GA4**: add `@next/third-parties` (Vercel's own package, matches Next 16.2.2), render `<GoogleAnalytics>` in `layout.tsx` only when `NEXT_PUBLIC_GA_ID` env var is set — so nothing loads until Prash creates the GA4 property and adds the ID in Vercel
+- [ ] **CSP**: allow `www.googletagmanager.com` (script-src) and `*.google-analytics.com` (connect-src) in `next.config.ts` — otherwise the browser silently blocks GA
+- [ ] **Lead source field**: optional "How did you hear about us?" dropdown on `/intake` form → new nullable `referral_source` column on `leads` → shown in the admin leads table
+- [ ] **Privacy policy**: update Section 7 (Cookies) — it currently promises "no analytics cookies", which becomes false the moment GA4 is on
+- [ ] **Migration**: generate the SQL, show Prash the dry-run plan, apply only after his OK (schema = halt-and-ask)
+- [ ] Tests + build green; diff summary before commit
+- **Scoped out**: booking form source field (payment route is a halt-and-ask zone; first-touch attribution lives on the lead form — add to bookings later only if needed); GA4 property creation itself (Prash does this in analytics.google.com, ~5 min, steps provided at the end)
+
+---
+
 ## Session 2026-07-11 — Secrets verification + SEO foundation (PR #1)
 
 - [x] Phase 0: verified `.env.local` never committed on any ref (371+ commits scanned) — no rotation, no history rewrite needed; plan annotated
