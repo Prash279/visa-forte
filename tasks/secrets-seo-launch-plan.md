@@ -57,6 +57,12 @@ Verify: `next build`; fetch `/robots.txt` and `/sitemap.xml` locally; Google Ric
 
 ## Phase 3 — Launch enablement (config, not code)
 
+> **Status 2026-07-11:** Phases 1–2 are complete on PR #1 (`feat/seo-launch`). Live-site probes: Googlebot and Bingbot user agents both receive **200** from visaforte.com (the "403-to-bots" premise looks stale), and Cloudflare is already serving a managed robots.txt that blocks AI crawlers (GPTBot, ClaudeBot, CCBot, etc.) while leaving search open. **GA4 is not installed in the codebase at all** (analytics = Cloudflare Insights only) and there is no "how did you hear about us" field — both are build decisions for Prash, not config checks. Runbook for Prash, in order:
+> 1. **Merge PR #1** → Vercel auto-deploys → verify visaforte.com/robots.txt and /sitemap.xml load (robots.txt should show the Cloudflare managed block *plus* the site's own rules).
+> 2. **Cloudflare dashboard** → Security → Bots: confirm "Allow verified bots" is on / Bot Fight Mode isn't challenging search engines (probes suggest it already is fine).
+> 3. **Google Search Console** → Add property `visaforte.com` (Domain) → copy the DNS TXT record → add it in Cloudflare DNS → verify → submit `https://visaforte.com/sitemap.xml` → URL-Inspect the homepage and request indexing on /, /services, /visas, /assessment.
+> 4. **Decide**: add GA4 (+ intake source field)? Both are new code with privacy-policy implications — separate task if yes.
+
 - **Cloudflare**: turn on "Allow verified bots" / ensure Bot Fight Mode isn't challenging Googlebot & Bingbot (the current 403-to-bots is what's blocking indexing). Keep the AI-crawler `Disallow` rules if desired.
 - **Google Search Console**: verify domain (DNS TXT), submit `sitemap.xml`, run URL Inspection on the homepage, request indexing on the key URLs.
 - **GA4 + attribution**: confirm GA4 is recording; define UTM conventions; ensure the booking/contact intake has a "how did you hear about us?" source field. Verify: Search Console reports "URL is available to Google."

@@ -1,3 +1,11 @@
+## Session 2026-07-11 — Secrets verification + SEO foundation (PR #1)
+
+- [x] Phase 0: verified `.env.local` never committed on any ref (371+ commits scanned) — no rotation, no history rewrite needed; plan annotated
+- [x] Phase 1: Render removed — `render.yaml` deleted, tech.md/todo.md/security.md Vercel-only
+- [x] Phase 2: robots.ts, sitemap.ts, opengraph-image.tsx, metadataBase + JSON-LD in layout, `buildMetadata()` canonical/OG on all 13 public pages; build + tsc + 340/340 tests green; code-reviewed
+- [x] Fixed stale test: canvisa-lite PNP cutoff now derived from live draw JSON
+- [ ] **Prash: merge PR #1** → then Phase 3 runbook in `tasks/secrets-seo-launch-plan.md` (Cloudflare bot check, Search Console + sitemap submission, GA4 decision)
+
 # tasks/todo.md — Active Task List
 > Written by Claude Code before implementation begins.
 > Approved by Prash before any code is written.
