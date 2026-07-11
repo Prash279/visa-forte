@@ -1,7 +1,7 @@
 // Tests for lead-capture input validation and draw-alert upsert semantics.
 // Route handler tests mock db + resend rather than hitting a real DB.
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { z } from 'zod'
 
 // ── Schema extracted for direct testing ────────────────────────────────────

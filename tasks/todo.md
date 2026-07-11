@@ -10,8 +10,8 @@
 - [x] Tests (340/340) + tsc + prod build green — 2026-07-11. Note: local `.env.local` lacks `RESEND_API_KEY`/`BETTER_AUTH_SECRET`, so local `next build` needs dummy values; Vercel has the real ones
 - [x] Diff summary shown → Prash approved → committed → PR #2 merged to main 2026-07-11
 - [x] Follow-up: PR #3 fixed 6 pre-existing `react/no-unescaped-entities` lint errors in `page.tsx` (red since PR #1) — main CI green again (verified: run "Merge pull request #3" = success)
-- [ ] **Prash**: create GA4 property at analytics.google.com → add `NEXT_PUBLIC_GA_ID` (G-XXXXXXX) in Vercel env vars → redeploy
-- **Scoped out**: booking form source field (payment route is a halt-and-ask zone; first-touch attribution lives on the lead form — add to bookings later only if needed); GA4 property creation itself (Prash does this in analytics.google.com, ~5 min, steps provided at the end)
+- [x] **Prash**: create GA4 property at analytics.google.com → add `NEXT_PUBLIC_GA_ID` in Vercel env vars → redeploy — **DONE 2026-07-11**. Property "Visa Forte" / stream "Visa Forte Web", Measurement ID **G-1PD69792T8**. Set as `NEXT_PUBLIC_GA_ID` in Vercel Production only (Preview/Dev left off so test traffic stays out of the data), redeployed. Verified live in GA4 → Realtime: 1 active user (Hyderabad), `first_visit`/`page_view`/`session_start` firing, correct page title picked up. No manual `<script>` tag needed — `layout.tsx` already renders `@next/third-parties` `GoogleAnalytics` gated on the env var. Home-screen "No data received yet" banner is just stale cache; Realtime is the authoritative signal.
+- **Scoped out**: booking form source field (payment route is a halt-and-ask zone; first-touch attribution lives on the lead form — add to bookings later only if needed)
 
 ---
 
