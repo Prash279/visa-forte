@@ -20,7 +20,7 @@ export default function Home() {
         <div className="hero-inner">
           <p className="hero-eyebrow">Express Entry · Federal Skilled Worker · Provincial Nominee Programs</p>
           <h1 className="hero-headline">
-            The IRCC Doesn't Reject<br />Candidates. It Rejects <em>Documents.</em>
+            The IRCC Doesn&apos;t Reject<br />Candidates. It Rejects <em>Documents.</em>
           </h1>
           <div className="hero-rule" />
           <p className="hero-sub">
@@ -95,7 +95,7 @@ export default function Home() {
               <div className="stake-n">06</div>
               <div className="stake-title">Outdated Regulatory Framework</div>
               <p className="stake-body">
-                With arranged employment points removed in March 2025 and category-based draws replacing simple CRS ranking, the strategic sequencing of how a file is presented has changed materially. Documentation prepared against last year's criteria may be structurally misaligned with what IRCC is currently evaluating.
+                With arranged employment points removed in March 2025 and category-based draws replacing simple CRS ranking, the strategic sequencing of how a file is presented has changed materially. Documentation prepared against last year&apos;s criteria may be structurally misaligned with what IRCC is currently evaluating.
               </p>
             </div>
           </div>
@@ -112,7 +112,7 @@ export default function Home() {
           </p>
           <div className="forensic-callout r d3">
             <p>
-              "Big agencies pass your file to junior clerks. I provide forensic-level document triage to ensure your application is structurally perfect and bulletproof before it ever enters the IRCC system."
+              &ldquo;Big agencies pass your file to junior clerks. I provide forensic-level document triage to ensure your application is structurally perfect and bulletproof before it ever enters the IRCC system.&rdquo;
             </p>
             <cite>Prashant Thirthingoth · Senior Documentation Consultant · Visa Forte</cite>
           </div>
@@ -128,7 +128,7 @@ export default function Home() {
               <div className="f-card-bar" />
               <h3 className="f-card-title">Current Criteria. Every Time.</h3>
               <p className="f-card-body">
-                IRCC requirements shift without announcement. The NOC-to-TEER transition. The removal of arranged employment points in March 2025. Category-based draw priorities replacing simple CRS ranking. Every review is conducted against what IRCC is evaluating today — not last year's template, not a cached checklist from the previous draw cycle.
+                IRCC requirements shift without announcement. The NOC-to-TEER transition. The removal of arranged employment points in March 2025. Category-based draw priorities replacing simple CRS ranking. Every review is conducted against what IRCC is evaluating today — not last year&apos;s template, not a cached checklist from the previous draw cycle.
               </p>
             </div>
             <div className="f-card r d3">
@@ -266,7 +266,7 @@ export default function Home() {
         <div className="final-cta-inner">
           <p className="eyebrow r">Begin Your Assessment</p>
           <h2 className="final-headline r d1">
-            Your Documentation Is Either <em>Bulletproof</em> —<br />or It Isn't.
+            Your Documentation Is Either <em>Bulletproof</em> —<br />or It Isn&apos;t.
           </h2>
           <p className="final-body r d2">
             Request a Document Triage Assessment to find out precisely where your file stands. This is a personal review, not an automated response. Capacity is limited to the files that can be reviewed with the attention they require.
