@@ -18,7 +18,7 @@ export default function PrivacyPolicyPage() {
       <section className="policy-header">
         <p className="policy-eyebrow">Legal</p>
         <h1 className="policy-title">Privacy Policy</h1>
-        <p className="policy-meta">Effective date: April 2026 · Last updated: April 2026</p>
+        <p className="policy-meta">Effective date: April 2026 · Last updated: July 2026</p>
       </section>
 
       <article className="policy-body">
@@ -141,10 +141,14 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="policy-section">
-          <h2 className="policy-h2">7. Cookies</h2>
+          <h2 className="policy-h2">7. Cookies &amp; Analytics</h2>
           <p>
-            visaforte.com uses only essential session cookies required for authentication.
-            We do not use tracking cookies, analytics cookies, or advertising cookies.
+            visaforte.com uses essential session cookies required for authentication, and
+            Google Analytics 4 cookies to understand how visitors use the site (pages viewed,
+            approximate location, and how you arrived here). Analytics data is aggregated and
+            is never linked to the personal information you submit through our forms. We do
+            not use advertising cookies. You can block analytics cookies in your browser
+            settings without affecting any site functionality.
           </p>
         </section>
 

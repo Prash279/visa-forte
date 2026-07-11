@@ -58,6 +58,7 @@ export default async function AdminPage() {
       email: leads.email,
       serviceInterest: leads.serviceInterest,
       notes: leads.notes,
+      referralSource: leads.referralSource,
       resumeFilename: leads.resumeFilename,
       status: leads.status,
       createdAt: leads.createdAt,

@@ -66,6 +66,7 @@ export const leads = pgTable('leads', {
   phone: text('phone'),                                       // optional
   serviceInterest: text('service_interest').notNull(),        // one of the 8 service tier names
   notes: text('notes'),                                       // optional free-text from the prospect
+  referralSource: text('referral_source'),                   // optional "how did you hear about us" answer
   resumeUrl: text('resume_url'),                             // base64 data URI of uploaded resume
   resumeFilename: text('resume_filename'),                   // original filename of uploaded resume
   status: text('status').notNull().default('new'),            // 'new' | 'contacted' | 'converted'

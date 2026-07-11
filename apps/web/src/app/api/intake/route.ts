@@ -4,6 +4,17 @@ import { db } from '@/lib/db';
 import { leads } from '../../../../drizzle/schema';
 import { log } from '@/lib/logger';
 
+// Marketing channels accepted for "How did you hear about us?".
+// Must stay in sync with REFERRAL_SOURCES in the intake form page.
+const REFERRAL_SOURCES = [
+  'Google Search',
+  'LinkedIn',
+  'YouTube',
+  'Instagram / Facebook',
+  'Referral from a friend or family member',
+  'Other',
+] as const;
+
 // Validates the intake form payload before anything touches the database.
 const IntakeSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
@@ -11,6 +22,7 @@ const IntakeSchema = z.object({
   phone: z.string().max(20).optional(),
   serviceInterest: z.string().min(1, 'Please select a service'),
   notes: z.string().max(2000).optional(),
+  referralSource: z.enum(REFERRAL_SOURCES).optional(),
   // DPDP: consent must be explicitly given — server rejects any submission without it
   consentGiven: z.literal(true, { errorMap: () => ({ message: 'Consent is required to proceed' }) }),
 });
@@ -28,7 +40,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
   }
 
-  const { name, email, phone, serviceInterest, notes } = result.data;
+  const { name, email, phone, serviceInterest, notes, referralSource } = result.data;
 
   try {
     await db.insert(leads).values({
@@ -37,6 +49,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       phone: phone ?? null,
       serviceInterest,
       notes: notes ?? null,
+      referralSource: referralSource ?? null,
     });
   } catch (err: unknown) {
     log({ level: 'error', service: 'intake', action: 'insert_lead', result: 'failure',

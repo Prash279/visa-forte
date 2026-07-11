@@ -16,6 +16,17 @@ const SERVICE_TIERS = [
   'Post-Submission Monitoring',
 ];
 
+// Marketing channels shown in the "How did you hear about us?" dropdown.
+// Must stay in sync with REFERRAL_SOURCES in the intake API route.
+const REFERRAL_SOURCES = [
+  'Google Search',
+  'LinkedIn',
+  'YouTube',
+  'Instagram / Facebook',
+  'Referral from a friend or family member',
+  'Other',
+];
+
 type FormState = 'idle' | 'submitting' | 'success' | 'error';
 
 interface FieldErrors {
@@ -63,6 +74,7 @@ export default function IntakePage() {
       phone: (form.elements.namedItem('phone') as HTMLInputElement).value.trim() || undefined,
       serviceInterest,
       notes: (form.elements.namedItem('notes') as HTMLTextAreaElement).value.trim() || undefined,
+      referralSource: (form.elements.namedItem('referralSource') as HTMLSelectElement).value || undefined,
       consentGiven: true,
     };
 
@@ -205,6 +217,25 @@ export default function IntakePage() {
                     {fieldErrors.serviceInterest}
                   </span>
                 )}
+              </div>
+
+              {/* Referral source (optional) — tells Prash which marketing channel produced this lead */}
+              <div className="intake-field">
+                <label className="intake-label" htmlFor="referralSource">
+                  How did you hear about us? <span className="intake-optional">(optional)</span>
+                </label>
+                <select
+                  className="intake-select"
+                  id="referralSource"
+                  name="referralSource"
+                  defaultValue=""
+                  disabled={formState === 'submitting'}
+                >
+                  <option value="">Select an option</option>
+                  {REFERRAL_SOURCES.map((src) => (
+                    <option key={src} value={src}>{src}</option>
+                  ))}
+                </select>
               </div>
 
               {/* Notes (optional) */}

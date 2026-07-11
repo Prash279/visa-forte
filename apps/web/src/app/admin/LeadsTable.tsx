@@ -9,6 +9,7 @@ interface SerializedLead {
   email: string
   serviceInterest: string
   notes: string | null
+  referralSource: string | null
   resumeFilename: string | null
   status: string
   createdAt: string
@@ -61,7 +62,7 @@ export default function LeadsTable({ leads: initialLeads }: Props) {
         <table className="admin-table">
           <thead>
             <tr>
-              {['Name', 'Email', 'Service Interest', 'CRS Score', 'Resume', 'Submitted', 'Status', 'Action', ''].map((h) => (
+              {['Name', 'Email', 'Service Interest', 'Source', 'CRS Score', 'Resume', 'Submitted', 'Status', 'Action', ''].map((h) => (
                 <th key={h}>{h}</th>
               ))}
             </tr>
@@ -84,6 +85,11 @@ export default function LeadsTable({ leads: initialLeads }: Props) {
                   <td>
                     <span className="admin-td-service" title={lead.serviceInterest}>
                       {lead.serviceInterest}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="admin-td-date" title={lead.referralSource ?? undefined}>
+                      {lead.referralSource ?? <span style={{ color: 'var(--muted, #aaa)' }}>—</span>}
                     </span>
                   </td>
                   <td>

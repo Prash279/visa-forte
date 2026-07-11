@@ -2,12 +2,14 @@
 
 > Approved by Prash in-session ("complete the GA4 decision"). Phase 3 config steps all done: Search Console verified, sitemap submitted, indexing requested on 4 key URLs.
 
-- [ ] **GA4**: add `@next/third-parties` (Vercel's own package, matches Next 16.2.2), render `<GoogleAnalytics>` in `layout.tsx` only when `NEXT_PUBLIC_GA_ID` env var is set — so nothing loads until Prash creates the GA4 property and adds the ID in Vercel
-- [ ] **CSP**: allow `www.googletagmanager.com` (script-src) and `*.google-analytics.com` (connect-src) in `next.config.ts` — otherwise the browser silently blocks GA
-- [ ] **Lead source field**: optional "How did you hear about us?" dropdown on `/intake` form → new nullable `referral_source` column on `leads` → shown in the admin leads table
-- [ ] **Privacy policy**: update Section 7 (Cookies) — it currently promises "no analytics cookies", which becomes false the moment GA4 is on
-- [ ] **Migration**: generate the SQL, show Prash the dry-run plan, apply only after his OK (schema = halt-and-ask)
-- [ ] Tests + build green; diff summary before commit
+- [x] **GA4**: add `@next/third-parties` (Vercel's own package, matches Next 16.2.2), render `<GoogleAnalytics>` in `layout.tsx` only when `NEXT_PUBLIC_GA_ID` env var is set — so nothing loads until Prash creates the GA4 property and adds the ID in Vercel
+- [x] **CSP**: allow `www.googletagmanager.com` (script-src) and `*.google-analytics.com` (connect-src) in `next.config.ts` — otherwise the browser silently blocks GA
+- [x] **Lead source field**: optional "How did you hear about us?" dropdown on `/intake` form → new nullable `referral_source` column on `leads` → shown in the admin leads table
+- [x] **Privacy policy**: update Section 7 (Cookies) — it currently promises "no analytics cookies", which becomes false the moment GA4 is on
+- [x] **Migration**: applied to Supabase 2026-07-11 (Prash approved). Note: `drizzle.__drizzle_migrations` journal on Supabase is empty (earlier migrations were pushed, not journaled), so `drizzle-kit migrate` replays from 0000 and fails — additive migrations are applied by running the generated SQL directly; column verified via information_schema after apply
+- [x] Tests (340/340) + tsc + prod build green — 2026-07-11. Note: local `.env.local` lacks `RESEND_API_KEY`/`BETTER_AUTH_SECRET`, so local `next build` needs dummy values; Vercel has the real ones
+- [x] Diff summary shown → Prash approved → committed. PR not yet opened
+- [ ] **Prash**: create GA4 property at analytics.google.com → add `NEXT_PUBLIC_GA_ID` (G-XXXXXXX) in Vercel env vars → redeploy
 - **Scoped out**: booking form source field (payment route is a halt-and-ask zone; first-touch attribution lives on the lead form — add to bookings later only if needed); GA4 property creation itself (Prash does this in analytics.google.com, ~5 min, steps provided at the end)
 
 ---
