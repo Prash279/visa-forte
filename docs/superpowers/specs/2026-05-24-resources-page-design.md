@@ -2,7 +2,11 @@
 **Date:** 2026-05-24
 **Product:** Visa Forte — visaforte.com
 **Author:** Brainstormed with Prashant Thirthingoth
-**Status:** Approved — ready for implementation planning
+**Status:** ⚠️ **PARTIALLY SUPERSEDED — 2026-07-17.** Historical record; preserved as written.
+
+> **Paddle is not the payment rail.** This spec's "Paddle Integration (Phase 2)" section was never built and never will be. Razorpay is the only rail (decision 2026-07-17: India-first; revisit Stripe post-registration once revenue justifies a second rail). The `paddleProductId` field described here is vestigial and is replaced by a `pricingTier` key indexing into `PRICING` (`lib/pricing.ts`).
+>
+> The page layout, card design, filter, and download-route sections of this spec remain accurate and were built as described. For current premium checkout and delivery, see the live pattern in `api/payment/verify/route.ts` and `api/tools/ita-countdown/`, and the current plan: *Resources Page - Plan.md* (Rev 3).
 
 ---
 

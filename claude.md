@@ -108,7 +108,7 @@ Stop, state the conflict in plain English, and await direction when:
 1. A feature requires SaaS in a domain covered by the in-house build mandate.
 2. An immigration regulatory change on `canada.ca` conflicts with existing scoring logic.
 3. The AI is stuck fixing the same error more than 3 consecutive times.
-4. Any change touches: user authentication · session invalidation · Paddle payment processing · core database schema.
+4. Any change touches: user authentication · session invalidation · Razorpay payment processing · core database schema.
 5. A single architectural decision affects more than two active products simultaneously.
 6. A required test framework or package dependency is missing from the environment.
 7. A client data privacy question is not resolved by the existing DPDP architecture.

@@ -211,4 +211,13 @@ If the lesson contains words like "useEffect", "state mismatch", "hydration erro
 
 ---
 
+## Category: Shipping & External Dependencies
+
+**Lesson 4 — Never ship a user-facing path that depends on a manual external step nobody verified**
+- **What went wrong:** Task 4 (Razorpay, April 2026) shipped full USD checkout for international clients. Its own notes recorded the dependency in plain sight — *"Enabling international payments on Razorpay dashboard is a Prash action (required for USD orders)"* — and that action was never completed. Meanwhile `BookingForm.detectCurrency()` auto-selected USD for every non-Indian visitor by browser locale. For roughly three months, every international visitor was silently routed into a checkout that could not complete at the gateway, on service tiers up to $999. Nobody reported it because the people hitting it were strangers who simply left. It surfaced only as a side-finding while auditing an unrelated Resources page plan.
+- **Why it happened:** The dependency was written down as a note, not encoded as a gate. Nothing in the code, tests, or deploy checks asserted that the external capability actually existed before the UI offered it — and the default path (locale auto-detect) *pointed at* the unverified capability rather than away from it. A note in a task file is documentation; it is not a control.
+- **The rule going forward:** When a feature depends on an external capability being switched on (a gateway mode, a domain verification, an API allowlist), the feature does not ship to users until that capability is verified live — by a test transaction or an API check, not by assertion. If it must ship earlier, the unverified path defaults to **off** and is opt-in, never selected automatically. Any "X is a Prash action" note in a plan is a **blocking gate**: no code that requires X reaches production until X is confirmed done. Silent failure on a payment path is invisible revenue loss — the affected users never complain, they just leave.
+
+---
+
 *lessons.md is a living document. Every correction is a lesson. Every lesson is a rule.*

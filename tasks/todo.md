@@ -173,7 +173,7 @@ No subdomains. No split deployments.
 2. Task 3: CanVisa Pro integration (single-file HTML, no backend required)
 3. Task 3A: Client intake form (Next.js server action + Drizzle → Neon)
 4. Task 3B: Booking engine MVP v1 (Next.js server action + Resend + Drizzle)
-5. Task 4: Paddle payment integration (Next.js API route)
+5. Task 4: Razorpay payment integration (Next.js API route) — ✅ complete, see RT-2 below
 6. Task 5: Cloudflare R2 document storage (aws-sdk/client-s3 from Next.js)
 7. Task 8: CI/CD and observability (Phase 1 closer)
 
@@ -347,11 +347,26 @@ Submit a booking. Go to /admin — confirm the booking appears in the table and 
 ---
 
 ### TASK 4: Razorpay Payment Integration
-**Status:** ✅ COMPLETE
+**Status:** ✅ COMPLETE — ⚠️ **USD REMOVED 2026-07-17. The USD half of this task below is superseded.**
 **Approved:** ✅ Approved April 2026
+
+> **What changed and why (2026-07-17).** This task shipped USD support gated on one Prash action that
+> never happened — see "Enabling international payments on Razorpay dashboard is a Prash action
+> (required for USD orders)" below. International payments were never activated, so for ~3 months
+> every non-Indian visitor was auto-switched to USD by `detectCurrency()` (browser locale) and routed
+> into a checkout that could not complete at the gateway, on tiers up to $999. Prash confirmed on
+> 2026-07-17 that international payments are still inactive, and decided: India-first, INR only, add
+> USD back once the gateway is live.
+>
+> **Now:** INR only. USD removed from `pricing.ts`, `create-order`, `verify`, `BookingForm`,
+> resources data/type/card, and CSS. The `bookings.currency` column and the admin USD display branch
+> were deliberately kept so historical records stay truthful; new bookings always write `'INR'`.
+> Restore path documented in `pricing.ts`. Everything below describing a currency toggle, locale
+> auto-detect, or USD pricing is a historical record of what was built, not what runs.
+
 **What this delivers:** All 7 consultation bookings require payment upfront. Clients pay before the
-booking is saved. Razorpay handles INR (Indian clients) and USD (international clients). Prices
-vary by service tier. Payment is verified server-side before any booking record is created.
+booking is saved. Razorpay handles INR. Prices vary by service tier. Payment is verified server-side
+before any booking record is created.
 
 **Provider decision:** Razorpay (replaces original Paddle plan). Razorpay chosen because:
 - Native INR settlement to Indian bank account (Secunderabad)

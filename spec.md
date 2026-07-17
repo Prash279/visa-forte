@@ -171,8 +171,8 @@ The platform serves eight distinct service tiers. These are not interchangeable.
 - CanVisa Pro integration (public-facing version embedded in platform)
 - Basic client intake form
 - Booking engine (core slot management for all 8 tiers)
-- Cloudflare R2 document storage
-- Paddle payment integration
+- Vercel Blob document storage
+- Razorpay payment integration
 
 ### Phase 2 — Client Management
 - Full CRM pipeline (all 9 stages)
@@ -199,7 +199,7 @@ The platform serves eight distinct service tiers. These are not interchangeable.
 | Search | Build (Phase 2) | Client search within CRM only; Postgres full-text search sufficient |
 | Notifications | Build (Phase 3) | Email only initially; no push notifications needed |
 | Authentication | Better Auth | Well-maintained open-source; not worth building from scratch |
-| Payments | Paddle | Tax/compliance complexity justifies a managed MoR |
+| Payments | Razorpay | Only rail that onboards a non-registered individual/sole proprietor. India-first by decision (2026-07-17); revisit Stripe once the business is registered and revenue justifies a second rail |
 | Storage | Vercel Blob | Private blobs, Mumbai region; zero extra accounts — same Vercel dashboard |
 | Database | PostgreSQL (managed) | Infrastructure commodity; managed instance at hosting platform |
 | Email delivery | TBD pipe (Resend or similar) | Commodity; vendor-agnostic interface, swap without app changes |

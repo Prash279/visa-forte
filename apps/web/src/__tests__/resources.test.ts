@@ -46,9 +46,11 @@ describe("getAllFreeResources", () => {
       expect(r.description, `${r.id}: missing description`).toBeTruthy();
       expect(
         (VALID_TYPES as readonly string[]).includes(r.type),
-        `${r.id}: invalid type "${r.type}"`
+        `${r.id}: invalid type "${r.type}"`,
       ).toBe(true);
-      expect(typeof r.featured, `${r.id}: featured must be boolean`).toBe("boolean");
+      expect(typeof r.featured, `${r.id}: featured must be boolean`).toBe(
+        "boolean",
+      );
     }
   });
 
@@ -76,11 +78,12 @@ describe("getAllPremiumResources", () => {
     for (const r of getAllPremiumResources()) {
       expect(r.id, `${r.id}: missing id`).toBeTruthy();
       expect(r.title, `${r.id}: missing title`).toBeTruthy();
-      expect(r.priceINR, `${r.id}: priceINR must be positive`).toBeGreaterThan(0);
-      expect(r.priceUSD, `${r.id}: priceUSD must be positive`).toBeGreaterThan(0);
+      expect(r.priceINR, `${r.id}: priceINR must be positive`).toBeGreaterThan(
+        0,
+      );
       expect(
         (VALID_TYPES as readonly string[]).includes(r.type),
-        `${r.id}: invalid type "${r.type}"`
+        `${r.id}: invalid type "${r.type}"`,
       ).toBe(true);
     }
   });

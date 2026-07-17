@@ -7,7 +7,7 @@
 
 ## 1. Boundary Validation (First Line of Defence)
 
-Every external payload — API request bodies, Paddle webhooks, canada.ca responses, Claude API responses, user form submissions — must be parsed through a Zod (TypeScript) or Pydantic (Python) schema before any business logic executes.
+Every external payload — API request bodies, Razorpay payment callbacks, canada.ca responses, Claude API responses, user form submissions — must be parsed through a Zod (TypeScript) or Pydantic (Python) schema before any business logic executes.
 
 **The rule in one sentence:** Data enters the application as `unknown`. It leaves the boundary layer as a typed, validated object. Nothing in between is negotiable.
 
@@ -59,53 +59,48 @@ async def create_booking(request: BookingRequest):
 
 ---
 
-## 2. Paddle Webhook Verification (HMAC-SHA256)
+## 2. Razorpay Signature Verification (HMAC-SHA256)
 
-Every incoming Paddle webhook must be cryptographically verified before any business logic runs. An unverified webhook that triggers business logic is a critical security failure.
+Razorpay is the only payment rail. Every payment must be cryptographically verified before any business logic runs — before a booking is confirmed, a paid file is released, or a confirmation email is sent. An unverified payment that triggers business logic is a critical security failure.
 
 **Implementation principle:** Claude Code implements this using Node.js's built-in `crypto` module — an established, maintained standard library. No custom cryptographic functions are ever written from scratch. If a well-maintained library exists for a security operation, use it.
 
+**What Razorpay signs:** `HMAC-SHA256(razorpay_order_id + "|" + razorpay_payment_id, RAZORPAY_KEY_SECRET)`. The signature arrives in the checkout handler's response body — not in a header. This differs from a webhook: there is no raw-body requirement, because the signed material is two IDs, not the payload.
+
+**Live implementations:** `apps/web/src/app/api/payment/verify/route.ts` (bookings) and `apps/web/src/app/api/tools/ita-countdown/verify/route.ts` (paid tools). Clone these rather than writing a third variant.
+
 **Implementation pattern:**
 ```typescript
-import crypto from 'crypto'
+import { createHmac, timingSafeEqual } from 'crypto'
 
-// In middleware.ts or the webhook route handler — runs FIRST
-function verifyPaddleWebhook(
-  rawBody: string,        // raw request body string — not parsed JSON
-  signature: string,      // from Paddle-Signature header
-  secret: string          // PADDLE_WEBHOOK_SECRET env var
+// In the verify route handler — runs FIRST, before any business logic
+function verifyRazorpaySignature(
+  orderId: string,
+  paymentId: string,
+  signature: string,
 ): boolean {
-  const hmac = crypto.createHmac('sha256', secret)
-  hmac.update(rawBody)
-  const expectedSignature = hmac.digest('hex')
+  const keySecret = process.env.RAZORPAY_KEY_SECRET ?? ''
+  // Fail closed: a missing secret produces a signature that cannot match.
+  const expected = createHmac('sha256', keySecret)
+    .update(`${orderId}|${paymentId}`)
+    .digest('hex')
 
-  // Constant-time comparison prevents timing attacks
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expectedSignature)
-  )
-}
-
-export async function POST(request: Request) {
-  const rawBody = await request.text() // Must be raw string, not parsed
-  const signature = request.headers.get('Paddle-Signature') ?? ''
-  const secret = process.env.PADDLE_WEBHOOK_SECRET!
-
-  if (!verifyPaddleWebhook(rawBody, signature, secret)) {
-    // Reject immediately — do not log the payload details
-    return new Response('Forbidden', { status: 400 })
-  }
-
-  // Signature verified — safe to parse and process
-  const event = JSON.parse(rawBody)
-  // ... business logic
+  const a = Buffer.from(expected, 'hex')
+  const b = Buffer.from(signature, 'hex')
+  // timingSafeEqual throws on length mismatch — check first.
+  if (a.length !== b.length) return false
+  return timingSafeEqual(a, b)
 }
 ```
 
 **Critical notes:**
-- Read the body as raw text (`request.text()`) — not `request.json()`. JSON parsing before HMAC verification breaks the signature check.
-- Use `crypto.timingSafeEqual` — regular string comparison is vulnerable to timing attacks.
-- Return HTTP 400, not 401. Do not leak information about why the request was rejected.
+- Verify the signature BEFORE the business logic — not after, not in parallel.
+- Amounts are never trusted from the client. The order is created server-side from the `PRICING` table (`lib/pricing.ts`); the client sends only a tier key. See `api/payment/create-order/route.ts`.
+- Use `crypto.timingSafeEqual` — regular `===`/`!==` string comparison is vulnerable to timing attacks. Guard the length first, or `timingSafeEqual` throws.
+- Fail closed when `RAZORPAY_KEY_SECRET` is absent. Never skip verification because a key is missing.
+- Return HTTP 400. Do not leak why the request was rejected, and never log the payload or payment IDs.
+
+**`[GAP — 2026-07-17]`** The two live verify routes compare with `expectedSignature !== razorpaySignature` (plain string comparison), not `timingSafeEqual`. This is a real but low-severity timing-attack surface: exploiting it requires many thousands of samples against a per-payment signature that is only valid once. Scheduled for repair in the Resources Page plan (M1) — do not copy the current comparison into new routes; use the pattern above.
 
 ---
 
@@ -246,8 +241,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     database_url: str
-    paddle_webhook_secret: str
-    cloudflare_r2_access_key: str
+    razorpay_key_secret: str
     anthropic_api_key: str  # Server-side only
 
     class Config:
@@ -375,7 +369,7 @@ Before marking any new endpoint complete, confirm each of the following:
 | Security Misconfiguration | No stack traces or internal error details in API responses. Log internally; return generic error to client. |
 | Outdated Components | `[VERIFY]` tag added for any new dependency. CVE check before adding to package.json. |
 | Broken Auth (sessions) | Session token rotation on privilege escalation. Invalidation on suspension fires at middleware. |
-| Data Integrity | Paddle webhook HMAC-SHA256 verified. Migration files reviewed before applying. |
+| Data Integrity | Razorpay payment signature HMAC-SHA256 verified before business logic. Order amounts sourced server-side from `PRICING`, never from the client. Migration files reviewed before applying. |
 | Logging Failures | Auth events, payment events, transcript downloads, and deletion events all logged with timestamp and actor ID. |
 | SSRF | No user-supplied URLs fetched server-side. `canada.ca` and `api.anthropic.com` are the only permitted outbound fetch targets. |
 

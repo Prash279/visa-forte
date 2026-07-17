@@ -8,12 +8,12 @@ import type { ResourceType } from "@/lib/resources";
 
 // Human-readable label for each resource type (shown as the badge text)
 const TYPE_LABELS: Record<ResourceType, string> = {
-  guide:      "Guide",
-  checklist:  "Checklist",
+  guide: "Guide",
+  checklist: "Checklist",
   cheatsheet: "Cheat Sheet",
-  sample:     "Sample Format",
-  letter:     "Letter Template",
-  timeline:   "Timeline",
+  sample: "Sample Format",
+  letter: "Letter Template",
+  timeline: "Timeline",
   comparison: "Comparison Table",
 };
 
@@ -34,7 +34,6 @@ interface PremiumCardProps {
   category: string;
   description: string;
   priceINR: number;
-  priceUSD: number;
 }
 
 type ResourceCardProps = FreeCardProps | PremiumCardProps;
@@ -44,7 +43,9 @@ export default function ResourceCard(props: ResourceCardProps): JSX.Element {
     <article className={`resource-card resource-card--${props.kind}`}>
       {/* Header row: type badge + category */}
       <div className="resource-card-header">
-        <span className={`resource-type-badge resource-type-badge--${props.type}`}>
+        <span
+          className={`resource-type-badge resource-type-badge--${props.type}`}
+        >
           {TYPE_LABELS[props.type]}
         </span>
         <span className="resource-category">{props.category}</span>
@@ -70,7 +71,6 @@ export default function ResourceCard(props: ResourceCardProps): JSX.Element {
               <span className="resource-price-inr">
                 ₹{props.priceINR.toLocaleString("en-IN")}
               </span>
-              <span className="resource-price-usd">${props.priceUSD} USD</span>
             </div>
             <button
               className="resource-cta resource-cta--premium"

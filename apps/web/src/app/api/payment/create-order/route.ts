@@ -1,11 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import Razorpay from 'razorpay';
-import { PRICING, getAmountInSmallestUnit } from '@/lib/pricing';
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import Razorpay from "razorpay";
+import { PRICING, getAmountInSmallestUnit } from "@/lib/pricing";
 
 const Schema = z.object({
   serviceTier: z.string().min(1),
-  currency: z.enum(['INR', 'USD']),
 });
 
 // Creates a Razorpay order server-side and returns the order ID + public key to the client.
@@ -15,32 +14,47 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
 
   const result = Schema.safeParse(body);
   if (!result.success) {
-    return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: result.error.flatten() },
+      { status: 400 },
+    );
   }
 
-  const { serviceTier, currency } = result.data;
+  const { serviceTier } = result.data;
 
   // Guard: tier must exist in the approved pricing table.
   if (!PRICING[serviceTier]) {
-    return NextResponse.json({ error: 'Invalid service tier.' }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid service tier." },
+      { status: 400 },
+    );
   }
 
-  const amount = getAmountInSmallestUnit(serviceTier, currency);
+  const amount = getAmountInSmallestUnit(serviceTier);
 
   if (amount === null) {
-    return NextResponse.json({ error: 'Pricing not available for this tier and currency.' }, { status: 400 });
+    return NextResponse.json(
+      { error: "Pricing not available for this tier." },
+      { status: 400 },
+    );
   }
 
   // Guard: Razorpay keys must be configured before orders can be created.
   if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
     return NextResponse.json(
-      { error: 'Payment system is not configured yet. Please contact us directly.' },
-      { status: 503 }
+      {
+        error:
+          "Payment system is not configured yet. Please contact us directly.",
+      },
+      { status: 503 },
     );
   }
 
@@ -52,7 +66,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const order = await razorpay.orders.create({
       amount,
-      currency,
+      currency: "INR",
       // receipt is a short reference visible in the Razorpay dashboard.
       receipt: `vf_${Date.now()}`,
     });
@@ -65,10 +79,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       keyId: process.env.RAZORPAY_KEY_ID,
     });
   } catch (err) {
-    console.error('Razorpay order creation failed:', err);
+    console.error("Razorpay order creation failed:", err);
     return NextResponse.json(
-      { error: 'Could not initiate payment. Please try again.' },
-      { status: 500 }
+      { error: "Could not initiate payment. Please try again." },
+      { status: 500 },
     );
   }
 }
