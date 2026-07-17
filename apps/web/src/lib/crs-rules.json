@@ -123,8 +123,18 @@
     }
   },
   "sectionD": {
+    "maxTotal": 600,
     "provincialNomination": 600,
-    "sibling": 15
+    "sibling": 15,
+    "frenchLanguageBonus": {
+      "nclc7PlusEnglishClb4OrLower": 25,
+      "nclc7PlusEnglishClb5OrHigher": 50
+    },
+    "canadianEducation": {
+      "credential1to2Years": 15,
+      "credential3YearsOrLonger": 30
+    },
+    "_note": "frenchLanguageBonus + canadianEducation verified against canada.ca crs-criteria.html (date modified 2026-06-22) on 2026-07-18. French bonus is two-tier (25/50), not a flat 50. NOT YET consumed by crs-calculator.ts Section D (which sums only provincialNomination + sibling) — wiring these into scoring needs new profile inputs (French-vs-English language identity; Canadian-credential tier)."
   },
   "fsw": {
     "passmark": 67,

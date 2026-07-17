@@ -21,6 +21,11 @@ export type EducationLevel =
   | 'masters'
   | 'doctoral';
 
+// CRS Section D Canadian-education bonus tier. Distinct from the FSW adaptability
+// `hasCanadianEducation` flag — different grid, different threshold.
+export type CanadianEducationLevel =
+  'none' | 'one_or_two_year' | 'three_year_plus';
+
 export type LanguageTestType =
   'IELTS_GT' | 'IELTS_Academic' | 'CELPIP' | 'TEF' | 'TCF';
 
@@ -70,6 +75,7 @@ export interface ApplicantProfile {
   // Additional
   hasProvincialNomination: boolean;
   hasSiblingInCanada?: boolean; // CRS Section D: see crs-rules.json sectionD.sibling
+  canadianEducationLevel?: CanadianEducationLevel; // CRS Section D bonus (15/30); see crs-rules.json sectionD.canadianEducation
   hasJobOffer?: 'lmia' | 'exempt' | 'none'; // FSW adaptability: +5 pts (arranged employment)
   // Adaptability (FSW-specific)
   hasCanadianEducation: boolean;
@@ -103,6 +109,8 @@ export interface CrsBreakdown {
   // D: Additional
   provincialNomination: number;
   siblingPoints: number;
+  frenchBonusPoints: number;
+  canadianEducationPoints: number;
   additionalTotal: number;
   // Grand total
   total: number;
@@ -482,6 +490,63 @@ function fswAdaptabilityPoints(
   return Math.min(rules.fsw.adaptabilityMax, pts);
 }
 
+// ── Section D — Additional points ─────────────────────────────────────────────
+
+function isFrenchTest(testType: LanguageTestType): boolean {
+  return testType === 'TEF' || testType === 'TCF';
+}
+
+function allAbilitiesAtLeast(bands: LanguageBands, min: number): boolean {
+  return (
+    bands.listening >= min &&
+    bands.reading >= min &&
+    bands.writing >= min &&
+    bands.speaking >= min
+  );
+}
+
+// CRS Section D French-language bonus (0/25/50). Language identity is taken from the
+// test type: TEF/TCF = French, IELTS/CELPIP = English — so no separate profile field
+// is needed. Requires NCLC 7+ on all four French abilities; the tier then depends on
+// English: CLB 5+ on all four English abilities → 50, otherwise (English below CLB 5
+// or no English test) → 25.
+function frenchLanguageBonus(profile: ApplicantProfile): number {
+  const first = profile.firstLanguageScores;
+  const second =
+    profile.hasSecondLanguage && profile.secondLanguageScores
+      ? profile.secondLanguageScores
+      : undefined;
+
+  const frenchScores = isFrenchTest(first.testType)
+    ? first
+    : second && isFrenchTest(second.testType)
+      ? second
+      : undefined;
+  if (!frenchScores) return 0;
+
+  if (!allAbilitiesAtLeast(scoresToClb(frenchScores), 7)) return 0;
+
+  const englishScores = !isFrenchTest(first.testType)
+    ? first
+    : second && !isFrenchTest(second.testType)
+      ? second
+      : undefined;
+
+  const bonus = rules.sectionD.frenchLanguageBonus;
+  if (englishScores && allAbilitiesAtLeast(scoresToClb(englishScores), 5)) {
+    return bonus.nclc7PlusEnglishClb5OrHigher;
+  }
+  return bonus.nclc7PlusEnglishClb4OrLower;
+}
+
+// CRS Section D Canadian post-secondary education bonus (0/15/30).
+function canadianEducationBonus(level?: CanadianEducationLevel): number {
+  const b = rules.sectionD.canadianEducation;
+  if (level === 'three_year_plus') return b.credential3YearsOrLonger;
+  if (level === 'one_or_two_year') return b.credential1to2Years;
+  return 0;
+}
+
 // ── Proof of Funds ────────────────────────────────────────────────────────────
 // Values live in proof-of-funds.json and are auto-updated daily by GitHub Actions.
 // Do not edit the numbers there manually — the script overwrites them.
@@ -639,7 +704,13 @@ function buildScenarios(
 
   // Scenario: provincial nomination
   if (!profile.hasProvincialNomination) {
-    const pnpDelta = rules.sectionD.provincialNomination;
+    // Adding PNP lifts Section D to the 600 cap; the real gain is 600 minus the
+    // Section D points the applicant already holds (sibling + French + Canadian edu).
+    const nonPnpSectionD =
+      (profile.hasSiblingInCanada ? rules.sectionD.sibling : 0) +
+      frenchLanguageBonus(profile) +
+      canadianEducationBonus(profile.canadianEducationLevel);
+    const pnpDelta = rules.sectionD.maxTotal - nonPnpSectionD;
     scenarios.push({
       name: 'Provincial Nomination (PNP)',
       change: 'Receive Enhanced PNP nomination',
@@ -944,12 +1015,19 @@ export function calculate(profile: ApplicantProfile): CrsResult {
     eduLangTr + eduCanTr + foreignLangTr + foreignCanTr,
   );
 
-  // Section D — Additional
+  // Section D — Additional (capped at 600 per canada.ca)
   const provinceNom = profile.hasProvincialNomination
     ? rules.sectionD.provincialNomination
     : 0;
   const siblingPts = profile.hasSiblingInCanada ? rules.sectionD.sibling : 0;
-  const additionalTotal = provinceNom + siblingPts;
+  const frenchBonusPts = frenchLanguageBonus(profile);
+  const canadianEducationPts = canadianEducationBonus(
+    profile.canadianEducationLevel,
+  );
+  const additionalTotal = Math.min(
+    rules.sectionD.maxTotal,
+    provinceNom + siblingPts + frenchBonusPts + canadianEducationPts,
+  );
 
   const total = coreTotal + transferTotal + additionalTotal;
 
@@ -968,6 +1046,8 @@ export function calculate(profile: ApplicantProfile): CrsResult {
     transferTotal,
     provincialNomination: provinceNom,
     siblingPoints: siblingPts,
+    frenchBonusPoints: frenchBonusPts,
+    canadianEducationPoints: canadianEducationPts,
     additionalTotal,
     total,
   };

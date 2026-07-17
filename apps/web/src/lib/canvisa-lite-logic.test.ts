@@ -32,6 +32,8 @@ function makeResult(
       transferTotal: 20,
       provincialNomination: 0,
       siblingPoints: 0,
+      frenchBonusPoints: 0,
+      canadianEducationPoints: 0,
       additionalTotal: 0,
     },
     firstLanguageBands: { listening: 9, reading: 8, writing: 8, speaking: 8 },

@@ -9,6 +9,7 @@ import {
   type LanguageBands,
   type CrsResult,
   type EducationLevel,
+  type CanadianEducationLevel,
   type StreamEligibility,
   type FswImprovementSuggestion,
   type FswGrid,
@@ -582,6 +583,7 @@ const INITIAL: ApplicantProfile = {
   hasCanadianEducation: false,
   hasFamilyInCanada: false,
   hasSiblingInCanada: false,
+  canadianEducationLevel: 'none' as const,
   settlementFunds: minSettlementFunds(1),
   familySize: 1,
   hasCriminalRecord: false,
@@ -2092,6 +2094,35 @@ export default function CanVisaProTool() {
                 Has sibling in Canada (citizen or PR) (+15 CRS)
               </span>
             </label>
+          </div>
+
+          {/* 6b: Canadian post-secondary credential — CRS Section D bonus */}
+          <div className="cvp-field" style={{ marginTop: '1.5rem' }}>
+            <label className="cvp-label">
+              Canadian post-secondary credential (CRS additional points)
+            </label>
+            <select
+              className="cvp-select"
+              value={profile.canadianEducationLevel ?? 'none'}
+              onChange={(e) =>
+                set(
+                  'canadianEducationLevel',
+                  e.target.value as CanadianEducationLevel,
+                )
+              }
+            >
+              <option value="none">None</option>
+              <option value="one_or_two_year">
+                1–2 year credential (+15 CRS)
+              </option>
+              <option value="three_year_plus">
+                3 years or longer (+30 CRS)
+              </option>
+            </select>
+            <span className="cvp-hint">
+              Distinct from the FSW checkbox above — CRS Section D bonus for a
+              credential earned in Canada.
+            </span>
           </div>
 
           {/* 6c: Job Offer */}

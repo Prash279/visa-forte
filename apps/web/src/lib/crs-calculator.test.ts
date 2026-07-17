@@ -402,3 +402,140 @@ describe('calculate — Harish Naik with-spouse Factor B verification', () => {
     expect(result).toMatchSnapshot();
   });
 });
+
+describe('calculate — Section D bonuses (French + Canadian education)', () => {
+  // French scores verified in the TCF conversion tests above:
+  //   CLB 7 all four = L458/R453/W10/S10 ; below CLB 4 = L100/R100/W1/S1.
+  // Expected point values from canada.ca crs-criteria.html (Additional points, max 600).
+  const frenchClb7: LanguageScores = {
+    testType: 'TCF',
+    listening: 458,
+    reading: 453,
+    writing: 10,
+    speaking: 10,
+  };
+  const frenchBelow7: LanguageScores = {
+    testType: 'TCF',
+    listening: 100,
+    reading: 100,
+    writing: 1,
+    speaking: 1,
+  };
+  const englishClb5: LanguageScores = {
+    testType: 'CELPIP',
+    listening: 5,
+    reading: 5,
+    writing: 5,
+    speaking: 5,
+  };
+  const englishClb4: LanguageScores = {
+    testType: 'CELPIP',
+    listening: 4,
+    reading: 4,
+    writing: 4,
+    speaking: 4,
+  };
+
+  it('French bonus = 25 when NCLC 7+ all four and no English test', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      firstLanguageScores: frenchClb7,
+      hasSecondLanguage: false,
+    });
+    expect(r.breakdown.frenchBonusPoints).toBe(25);
+  });
+
+  it('French bonus = 25 when NCLC 7+ all four but English below CLB 5', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      firstLanguageScores: frenchClb7,
+      hasSecondLanguage: true,
+      secondLanguageScores: englishClb4,
+    });
+    expect(r.breakdown.frenchBonusPoints).toBe(25);
+  });
+
+  it('French bonus = 50 when NCLC 7+ all four and English CLB 5+ all four', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      firstLanguageScores: frenchClb7,
+      hasSecondLanguage: true,
+      secondLanguageScores: englishClb5,
+    });
+    expect(r.breakdown.frenchBonusPoints).toBe(50);
+  });
+
+  it('French bonus = 0 when French below NCLC 7 in any ability', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      firstLanguageScores: frenchBelow7,
+      hasSecondLanguage: false,
+    });
+    expect(r.breakdown.frenchBonusPoints).toBe(0);
+  });
+
+  it('French bonus = 0 for an English-only profile', () => {
+    expect(calculate(kishoreProfile).breakdown.frenchBonusPoints).toBe(0);
+  });
+
+  it('Canadian education bonus = 15 for a one-or-two-year credential', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      canadianEducationLevel: 'one_or_two_year',
+    });
+    expect(r.breakdown.canadianEducationPoints).toBe(15);
+  });
+
+  it('Canadian education bonus = 30 for a three-year-or-longer credential', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      canadianEducationLevel: 'three_year_plus',
+    });
+    expect(r.breakdown.canadianEducationPoints).toBe(30);
+  });
+
+  it('Canadian education bonus = 0 when no Canadian credential', () => {
+    expect(calculate(kishoreProfile).breakdown.canadianEducationPoints).toBe(0);
+  });
+
+  it('French + sibling add to Section D without PNP (50 + 15 = 65)', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      firstLanguageScores: frenchClb7,
+      hasSecondLanguage: true,
+      secondLanguageScores: englishClb5,
+      hasSiblingInCanada: true,
+    });
+    expect(r.breakdown.additionalTotal).toBe(65);
+  });
+
+  it('Section D is capped at 600 (600 + 15 + 50 + 30 = 695 → 600)', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      firstLanguageScores: frenchClb7,
+      hasSecondLanguage: true,
+      secondLanguageScores: englishClb5,
+      hasProvincialNomination: true,
+      hasSiblingInCanada: true,
+      canadianEducationLevel: 'three_year_plus',
+    });
+    expect(r.breakdown.frenchBonusPoints).toBe(50);
+    expect(r.breakdown.canadianEducationPoints).toBe(30);
+    expect(r.breakdown.additionalTotal).toBe(600);
+  });
+
+  it('PNP improvement scenario delta is cap-aware (600 minus existing Section D points)', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      firstLanguageScores: frenchClb7,
+      hasSecondLanguage: true,
+      secondLanguageScores: englishClb5,
+      hasSiblingInCanada: true, // non-PNP Section D = 50 + 15 = 65
+    });
+    const pnp = r.scenarios.find(
+      (s) => s.name === 'Provincial Nomination (PNP)',
+    );
+    expect(pnp).toBeDefined();
+    expect(pnp!.delta).toBe(600 - 65);
+  });
+});

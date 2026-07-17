@@ -9,6 +9,7 @@ import {
   type LanguageScores,
   type CrsResult,
   type EducationLevel,
+  type CanadianEducationLevel,
   type StreamEligibility,
   type LanguageBands,
   type FswImprovementSuggestion,
@@ -279,6 +280,7 @@ const INITIAL: ApplicantProfile = {
   hasSpouse: false,
   hasProvincialNomination: false,
   hasSiblingInCanada: false,
+  canadianEducationLevel: 'none',
   hasJobOffer: 'none',
   hasCanadianEducation: false,
   hasFamilyInCanada: false,
@@ -1210,6 +1212,34 @@ export default function AssessmentTool() {
                   or PR (+15 CRS)
                 </span>
               </label>
+            </div>
+
+            <div className="asx-field" style={{ marginTop: '1.25rem' }}>
+              <label className="asx-label">
+                Canadian post-secondary credential (CRS additional points)
+              </label>
+              <select
+                className="asx-select"
+                value={profile.canadianEducationLevel ?? 'none'}
+                onChange={(e) =>
+                  set(
+                    'canadianEducationLevel',
+                    e.target.value as CanadianEducationLevel,
+                  )
+                }
+              >
+                <option value="none">None</option>
+                <option value="one_or_two_year">
+                  1–2 year credential (+15 CRS)
+                </option>
+                <option value="three_year_plus">
+                  3 years or longer (+30 CRS)
+                </option>
+              </select>
+              <span className="asx-hint">
+                Separate from the FSW checkbox above — this is the CRS Section D
+                bonus for a credential earned in Canada.
+              </span>
             </div>
 
             <div className="asx-field" style={{ marginTop: '1.25rem' }}>

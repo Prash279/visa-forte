@@ -1,3 +1,25 @@
+## Session 2026-07-18 — CRS Section D bonuses: French + Canadian education (branch `feat/resources-inr-only`)
+
+> Approved by Prash in-session ("Proceed"). Root finding: the CRS calculator's Section D summed only
+> PNP + sibling — it never awarded the French-language bonus (25/50) or the Canadian post-secondary
+> bonus (15/30), so /assessment and /admin/canvisa-pro **under-scored** French-proficient and
+> Canadian-educated applicants. Fixed end-to-end, TDD, all figures verified live against canada.ca
+> crs-criteria.html (date modified 2026-06-22) via the curl-through-Bash path.
+
+- [x] `crs-rules.json` `sectionD`: added `frenchLanguageBonus` (two-tier **25/50** — 25 when English CLB ≤4/none, 50 when English CLB 5+ all four), `canadianEducation` (**15** 1–2yr / **30** 3yr+), and `maxTotal: 600` (Section D cap). All from crs-criteria.html.
+- [x] `crs-calculator.ts`: new `CanadianEducationLevel` type + optional `canadianEducationLevel` on `ApplicantProfile`; `frenchBonusPoints`/`canadianEducationPoints` on `CrsBreakdown`; `frenchLanguageBonus()` (derives French vs English from test type — TEF/TCF vs IELTS/CELPIP, no new language field needed) + `canadianEducationBonus()`; Section D now `min(600, pnp+sibling+french+cdnEdu)`.
+- [x] Latent bug also fixed: Section D was uncapped (PNP 600 + sibling 15 = 615 > the 600 max). Now capped.
+- [x] PNP improvement scenario delta made cap-aware (600 − existing Section D points, not a flat +600).
+- [x] UI: added "Canadian post-secondary credential (CRS additional points)" select (none / 1–2yr +15 / 3yr+ +30) to `/assessment` Section 7 and `/admin/canvisa-pro` Section 6, kept distinct from the existing FSW "Studied in Canada 2+yr" checkbox. French bonus needs **no** new control — derived from the language test already entered.
+- [x] TDD: 11 new tests in `crs-calculator.test.ts` (French 25/25/50/0/0, Canadian edu 15/30/0, 600 cap, cap-aware PNP scenario), expected values from canada.ca. Snapshots updated — diff is ONLY the two additive `*Points: 0` fields + the rules-hash bump (2ceb4a21→9b674267); no existing score moved.
+- [x] `tsc --noEmit` clean; `vitest run` **355/355** (was 344); eslint clean on changed files.
+- [ ] **Prashant Proof (browser) — pending Prash:** see report. Verify the new select renders and a French/Canadian-education profile shows the higher CRS on both tools.
+- [ ] Not committed — awaiting Prash's push instruction per git-workflow.md.
+
+**Still open (flagged, not built):** the FSW `hasCanadianEducation` checkbox and the new Section D tier are two separate controls (each maps to a different grid — FSW adaptability vs CRS Section D). Left independent to avoid changing FSW behavior; unify later if Prash prefers a single control.
+
+---
+
 ## Session 2026-07-11 (later) — GA4 + lead attribution (branch `feat/ga4-attribution`)
 
 > Approved by Prash in-session ("complete the GA4 decision"). Phase 3 config steps all done: Search Console verified, sitemap submitted, indexing requested on 4 key URLs.
