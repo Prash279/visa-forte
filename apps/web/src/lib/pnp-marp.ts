@@ -3,6 +3,8 @@
 // Cormorant display headings, Sand rules. Narrative sections are prose; tables are
 // reserved for the Eligibility Matrix and the Source & Verification Log.
 // The legal disclaimer (immigration-consulting skill §17) is included verbatim.
+// Figures in this report come from the JSON data layer (crs-rules.json et al),
+// never from that skill — it holds process rules only and carries no numbers.
 
 import { type ApplicantProfile } from './crs-calculator';
 import { titleCaseOccupation } from './noc-format';

@@ -15,9 +15,15 @@
 | `AGENTS.md` | Subagent architecture, task delegation, context handoff protocol | Before spawning any subagent or parallelising work |
 | `tasks/todo.md` | Active task list — plan written here before any code | Every session |
 | `tasks/lessons.md` | Self-improvement log — rules from past corrections | Start of every session — non-negotiable |
-| `/mnt/skills/user/canvisa-pro/SKILL.md` | CanVisa Pro build rules and constraints | Before any CanVisa Pro work |
-| `/mnt/skills/user/immigration-consulting/SKILL.md` | Immigration domain rules, CRS scoring, scope boundary, legal disclaimer | Before any immigration calculation or client-facing output |
-| `/mnt/skills/user/visa-forte-brand/SKILL.md` | Brand colours, typography, voice | Before any UI, document, or client-facing work |
+| `apps/web/src/lib/crs-rules.json` + canada.ca | **The single source of truth for every IRCC figure** — CRS points, CLB conversion, draw cutoffs. Carries `meta.source` and `meta.lastVerified`. | Before stating ANY number in client-facing output |
+| `immigration-consulting` skill (invoke by name) | Process only: documentation standards, employment-letter rules, refusal causes, scope boundary, legal disclaimer. **Contains no figures — by design.** | Before any immigration documentation or client-facing output |
+| `visa-forte-brand` skill (invoke by name) | Brand colours, typography, voice | Before any UI, document, or client-facing work |
+
+> **Skills are invoked by name via the Skill tool — not read from a path.** Earlier revisions of this
+> table pointed at `/mnt/skills/user/...`, a Linux container path that does not exist on this machine;
+> any agent following it literally got "file not found" and silently proceeded without the skill. There
+> is no `canvisa-pro` skill and there never has been — that row was removed rather than left as a
+> mandate that cannot be satisfied. CanVisa Pro's rules live in the code and in `tasks/todo.md`.
 
 ---
 
