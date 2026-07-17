@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { and, eq, lt } from 'drizzle-orm';
 import { Resend } from 'resend';
 import { db } from '@/lib/db';
-import { clients, clientDocuments, auditLog } from '../../../../../drizzle/schema';
+import {
+  clients,
+  clientDocuments,
+  auditLog,
+} from '../../../../../drizzle/schema';
 import { deleteFile } from '@/lib/storage';
 import { log } from '@/lib/logger';
 
@@ -34,15 +38,18 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     .select({ id: clients.id, name: clients.name, email: clients.email })
     .from(clients)
     .where(
-      and(
-        eq(clients.stage, 'Archived'),
-        lt(clients.updatedAt, twoYearsAgo)
-      )
+      and(eq(clients.stage, 'Archived'), lt(clients.updatedAt, twoYearsAgo)),
     )
     .limit(20);
 
   if (expiredClients.length === 0) {
-    log({ level: 'info', service: 'data-retention', action: 'run', result: 'success', metadata: { deleted: 0 } });
+    log({
+      level: 'info',
+      service: 'data-retention',
+      action: 'run',
+      result: 'success',
+      metadata: { deleted: 0 },
+    });
     return NextResponse.json({ deleted: 0 });
   }
 
@@ -78,18 +85,36 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       // Cascade removes clientDocuments, deletionRequests, and messages.
       await db.delete(clients).where(eq(clients.id, client.id));
 
-      summary.push({ name: client.name, email: client.email, filesDeleted: docs.length });
+      summary.push({
+        name: client.name,
+        email: client.email,
+        filesDeleted: docs.length,
+      });
       deleted++;
     } catch (err) {
-      log({ level: 'error', service: 'data-retention', action: 'delete_client', result: 'failure', metadata: { clientId: client.id, error: String(err) } });
+      log({
+        level: 'error',
+        service: 'data-retention',
+        action: 'delete_client',
+        result: 'failure',
+        metadata: { clientId: client.id, error: String(err) },
+      });
     }
   }
 
-  log({ level: 'info', service: 'data-retention', action: 'run', result: 'success', metadata: { deleted } });
+  log({
+    level: 'info',
+    service: 'data-retention',
+    action: 'run',
+    result: 'success',
+    metadata: { deleted },
+  });
 
   if (deleted > 0) {
     const rows = summary
-      .map(s => `• ${s.name} (${s.email}) — ${s.filesDeleted} file(s) removed`)
+      .map(
+        (s) => `• ${s.name} (${s.email}) — ${s.filesDeleted} file(s) removed`,
+      )
       .join('\n');
 
     await resend.emails.send({

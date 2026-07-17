@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server';
 import { and, eq } from 'drizzle-orm';
 import { getCurrentAuthSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { clients, deletionRequests, auditLog } from '../../../../../drizzle/schema';
+import {
+  clients,
+  deletionRequests,
+  auditLog,
+} from '../../../../../drizzle/schema';
 
 // GET /api/portal/deletion-request
 // Returns whether the authenticated client has a pending deletion request.
@@ -26,8 +30,8 @@ export async function GET(): Promise<NextResponse> {
     .where(
       and(
         eq(deletionRequests.clientId, client.id),
-        eq(deletionRequests.status, 'pending')
-      )
+        eq(deletionRequests.status, 'pending'),
+      ),
     )
     .limit(1);
 
@@ -51,7 +55,10 @@ export async function POST(): Promise<NextResponse> {
     .limit(1);
 
   if (!client) {
-    return NextResponse.json({ error: 'No client record found for your account.' }, { status: 404 });
+    return NextResponse.json(
+      { error: 'No client record found for your account.' },
+      { status: 404 },
+    );
   }
 
   // Enforce one pending request at a time.
@@ -61,15 +68,15 @@ export async function POST(): Promise<NextResponse> {
     .where(
       and(
         eq(deletionRequests.clientId, client.id),
-        eq(deletionRequests.status, 'pending')
-      )
+        eq(deletionRequests.status, 'pending'),
+      ),
     )
     .limit(1);
 
   if (existing) {
     return NextResponse.json(
       { error: 'A deletion request is already pending for your account.' },
-      { status: 409 }
+      { status: 409 },
     );
   }
 

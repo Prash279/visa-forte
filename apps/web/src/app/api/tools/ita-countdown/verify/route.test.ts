@@ -5,7 +5,9 @@ import { createHmac } from 'crypto';
 vi.mock('@/lib/db', () => ({
   db: {
     insert: vi.fn(() => ({ values: vi.fn().mockResolvedValue(undefined) })),
-    update: vi.fn(() => ({ set: vi.fn(() => ({ where: vi.fn().mockResolvedValue(undefined) })) })),
+    update: vi.fn(() => ({
+      set: vi.fn(() => ({ where: vi.fn().mockResolvedValue(undefined) })),
+    })),
   },
 }));
 
@@ -64,7 +66,7 @@ describe('POST /api/tools/ita-countdown/verify', () => {
     const { POST } = await import('./route');
     const res = await POST(postRequest(buildBody()));
     expect(res.status).toBe(201);
-    const json = await res.json() as { token?: string };
+    const json = (await res.json()) as { token?: string };
     expect(typeof json.token).toBe('string');
   });
 });

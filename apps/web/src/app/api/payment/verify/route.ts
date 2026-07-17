@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { createHmac, randomUUID } from "crypto";
-import { eq } from "drizzle-orm";
-import { Resend } from "resend";
-import { db } from "@/lib/db";
-import { bookings, availability } from "../../../../../drizzle/schema";
-import { PRICING, getAmountInSmallestUnit, formatPrice } from "@/lib/pricing";
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { createHmac, randomUUID } from 'crypto';
+import { eq } from 'drizzle-orm';
+import { Resend } from 'resend';
+import { db } from '@/lib/db';
+import { bookings, availability } from '../../../../../drizzle/schema';
+import { PRICING, getAmountInSmallestUnit, formatPrice } from '@/lib/pricing';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     body = await req.json();
   } catch {
     return NextResponse.json(
-      { error: "Invalid request body" },
+      { error: 'Invalid request body' },
       { status: 400 },
     );
   }
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // Guard: tier must exist in the approved pricing table.
   if (!PRICING[serviceTier]) {
     return NextResponse.json(
-      { error: "Invalid service tier." },
+      { error: 'Invalid service tier.' },
       { status: 400 },
     );
   }
@@ -65,15 +65,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // ── Signature verification ──────────────────────────────────────────────────
   // Razorpay signs: HMAC-SHA256(orderId + "|" + paymentId, key_secret)
   // If the signature doesn't match, the payment was tampered with — reject it.
-  const keySecret = process.env.RAZORPAY_KEY_SECRET ?? "";
-  const expectedSignature = createHmac("sha256", keySecret)
+  const keySecret = process.env.RAZORPAY_KEY_SECRET ?? '';
+  const expectedSignature = createHmac('sha256', keySecret)
     .update(`${razorpayOrderId}|${razorpayPaymentId}`)
-    .digest("hex");
+    .digest('hex');
 
   if (expectedSignature !== razorpaySignature) {
-    console.error("Razorpay signature mismatch — possible tampered payment");
+    console.error('Razorpay signature mismatch — possible tampered payment');
     return NextResponse.json(
-      { error: "Payment verification failed." },
+      { error: 'Payment verification failed.' },
       { status: 400 },
     );
   }
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json(
       {
         error:
-          "Selected date is no longer available. Please contact us to arrange a refund.",
+          'Selected date is no longer available. Please contact us to arrange a refund.',
       },
       { status: 409 },
     );
@@ -99,7 +99,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   if (amountPaid === null) {
     return NextResponse.json(
-      { error: "Pricing not available for this tier." },
+      { error: 'Pricing not available for this tier.' },
       { status: 400 },
     );
   }
@@ -119,33 +119,33 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       razorpayOrderId,
       razorpayPaymentId,
       // Stored per booking so historical records stay readable if USD returns.
-      currency: "INR",
+      currency: 'INR',
       amountPaid,
-      paymentStatus: "paid",
-      status: "pending",
+      paymentStatus: 'paid',
+      status: 'pending',
       portalToken,
       portalTokenExpiresAt,
     });
   } catch (err) {
-    console.error("Booking insert failed after payment:", err);
+    console.error('Booking insert failed after payment:', err);
     return NextResponse.json(
       {
         error:
-          "Payment received but booking could not be saved. Please contact prashant@visaforte.com with your payment ID.",
+          'Payment received but booking could not be saved. Please contact prashant@visaforte.com with your payment ID.',
       },
       { status: 500 },
     );
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://visaforte.com";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://visaforte.com';
   const displayPrice = formatPrice(serviceTier);
 
   // ── Notify Prash via email ──────────────────────────────────────────────────
   // Email failure is non-fatal — booking is already in the DB.
   try {
     await resend.emails.send({
-      from: "Visa Forte <noreply@visaforte.com>",
-      to: "prashant@visaforte.com",
+      from: 'Visa Forte <noreply@visaforte.com>',
+      to: 'prashant@visaforte.com',
       subject: `New Paid Booking: ${name} — ${serviceTier}`,
       html: `
         <div style="font-family:sans-serif;max-width:520px;margin:0 auto;">
@@ -166,7 +166,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       `,
     });
   } catch (err) {
-    console.error("Resend notification to Prash failed:", err);
+    console.error('Resend notification to Prash failed:', err);
   }
 
   // ── Send portal activation email to client ──────────────────────────────────
@@ -175,10 +175,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const activationUrl = `${siteUrl}/activate?token=${portalToken}`;
   try {
     await resend.emails.send({
-      from: "Visa Forte <noreply@visaforte.com>",
+      from: 'Visa Forte <noreply@visaforte.com>',
       to: email,
       subject:
-        "Your Visa Forte consultation is confirmed — activate your client portal",
+        'Your Visa Forte consultation is confirmed — activate your client portal',
       html: `
         <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1A1A2E;">
           <h2 style="color:#0C2340;margin-bottom:4px;">Your consultation is confirmed.</h2>
@@ -210,7 +210,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       `,
     });
   } catch (err) {
-    console.error("Portal activation email to client failed:", err);
+    console.error('Portal activation email to client failed:', err);
   }
 
   return NextResponse.json({ success: true }, { status: 201 });

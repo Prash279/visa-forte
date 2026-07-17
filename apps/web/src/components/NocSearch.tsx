@@ -1,40 +1,44 @@
-'use client'
+'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import './NocSearch.css'
+import { useState, useEffect, useRef, useCallback } from 'react';
+import './NocSearch.css';
 
 interface NocEntry {
-  code: string
-  teer: 0 | 1 | 2 | 3 | 4 | 5
-  title: string
-  examples: string[]
+  code: string;
+  teer: 0 | 1 | 2 | 3 | 4 | 5;
+  title: string;
+  examples: string[];
 }
 
 interface NocSearchProps {
-  onSelect: (code: string, teer: 0 | 1 | 2 | 3 | 4 | 5, title: string) => void
-  onClear?: () => void
-  theme: 'light' | 'dark'
+  onSelect: (code: string, teer: 0 | 1 | 2 | 3 | 4 | 5, title: string) => void;
+  onClear?: () => void;
+  theme: 'light' | 'dark';
 }
 
 interface FuseInstance {
-  search: (q: string) => { item: NocEntry }[]
+  search: (q: string) => { item: NocEntry }[];
 }
 
-export default function NocSearch({ onSelect, onClear, theme }: NocSearchProps): React.JSX.Element {
-  const [query, setQuery]       = useState('')
-  const [results, setResults]   = useState<NocEntry[]>([])
-  const [isOpen, setIsOpen]     = useState(false)
-  const [selected, setSelected] = useState<NocEntry | null>(null)
-  const fuseRef  = useRef<FuseInstance | null>(null)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+export default function NocSearch({
+  onSelect,
+  onClear,
+  theme,
+}: NocSearchProps): React.JSX.Element {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<NocEntry[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selected, setSelected] = useState<NocEntry | null>(null);
+  const fuseRef = useRef<FuseInstance | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     async function init(): Promise<void> {
       const [{ default: Fuse }, nocMod] = await Promise.all([
         import('fuse.js'),
         import('@/lib/noc-2021.json'),
-      ])
-      const data = (nocMod as unknown as { groups: NocEntry[] }).groups
+      ]);
+      const data = (nocMod as unknown as { groups: NocEntry[] }).groups;
       fuseRef.current = new Fuse(data, {
         keys: [
           { name: 'title', weight: 0.6 },
@@ -43,49 +47,54 @@ export default function NocSearch({ onSelect, onClear, theme }: NocSearchProps):
         threshold: 0.35,
         minMatchCharLength: 3,
         distance: 100,
-      }) as FuseInstance
+      }) as FuseInstance;
     }
-    init().catch(() => undefined)
-  }, [])
+    init().catch(() => undefined);
+  }, []);
 
   const search = useCallback((q: string): void => {
     if (!fuseRef.current || q.length < 3) {
-      setResults([])
-      setIsOpen(false)
-      return
+      setResults([]);
+      setIsOpen(false);
+      return;
     }
-    const hits = fuseRef.current.search(q).slice(0, 5).map(r => r.item)
-    setResults(hits)
-    setIsOpen(hits.length > 0 || q.length >= 3)
-  }, [])
+    const hits = fuseRef.current
+      .search(q)
+      .slice(0, 5)
+      .map((r) => r.item);
+    setResults(hits);
+    setIsOpen(hits.length > 0 || q.length >= 3);
+  }, []);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
-    const val = e.target.value
-    setQuery(val)
-    if (timerRef.current) clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(() => search(val), 250)
+    const val = e.target.value;
+    setQuery(val);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => search(val), 250);
   }
 
   function handleSelect(entry: NocEntry): void {
-    setSelected(entry)
-    setQuery('')
-    setResults([])
-    setIsOpen(false)
-    onSelect(entry.code, entry.teer, entry.title)
+    setSelected(entry);
+    setQuery('');
+    setResults([]);
+    setIsOpen(false);
+    onSelect(entry.code, entry.teer, entry.title);
   }
 
   function handleClear(): void {
-    setSelected(null)
-    setQuery('')
-    setResults([])
-    setIsOpen(false)
-    if (onClear) onClear()
-    else onSelect('', 1, '')
+    setSelected(null);
+    setQuery('');
+    setResults([]);
+    setIsOpen(false);
+    if (onClear) onClear();
+    else onSelect('', 1, '');
   }
 
   return (
     <div className={`noc-search noc-${theme}`}>
-      <label className="noc-label">Search by Job Title / Designation (optional)</label>
+      <label className="noc-label">
+        Search by Job Title / Designation (optional)
+      </label>
       {selected ? (
         <div className="noc-selected-wrap">
           <span className="noc-selected-text">
@@ -116,7 +125,7 @@ export default function NocSearch({ onSelect, onClear, theme }: NocSearchProps):
           {isOpen && (
             <div className="noc-dropdown">
               {results.length > 0 ? (
-                results.map(entry => (
+                results.map((entry) => (
                   <button
                     key={entry.code}
                     type="button"
@@ -136,5 +145,5 @@ export default function NocSearch({ onSelect, onClear, theme }: NocSearchProps):
         </div>
       )}
     </div>
-  )
+  );
 }

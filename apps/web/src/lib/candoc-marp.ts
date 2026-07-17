@@ -1,25 +1,34 @@
-import type { FindingsJson } from './candoc-types'
+import type { FindingsJson } from './candoc-types';
 
-export function buildCandocMarp(findings: FindingsJson, clientName: string): string {
-  const riskLevel = findings.overallRiskLevel.toUpperCase()
-  const reviewDate = new Date(findings.reviewedAt).toLocaleDateString('en-CA')
+export function buildCandocMarp(
+  findings: FindingsJson,
+  clientName: string,
+): string {
+  const riskLevel = findings.overallRiskLevel.toUpperCase();
+  const reviewDate = new Date(findings.reviewedAt).toLocaleDateString('en-CA');
 
-  const layerSlides = findings.sopLayers.map((layer) => {
-    const findingLines =
-      layer.findings.length === 0
-        ? '> No findings — layer cleared.'
-        : layer.findings
-            .map((f) => {
-              const badge = f.isNew ? '[NEW] ' : f.isResolved ? '[RESOLVED] ' : ''
-              const annotation = f.prashAnnotation
-                ? `\n  > **Note:** ${f.prashAnnotation}`
-                : ''
-              return `- ${badge}**[${f.severity.toUpperCase()}]** ${f.description}\n  *${f.documentRef} · ${f.suggestedAction}*${annotation}`
-            })
-            .join('\n')
+  const layerSlides = findings.sopLayers
+    .map((layer) => {
+      const findingLines =
+        layer.findings.length === 0
+          ? '> No findings — layer cleared.'
+          : layer.findings
+              .map((f) => {
+                const badge = f.isNew
+                  ? '[NEW] '
+                  : f.isResolved
+                    ? '[RESOLVED] '
+                    : '';
+                const annotation = f.prashAnnotation
+                  ? `\n  > **Note:** ${f.prashAnnotation}`
+                  : '';
+                return `- ${badge}**[${f.severity.toUpperCase()}]** ${f.description}\n  *${f.documentRef} · ${f.suggestedAction}*${annotation}`;
+              })
+              .join('\n');
 
-    return `---\n\n## ${layer.layer} — ${layer.layerName}\n\n**Status:** ${layer.status} · **Findings:** ${layer.findings.length}\n\n${findingLines}`
-  }).join('\n\n')
+      return `---\n\n## ${layer.layer} — ${layer.layerName}\n\n**Status:** ${layer.status} · **Findings:** ${layer.findings.length}\n\n${findingLines}`;
+    })
+    .join('\n\n');
 
   return `---
 marp: true
@@ -64,14 +73,18 @@ ${layerSlides}
 
 ---
 
-*CanDoc Review · Visa Forte Consulting · ${reviewDate}*`
+*CanDoc Review · Visa Forte Consulting · ${reviewDate}*`;
 }
 
 export function renderMarpToHtml(marpMarkdown: string, title: string): Buffer {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { Marp } = require('@marp-team/marp-core') as { Marp: new (opts?: unknown) => { render: (md: string) => { html: string; css: string } } }
-  const instance = new Marp({ html: true })
-  const { html, css } = instance.render(marpMarkdown)
+  const { Marp } = require('@marp-team/marp-core') as {
+    Marp: new (opts?: unknown) => {
+      render: (md: string) => { html: string; css: string };
+    };
+  };
+  const instance = new Marp({ html: true });
+  const { html, css } = instance.render(marpMarkdown);
   const fullHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -83,6 +96,6 @@ export function renderMarpToHtml(marpMarkdown: string, title: string): Buffer {
 <body>
 ${html}
 </body>
-</html>`
-  return Buffer.from(fullHtml, 'utf-8')
+</html>`;
+  return Buffer.from(fullHtml, 'utf-8');
 }

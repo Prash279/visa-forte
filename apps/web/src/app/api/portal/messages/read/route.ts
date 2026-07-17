@@ -36,7 +36,7 @@ export async function PATCH(): Promise<NextResponse> {
         eq(messages.clientId, clientId),
         eq(messages.senderRole, 'admin'),
         eq(messages.isRead, false),
-      )
+      ),
     );
 
   return new NextResponse(null, { status: 204 });

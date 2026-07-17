@@ -10,14 +10,24 @@ describe('log()', () => {
   });
 
   it('writes a JSON string to console.log', () => {
-    log({ level: 'info', service: 'test', action: 'run_test', result: 'success' });
+    log({
+      level: 'info',
+      service: 'test',
+      action: 'run_test',
+      result: 'success',
+    });
     expect(console.log).toHaveBeenCalledOnce();
     const output = (console.log as ReturnType<typeof vi.fn>).mock.calls[0][0];
     expect(() => JSON.parse(output)).not.toThrow();
   });
 
   it('includes all required fields', () => {
-    log({ level: 'info', service: 'booking', action: 'create_booking', result: 'success' });
+    log({
+      level: 'info',
+      service: 'booking',
+      action: 'create_booking',
+      result: 'success',
+    });
     const output = (console.log as ReturnType<typeof vi.fn>).mock.calls[0][0];
     const entry = JSON.parse(output);
     expect(entry).toMatchObject({
@@ -29,7 +39,12 @@ describe('log()', () => {
   });
 
   it('adds a timestamp automatically', () => {
-    log({ level: 'info', service: 'test', action: 'run_test', result: 'success' });
+    log({
+      level: 'info',
+      service: 'test',
+      action: 'run_test',
+      result: 'success',
+    });
     const output = (console.log as ReturnType<typeof vi.fn>).mock.calls[0][0];
     const entry = JSON.parse(output);
     expect(entry.timestamp).toBeDefined();

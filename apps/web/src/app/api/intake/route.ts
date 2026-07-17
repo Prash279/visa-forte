@@ -14,7 +14,9 @@ const IntakeSchema = z.object({
   notes: z.string().max(2000).optional(),
   referralSource: z.enum(REFERRAL_SOURCES).optional(),
   // DPDP: consent must be explicitly given — server rejects any submission without it
-  consentGiven: z.literal(true, { errorMap: () => ({ message: 'Consent is required to proceed' }) }),
+  consentGiven: z.literal(true, {
+    errorMap: () => ({ message: 'Consent is required to proceed' }),
+  }),
 });
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -22,15 +24,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid request body' },
+      { status: 400 },
+    );
   }
 
   const result = IntakeSchema.safeParse(body);
   if (!result.success) {
-    return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: result.error.flatten() },
+      { status: 400 },
+    );
   }
 
-  const { name, email, phone, serviceInterest, notes, referralSource } = result.data;
+  const { name, email, phone, serviceInterest, notes, referralSource } =
+    result.data;
 
   try {
     await db.insert(leads).values({
@@ -42,9 +51,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       referralSource: referralSource ?? null,
     });
   } catch (err: unknown) {
-    log({ level: 'error', service: 'intake', action: 'insert_lead', result: 'failure',
-      metadata: { error: err instanceof Error ? err.message : String(err) } });
-    return NextResponse.json({ error: 'Could not save your submission. Please try again.' }, { status: 500 });
+    log({
+      level: 'error',
+      service: 'intake',
+      action: 'insert_lead',
+      result: 'failure',
+      metadata: { error: err instanceof Error ? err.message : String(err) },
+    });
+    return NextResponse.json(
+      { error: 'Could not save your submission. Please try again.' },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ success: true }, { status: 201 });

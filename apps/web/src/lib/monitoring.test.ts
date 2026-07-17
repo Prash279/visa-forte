@@ -11,7 +11,9 @@ import {
 
 describe('CreateMonitoringSchema', () => {
   it('accepts a valid monitoring record with only required field', () => {
-    const result = CreateMonitoringSchema.safeParse({ submittedAt: '2026-01-15' });
+    const result = CreateMonitoringSchema.safeParse({
+      submittedAt: '2026-01-15',
+    });
     expect(result.success).toBe(true);
   });
 
@@ -33,7 +35,9 @@ describe('CreateMonitoringSchema', () => {
   });
 
   it('rejects an invalid date format for submittedAt', () => {
-    const result = CreateMonitoringSchema.safeParse({ submittedAt: '15-01-2026' });
+    const result = CreateMonitoringSchema.safeParse({
+      submittedAt: '15-01-2026',
+    });
     expect(result.success).toBe(false);
   });
 
@@ -126,7 +130,9 @@ describe('UpdateQuerySchema', () => {
   });
 
   it('rejects missing status', () => {
-    const result = UpdateQuerySchema.safeParse({ responseSubmittedAt: '2026-04-20' });
+    const result = UpdateQuerySchema.safeParse({
+      responseSubmittedAt: '2026-04-20',
+    });
     expect(result.success).toBe(false);
   });
 });

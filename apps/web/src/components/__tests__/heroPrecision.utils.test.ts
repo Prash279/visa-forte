@@ -30,19 +30,26 @@ describe('getReticleOpacity', () => {
 
   it('returns HOLD_OPACITY during the hold phase', () => {
     const midHold = FLICKER_DURATION + 3500;
-    expect(getReticleOpacity(makePoint({ holdDuration: 7000 }), midHold)).toBe(HOLD_OPACITY);
+    expect(getReticleOpacity(makePoint({ holdDuration: 7000 }), midHold)).toBe(
+      HOLD_OPACITY,
+    );
   });
 
   it('returns a value strictly between 0 and HOLD_OPACITY during release', () => {
     const midRelease = FLICKER_DURATION + 7000 + RELEASE_DURATION / 2;
-    const opacity = getReticleOpacity(makePoint({ holdDuration: 7000 }), midRelease);
+    const opacity = getReticleOpacity(
+      makePoint({ holdDuration: 7000 }),
+      midRelease,
+    );
     expect(opacity).toBeGreaterThan(0);
     expect(opacity).toBeLessThan(HOLD_OPACITY);
   });
 
   it('returns 0 after the full lifecycle completes', () => {
     const afterDone = FLICKER_DURATION + 7000 + RELEASE_DURATION + 100;
-    expect(getReticleOpacity(makePoint({ holdDuration: 7000 }), afterDone)).toBe(0);
+    expect(
+      getReticleOpacity(makePoint({ holdDuration: 7000 }), afterDone),
+    ).toBe(0);
   });
 });
 
@@ -83,6 +90,8 @@ describe('findSpawnPosition', () => {
     const tinyW = CELL_SIZE * 2;
     const tinyH = CELL_SIZE * 2;
     const blocking: LockPoint[] = [makePoint({ x: CELL_SIZE, y: CELL_SIZE })];
-    expect(() => findSpawnPosition(blocking, tinyW, tinyH, CELL_SIZE)).not.toThrow();
+    expect(() =>
+      findSpawnPosition(blocking, tinyW, tinyH, CELL_SIZE),
+    ).not.toThrow();
   });
 });

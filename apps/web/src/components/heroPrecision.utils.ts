@@ -4,7 +4,7 @@ export const RELEASE_DURATION = 800;
 export const HOLD_OPACITY = 0.85;
 const FLICKER_CYCLES = 3;
 export const MAX_ACTIVE = 5;
-const EXCLUSION_CENTER_FRACTION = 0.30;
+const EXCLUSION_CENTER_FRACTION = 0.3;
 export const MIN_CELL_DISTANCE = 3;
 
 export interface LockPoint {
@@ -16,7 +16,8 @@ export interface LockPoint {
 
 export function getReticleOpacity(point: LockPoint, now: number): number {
   const elapsed = now - point.spawnedAt;
-  const totalDuration = FLICKER_DURATION + point.holdDuration + RELEASE_DURATION;
+  const totalDuration =
+    FLICKER_DURATION + point.holdDuration + RELEASE_DURATION;
   if (elapsed >= totalDuration) return 0;
   if (elapsed < FLICKER_DURATION) {
     const segmentDuration = FLICKER_DURATION / (FLICKER_CYCLES * 2);

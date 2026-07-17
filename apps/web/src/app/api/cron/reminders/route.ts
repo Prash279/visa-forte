@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { and, eq, gte, lt, inArray } from 'drizzle-orm';
 import { Resend } from 'resend';
 import { db } from '@/lib/db';
-import { bookings, messages, clients, irccQueries } from '../../../../../drizzle/schema';
+import {
+  bookings,
+  messages,
+  clients,
+  irccQueries,
+} from '../../../../../drizzle/schema';
 import { log } from '@/lib/logger';
 import { tomorrowIST, slaThresholdMs } from './helpers';
 
@@ -44,7 +49,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           eq(bookings.bookingDate, tomorrow),
           eq(bookings.paymentStatus, 'paid'),
           eq(bookings.reminderSent, false),
-        )
+        ),
       );
 
     for (const booking of tomorrowsBookings) {
@@ -88,8 +93,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       } catch (err) {
         reminderFailures++;
         log({
-          level: 'error', service: 'cron-reminders', action: 'send_client_reminder',
-          result: 'failure', metadata: { bookingId: booking.id, error: String(err) },
+          level: 'error',
+          service: 'cron-reminders',
+          action: 'send_client_reminder',
+          result: 'failure',
+          metadata: { bookingId: booking.id, error: String(err) },
         });
       }
 
@@ -115,8 +123,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         });
       } catch (err) {
         log({
-          level: 'error', service: 'cron-reminders', action: 'send_prash_copy',
-          result: 'failure', metadata: { bookingId: booking.id, error: String(err) },
+          level: 'error',
+          service: 'cron-reminders',
+          action: 'send_prash_copy',
+          result: 'failure',
+          metadata: { bookingId: booking.id, error: String(err) },
         });
       }
 
@@ -131,22 +142,31 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         } catch (err) {
           reminderFailures++;
           log({
-            level: 'error', service: 'cron-reminders', action: 'mark_reminder_sent',
-            result: 'failure', metadata: { bookingId: booking.id, error: String(err) },
+            level: 'error',
+            service: 'cron-reminders',
+            action: 'mark_reminder_sent',
+            result: 'failure',
+            metadata: { bookingId: booking.id, error: String(err) },
           });
         }
       }
     }
   } catch (err) {
     log({
-      level: 'error', service: 'cron-reminders', action: 'query_tomorrows_bookings',
-      result: 'failure', metadata: { error: String(err) },
+      level: 'error',
+      service: 'cron-reminders',
+      action: 'query_tomorrows_bookings',
+      result: 'failure',
+      metadata: { error: String(err) },
     });
   }
 
   log({
-    level: 'info', service: 'cron-reminders', action: 'reminders_complete',
-    result: 'success', metadata: { date: tomorrow, sent: remindersSent },
+    level: 'info',
+    service: 'cron-reminders',
+    action: 'reminders_complete',
+    result: 'success',
+    metadata: { date: tomorrow, sent: remindersSent },
   });
 
   // ── Email 3: SLA breach digest ────────────────────────────────────────────
@@ -166,21 +186,21 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       .from(messages)
       .innerJoin(clients, eq(messages.clientId, clients.id))
       .where(
-        and(
-          eq(messages.senderRole, 'client'),
-          eq(messages.isRead, false),
-        )
+        and(eq(messages.senderRole, 'client'), eq(messages.isRead, false)),
       );
 
     const now = new Date();
 
     // Collapse to one entry per client, keeping the oldest unread message date
-    const breachedClients = new Map<string, {
-      name: string;
-      email: string;
-      stage: string;
-      oldestAt: Date;
-    }>();
+    const breachedClients = new Map<
+      string,
+      {
+        name: string;
+        email: string;
+        stage: string;
+        oldestAt: Date;
+      }
+    >();
 
     for (const row of unreadClientMessages) {
       const threshold = slaThresholdMs(row.stage);
@@ -202,8 +222,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     if (slaBreachCount > 0) {
       const rows = Array.from(breachedClients.values())
-        .map(c => {
-          const hoursAgo = Math.floor((now.getTime() - c.oldestAt.getTime()) / (60 * 60 * 1000));
+        .map((c) => {
+          const hoursAgo = Math.floor(
+            (now.getTime() - c.oldestAt.getTime()) / (60 * 60 * 1000),
+          );
           const label = c.stage === 'ITA Window' ? '⚠ ITA Window' : c.stage;
           return `<tr>
             <td style="padding:8px;border-bottom:1px solid #eee;">${c.name}</td>
@@ -243,14 +265,20 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
   } catch (err) {
     log({
-      level: 'error', service: 'cron-reminders', action: 'sla_breach_check',
-      result: 'failure', metadata: { error: String(err) },
+      level: 'error',
+      service: 'cron-reminders',
+      action: 'sla_breach_check',
+      result: 'failure',
+      metadata: { error: String(err) },
     });
   }
 
   log({
-    level: 'info', service: 'cron-reminders', action: 'sla_check_complete',
-    result: 'success', metadata: { breachedClients: slaBreachCount },
+    level: 'info',
+    service: 'cron-reminders',
+    action: 'sla_check_complete',
+    result: 'success',
+    metadata: { breachedClients: slaBreachCount },
   });
 
   // ── Email 4: IRCC deadline alerts ──────────────────────────────────
@@ -259,7 +287,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   try {
     // Compute today and today+3 as YYYY-MM-DD strings (IST)
-    const todayDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const todayDate = new Date(
+      new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }),
+    );
     const fmt = (d: Date) =>
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     const todayStr = fmt(todayDate);
@@ -282,27 +312,35 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           // Both bounds applied in SQL — safe because column is always YYYY-MM-DD (enforced by Zod on insert)
           gte(irccQueries.responseDeadline, todayStr),
           lt(irccQueries.responseDeadline, plusThreeStr),
-        )
+        ),
       );
 
     const dueQueries = upcomingQueries;
 
     if (dueQueries.length > 0) {
       // Fetch client names for each affected clientId
-      const clientIds = [...new Set(dueQueries.map(q => q.clientId))];
+      const clientIds = [...new Set(dueQueries.map((q) => q.clientId))];
       const affectedClients = await db
         .select({ id: clients.id, name: clients.name })
         .from(clients)
         .where(inArray(clients.id, clientIds));
-      const clientNameMap = Object.fromEntries(affectedClients.map(c => [c.id, c.name]));
+      const clientNameMap = Object.fromEntries(
+        affectedClients.map((c) => [c.id, c.name]),
+      );
 
       const tableRows = dueQueries
         .sort((a, b) => a.responseDeadline.localeCompare(b.responseDeadline))
-        .map(q => {
+        .map((q) => {
           const daysLeft = Math.ceil(
-            (new Date(q.responseDeadline).getTime() - todayDate.getTime()) / (24 * 60 * 60 * 1000)
+            (new Date(q.responseDeadline).getTime() - todayDate.getTime()) /
+              (24 * 60 * 60 * 1000),
           );
-          const urgency = daysLeft === 0 ? '⚠ Today' : daysLeft < 0 ? '⚠ Overdue' : `${daysLeft}d left`;
+          const urgency =
+            daysLeft === 0
+              ? '⚠ Today'
+              : daysLeft < 0
+                ? '⚠ Overdue'
+                : `${daysLeft}d left`;
           return `<tr>
             <td style="padding:8px;border-bottom:1px solid #eee;">${clientNameMap[q.clientId] ?? q.clientId}</td>
             <td style="padding:8px;border-bottom:1px solid #eee;">${q.queryType}</td>
@@ -344,19 +382,30 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
   } catch (err) {
     log({
-      level: 'error', service: 'cron-reminders', action: 'ircc_deadline_check',
-      result: 'failure', metadata: { error: String(err) },
+      level: 'error',
+      service: 'cron-reminders',
+      action: 'ircc_deadline_check',
+      result: 'failure',
+      metadata: { error: String(err) },
     });
   }
 
   log({
-    level: 'info', service: 'cron-reminders', action: 'ircc_deadline_complete',
-    result: 'success', metadata: { alertsSent: irccAlertCount },
+    level: 'info',
+    service: 'cron-reminders',
+    action: 'ircc_deadline_complete',
+    result: 'success',
+    metadata: { alertsSent: irccAlertCount },
   });
 
   const hadFailures = reminderFailures > 0;
   return NextResponse.json(
-    { sent: remindersSent, slaBreaches: slaBreachCount, irccAlerts: irccAlertCount, failures: reminderFailures },
+    {
+      sent: remindersSent,
+      slaBreaches: slaBreachCount,
+      irccAlerts: irccAlertCount,
+      failures: reminderFailures,
+    },
     { status: hadFailures ? 207 : 200 },
   );
 }

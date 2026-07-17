@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { eq, asc } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { applicationMonitoring, irccQueries } from '../../../../../../../drizzle/schema';
+import {
+  applicationMonitoring,
+  irccQueries,
+} from '../../../../../../../drizzle/schema';
 import { getCurrentAuthSession } from '@/lib/auth-server';
 import { CreateMonitoringSchema } from '@/lib/monitoring-schemas';
 
@@ -17,7 +20,7 @@ async function requireAdmin(): Promise<NextResponse | null> {
 // Returns the monitoring record (or null) and all IRCC queries for the client.
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   const deny = await requireAdmin();
   if (deny) return deny;
@@ -43,7 +46,7 @@ export async function GET(
 // Creates or updates (upserts) the monitoring record for this client.
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   const deny = await requireAdmin();
   if (deny) return deny;
@@ -54,15 +57,28 @@ export async function POST(
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid request body' },
+      { status: 400 },
+    );
   }
 
   const result = CreateMonitoringSchema.safeParse(body);
   if (!result.success) {
-    return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: result.error.flatten() },
+      { status: 400 },
+    );
   }
 
-  const { submittedAt, aorNumber, expectedDecisionDate, lastStatusCheck, irccPortalStatus, monitoringNotes } = result.data;
+  const {
+    submittedAt,
+    aorNumber,
+    expectedDecisionDate,
+    lastStatusCheck,
+    irccPortalStatus,
+    monitoringNotes,
+  } = result.data;
 
   // Upsert — update if a record exists for this client, insert if not.
   const values = {
@@ -95,6 +111,9 @@ export async function POST(
     return NextResponse.json({ monitoring: record }, { status: 200 });
   } catch (err) {
     console.error('Monitoring upsert failed:', err);
-    return NextResponse.json({ error: 'Could not save monitoring record' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Could not save monitoring record' },
+      { status: 500 },
+    );
   }
 }

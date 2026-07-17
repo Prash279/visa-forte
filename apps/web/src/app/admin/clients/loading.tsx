@@ -23,11 +23,12 @@ export default function CrmLoading() {
           style={{
             height: '3rem',
             width: '100%',
-            background: i % 2 === 0 ? 'oklch(95% 0.003 240)' : 'oklch(97% 0.002 240)',
+            background:
+              i % 2 === 0 ? 'oklch(95% 0.003 240)' : 'oklch(97% 0.002 240)',
             marginBottom: '2px',
           }}
         />
       ))}
     </div>
-  )
+  );
 }

@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import Razorpay from 'razorpay';
-import { ITA_COUNTDOWN_STANDARD_PAISE, ITA_COUNTDOWN_PREMIUM_PAISE } from '@/lib/pricing';
+import {
+  ITA_COUNTDOWN_STANDARD_PAISE,
+  ITA_COUNTDOWN_PREMIUM_PAISE,
+} from '@/lib/pricing';
 
 const Schema = z.object({
   tier: z.enum(['standard', 'premium']),
@@ -14,21 +17,33 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid request body' },
+      { status: 400 },
+    );
   }
 
   const result = Schema.safeParse(body);
   if (!result.success) {
-    return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: result.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const { tier } = result.data;
-  const amount = tier === 'standard' ? ITA_COUNTDOWN_STANDARD_PAISE : ITA_COUNTDOWN_PREMIUM_PAISE;
+  const amount =
+    tier === 'standard'
+      ? ITA_COUNTDOWN_STANDARD_PAISE
+      : ITA_COUNTDOWN_PREMIUM_PAISE;
 
   if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
     return NextResponse.json(
-      { error: 'Payment system is not configured yet. Please contact us directly.' },
-      { status: 503 }
+      {
+        error:
+          'Payment system is not configured yet. Please contact us directly.',
+      },
+      { status: 503 },
     );
   }
 
@@ -54,7 +69,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     console.error('Razorpay order creation failed (ita-countdown):', err);
     return NextResponse.json(
       { error: 'Could not initiate payment. Please try again.' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

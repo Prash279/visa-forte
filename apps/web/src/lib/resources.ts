@@ -2,16 +2,16 @@
 // Typed accessors for resources.json — used by the page, the download route,
 // and tests. Centralises the type definitions so they are defined exactly once.
 
-import data from "./resources.json";
+import data from './resources.json';
 
 export type ResourceType =
-  | "guide"
-  | "checklist"
-  | "cheatsheet"
-  | "sample"
-  | "letter"
-  | "timeline"
-  | "comparison";
+  | 'guide'
+  | 'checklist'
+  | 'cheatsheet'
+  | 'sample'
+  | 'letter'
+  | 'timeline'
+  | 'comparison';
 
 export interface FreeResource {
   id: string;

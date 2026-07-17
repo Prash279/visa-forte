@@ -5,8 +5,16 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 export const CreateMonitoringSchema = z.object({
   submittedAt: z.string().regex(ISO_DATE, 'Must be YYYY-MM-DD'),
   aorNumber: z.string().max(50).optional(),
-  expectedDecisionDate: z.string().regex(ISO_DATE, 'Must be YYYY-MM-DD').optional().or(z.literal('')),
-  lastStatusCheck: z.string().regex(ISO_DATE, 'Must be YYYY-MM-DD').optional().or(z.literal('')),
+  expectedDecisionDate: z
+    .string()
+    .regex(ISO_DATE, 'Must be YYYY-MM-DD')
+    .optional()
+    .or(z.literal('')),
+  lastStatusCheck: z
+    .string()
+    .regex(ISO_DATE, 'Must be YYYY-MM-DD')
+    .optional()
+    .or(z.literal('')),
   irccPortalStatus: z.string().max(200).optional(),
   monitoringNotes: z.string().max(2000).optional(),
 });
@@ -33,7 +41,11 @@ export type CreateQueryInput = z.infer<typeof CreateQuerySchema>;
 
 export const UpdateQuerySchema = z.object({
   status: z.enum(['Open', 'Responded', 'Overdue']),
-  responseSubmittedAt: z.string().regex(ISO_DATE, 'Must be YYYY-MM-DD').optional().or(z.literal('')),
+  responseSubmittedAt: z
+    .string()
+    .regex(ISO_DATE, 'Must be YYYY-MM-DD')
+    .optional()
+    .or(z.literal('')),
   notes: z.string().max(1000).optional(),
 });
 
@@ -45,7 +57,11 @@ export function isOverdue(responseDeadline: string, today: string): boolean {
 }
 
 // Returns true if a query deadline is within `daysAhead` days from today (inclusive)
-export function isDeadlineWithin(responseDeadline: string, today: string, daysAhead: number): boolean {
+export function isDeadlineWithin(
+  responseDeadline: string,
+  today: string,
+  daysAhead: number,
+): boolean {
   const deadlineDate = new Date(responseDeadline);
   const todayDate = new Date(today);
   const futureDate = new Date(today);

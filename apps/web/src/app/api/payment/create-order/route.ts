@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import Razorpay from "razorpay";
-import { PRICING, getAmountInSmallestUnit } from "@/lib/pricing";
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import Razorpay from 'razorpay';
+import { PRICING, getAmountInSmallestUnit } from '@/lib/pricing';
 
 const Schema = z.object({
   serviceTier: z.string().min(1),
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     body = await req.json();
   } catch {
     return NextResponse.json(
-      { error: "Invalid request body" },
+      { error: 'Invalid request body' },
       { status: 400 },
     );
   }
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // Guard: tier must exist in the approved pricing table.
   if (!PRICING[serviceTier]) {
     return NextResponse.json(
-      { error: "Invalid service tier." },
+      { error: 'Invalid service tier.' },
       { status: 400 },
     );
   }
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   if (amount === null) {
     return NextResponse.json(
-      { error: "Pricing not available for this tier." },
+      { error: 'Pricing not available for this tier.' },
       { status: 400 },
     );
   }
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json(
       {
         error:
-          "Payment system is not configured yet. Please contact us directly.",
+          'Payment system is not configured yet. Please contact us directly.',
       },
       { status: 503 },
     );
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const order = await razorpay.orders.create({
       amount,
-      currency: "INR",
+      currency: 'INR',
       // receipt is a short reference visible in the Razorpay dashboard.
       receipt: `vf_${Date.now()}`,
     });
@@ -79,9 +79,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       keyId: process.env.RAZORPAY_KEY_ID,
     });
   } catch (err) {
-    console.error("Razorpay order creation failed:", err);
+    console.error('Razorpay order creation failed:', err);
     return NextResponse.json(
-      { error: "Could not initiate payment. Please try again." },
+      { error: 'Could not initiate payment. Please try again.' },
       { status: 500 },
     );
   }

@@ -3,22 +3,22 @@
 // Uses a discriminated union so TypeScript enforces the right props per kind.
 // No client-side state — safe to use in server components.
 
-import type { JSX } from "react";
-import type { ResourceType } from "@/lib/resources";
+import type { JSX } from 'react';
+import type { ResourceType } from '@/lib/resources';
 
 // Human-readable label for each resource type (shown as the badge text)
 const TYPE_LABELS: Record<ResourceType, string> = {
-  guide: "Guide",
-  checklist: "Checklist",
-  cheatsheet: "Cheat Sheet",
-  sample: "Sample Format",
-  letter: "Letter Template",
-  timeline: "Timeline",
-  comparison: "Comparison Table",
+  guide: 'Guide',
+  checklist: 'Checklist',
+  cheatsheet: 'Cheat Sheet',
+  sample: 'Sample Format',
+  letter: 'Letter Template',
+  timeline: 'Timeline',
+  comparison: 'Comparison Table',
 };
 
 interface FreeCardProps {
-  kind: "free";
+  kind: 'free';
   id: string;
   title: string;
   type: ResourceType;
@@ -27,7 +27,7 @@ interface FreeCardProps {
 }
 
 interface PremiumCardProps {
-  kind: "premium";
+  kind: 'premium';
   id: string;
   title: string;
   type: ResourceType;
@@ -57,7 +57,7 @@ export default function ResourceCard(props: ResourceCardProps): JSX.Element {
 
       {/* CTA footer */}
       <div className="resource-card-footer">
-        {props.kind === "free" ? (
+        {props.kind === 'free' ? (
           <a
             href={`/api/resources/download/${props.id}`}
             className="resource-cta resource-cta--free"
@@ -69,7 +69,7 @@ export default function ResourceCard(props: ResourceCardProps): JSX.Element {
           <div className="resource-premium-cta">
             <div className="resource-price">
               <span className="resource-price-inr">
-                ₹{props.priceINR.toLocaleString("en-IN")}
+                ₹{props.priceINR.toLocaleString('en-IN')}
               </span>
             </div>
             <button
@@ -80,7 +80,7 @@ export default function ResourceCard(props: ResourceCardProps): JSX.Element {
               Buy Now →
             </button>
             <p className="resource-cta-note">
-              Payment integration coming soon.{" "}
+              Payment integration coming soon.{' '}
               <a href="mailto:prashant@visaforte.com?subject=Purchase%20Enquiry%20%E2%80%94%20Resource">
                 Contact to purchase
               </a>

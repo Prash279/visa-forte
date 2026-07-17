@@ -19,7 +19,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   const order = rows[0];
   if (!order || order.paymentStatus !== 'paid') {
-    return NextResponse.json({ error: 'Link expired or invalid.' }, { status: 404 });
+    return NextResponse.json(
+      { error: 'Link expired or invalid.' },
+      { status: 404 },
+    );
   }
 
   const checklist = generateChecklist({

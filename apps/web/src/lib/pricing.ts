@@ -9,13 +9,13 @@
 
 // All 7 active service tiers with approved prices, in whole rupees.
 export const PRICING: Record<string, number> = {
-  "Pre-Application Eligibility Assessment": 4999,
-  "PNP Stream Matching": 7499,
-  "Document Review & Compliance Audit": 9999,
-  "Refusal Analysis & Reapplication Strategy": 14999,
-  "ITA Response Preparation": 17499,
-  "Full Application File Management": 49999,
-  "Post-Submission Monitoring": 7499,
+  'Pre-Application Eligibility Assessment': 4999,
+  'PNP Stream Matching': 7499,
+  'Document Review & Compliance Audit': 9999,
+  'Refusal Analysis & Reapplication Strategy': 14999,
+  'ITA Response Preparation': 17499,
+  'Full Application File Management': 49999,
+  'Post-Submission Monitoring': 7499,
 };
 
 // Returns the display price as a formatted string, e.g. "₹4,999".
@@ -23,7 +23,7 @@ export const PRICING: Record<string, number> = {
 export function formatPrice(tier: string): string | null {
   const inr = PRICING[tier];
   if (inr === undefined) return null;
-  return `₹${inr.toLocaleString("en-IN")}`;
+  return `₹${inr.toLocaleString('en-IN')}`;
 }
 
 // Returns the amount in paise, the smallest unit Razorpay accepts for INR.

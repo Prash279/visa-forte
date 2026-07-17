@@ -1,24 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { eq, desc } from 'drizzle-orm'
-import Anthropic from '@anthropic-ai/sdk'
-import { db } from '@/lib/db'
-import { candocReviews, clientDocuments } from '../../../../../../drizzle/schema'
-import { getCurrentAuthSession } from '@/lib/auth-server'
-import { parseFindings } from '@/lib/candoc-types'
-import { computeDiff } from '@/lib/candoc-diff'
+import { NextRequest, NextResponse } from 'next/server';
+import { eq, desc } from 'drizzle-orm';
+import Anthropic from '@anthropic-ai/sdk';
+import { db } from '@/lib/db';
+import {
+  candocReviews,
+  clientDocuments,
+} from '../../../../../../drizzle/schema';
+import { getCurrentAuthSession } from '@/lib/auth-server';
+import { parseFindings } from '@/lib/candoc-types';
+import { computeDiff } from '@/lib/candoc-diff';
 
-export const maxDuration = 120
+export const maxDuration = 120;
 
 async function requireAdmin(): Promise<NextResponse | null> {
-  const session = await getCurrentAuthSession()
+  const session = await getCurrentAuthSession();
   if (!session?.session || session.user?.email !== 'prashant@visaforte.com') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  return null
+  return null;
 }
 
 const SOP_SYSTEM_PROMPT = `You are an expert Canadian immigration document reviewer. You review client documents against IRCC SOP requirements for Express Entry applications.
-Return ONLY valid JSON — no markdown fences, no explanation, just the JSON object.`
+Return ONLY valid JSON — no markdown fences, no explanation, just the JSON object.`;
 
 function buildSopPrompt(clientId: string, version: number): string {
   return `Review all provided documents against these 17 SOP layers:
@@ -64,11 +67,11 @@ Return this exact JSON (no other text):
   ],
   "overallRiskLevel": "clear|minor|major|critical",
   "totalGaps": <count of layers where status != "pass">
-}`
+}`;
 }
 
 function inferContentType(filename: string): string {
-  const ext = filename.split('.').pop()?.toLowerCase() ?? ''
+  const ext = filename.split('.').pop()?.toLowerCase() ?? '';
   const map: Record<string, string> = {
     pdf: 'application/pdf',
     jpg: 'image/jpeg',
@@ -76,89 +79,123 @@ function inferContentType(filename: string): string {
     png: 'image/png',
     gif: 'image/gif',
     webp: 'image/webp',
-  }
-  return map[ext] ?? 'image/jpeg'
+  };
+  return map[ext] ?? 'image/jpeg';
 }
 
 // POST /api/admin/candoc/analyze
 // Body: { reviewId: string }
 // Fetches all client documents, calls Claude Vision, stores rawFindings with diff markers.
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const deny = await requireAdmin()
-  if (deny) return deny
+  const deny = await requireAdmin();
+  if (deny) return deny;
 
-  let reviewId: string | undefined
+  let reviewId: string | undefined;
 
   try {
-    const body = await req.json() as { reviewId: string }
-    reviewId = body.reviewId
+    const body = (await req.json()) as { reviewId: string };
+    reviewId = body.reviewId;
     if (!reviewId) {
-      return NextResponse.json({ error: 'reviewId is required' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'reviewId is required' },
+        { status: 400 },
+      );
     }
 
     const [review] = await db
       .select()
       .from(candocReviews)
-      .where(eq(candocReviews.id, reviewId))
+      .where(eq(candocReviews.id, reviewId));
     if (!review) {
-      return NextResponse.json({ error: 'Review not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Review not found' }, { status: 404 });
     }
     if (review.status !== 'pending') {
-      return NextResponse.json({ error: `Review is already ${review.status}` }, { status: 409 })
+      return NextResponse.json(
+        { error: `Review is already ${review.status}` },
+        { status: 409 },
+      );
     }
 
     await db
       .update(candocReviews)
       .set({ status: 'analyzing', updatedAt: new Date() })
-      .where(eq(candocReviews.id, reviewId))
+      .where(eq(candocReviews.id, reviewId));
 
     const docs = await db
       .select()
       .from(clientDocuments)
-      .where(eq(clientDocuments.clientId, review.clientId))
+      .where(eq(clientDocuments.clientId, review.clientId));
 
     const contentBlocks = await Promise.all(
-      docs.map(async (doc): Promise<Anthropic.Messages.ImageBlockParam | Anthropic.Messages.DocumentBlockParam> => {
-        const res = await fetch(doc.blobUrl, {
-          headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
-        })
-        if (!res.ok) throw new Error(`Failed to fetch ${doc.filename}: ${res.statusText}`)
-        const contentType = res.headers.get('content-type') ?? inferContentType(doc.filename)
-        const base64 = Buffer.from(await res.arrayBuffer()).toString('base64')
-        if (contentType.includes('pdf')) {
-          return {
-            type: 'document' as const,
-            source: { type: 'base64' as const, media_type: 'application/pdf' as const, data: base64 },
+      docs.map(
+        async (
+          doc,
+        ): Promise<
+          | Anthropic.Messages.ImageBlockParam
+          | Anthropic.Messages.DocumentBlockParam
+        > => {
+          const res = await fetch(doc.blobUrl, {
+            headers: {
+              Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
+            },
+          });
+          if (!res.ok)
+            throw new Error(
+              `Failed to fetch ${doc.filename}: ${res.statusText}`,
+            );
+          const contentType =
+            res.headers.get('content-type') ?? inferContentType(doc.filename);
+          const base64 = Buffer.from(await res.arrayBuffer()).toString(
+            'base64',
+          );
+          if (contentType.includes('pdf')) {
+            return {
+              type: 'document' as const,
+              source: {
+                type: 'base64' as const,
+                media_type: 'application/pdf' as const,
+                data: base64,
+              },
+            };
           }
-        }
-        return {
-          type: 'image' as const,
-          source: {
-            type: 'base64' as const,
-            media_type: contentType as Anthropic.Messages.Base64ImageSource['media_type'],
-            data: base64,
-          },
-        }
-      })
-    )
+          return {
+            type: 'image' as const,
+            source: {
+              type: 'base64' as const,
+              media_type:
+                contentType as Anthropic.Messages.Base64ImageSource['media_type'],
+              data: base64,
+            },
+          };
+        },
+      ),
+    );
 
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 8192,
       system: SOP_SYSTEM_PROMPT,
-      messages: [{
-        role: 'user',
-        content: [
-          ...contentBlocks,
-          { type: 'text' as const, text: buildSopPrompt(review.clientId, review.version) },
-        ],
-      }],
-    })
+      messages: [
+        {
+          role: 'user',
+          content: [
+            ...contentBlocks,
+            {
+              type: 'text' as const,
+              text: buildSopPrompt(review.clientId, review.version),
+            },
+          ],
+        },
+      ],
+    });
 
-    const rawText = message.content.find((b) => b.type === 'text')?.text ?? ''
-    const jsonText = rawText.replace(/^```json\s*/i, '').replace(/\s*```$/, '').trim()
-    let parsed = parseFindings(JSON.parse(jsonText))
+    const rawText = message.content.find((b) => b.type === 'text')?.text ?? '';
+    const jsonText = rawText
+      .replace(/^```json\s*/i, '')
+      .replace(/\s*```$/, '')
+      .trim();
+    let parsed = parseFindings(JSON.parse(jsonText));
 
     if (review.version > 1) {
       const [prevReview] = await db
@@ -167,28 +204,33 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         .where(eq(candocReviews.clientId, review.clientId))
         .orderBy(desc(candocReviews.version))
         .offset(1)
-        .limit(1)
+        .limit(1);
 
       if (prevReview?.rawFindings) {
-        const prevParsed = parseFindings(prevReview.rawFindings)
-        parsed = computeDiff(prevParsed, parsed)
+        const prevParsed = parseFindings(prevReview.rawFindings);
+        parsed = computeDiff(prevParsed, parsed);
       }
     }
 
     await db
       .update(candocReviews)
-      .set({ status: 'analyzed', rawFindings: parsed, analyzedAt: new Date(), updatedAt: new Date() })
-      .where(eq(candocReviews.id, reviewId))
+      .set({
+        status: 'analyzed',
+        rawFindings: parsed,
+        analyzedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(candocReviews.id, reviewId));
 
-    return NextResponse.json({ ok: true, version: review.version })
+    return NextResponse.json({ ok: true, version: review.version });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Analysis failed'
+    const message = error instanceof Error ? error.message : 'Analysis failed';
     if (reviewId) {
       await db
         .update(candocReviews)
         .set({ status: 'error', errorMessage: message, updatedAt: new Date() })
-        .where(eq(candocReviews.id, reviewId))
+        .where(eq(candocReviews.id, reviewId));
     }
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

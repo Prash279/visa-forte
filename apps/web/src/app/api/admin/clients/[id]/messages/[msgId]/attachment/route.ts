@@ -10,7 +10,7 @@ const ADMIN_EMAIL = 'prashant@visaforte.com';
 // Streams the private blob through the server so the browser never needs a blob token.
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string; msgId: string }> }
+  { params }: { params: Promise<{ id: string; msgId: string }> },
 ): Promise<NextResponse> {
   const session = await getCurrentAuthSession();
   if (!session?.session || session.user?.email !== ADMIN_EMAIL) {
@@ -26,7 +26,10 @@ export async function GET(
     .limit(1);
 
   if (!message?.attachmentUrl) {
-    return NextResponse.json({ error: 'Attachment not found' }, { status: 404 });
+    return NextResponse.json(
+      { error: 'Attachment not found' },
+      { status: 404 },
+    );
   }
 
   const blobRes = await fetch(message.attachmentUrl, {
@@ -34,11 +37,17 @@ export async function GET(
   });
 
   if (!blobRes.ok) {
-    return NextResponse.json({ error: 'Failed to fetch attachment' }, { status: 502 });
+    return NextResponse.json(
+      { error: 'Failed to fetch attachment' },
+      { status: 502 },
+    );
   }
 
-  const contentType = blobRes.headers.get('content-type') ?? 'application/octet-stream';
-  const filename = decodeURIComponent(message.attachmentUrl.split('/').pop() ?? 'attachment');
+  const contentType =
+    blobRes.headers.get('content-type') ?? 'application/octet-stream';
+  const filename = decodeURIComponent(
+    message.attachmentUrl.split('/').pop() ?? 'attachment',
+  );
 
   return new NextResponse(blobRes.body, {
     headers: {

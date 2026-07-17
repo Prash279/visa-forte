@@ -1,4 +1,4 @@
-import CrsModeller from './CrsModeller'
+import CrsModeller from './CrsModeller';
 import { buildMetadata, SITE_URL } from '@/lib/seo';
 
 export const metadata = buildMetadata({
@@ -9,24 +9,29 @@ export const metadata = buildMetadata({
 });
 // Structured data: registers this free tool as a WebApplication with Google.
 const TOOL_JSONLD = {
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
   name: 'CRS What-If Modeller',
   description:
     'Interactive Express Entry CRS calculator — change one factor and see exactly how many points you gain.',
   url: `${SITE_URL}/tools/crs-modeller`,
-  applicationCategory: "UtilityApplication",
-  operatingSystem: "Web",
-  offers: { "@type": "Offer", price: "0", priceCurrency: "CAD" },
-  provider: { "@type": "ProfessionalService", name: "Visa Forte" },
+  applicationCategory: 'UtilityApplication',
+  operatingSystem: 'Web',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'CAD' },
+  provider: { '@type': 'ProfessionalService', name: 'Visa Forte' },
 };
 
 const BREADCRUMB_JSONLD = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
   itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-    { "@type": "ListItem", position: 2, name: 'CRS What-If Modeller', item: `${SITE_URL}/tools/crs-modeller` },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'CRS What-If Modeller',
+      item: `${SITE_URL}/tools/crs-modeller`,
+    },
   ],
 };
 
@@ -43,5 +48,5 @@ export default function CrsModellerPage() {
       />
       <CrsModeller />
     </>
-  )
+  );
 }

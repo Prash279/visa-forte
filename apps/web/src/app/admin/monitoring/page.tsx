@@ -2,7 +2,11 @@ import { redirect } from 'next/navigation';
 import { inArray, asc } from 'drizzle-orm';
 import { getCurrentAuthSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { clients, applicationMonitoring, irccQueries } from '../../../../drizzle/schema';
+import {
+  clients,
+  applicationMonitoring,
+  irccQueries,
+} from '../../../../drizzle/schema';
 import MonitoringPanel from './MonitoringPanel';
 import './monitoring.css';
 
@@ -18,39 +22,43 @@ export default async function MonitoringPage() {
     .where(inArray(clients.stage, ['Submitted', 'Decision Pending']))
     .orderBy(asc(clients.createdAt));
 
-  const clientIds = submittedClients.map(c => c.id);
+  const clientIds = submittedClients.map((c) => c.id);
 
   // Fetch monitoring records for those clients
-  const monitoringRows = clientIds.length > 0
-    ? await db
-        .select()
-        .from(applicationMonitoring)
-        .where(inArray(applicationMonitoring.clientId, clientIds))
-    : [];
+  const monitoringRows =
+    clientIds.length > 0
+      ? await db
+          .select()
+          .from(applicationMonitoring)
+          .where(inArray(applicationMonitoring.clientId, clientIds))
+      : [];
 
   // Fetch all IRCC queries for those clients
-  const queryRows = clientIds.length > 0
-    ? await db
-        .select()
-        .from(irccQueries)
-        .where(inArray(irccQueries.clientId, clientIds))
-        .orderBy(asc(irccQueries.receivedAt))
-    : [];
+  const queryRows =
+    clientIds.length > 0
+      ? await db
+          .select()
+          .from(irccQueries)
+          .where(inArray(irccQueries.clientId, clientIds))
+          .orderBy(asc(irccQueries.receivedAt))
+      : [];
 
   const todayIST = new Date(
-    new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })
+    new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }),
   );
   const todayStr = `${todayIST.getFullYear()}-${String(todayIST.getMonth() + 1).padStart(2, '0')}-${String(todayIST.getDate()).padStart(2, '0')}`;
 
   // Assemble the data structure passed to the client component
-  const monitoringMap = Object.fromEntries(monitoringRows.map(m => [m.clientId, m]));
+  const monitoringMap = Object.fromEntries(
+    monitoringRows.map((m) => [m.clientId, m]),
+  );
   const queriesMap: Record<string, typeof queryRows> = {};
   for (const q of queryRows) {
     if (!queriesMap[q.clientId]) queriesMap[q.clientId] = [];
     queriesMap[q.clientId].push(q);
   }
 
-  const rows = submittedClients.map(client => ({
+  const rows = submittedClients.map((client) => ({
     id: client.id,
     name: client.name,
     email: client.email,
@@ -67,7 +75,7 @@ export default async function MonitoringPage() {
           monitoringNotes: monitoringMap[client.id].monitoringNotes,
         }
       : null,
-    queries: (queriesMap[client.id] ?? []).map(q => ({
+    queries: (queriesMap[client.id] ?? []).map((q) => ({
       id: q.id,
       queryType: q.queryType,
       receivedAt: q.receivedAt,
@@ -79,7 +87,7 @@ export default async function MonitoringPage() {
     })),
   }));
 
-  const openQueryCount = queryRows.filter(q => q.status === 'Open').length;
+  const openQueryCount = queryRows.filter((q) => q.status === 'Open').length;
 
   return (
     <div className="mon-wrap">
@@ -90,7 +98,9 @@ export default async function MonitoringPage() {
           <span className="admin-header-label">Post-Submission Monitoring</span>
         </div>
         <div className="admin-header-right">
-          <a href="/admin" className="mon-back-link">← Dashboard</a>
+          <a href="/admin" className="mon-back-link">
+            ← Dashboard
+          </a>
         </div>
       </header>
 
@@ -101,9 +111,15 @@ export default async function MonitoringPage() {
           <p className="admin-welcome-eyebrow">Monitoring</p>
           <h1 className="admin-welcome-heading">Post-Submission Tracking</h1>
           <p className="admin-welcome-sub">
-            Track AOR numbers, expected decision dates, and IRCC queries for submitted applications.
+            Track AOR numbers, expected decision dates, and IRCC queries for
+            submitted applications.
             {openQueryCount > 0 && (
-              <span className="mon-open-badge"> {openQueryCount} open {openQueryCount === 1 ? 'query' : 'queries'} requiring attention.</span>
+              <span className="mon-open-badge">
+                {' '}
+                {openQueryCount} open{' '}
+                {openQueryCount === 1 ? 'query' : 'queries'} requiring
+                attention.
+              </span>
             )}
           </p>
         </div>

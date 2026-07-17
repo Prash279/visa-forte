@@ -8,7 +8,9 @@ const FieldSchema = z.object({
   email: z.string().email('A valid email address is required'),
   phone: z.string().min(7, 'Mobile number is required').max(20),
   crsScore: z.coerce.number().int().min(0).max(1200),
-  consentGiven: z.literal('true', { errorMap: () => ({ message: 'Consent is required' }) }),
+  consentGiven: z.literal('true', {
+    errorMap: () => ({ message: 'Consent is required' }),
+  }),
 });
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
@@ -23,7 +25,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     formData = await req.formData();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid request body' },
+      { status: 400 },
+    );
   }
 
   const result = FieldSchema.safeParse({
@@ -35,7 +40,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   });
 
   if (!result.success) {
-    return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: result.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const { name, email, phone, crsScore } = result.data;
@@ -50,11 +58,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (!ALLOWED_MIME.has(mimeType)) {
       return NextResponse.json(
         { error: 'Resume must be a PDF or Word document.' },
-        { status: 400 }
+        { status: 400 },
       );
     }
     if (resumeEntry.size > MAX_FILE_BYTES) {
-      return NextResponse.json({ error: 'Resume must be under 5 MB.' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Resume must be under 5 MB.' },
+        { status: 400 },
+      );
     }
     const arrayBuffer = await resumeEntry.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString('base64');
@@ -80,7 +91,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     console.error('Assessment lead insert failed:', err);
     return NextResponse.json(
       { error: 'Could not save your submission. Please try again.' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 

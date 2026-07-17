@@ -12,7 +12,7 @@ function getNext30Days(): string[] {
   const dates: string[] = [];
   // Use IST (UTC+5:30) to determine "today" for Prash.
   const todayIST = new Date(
-    new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })
+    new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }),
   );
   for (let i = 0; i < 30; i++) {
     const d = new Date(todayIST);
@@ -30,7 +30,11 @@ function getNext30Days(): string[] {
 function formatDateLabel(dateStr: string): string {
   const [y, m, d] = dateStr.split('-').map(Number);
   const date = new Date(y, m - 1, d);
-  return date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  return date.toLocaleDateString('en-GB', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
 }
 
 export default async function AvailabilityPage() {
@@ -56,7 +60,6 @@ export default async function AvailabilityPage() {
 
   return (
     <div className="avail-wrap">
-
       {/* ── Header ── */}
       <header className="admin-header">
         <div className="admin-header-left">
@@ -65,7 +68,9 @@ export default async function AvailabilityPage() {
           <span className="admin-header-label">Availability</span>
         </div>
         <div className="admin-header-right">
-          <a href="/admin" className="avail-back-link">← Dashboard</a>
+          <a href="/admin" className="avail-back-link">
+            ← Dashboard
+          </a>
         </div>
       </header>
 
@@ -73,13 +78,12 @@ export default async function AvailabilityPage() {
 
       {/* ── Main ── */}
       <main className="avail-main">
-
         <div className="avail-heading-block">
           <p className="avail-eyebrow">Booking Management</p>
           <h1 className="avail-heading">Set Your Availability</h1>
           <p className="avail-sub">
-            Toggle the dates below to open or close consultation slots.
-            Clients only see dates marked <strong>Open</strong>.
+            Toggle the dates below to open or close consultation slots. Clients
+            only see dates marked <strong>Open</strong>.
           </p>
         </div>
 
@@ -96,11 +100,15 @@ export default async function AvailabilityPage() {
         </div>
 
         <div className="avail-footer">
-          <a href="/booking" className="avail-footer-link" target="_blank" rel="noopener noreferrer">
+          <a
+            href="/booking"
+            className="avail-footer-link"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Preview booking page →
           </a>
         </div>
-
       </main>
     </div>
   );

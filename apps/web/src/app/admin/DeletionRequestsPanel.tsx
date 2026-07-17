@@ -1,42 +1,42 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
+import { useState } from 'react';
 
 interface PendingDeletion {
-  requestId: string
-  clientId: string
-  clientName: string
-  clientEmail: string
-  requestedAt: string
+  requestId: string;
+  clientId: string;
+  clientName: string;
+  clientEmail: string;
+  requestedAt: string;
 }
 
 interface Props {
-  initialRequests: PendingDeletion[]
+  initialRequests: PendingDeletion[];
 }
 
-type RowMode = 'idle' | 'rejecting' | 'loading'
+type RowMode = 'idle' | 'rejecting' | 'loading';
 
 interface RowState {
-  mode: RowMode
-  notes: string
-  error: string
+  mode: RowMode;
+  notes: string;
+  error: string;
 }
 
 export default function DeletionRequestsPanel({ initialRequests }: Props) {
-  const [requests, setRequests] = useState(initialRequests)
-  const [rowStates, setRowStates] = useState<Record<string, RowState>>({})
+  const [requests, setRequests] = useState(initialRequests);
+  const [rowStates, setRowStates] = useState<Record<string, RowState>>({});
 
   function getRow(id: string): RowState {
-    return rowStates[id] ?? { mode: 'idle', notes: '', error: '' }
+    return rowStates[id] ?? { mode: 'idle', notes: '', error: '' };
   }
 
   function patchRow(id: string, patch: Partial<RowState>) {
-    setRowStates(prev => ({ ...prev, [id]: { ...getRow(id), ...patch } }))
+    setRowStates((prev) => ({ ...prev, [id]: { ...getRow(id), ...patch } }));
   }
 
   async function handleAction(requestId: string, action: 'approve' | 'reject') {
-    const row = getRow(requestId)
-    patchRow(requestId, { mode: 'loading', error: '' })
+    const row = getRow(requestId);
+    patchRow(requestId, { mode: 'loading', error: '' });
 
     try {
       const res = await fetch(`/api/admin/deletion-requests/${requestId}`, {
@@ -46,21 +46,21 @@ export default function DeletionRequestsPanel({ initialRequests }: Props) {
           action,
           adminNotes: action === 'reject' ? row.notes || undefined : undefined,
         }),
-      })
-      const data = (await res.json()) as { error?: string }
+      });
+      const data = (await res.json()) as { error?: string };
       if (!res.ok) {
         patchRow(requestId, {
           mode: action === 'reject' ? 'rejecting' : 'idle',
           error: data.error ?? 'Action failed. Please try again.',
-        })
-        return
+        });
+        return;
       }
-      setRequests(prev => prev.filter(r => r.requestId !== requestId))
+      setRequests((prev) => prev.filter((r) => r.requestId !== requestId));
     } catch {
       patchRow(requestId, {
         mode: action === 'reject' ? 'rejecting' : 'idle',
         error: 'Network error. Please try again.',
-      })
+      });
     }
   }
 
@@ -69,20 +69,23 @@ export default function DeletionRequestsPanel({ initialRequests }: Props) {
       <div className="admin-empty">
         <p className="admin-empty-text">No pending data deletion requests.</p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="admin-deletion-list">
-      {requests.map(r => {
-        const row = getRow(r.requestId)
-        const isLoading = row.mode === 'loading'
+      {requests.map((r) => {
+        const row = getRow(r.requestId);
+        const isLoading = row.mode === 'loading';
 
         return (
           <div key={r.requestId} className="admin-deletion-row">
             <div className="admin-deletion-info">
               <p className="admin-deletion-name">{r.clientName}</p>
-              <a href={`mailto:${r.clientEmail}`} className="admin-deletion-email">
+              <a
+                href={`mailto:${r.clientEmail}`}
+                className="admin-deletion-email"
+              >
                 {r.clientEmail}
               </a>
               <p className="admin-deletion-date">
@@ -104,7 +107,9 @@ export default function DeletionRequestsPanel({ initialRequests }: Props) {
                     className="admin-deletion-notes"
                     placeholder="Reason for rejection (optional, sent to audit log)"
                     value={row.notes}
-                    onChange={e => patchRow(r.requestId, { notes: e.target.value })}
+                    onChange={(e) =>
+                      patchRow(r.requestId, { notes: e.target.value })
+                    }
                     rows={2}
                     maxLength={500}
                   />
@@ -118,7 +123,9 @@ export default function DeletionRequestsPanel({ initialRequests }: Props) {
                     </button>
                     <button
                       className="admin-deletion-cancel-btn"
-                      onClick={() => patchRow(r.requestId, { mode: 'idle', error: '' })}
+                      onClick={() =>
+                        patchRow(r.requestId, { mode: 'idle', error: '' })
+                      }
                     >
                       Cancel
                     </button>
@@ -144,8 +151,8 @@ export default function DeletionRequestsPanel({ initialRequests }: Props) {
               )}
             </div>
           </div>
-        )
+        );
       })}
     </div>
-  )
+  );
 }

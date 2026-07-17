@@ -1,58 +1,61 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import PromoteButton from './PromoteButton'
+import { useState } from 'react';
+import PromoteButton from './PromoteButton';
 
 interface SerializedLead {
-  id: string
-  name: string
-  email: string
-  serviceInterest: string
-  notes: string | null
-  referralSource: string | null
-  resumeFilename: string | null
-  status: string
-  createdAt: string
+  id: string;
+  name: string;
+  email: string;
+  serviceInterest: string;
+  notes: string | null;
+  referralSource: string | null;
+  resumeFilename: string | null;
+  status: string;
+  createdAt: string;
 }
 
 interface Props {
-  leads: SerializedLead[]
+  leads: SerializedLead[];
 }
 
 export default function LeadsTable({ leads: initialLeads }: Props) {
-  const [leads, setLeads] = useState(initialLeads)
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
-  const [deletePassword, setDeletePassword] = useState('')
-  const [deleteError, setDeleteError] = useState('')
-  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [leads, setLeads] = useState(initialLeads);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   function openDeleteModal(id: string, name: string) {
-    setDeleteTarget({ id, name })
-    setDeletePassword('')
-    setDeleteError('')
+    setDeleteTarget({ id, name });
+    setDeletePassword('');
+    setDeleteError('');
   }
 
   async function handleConfirmDelete() {
-    if (!deleteTarget) return
-    setDeletingId(deleteTarget.id)
-    setDeleteError('')
+    if (!deleteTarget) return;
+    setDeletingId(deleteTarget.id);
+    setDeleteError('');
     try {
       const res = await fetch(`/api/admin/leads/${deleteTarget.id}`, {
         method: 'DELETE',
         headers: { 'x-admin-delete-password': deletePassword },
-      })
+      });
       if (!res.ok) {
-        const data = (await res.json()) as { error?: string }
-        setDeleteError(data.error ?? 'Delete failed. Check your password.')
-        return
+        const data = (await res.json()) as { error?: string };
+        setDeleteError(data.error ?? 'Delete failed. Check your password.');
+        return;
       }
-      setLeads((prev) => prev.filter((l) => l.id !== deleteTarget.id))
-      setDeleteTarget(null)
-      setDeletePassword('')
+      setLeads((prev) => prev.filter((l) => l.id !== deleteTarget.id));
+      setDeleteTarget(null);
+      setDeletePassword('');
     } catch {
-      setDeleteError('Network error. Try again.')
+      setDeleteError('Network error. Try again.');
     } finally {
-      setDeletingId(null)
+      setDeletingId(null);
     }
   }
 
@@ -62,46 +65,89 @@ export default function LeadsTable({ leads: initialLeads }: Props) {
         <table className="admin-table">
           <thead>
             <tr>
-              {['Name', 'Email', 'Service Interest', 'Source', 'CRS Score', 'Resume', 'Submitted', 'Status', 'Action', ''].map((h) => (
+              {[
+                'Name',
+                'Email',
+                'Service Interest',
+                'Source',
+                'CRS Score',
+                'Resume',
+                'Submitted',
+                'Status',
+                'Action',
+                '',
+              ].map((h) => (
                 <th key={h}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {leads.map((lead) => {
-              const crsMatch = lead.notes?.match(/CRS Score:\s*(\d+)/)
-              const crsScore = crsMatch ? crsMatch[1] : null
+              const crsMatch = lead.notes?.match(/CRS Score:\s*(\d+)/);
+              const crsScore = crsMatch ? crsMatch[1] : null;
               const resumeDownloadUrl = lead.resumeFilename
                 ? `/api/admin/resume/${lead.id}`
-                : null
+                : null;
               return (
                 <tr key={lead.id}>
-                  <td><span className="admin-td-name">{lead.name}</span></td>
+                  <td>
+                    <span className="admin-td-name">{lead.name}</span>
+                  </td>
                   <td>
                     <a href={`mailto:${lead.email}`} className="admin-td-email">
                       {lead.email}
                     </a>
                   </td>
                   <td>
-                    <span className="admin-td-service" title={lead.serviceInterest}>
+                    <span
+                      className="admin-td-service"
+                      title={lead.serviceInterest}
+                    >
                       {lead.serviceInterest}
                     </span>
                   </td>
                   <td>
-                    <span className="admin-td-date" title={lead.referralSource ?? undefined}>
-                      {lead.referralSource ?? <span style={{ color: 'var(--muted, #aaa)' }}>—</span>}
+                    <span
+                      className="admin-td-date"
+                      title={lead.referralSource ?? undefined}
+                    >
+                      {lead.referralSource ?? (
+                        <span style={{ color: 'var(--muted, #aaa)' }}>—</span>
+                      )}
                     </span>
                   </td>
                   <td>
-                    <span className="admin-td-date" title={lead.notes ?? undefined}>
-                      {crsScore ?? <span style={{ color: 'var(--muted, #aaa)' }}>—</span>}
+                    <span
+                      className="admin-td-date"
+                      title={lead.notes ?? undefined}
+                    >
+                      {crsScore ?? (
+                        <span style={{ color: 'var(--muted, #aaa)' }}>—</span>
+                      )}
                     </span>
                   </td>
                   <td>
-                    {resumeDownloadUrl
-                      ? <a href={resumeDownloadUrl} className="admin-td-email" style={{ whiteSpace: 'nowrap' }}>Download <span style={{ fontSize: '0.5rem', fontWeight: 600, letterSpacing: '0.12em', verticalAlign: 'middle' }}>↓</span></a>
-                      : <span style={{ color: 'var(--muted, #aaa)' }}>—</span>
-                    }
+                    {resumeDownloadUrl ? (
+                      <a
+                        href={resumeDownloadUrl}
+                        className="admin-td-email"
+                        style={{ whiteSpace: 'nowrap' }}
+                      >
+                        Download{' '}
+                        <span
+                          style={{
+                            fontSize: '0.5rem',
+                            fontWeight: 600,
+                            letterSpacing: '0.12em',
+                            verticalAlign: 'middle',
+                          }}
+                        >
+                          ↓
+                        </span>
+                      </a>
+                    ) : (
+                      <span style={{ color: 'var(--muted, #aaa)' }}>—</span>
+                    )}
                   </td>
                   <td>
                     <span className="admin-td-date">
@@ -113,7 +159,9 @@ export default function LeadsTable({ leads: initialLeads }: Props) {
                     </span>
                   </td>
                   <td>
-                    <span className={`admin-badge ${lead.status === 'new' ? 'admin-badge-new' : lead.status === 'converted' ? 'admin-badge-paid' : 'admin-badge-other'}`}>
+                    <span
+                      className={`admin-badge ${lead.status === 'new' ? 'admin-badge-new' : lead.status === 'converted' ? 'admin-badge-paid' : 'admin-badge-other'}`}
+                    >
                       {lead.status}
                     </span>
                   </td>
@@ -134,7 +182,7 @@ export default function LeadsTable({ leads: initialLeads }: Props) {
                     </button>
                   </td>
                 </tr>
-              )
+              );
             })}
           </tbody>
         </table>
@@ -153,7 +201,10 @@ export default function LeadsTable({ leads: initialLeads }: Props) {
             padding: '1.5rem',
           }}
           onClick={(e) => {
-            if (e.target === e.currentTarget) { setDeleteTarget(null); setDeletePassword('') }
+            if (e.target === e.currentTarget) {
+              setDeleteTarget(null);
+              setDeletePassword('');
+            }
           }}
         >
           <div className="crm-modal crm-delete-modal">
@@ -161,15 +212,18 @@ export default function LeadsTable({ leads: initialLeads }: Props) {
               <h2 className="crm-modal-title">Delete Lead</h2>
               <button
                 className="crm-modal-close"
-                onClick={() => { setDeleteTarget(null); setDeletePassword('') }}
+                onClick={() => {
+                  setDeleteTarget(null);
+                  setDeletePassword('');
+                }}
               >
                 ✕
               </button>
             </div>
             <div className="crm-delete-modal-body">
               <p className="crm-delete-warning">
-                You are about to permanently delete <strong>{deleteTarget.name}</strong>.
-                This cannot be undone.
+                You are about to permanently delete{' '}
+                <strong>{deleteTarget.name}</strong>. This cannot be undone.
               </p>
               <label className="crm-field-label">
                 Admin Password
@@ -180,7 +234,10 @@ export default function LeadsTable({ leads: initialLeads }: Props) {
                   onChange={(e) => setDeletePassword(e.target.value)}
                   placeholder="Enter admin password to confirm"
                   autoFocus
-                  onKeyDown={(e) => { if (e.key === 'Enter' && deletePassword) handleConfirmDelete() }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && deletePassword)
+                      handleConfirmDelete();
+                  }}
                 />
               </label>
               {deleteError && <p className="crm-form-error">{deleteError}</p>}
@@ -189,7 +246,10 @@ export default function LeadsTable({ leads: initialLeads }: Props) {
               <button
                 type="button"
                 className="crm-modal-cancel-btn"
-                onClick={() => { setDeleteTarget(null); setDeletePassword('') }}
+                onClick={() => {
+                  setDeleteTarget(null);
+                  setDeletePassword('');
+                }}
               >
                 Cancel
               </button>
@@ -198,12 +258,14 @@ export default function LeadsTable({ leads: initialLeads }: Props) {
                 onClick={handleConfirmDelete}
                 disabled={!deletePassword || deletingId === deleteTarget.id}
               >
-                {deletingId === deleteTarget.id ? 'Deleting…' : 'Delete Permanently'}
+                {deletingId === deleteTarget.id
+                  ? 'Deleting…'
+                  : 'Delete Permanently'}
               </button>
             </div>
           </div>
         </div>
       )}
     </>
-  )
+  );
 }

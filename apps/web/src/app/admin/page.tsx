@@ -1,43 +1,50 @@
-import { redirect } from "next/navigation";
-import Link from "next/link";
-import { and, eq, gte, lt, desc, sql } from "drizzle-orm";
-import { getCurrentAuthSession } from "@/lib/auth-server";
-import SignOutButton from "./SignOutButton";
-import LeadsTable from "./LeadsTable";
-import BookingCalendar from "./BookingCalendar";
-import DeletionRequestsPanel from "./DeletionRequestsPanel";
-import { db } from "@/lib/db";
-import { leads, bookings, clients, deletionRequests, auditLog, irccQueries } from "../../../drizzle/schema";
-import { CRM_STAGES } from "@/lib/crm-stages";
-import "./admin.css";
+import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import { and, eq, gte, lt, desc, sql } from 'drizzle-orm';
+import { getCurrentAuthSession } from '@/lib/auth-server';
+import SignOutButton from './SignOutButton';
+import LeadsTable from './LeadsTable';
+import BookingCalendar from './BookingCalendar';
+import DeletionRequestsPanel from './DeletionRequestsPanel';
+import { db } from '@/lib/db';
+import {
+  leads,
+  bookings,
+  clients,
+  deletionRequests,
+  auditLog,
+  irccQueries,
+} from '../../../drizzle/schema';
+import { CRM_STAGES } from '@/lib/crm-stages';
+import './admin.css';
 
 export default async function AdminPage() {
   const authSession = await getCurrentAuthSession();
 
   if (!authSession?.session) {
-    redirect("/login");
+    redirect('/login');
   }
 
-  const userEmail = authSession.user?.email ?? "";
+  const userEmail = authSession.user?.email ?? '';
 
   // Restrict admin access to the owner account only.
-  if (userEmail !== "prashant@visaforte.com") {
-    redirect("/");
+  if (userEmail !== 'prashant@visaforte.com') {
+    redirect('/');
   }
 
-  const userName = userEmail.split("@")[0] ?? "there";
+  const userName = userEmail.split('@')[0] ?? 'there';
 
   // IST date helpers — defined early, used for the upcoming-bookings filter and calendar seed.
   const todayIST = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+    new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }),
   );
   const in7Days = new Date(todayIST);
   in7Days.setDate(todayIST.getDate() + 7);
 
   const fmt = (d: Date): string => {
     const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
   };
 
@@ -52,39 +59,48 @@ export default async function AdminPage() {
     cronRows,
   ] = await Promise.all([
     // Exclude resumeUrl (base64 data) — the download route serves it on demand.
-    db.select({
-      id: leads.id,
-      name: leads.name,
-      email: leads.email,
-      serviceInterest: leads.serviceInterest,
-      notes: leads.notes,
-      referralSource: leads.referralSource,
-      resumeFilename: leads.resumeFilename,
-      status: leads.status,
-      createdAt: leads.createdAt,
-    }).from(leads).orderBy(desc(leads.createdAt)),
+    db
+      .select({
+        id: leads.id,
+        name: leads.name,
+        email: leads.email,
+        serviceInterest: leads.serviceInterest,
+        notes: leads.notes,
+        referralSource: leads.referralSource,
+        resumeFilename: leads.resumeFilename,
+        status: leads.status,
+        createdAt: leads.createdAt,
+      })
+      .from(leads)
+      .orderBy(desc(leads.createdAt)),
     db.select().from(bookings).orderBy(desc(bookings.createdAt)),
     db.select().from(clients).orderBy(desc(clients.createdAt)),
-    db.select({ stage: clients.stage, count: sql<number>`count(*)::int` })
+    db
+      .select({ stage: clients.stage, count: sql<number>`count(*)::int` })
       .from(clients)
       .groupBy(clients.stage),
-    db.select({ id: irccQueries.id })
+    db
+      .select({ id: irccQueries.id })
       .from(irccQueries)
       .where(eq(irccQueries.status, 'Open')),
-    db.select({
-      requestId: deletionRequests.id,
-      clientId: clients.id,
-      clientName: clients.name,
-      clientEmail: clients.email,
-      requestedAt: deletionRequests.requestedAt,
-    })
+    db
+      .select({
+        requestId: deletionRequests.id,
+        clientId: clients.id,
+        clientName: clients.name,
+        clientEmail: clients.email,
+        requestedAt: deletionRequests.requestedAt,
+      })
       .from(deletionRequests)
       .innerJoin(clients, eq(deletionRequests.clientId, clients.id))
       .where(eq(deletionRequests.status, 'pending'))
       .orderBy(desc(deletionRequests.requestedAt)),
-    db.select({ createdAt: auditLog.createdAt })
+    db
+      .select({ createdAt: auditLog.createdAt })
       .from(auditLog)
-      .where(and(eq(auditLog.event, 'client_deleted'), eq(auditLog.actorId, 'cron')))
+      .where(
+        and(eq(auditLog.event, 'client_deleted'), eq(auditLog.actorId, 'cron')),
+      )
       .orderBy(desc(auditLog.createdAt))
       .limit(1),
   ]);
@@ -93,24 +109,24 @@ export default async function AdminPage() {
 
   // bookingDate is a YYYY-MM-DD text column — lexicographic string comparison is correct.
   const upcomingBookings = allBookings.filter(
-    b => b.bookingDate >= fmt(todayIST) && b.bookingDate <= fmt(in7Days)
+    (b) => b.bookingDate >= fmt(todayIST) && b.bookingDate <= fmt(in7Days),
   );
 
-  const itaClients = allClients.filter(c => c.stage === 'ITA Window');
+  const itaClients = allClients.filter((c) => c.stage === 'ITA Window');
 
   // Map to all 9 stages so stages with zero clients still render (no missing card).
-  const stageCountMap = Object.fromEntries(CRM_STAGES.map(s => [s, 0]));
+  const stageCountMap = Object.fromEntries(CRM_STAGES.map((s) => [s, 0]));
   for (const row of pipelineRows) {
     stageCountMap[row.stage] = row.count;
   }
 
   const monitoringClientCount = allClients.filter(
-    c => c.stage === 'Submitted' || c.stage === 'Decision Pending'
+    (c) => c.stage === 'Submitted' || c.stage === 'Decision Pending',
   ).length;
   const openQueryCount = openQueryRows.length;
 
   // Serialize Date → ISO string for the client component.
-  const pendingDeletions = pendingDeletionRows.map(r => ({
+  const pendingDeletions = pendingDeletionRows.map((r) => ({
     ...r,
     requestedAt: r.requestedAt.toISOString(),
   }));
@@ -133,8 +149,8 @@ export default async function AdminPage() {
           eq(auditLog.event, 'client_deleted'),
           eq(auditLog.actorId, 'cron'),
           gte(auditLog.createdAt, dayStart),
-          lt(auditLog.createdAt, dayEnd)
-        )
+          lt(auditLog.createdAt, dayEnd),
+        ),
       );
     lastRetentionCount = countRow?.count ?? 0;
   }
@@ -147,12 +163,12 @@ export default async function AdminPage() {
 
   // Strip bookings to serializable scalar fields only before passing to the client calendar component.
   // Excludes createdAt (Date object) — not needed for calendar display.
-  const bookingsForCalendar = allBookings.map(b => ({
+  const bookingsForCalendar = allBookings.map((b) => ({
     id: b.id,
     name: b.name,
     email: b.email,
     serviceTier: b.serviceTier,
-    bookingDate: b.bookingDate,     // text column — already a YYYY-MM-DD string
+    bookingDate: b.bookingDate, // text column — already a YYYY-MM-DD string
     paymentStatus: b.paymentStatus,
     status: b.status,
     amountPaid: b.amountPaid,
@@ -162,7 +178,7 @@ export default async function AdminPage() {
   // IST-aware greeting and calendar seed values.
   const hour = todayIST.getHours();
   const greeting =
-    hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+    hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   const todayStr = fmt(todayIST);
   const calInitialYear = todayIST.getFullYear();
@@ -170,7 +186,6 @@ export default async function AdminPage() {
 
   return (
     <div className="admin-wrap">
-
       {/* ── Header ── */}
       <header className="admin-header">
         <div className="admin-header-left">
@@ -192,22 +207,26 @@ export default async function AdminPage() {
         <div className="crm-ita-banner admin-ita-banner">
           <span className="crm-ita-banner-icon">⚑</span>
           <span className="crm-ita-banner-text">
-            {itaClients.length} client{itaClients.length > 1 ? 's' : ''} in ITA Window —
-            immediate action required.{' '}
-            <a href="/admin/clients" className="admin-ita-banner-link">Go to CRM →</a>
+            {itaClients.length} client{itaClients.length > 1 ? 's' : ''} in ITA
+            Window — immediate action required.{' '}
+            <a href="/admin/clients" className="admin-ita-banner-link">
+              Go to CRM →
+            </a>
           </span>
         </div>
       )}
 
       {/* ── Main content ── */}
       <main className="admin-main">
-
         {/* Welcome */}
         <div className="admin-welcome">
           <p className="admin-welcome-eyebrow">Dashboard</p>
-          <h1 className="admin-welcome-heading">{greeting}, {userName}.</h1>
+          <h1 className="admin-welcome-heading">
+            {greeting}, {userName}.
+          </h1>
           <p className="admin-welcome-sub">
-            Your Visa Forte operations hub. Manage clients, track cases, and generate reports.
+            Your Visa Forte operations hub. Manage clients, track cases, and
+            generate reports.
           </p>
         </div>
 
@@ -237,9 +256,17 @@ export default async function AdminPage() {
             <p className="admin-stat-label">Monitoring</p>
             <p className="admin-stat-value">{monitoringClientCount}</p>
             <p className="admin-stat-note">
-              {openQueryCount > 0
-                ? <a href="/admin/monitoring" style={{ color: 'var(--saffron)', fontWeight: 600 }}>{openQueryCount} open {openQueryCount === 1 ? 'query' : 'queries'}</a>
-                : 'Submitted / pending'}
+              {openQueryCount > 0 ? (
+                <a
+                  href="/admin/monitoring"
+                  style={{ color: 'var(--saffron)', fontWeight: 600 }}
+                >
+                  {openQueryCount} open{' '}
+                  {openQueryCount === 1 ? 'query' : 'queries'}
+                </a>
+              ) : (
+                'Submitted / pending'
+              )}
             </p>
           </div>
         </div>
@@ -248,11 +275,13 @@ export default async function AdminPage() {
         <div className="admin-section-header">
           <span className="admin-section-title">Pipeline Overview</span>
           <span className="admin-section-rule" />
-          <a href="/admin/clients" className="admin-section-link">Open CRM →</a>
+          <a href="/admin/clients" className="admin-section-link">
+            Open CRM →
+          </a>
         </div>
 
         <div className="admin-pipeline">
-          {CRM_STAGES.map(stage => {
+          {CRM_STAGES.map((stage) => {
             const count = stageCountMap[stage] ?? 0;
             const isITA = stage === 'ITA Window';
             const itaActive = isITA && count > 0;
@@ -263,7 +292,9 @@ export default async function AdminPage() {
                 className={`admin-pipeline-card${itaActive ? ' admin-pipeline-card-ita' : ''}`}
               >
                 <span className="admin-pipeline-stage">{stage}</span>
-                <span className={`admin-pipeline-count${itaActive ? ' admin-pipeline-count-ita' : ''}`}>
+                <span
+                  className={`admin-pipeline-count${itaActive ? ' admin-pipeline-count-ita' : ''}`}
+                >
                   {count}
                 </span>
               </a>
@@ -280,13 +311,17 @@ export default async function AdminPage() {
             )}
           </span>
           <span className="admin-section-rule" />
-          <a href="/intake" className="admin-section-link">View Form →</a>
+          <a href="/intake" className="admin-section-link">
+            View Form →
+          </a>
         </div>
 
         {allLeads.length === 0 ? (
           <div className="admin-empty">
             <p className="admin-empty-text">No intake submissions yet.</p>
-            <a href="/intake" className="admin-empty-link">Share the intake form →</a>
+            <a href="/intake" className="admin-empty-link">
+              Share the intake form →
+            </a>
           </div>
         ) : (
           <LeadsTable leads={leadsForTable} />
@@ -297,17 +332,23 @@ export default async function AdminPage() {
           <span className="admin-section-title">
             Bookings
             {allBookings.length > 0 && (
-              <span className="admin-section-count">({allBookings.length})</span>
+              <span className="admin-section-count">
+                ({allBookings.length})
+              </span>
             )}
           </span>
           <span className="admin-section-rule" />
-          <a href="/admin/availability" className="admin-section-link">Manage Availability →</a>
+          <a href="/admin/availability" className="admin-section-link">
+            Manage Availability →
+          </a>
         </div>
 
         {allBookings.length === 0 ? (
           <div className="admin-empty">
             <p className="admin-empty-text">No bookings yet.</p>
-            <a href="/admin/availability" className="admin-empty-link">Open availability slots →</a>
+            <a href="/admin/availability" className="admin-empty-link">
+              Open availability slots →
+            </a>
           </div>
         ) : (
           <BookingCalendar
@@ -340,37 +381,55 @@ export default async function AdminPage() {
         <div className="admin-tools">
           <a href="/admin/clients" className="admin-tool-card">
             <p className="admin-tool-name">Client CRM</p>
-            <p className="admin-tool-desc">Manage your client pipeline across 9 stages from Lead to Completed. Edit stages inline, add private notes, and track ITA Window clients at a glance.</p>
+            <p className="admin-tool-desc">
+              Manage your client pipeline across 9 stages from Lead to
+              Completed. Edit stages inline, add private notes, and track ITA
+              Window clients at a glance.
+            </p>
             <span className="admin-tool-cta">Open CRM →</span>
           </a>
           <a href="/admin/canvisa-pro" className="admin-tool-card">
             <p className="admin-tool-name">CanVisa Pro</p>
-            <p className="admin-tool-desc">Generate a full PR eligibility assessment report for any applicant. Includes CRS calculation, FSW grid, pathway ranking, and gap analysis.</p>
+            <p className="admin-tool-desc">
+              Generate a full PR eligibility assessment report for any
+              applicant. Includes CRS calculation, FSW grid, pathway ranking,
+              and gap analysis.
+            </p>
             <span className="admin-tool-cta">Open Tool →</span>
           </a>
           <a href="/admin/availability" className="admin-tool-card">
             <p className="admin-tool-name">Availability Manager</p>
-            <p className="admin-tool-desc">Set available and unavailable dates for client bookings across all service tiers.</p>
+            <p className="admin-tool-desc">
+              Set available and unavailable dates for client bookings across all
+              service tiers.
+            </p>
             <span className="admin-tool-cta">Manage →</span>
           </a>
           <a href="/admin/monitoring" className="admin-tool-card">
             <p className="admin-tool-name">Post-Submission Monitoring</p>
-            <p className="admin-tool-desc">Track AOR numbers, expected decision dates, IRCC portal status, and open queries for submitted applications. Get deadline alerts before responses are due.</p>
+            <p className="admin-tool-desc">
+              Track AOR numbers, expected decision dates, IRCC portal status,
+              and open queries for submitted applications. Get deadline alerts
+              before responses are due.
+            </p>
             <span className="admin-tool-cta">Open Monitoring →</span>
           </a>
         </div>
 
         {/* Footer */}
         <div className="admin-footer">
-          <p className="admin-footer-text">Visa Forte · Engineered for Passage.</p>
-          <Link href="/" className="admin-footer-link">View Site →</Link>
+          <p className="admin-footer-text">
+            Visa Forte · Engineered for Passage.
+          </p>
+          <Link href="/" className="admin-footer-link">
+            View Site →
+          </Link>
           <p className="admin-retention-note">
             {lastRetentionRun
               ? `Last retention run: ${new Date(lastRetentionRun).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} — ${lastRetentionCount} record${lastRetentionCount === 1 ? '' : 's'} deleted`
               : 'No retention runs yet.'}
           </p>
         </div>
-
       </main>
     </div>
   );

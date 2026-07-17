@@ -1,5 +1,5 @@
-import type { MetadataRoute } from "next";
-import { SITE_URL } from "@/lib/seo";
+import type { MetadataRoute } from 'next';
+import { SITE_URL } from '@/lib/seo';
 
 // robots.txt — tells search engine crawlers what they may index.
 // All public pages are open; everything private (admin, client portal,
@@ -7,17 +7,17 @@ import { SITE_URL } from "@/lib/seo";
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
-      userAgent: "*",
-      allow: "/",
+      userAgent: '*',
+      allow: '/',
       disallow: [
-        "/admin",
-        "/portal",
-        "/api/",
-        "/login",
-        "/signup",
-        "/logout",
-        "/activate",
-        "/intake",
+        '/admin',
+        '/portal',
+        '/api/',
+        '/login',
+        '/signup',
+        '/logout',
+        '/activate',
+        '/intake',
       ],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,

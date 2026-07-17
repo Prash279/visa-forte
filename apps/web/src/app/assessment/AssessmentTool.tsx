@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { useState, useCallback } from 'react'
-import Link from 'next/link'
+import { useState, useCallback } from 'react';
+import Link from 'next/link';
 import {
   calculate,
   scoresToClb,
@@ -12,39 +12,53 @@ import {
   type StreamEligibility,
   type LanguageBands,
   type FswImprovementSuggestion,
-} from '@/lib/crs-calculator'
-import drawData from '@/lib/crs-draw-history.json'
-import fundsData from '@/lib/proof-of-funds.json'
-import crsRules from '@/lib/crs-rules.json'
-import './assessment.css'
-import NocSearch from '@/components/NocSearch'
-import { getWeaknesses, getBestPathway, type WeaknessChip, type BestPathway } from '@/lib/canvisa-lite-logic'
+} from '@/lib/crs-calculator';
+import drawData from '@/lib/crs-draw-history.json';
+import fundsData from '@/lib/proof-of-funds.json';
+import crsRules from '@/lib/crs-rules.json';
+import './assessment.css';
+import NocSearch from '@/components/NocSearch';
+import {
+  getWeaknesses,
+  getBestPathway,
+  type WeaknessChip,
+  type BestPathway,
+} from '@/lib/canvisa-lite-logic';
 
 // ── Draw history helpers ───────────────────────────────────────────────────────
 
-type Draw = { date: string; type: string; cutoffScore: number; invitationsIssued: number }
+type Draw = {
+  date: string;
+  type: string;
+  cutoffScore: number;
+  invitationsIssued: number;
+};
 
 function fmtDate(iso: string): string {
   // "2025-04-30" → "Apr 30, 2025"
-  const [y, m, d] = iso.split('-').map(Number)
-  const dt = new Date(y, (m ?? 1) - 1, d ?? 1)
-  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  const [y, m, d] = iso.split('-').map(Number);
+  const dt = new Date(y, (m ?? 1) - 1, d ?? 1);
+  return dt.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 }
 
 function shortType(type: string): string {
-  if (/^general$/i.test(type)) return 'General'
-  if (/pnp|provincial nominee/i.test(type)) return 'PNP'
-  if (/canadian experience class/i.test(type)) return 'CEC'
-  if (/stem/i.test(type)) return 'STEM'
-  if (/french/i.test(type)) return 'French'
-  if (/health/i.test(type)) return 'Healthcare'
-  if (/trade/i.test(type)) return 'Trades'
-  if (/transport/i.test(type)) return 'Transport'
-  if (/agri/i.test(type)) return 'Agriculture'
-  if (/education/i.test(type)) return 'Education'
-  if (/senior manager/i.test(type)) return 'Senior Mgr'
-  if (/physician/i.test(type)) return 'Physicians'
-  return type.length > 20 ? type.slice(0, 18) + '…' : type
+  if (/^general$/i.test(type)) return 'General';
+  if (/pnp|provincial nominee/i.test(type)) return 'PNP';
+  if (/canadian experience class/i.test(type)) return 'CEC';
+  if (/stem/i.test(type)) return 'STEM';
+  if (/french/i.test(type)) return 'French';
+  if (/health/i.test(type)) return 'Healthcare';
+  if (/trade/i.test(type)) return 'Trades';
+  if (/transport/i.test(type)) return 'Transport';
+  if (/agri/i.test(type)) return 'Agriculture';
+  if (/education/i.test(type)) return 'Education';
+  if (/senior manager/i.test(type)) return 'Senior Mgr';
+  if (/physician/i.test(type)) return 'Physicians';
+  return type.length > 20 ? type.slice(0, 18) + '…' : type;
 }
 
 // Which IRCC draw categories is this applicant eligible for, in priority order?
@@ -53,99 +67,120 @@ function shortType(type: string): string {
 function getEligibleDrawCategories(
   profile: ApplicantProfile,
   elig: StreamEligibility,
-  secondLangBands: LanguageBands | undefined
+  secondLangBands: LanguageBands | undefined,
 ): string[] {
-  const cats: string[] = []
+  const cats: string[] = [];
 
   // CEC: ≥1 year of skilled Canadian work experience (uses pre-computed eligibility)
-  if (elig.cec.eligible) cats.push('CEC')
+  if (elig.cec.eligible) cats.push('CEC');
 
   // French: took a French test (TEF or TCF) AND scored CLB ≥7 in all four abilities
   const isFrenchTest =
     profile.hasSecondLanguage &&
     (profile.secondLanguageScores?.testType === 'TEF' ||
-      profile.secondLanguageScores?.testType === 'TCF')
+      profile.secondLanguageScores?.testType === 'TCF');
   const frenchClbMet =
     secondLangBands != null &&
-    secondLangBands.listening >= 7 && secondLangBands.reading >= 7 &&
-    secondLangBands.writing >= 7 && secondLangBands.speaking >= 7
-  if (isFrenchTest && frenchClbMet) cats.push('French')
+    secondLangBands.listening >= 7 &&
+    secondLangBands.reading >= 7 &&
+    secondLangBands.writing >= 7 &&
+    secondLangBands.speaking >= 7;
+  if (isFrenchTest && frenchClbMet) cats.push('French');
 
   // Sector draws: detect by NOC 2021 5-digit code prefix (approved ranges)
-  const nocNum = parseInt(profile.nocCode, 10)
+  const nocNum = parseInt(profile.nocCode, 10);
   if (!isNaN(nocNum)) {
-    if (nocNum >= 30010 && nocNum <= 35109) cats.push('Healthcare')  // Healthcare & Social Services
+    if (nocNum >= 30010 && nocNum <= 35109) cats.push('Healthcare'); // Healthcare & Social Services
     if (
-      (nocNum >= 72000 && nocNum <= 75199) ||  // Skilled trades
-      (nocNum >= 82000 && nocNum <= 82099) ||  // Natural-resources trades
-      (nocNum >= 92000 && nocNum <= 95199)     // Processing & utilities
-    ) cats.push('Trades')
-    if (nocNum >= 40000 && nocNum <= 41499) cats.push('Education')   // Education workers
+      (nocNum >= 72000 && nocNum <= 75199) || // Skilled trades
+      (nocNum >= 82000 && nocNum <= 82099) || // Natural-resources trades
+      (nocNum >= 92000 && nocNum <= 95199) // Processing & utilities
+    )
+      cats.push('Trades');
+    if (nocNum >= 40000 && nocNum <= 41499) cats.push('Education'); // Education workers
   }
 
   // PNP: already holds a provincial nomination
-  if (profile.hasProvincialNomination) cats.push('PNP')
+  if (profile.hasProvincialNomination) cats.push('PNP');
 
-  return cats
+  return cats;
 }
 
 // ── Age bracket alert ─────────────────────────────────────────────────────────
 
 type AgeAlertResult = {
-  timeUntilLabel: string
-  pointsLost: number
-  currentPts: number
-  nextPts: number
-  birthdayAge: number
-  birthdayMonthYear: string
-}
+  timeUntilLabel: string;
+  pointsLost: number;
+  currentPts: number;
+  nextPts: number;
+  birthdayAge: number;
+  birthdayMonthYear: string;
+};
 
 function getAgeAlert(
   input: { dob?: string; birthYear?: number; birthMonth?: number } | null,
-  agePointsTable: Record<string, number>
+  agePointsTable: Record<string, number>,
 ): AgeAlertResult | null {
-  const today = new Date()
-  let nextBirthdayDate: Date | null = null
-  let birthdayAge = 0
+  const today = new Date();
+  let nextBirthdayDate: Date | null = null;
+  let birthdayAge = 0;
 
   if (input?.dob) {
-    const [y, m, d] = input.dob.split('-').map(Number)
-    if (!y || !m || !d) return null
-    const thisYear = new Date(today.getFullYear(), m - 1, d)
-    const nextYear  = new Date(today.getFullYear() + 1, m - 1, d)
-    nextBirthdayDate = thisYear > today ? thisYear : nextYear
-    birthdayAge = nextBirthdayDate.getFullYear() - y
+    const [y, m, d] = input.dob.split('-').map(Number);
+    if (!y || !m || !d) return null;
+    const thisYear = new Date(today.getFullYear(), m - 1, d);
+    const nextYear = new Date(today.getFullYear() + 1, m - 1, d);
+    nextBirthdayDate = thisYear > today ? thisYear : nextYear;
+    birthdayAge = nextBirthdayDate.getFullYear() - y;
   } else if (input?.birthYear != null && input?.birthMonth != null) {
-    const bMonth0 = input.birthMonth - 1
-    const thisYear = new Date(today.getFullYear(), bMonth0, 1)
-    const nextYear  = new Date(today.getFullYear() + 1, bMonth0, 1)
-    nextBirthdayDate = thisYear > today ? thisYear : nextYear
-    birthdayAge = nextBirthdayDate.getFullYear() - input.birthYear
+    const bMonth0 = input.birthMonth - 1;
+    const thisYear = new Date(today.getFullYear(), bMonth0, 1);
+    const nextYear = new Date(today.getFullYear() + 1, bMonth0, 1);
+    nextBirthdayDate = thisYear > today ? thisYear : nextYear;
+    birthdayAge = nextBirthdayDate.getFullYear() - input.birthYear;
   } else {
-    return null
+    return null;
   }
 
-  const MS_PER_DAY = 24 * 60 * 60 * 1000
-  const daysUntilChange = Math.max(1, Math.ceil((nextBirthdayDate.getTime() - today.getTime()) / MS_PER_DAY))
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+  const daysUntilChange = Math.max(
+    1,
+    Math.ceil((nextBirthdayDate.getTime() - today.getTime()) / MS_PER_DAY),
+  );
 
-  if (daysUntilChange > 366) return null
+  if (daysUntilChange > 366) return null;
 
-  const currentAge = birthdayAge - 1
-  const currentPts = agePointsTable[String(Math.min(currentAge, 44))] ?? 0
-  const nextPts    = birthdayAge <= 44 ? (agePointsTable[String(birthdayAge)] ?? 0) : 0
+  const currentAge = birthdayAge - 1;
+  const currentPts = agePointsTable[String(Math.min(currentAge, 44))] ?? 0;
+  const nextPts =
+    birthdayAge <= 44 ? (agePointsTable[String(birthdayAge)] ?? 0) : 0;
 
-  if (nextPts >= currentPts) return null
+  if (nextPts >= currentPts) return null;
 
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  const birthdayMonthYear = `${MONTHS[nextBirthdayDate.getMonth()]} ${nextBirthdayDate.getFullYear()}`
+  const MONTHS = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  const birthdayMonthYear = `${MONTHS[nextBirthdayDate.getMonth()]} ${nextBirthdayDate.getFullYear()}`;
 
   // Birthdays under a month out read clearer in days than as "1 month".
-  const timeUntilLabel = daysUntilChange < 31
-    ? `${daysUntilChange} day${daysUntilChange === 1 ? '' : 's'}`
-    : (() => {
-        const months = Math.max(1, Math.round(daysUntilChange / 30.44))
-        return `${months} month${months === 1 ? '' : 's'}`
-      })()
+  const timeUntilLabel =
+    daysUntilChange < 31
+      ? `${daysUntilChange} day${daysUntilChange === 1 ? '' : 's'}`
+      : (() => {
+          const months = Math.max(1, Math.round(daysUntilChange / 30.44));
+          return `${months} month${months === 1 ? '' : 's'}`;
+        })();
 
   return {
     timeUntilLabel,
@@ -154,36 +189,54 @@ function getAgeAlert(
     nextPts,
     birthdayAge,
     birthdayMonthYear,
-  }
+  };
 }
 
 // ── Date-of-birth helpers ─────────────────────────────────────────────────────
 
 function calcAgeFromDob(dob: string): number {
-  const birth = new Date(dob + 'T00:00:00')
-  const today = new Date()
-  let age = today.getFullYear() - birth.getFullYear()
-  const m = today.getMonth() - birth.getMonth()
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
-  return Math.max(0, age)
+  const birth = new Date(dob + 'T00:00:00');
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return Math.max(0, age);
 }
 
 function getDobBounds(): { min: string; max: string } {
-  const today = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  const today = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const fmt = (d: Date) =>
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   return {
-    min: fmt(new Date(today.getFullYear() - 80, today.getMonth(), today.getDate())),
-    max: fmt(new Date(today.getFullYear() - 18, today.getMonth(), today.getDate())),
-  }
+    min: fmt(
+      new Date(today.getFullYear() - 80, today.getMonth(), today.getDate()),
+    ),
+    max: fmt(
+      new Date(today.getFullYear() - 18, today.getMonth(), today.getDate()),
+    ),
+  };
 }
-const DOB_BOUNDS   = getDobBounds()
-const DOB_YEAR_MAX = parseInt(DOB_BOUNDS.max.slice(0, 4))
-const DOB_YEAR_MIN = parseInt(DOB_BOUNDS.min.slice(0, 4))
-const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+const DOB_BOUNDS = getDobBounds();
+const DOB_YEAR_MAX = parseInt(DOB_BOUNDS.max.slice(0, 4));
+const DOB_YEAR_MIN = parseInt(DOB_BOUNDS.min.slice(0, 4));
+const MONTH_LABELS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
 function daysInMonth(month: string, year: string): number {
-  if (!month || !year) return 31
-  return new Date(parseInt(year), parseInt(month), 0).getDate()
+  if (!month || !year) return 31;
+  return new Date(parseInt(year), parseInt(month), 0).getDate();
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -197,7 +250,7 @@ const EDU_LABELS: Record<EducationLevel, string> = {
   two_or_more_degrees: '2+ Post-Secondary (one 3+ yr)',
   masters: "Master's Degree / Professional",
   doctoral: 'Doctoral Degree (PhD)',
-}
+};
 
 const DEFAULT_LANG: LanguageScores = {
   testType: 'IELTS_GT',
@@ -205,7 +258,7 @@ const DEFAULT_LANG: LanguageScores = {
   reading: 0,
   writing: 0,
   speaking: 0,
-}
+};
 
 const INITIAL: ApplicantProfile = {
   name: '',
@@ -236,119 +289,142 @@ const INITIAL: ApplicantProfile = {
   hasPriorRefusal: false,
   refusalDetails: '',
   fundsSource: '',
-}
+};
 
 // ── Family composition helpers ────────────────────────────────────────────────
 
 // IRCC counts all family members for settlement funds, including non-accompanying spouse.
 // isMarried = maritalStatus is 'married'; separated/single do not have a spouse to count.
 function computeFamilySize(children: number, isMarried: boolean): number {
-  return Math.max(1, 1 + (isMarried ? 1 : 0) + children)
+  return Math.max(1, 1 + (isMarried ? 1 : 0) + children);
 }
 
 function minSettlementFunds(familySize: number): number {
-  const size = Math.max(1, familySize)
-  const table = fundsData.byFamilySize as Record<string, number>
-  if (size <= 7) return table[String(size)] ?? 0
-  return (table['7'] ?? 40392) + (size - 7) * fundsData.extraPerMember
+  const size = Math.max(1, familySize);
+  const table = fundsData.byFamilySize as Record<string, number>;
+  if (size <= 7) return table[String(size)] ?? 0;
+  return (table['7'] ?? 40392) + (size - 7) * fundsData.extraPerMember;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function AssessmentTool() {
-  const [view, setView]       = useState<'form' | 'result'>('form')
-  const [profile, setProfile] = useState<ApplicantProfile>(INITIAL)
-  const [result, setResult]   = useState<CrsResult | null>(null)
-  const [maritalStatus, setMaritalStatus] = useState<'single' | 'married' | 'separated'>('single')
-  const [numberOfChildren, setNumberOfChildren] = useState(0)
-  const [dobDay, setDobDay]     = useState('')
-  const [dobMonth, setDobMonth] = useState('')
-  const [dobYear, setDobYear]   = useState('')
-  const dateOfBirth = dobDay && dobMonth && dobYear
-    ? `${dobYear}-${dobMonth}-${dobDay}` : ''
+  const [view, setView] = useState<'form' | 'result'>('form');
+  const [profile, setProfile] = useState<ApplicantProfile>(INITIAL);
+  const [result, setResult] = useState<CrsResult | null>(null);
+  const [maritalStatus, setMaritalStatus] = useState<
+    'single' | 'married' | 'separated'
+  >('single');
+  const [numberOfChildren, setNumberOfChildren] = useState(0);
+  const [dobDay, setDobDay] = useState('');
+  const [dobMonth, setDobMonth] = useState('');
+  const [dobYear, setDobYear] = useState('');
+  const dateOfBirth =
+    dobDay && dobMonth && dobYear ? `${dobYear}-${dobMonth}-${dobDay}` : '';
 
   // Post-result lead capture (optional — shown after result, never gates the form)
-  const [leadName, setLeadName]         = useState('')
-  const [leadEmail, setLeadEmail]       = useState('')
+  const [leadName, setLeadName] = useState('');
+  const [leadEmail, setLeadEmail] = useState('');
 
   // Weakness chips, best pathway, email/alert
-  const [weaknesses, setWeaknesses]     = useState<WeaknessChip[]>([])
-  const [pathway, setPathway]           = useState<BestPathway | null>(null)
-  const [eeCategory, setEeCategory]     = useState('')
-  const [wantsAlert, setWantsAlert]     = useState(true)
-  const [emailSent, setEmailSent]       = useState(false)
-  const [emailSending, setEmailSending] = useState(false)
+  const [weaknesses, setWeaknesses] = useState<WeaknessChip[]>([]);
+  const [pathway, setPathway] = useState<BestPathway | null>(null);
+  const [eeCategory, setEeCategory] = useState('');
+  const [wantsAlert, setWantsAlert] = useState(true);
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailSending, setEmailSending] = useState(false);
 
-  const firstClb  = scoresToClb(profile.firstLanguageScores)
-  const secondClb = profile.hasSecondLanguage && profile.secondLanguageScores
-    ? scoresToClb(profile.secondLanguageScores)
-    : null
-  const spouseClb = profile.hasSpouse && profile.spouseLanguageScores
-    ? scoresToClb(profile.spouseLanguageScores)
-    : null
+  const firstClb = scoresToClb(profile.firstLanguageScores);
+  const secondClb =
+    profile.hasSecondLanguage && profile.secondLanguageScores
+      ? scoresToClb(profile.secondLanguageScores)
+      : null;
+  const spouseClb =
+    profile.hasSpouse && profile.spouseLanguageScores
+      ? scoresToClb(profile.spouseLanguageScores)
+      : null;
 
-  const set = useCallback(<K extends keyof ApplicantProfile>(
-    key: K, value: ApplicantProfile[K],
-  ) => {
-    setProfile(prev => ({ ...prev, [key]: value }))
-  }, [])
-
-  const setLangScore = useCallback(
-    (which: 'first' | 'second', field: keyof LanguageScores, value: string | number) => {
-      const key = which === 'first' ? 'firstLanguageScores' : 'secondLanguageScores'
-      setProfile(prev => ({
-        ...prev,
-        [key]: { ...(prev[key] ?? DEFAULT_LANG), [field]: value },
-      }))
+  const set = useCallback(
+    <K extends keyof ApplicantProfile>(key: K, value: ApplicantProfile[K]) => {
+      setProfile((prev) => ({ ...prev, [key]: value }));
     },
     [],
-  )
+  );
+
+  const setLangScore = useCallback(
+    (
+      which: 'first' | 'second',
+      field: keyof LanguageScores,
+      value: string | number,
+    ) => {
+      const key =
+        which === 'first' ? 'firstLanguageScores' : 'secondLanguageScores';
+      setProfile((prev) => ({
+        ...prev,
+        [key]: { ...(prev[key] ?? DEFAULT_LANG), [field]: value },
+      }));
+    },
+    [],
+  );
 
   const setSpouseLangScore = useCallback(
     (field: keyof LanguageScores, value: string | number) => {
-      setProfile(prev => ({
+      setProfile((prev) => ({
         ...prev,
-        spouseLanguageScores: { ...(prev.spouseLanguageScores ?? DEFAULT_LANG), [field]: value },
-      }))
+        spouseLanguageScores: {
+          ...(prev.spouseLanguageScores ?? DEFAULT_LANG),
+          [field]: value,
+        },
+      }));
     },
     [],
-  )
+  );
 
   function runAssessment() {
-    const r = calculate(profile)
-    const cats = getEligibleDrawCategories(profile, r.eligibility, r.secondLanguageBands)
-    const catsForPathway = cats.length === 0 && r.eligibility.expressEntryPool.eligible ? [...cats, 'General'] : cats
-    setWeaknesses(getWeaknesses(r))
-    setPathway(getBestPathway(r.breakdown.total, catsForPathway))
-    setEeCategory(cats[0] ?? 'Express Entry Pool')
-    setResult(r)
-    setView('result')
-    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50)
+    const r = calculate(profile);
+    const cats = getEligibleDrawCategories(
+      profile,
+      r.eligibility,
+      r.secondLanguageBands,
+    );
+    const catsForPathway =
+      cats.length === 0 && r.eligibility.expressEntryPool.eligible
+        ? [...cats, 'General']
+        : cats;
+    setWeaknesses(getWeaknesses(r));
+    setPathway(getBestPathway(r.breakdown.total, catsForPathway));
+    setEeCategory(cats[0] ?? 'Express Entry Pool');
+    setResult(r);
+    setView('result');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
   }
 
   function resetAssessment() {
-    setProfile({ ...INITIAL, reportDate: new Date().toISOString().split('T')[0] ?? '' })
-    setMaritalStatus('single')
-    setNumberOfChildren(0)
-    setResult(null)
-    setView('form')
-    setLeadName('')
-    setLeadEmail('')
-    setDobDay('')
-    setDobMonth('')
-    setDobYear('')
-    setWeaknesses([])
-    setPathway(null)
-    setEeCategory('')
-    setWantsAlert(true)
-    setEmailSent(false)
-    setEmailSending(false)
-    setTimeout(() => window.scrollTo({ top: 0 }), 50)
+    setProfile({
+      ...INITIAL,
+      reportDate: new Date().toISOString().split('T')[0] ?? '',
+    });
+    setMaritalStatus('single');
+    setNumberOfChildren(0);
+    setResult(null);
+    setView('form');
+    setLeadName('');
+    setLeadEmail('');
+    setDobDay('');
+    setDobMonth('');
+    setDobYear('');
+    setWeaknesses([]);
+    setPathway(null);
+    setEeCategory('');
+    setWantsAlert(true);
+    setEmailSent(false);
+    setEmailSending(false);
+    setTimeout(() => window.scrollTo({ top: 0 }), 50);
   }
 
   async function handleSendResults(): Promise<void> {
-    if (!result) return
-    setEmailSending(true)
+    if (!result) return;
+    setEmailSending(true);
     try {
       await fetch('/api/tools/lead-capture', {
         method: 'POST',
@@ -362,15 +438,19 @@ export default function AssessmentTool() {
           wantsDrawAlert: wantsAlert,
           weaknesses,
           bestPathway: pathway
-            ? { category: pathway.category, cutoffScore: pathway.cutoffScore, gap: pathway.gap }
+            ? {
+                category: pathway.category,
+                cutoffScore: pathway.cutoffScore,
+                gap: pathway.gap,
+              }
             : undefined,
         }),
-      })
-      setEmailSent(true)
+      });
+      setEmailSent(true);
     } catch {
       // non-critical — user already has their result on screen
     } finally {
-      setEmailSending(false)
+      setEmailSending(false);
     }
   }
 
@@ -388,9 +468,9 @@ export default function AssessmentTool() {
             </h1>
             <div className="rule r d2" />
             <p className="asx-hero-lead r d2">
-              Enter your profile below for an instant CRS score, stream eligibility
-              analysis, and your top improvement scenarios — powered by the same
-              engine Prash uses for paid assessments.
+              Enter your profile below for an instant CRS score, stream
+              eligibility analysis, and your top improvement scenarios — powered
+              by the same engine Prash uses for paid assessments.
             </p>
           </div>
         </section>
@@ -398,7 +478,6 @@ export default function AssessmentTool() {
         {/* Form */}
         <section className="asx-form-section">
           <div className="asx-form-inner">
-
             {/* Section 1: Identity */}
             <p className="asx-section-label">1 — Your Identity</p>
             <div className="asx-grid-2">
@@ -407,7 +486,7 @@ export default function AssessmentTool() {
                 <input
                   className="asx-input"
                   value={profile.name}
-                  onChange={e => set('name', e.target.value)}
+                  onChange={(e) => set('name', e.target.value)}
                   placeholder="e.g. Kishore Sai"
                 />
               </div>
@@ -417,56 +496,86 @@ export default function AssessmentTool() {
                   <select
                     className="asx-select"
                     value={dobDay}
-                    onChange={e => {
-                      const day = e.target.value
-                      setDobDay(day)
+                    onChange={(e) => {
+                      const day = e.target.value;
+                      setDobDay(day);
                       if (day && dobMonth && dobYear) {
-                        const age = calcAgeFromDob(`${dobYear}-${dobMonth}-${day}`)
-                        set('age', age > 0 ? age : 0)
-                      } else { set('age', 0) }
+                        const age = calcAgeFromDob(
+                          `${dobYear}-${dobMonth}-${day}`,
+                        );
+                        set('age', age > 0 ? age : 0);
+                      } else {
+                        set('age', 0);
+                      }
                     }}
                   >
                     <option value="">DD</option>
-                    {Array.from({ length: daysInMonth(dobMonth, dobYear) }, (_, i) => {
-                      const d = String(i + 1).padStart(2, '0')
-                      return <option key={d} value={d}>{d}</option>
-                    })}
+                    {Array.from(
+                      { length: daysInMonth(dobMonth, dobYear) },
+                      (_, i) => {
+                        const d = String(i + 1).padStart(2, '0');
+                        return (
+                          <option key={d} value={d}>
+                            {d}
+                          </option>
+                        );
+                      },
+                    )}
                   </select>
                   <select
                     className="asx-select"
                     value={dobMonth}
-                    onChange={e => {
-                      const month = e.target.value
-                      setDobMonth(month)
+                    onChange={(e) => {
+                      const month = e.target.value;
+                      setDobMonth(month);
                       if (dobDay && month && dobYear) {
-                        const age = calcAgeFromDob(`${dobYear}-${month}-${dobDay}`)
-                        set('age', age > 0 ? age : 0)
-                      } else { set('age', 0) }
+                        const age = calcAgeFromDob(
+                          `${dobYear}-${month}-${dobDay}`,
+                        );
+                        set('age', age > 0 ? age : 0);
+                      } else {
+                        set('age', 0);
+                      }
                     }}
                   >
                     <option value="">MMM</option>
                     {MONTH_LABELS.map((m, i) => {
-                      const val = String(i + 1).padStart(2, '0')
-                      return <option key={val} value={val}>{m}</option>
+                      const val = String(i + 1).padStart(2, '0');
+                      return (
+                        <option key={val} value={val}>
+                          {m}
+                        </option>
+                      );
                     })}
                   </select>
                   <select
                     className="asx-select"
                     value={dobYear}
-                    onChange={e => {
-                      const year = e.target.value
-                      setDobYear(year)
+                    onChange={(e) => {
+                      const year = e.target.value;
+                      setDobYear(year);
                       if (dobDay && dobMonth && year) {
-                        const age = calcAgeFromDob(`${year}-${dobMonth}-${dobDay}`)
-                        set('age', age > 0 ? age : 0)
-                      } else { set('age', 0) }
+                        const age = calcAgeFromDob(
+                          `${year}-${dobMonth}-${dobDay}`,
+                        );
+                        set('age', age > 0 ? age : 0);
+                      } else {
+                        set('age', 0);
+                      }
                     }}
                   >
                     <option value="">YYYY</option>
-                    {Array.from({ length: DOB_YEAR_MAX - DOB_YEAR_MIN + 1 }, (_, i) => {
-                      const y = DOB_YEAR_MAX - i
-                      return <option key={y} value={String(y)}>{y}</option>
-                    })}
+                    {Array.from(
+                      { length: DOB_YEAR_MAX - DOB_YEAR_MIN + 1 },
+                      (_, i) => {
+                        const y = DOB_YEAR_MAX - i;
+                        return (
+                          <option key={y} value={String(y)}>
+                            {y}
+                          </option>
+                        );
+                      },
+                    )}
                   </select>
                 </div>
               </div>
@@ -475,7 +584,9 @@ export default function AssessmentTool() {
                 <input
                   className="asx-input asx-input-readonly"
                   type="text"
-                  value={dateOfBirth && profile.age > 0 ? `${profile.age} years` : ''}
+                  value={
+                    dateOfBirth && profile.age > 0 ? `${profile.age} years` : ''
+                  }
                   readOnly
                   placeholder="Auto-filled from date of birth"
                 />
@@ -485,7 +596,7 @@ export default function AssessmentTool() {
                 <input
                   className="asx-input"
                   value={profile.countryOfCitizenship}
-                  onChange={e => set('countryOfCitizenship', e.target.value)}
+                  onChange={(e) => set('countryOfCitizenship', e.target.value)}
                   placeholder="India"
                 />
               </div>
@@ -494,7 +605,7 @@ export default function AssessmentTool() {
                 <input
                   className="asx-input"
                   value={profile.countryOfResidence}
-                  onChange={e => set('countryOfResidence', e.target.value)}
+                  onChange={(e) => set('countryOfResidence', e.target.value)}
                   placeholder="India / USA / etc."
                 />
               </div>
@@ -503,15 +614,23 @@ export default function AssessmentTool() {
                 <input
                   className="asx-input"
                   value={profile.occupationTitle}
-                  onChange={e => set('occupationTitle', e.target.value)}
+                  onChange={(e) => set('occupationTitle', e.target.value)}
                   placeholder="e.g. Software Engineer, Registered Nurse, Electrician"
                 />
               </div>
               <div className="asx-field asx-full">
                 <NocSearch
                   theme="light"
-                  onSelect={(code, teer) => setProfile(prev => ({ ...prev, nocCode: code, nocTeer: teer }))}
-                  onClear={() => setProfile(prev => ({ ...prev, nocCode: '', nocTeer: 1 }))}
+                  onSelect={(code, teer) =>
+                    setProfile((prev) => ({
+                      ...prev,
+                      nocCode: code,
+                      nocTeer: teer,
+                    }))
+                  }
+                  onClear={() =>
+                    setProfile((prev) => ({ ...prev, nocCode: '', nocTeer: 1 }))
+                  }
                 />
               </div>
             </div>
@@ -524,10 +643,16 @@ export default function AssessmentTool() {
                 <select
                   className="asx-select"
                   value={profile.education}
-                  onChange={e => set('education', e.target.value as EducationLevel)}
+                  onChange={(e) =>
+                    set('education', e.target.value as EducationLevel)
+                  }
                 >
-                  {(Object.entries(EDU_LABELS) as [EducationLevel, string][]).map(([k, v]) => (
-                    <option key={k} value={k}>{v}</option>
+                  {(
+                    Object.entries(EDU_LABELS) as [EducationLevel, string][]
+                  ).map(([k, v]) => (
+                    <option key={k} value={k}>
+                      {v}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -536,7 +661,7 @@ export default function AssessmentTool() {
                   <input
                     type="checkbox"
                     checked={profile.hasEca}
-                    onChange={e => set('hasEca', e.target.checked)}
+                    onChange={(e) => set('hasEca', e.target.checked)}
                   />
                   <span className="asx-checkbox-label">
                     Educational Credential Assessment (ECA) completed
@@ -553,7 +678,13 @@ export default function AssessmentTool() {
                 <select
                   className="asx-select"
                   value={profile.firstLanguageScores.testType}
-                  onChange={e => setLangScore('first', 'testType', e.target.value as LanguageScores['testType'])}
+                  onChange={(e) =>
+                    setLangScore(
+                      'first',
+                      'testType',
+                      e.target.value as LanguageScores['testType'],
+                    )
+                  }
                 >
                   <option value="IELTS_GT">IELTS General Training</option>
                   <option value="IELTS_Academic">IELTS Academic</option>
@@ -564,38 +695,60 @@ export default function AssessmentTool() {
               </div>
             </div>
             <div className="asx-grid-4">
-              {(['listening', 'reading', 'writing', 'speaking'] as const).map(skill => (
-                <div className="asx-field" key={skill}>
-                  <label className="asx-label">{skill.charAt(0).toUpperCase() + skill.slice(1)}</label>
-                  <input
-                    className="asx-input"
-                    type="number"
-                    step="0.5"
-                    min={0}
-                    max={9}
-                    value={profile.firstLanguageScores[skill] || ''}
-                    onChange={e => setLangScore('first', skill, parseFloat(e.target.value) || 0)}
-                  />
-                  <span
-                    className="asx-clb-tag"
-                    data-level={firstClb[skill] >= 9 ? 'high' : firstClb[skill] >= 7 ? 'mid' : 'low'}
-                  >
-                    CLB {firstClb[skill]}
-                  </span>
-                </div>
-              ))}
+              {(['listening', 'reading', 'writing', 'speaking'] as const).map(
+                (skill) => (
+                  <div className="asx-field" key={skill}>
+                    <label className="asx-label">
+                      {skill.charAt(0).toUpperCase() + skill.slice(1)}
+                    </label>
+                    <input
+                      className="asx-input"
+                      type="number"
+                      step="0.5"
+                      min={0}
+                      max={9}
+                      value={profile.firstLanguageScores[skill] || ''}
+                      onChange={(e) =>
+                        setLangScore(
+                          'first',
+                          skill,
+                          parseFloat(e.target.value) || 0,
+                        )
+                      }
+                    />
+                    <span
+                      className="asx-clb-tag"
+                      data-level={
+                        firstClb[skill] >= 9
+                          ? 'high'
+                          : firstClb[skill] >= 7
+                            ? 'mid'
+                            : 'low'
+                      }
+                    >
+                      CLB {firstClb[skill]}
+                    </span>
+                  </div>
+                ),
+              )}
             </div>
 
             {/* Section 4: Second Language */}
-            <p className="asx-section-label">4 — Second Official Language (Optional)</p>
-            <label className="asx-checkbox-row" style={{ marginBottom: '1rem' }}>
+            <p className="asx-section-label">
+              4 — Second Official Language (Optional)
+            </p>
+            <label
+              className="asx-checkbox-row"
+              style={{ marginBottom: '1rem' }}
+            >
               <input
                 type="checkbox"
                 checked={profile.hasSecondLanguage}
-                onChange={e => set('hasSecondLanguage', e.target.checked)}
+                onChange={(e) => set('hasSecondLanguage', e.target.checked)}
               />
               <span className="asx-checkbox-label">
-                I have a second official language test result (English or French)
+                I have a second official language test result (English or
+                French)
               </span>
             </label>
 
@@ -606,8 +759,16 @@ export default function AssessmentTool() {
                     <label className="asx-label">Test Type</label>
                     <select
                       className="asx-select"
-                      value={profile.secondLanguageScores?.testType ?? 'IELTS_GT'}
-                      onChange={e => setLangScore('second', 'testType', e.target.value as LanguageScores['testType'])}
+                      value={
+                        profile.secondLanguageScores?.testType ?? 'IELTS_GT'
+                      }
+                      onChange={(e) =>
+                        setLangScore(
+                          'second',
+                          'testType',
+                          e.target.value as LanguageScores['testType'],
+                        )
+                      }
                     >
                       <option value="IELTS_GT">IELTS General Training</option>
                       <option value="IELTS_Academic">IELTS Academic</option>
@@ -618,9 +779,13 @@ export default function AssessmentTool() {
                   </div>
                 </div>
                 <div className="asx-grid-4">
-                  {(['listening', 'reading', 'writing', 'speaking'] as const).map(skill => (
+                  {(
+                    ['listening', 'reading', 'writing', 'speaking'] as const
+                  ).map((skill) => (
                     <div className="asx-field" key={skill}>
-                      <label className="asx-label">{skill.charAt(0).toUpperCase() + skill.slice(1)}</label>
+                      <label className="asx-label">
+                        {skill.charAt(0).toUpperCase() + skill.slice(1)}
+                      </label>
                       <input
                         className="asx-input"
                         type="number"
@@ -628,12 +793,24 @@ export default function AssessmentTool() {
                         min={0}
                         max={9}
                         value={profile.secondLanguageScores?.[skill] || ''}
-                        onChange={e => setLangScore('second', skill, parseFloat(e.target.value) || 0)}
+                        onChange={(e) =>
+                          setLangScore(
+                            'second',
+                            skill,
+                            parseFloat(e.target.value) || 0,
+                          )
+                        }
                       />
                       {secondClb && (
                         <span
                           className="asx-clb-tag"
-                          data-level={secondClb[skill] >= 9 ? 'high' : secondClb[skill] >= 7 ? 'mid' : 'low'}
+                          data-level={
+                            secondClb[skill] >= 9
+                              ? 'high'
+                              : secondClb[skill] >= 7
+                                ? 'mid'
+                                : 'low'
+                          }
                         >
                           CLB {secondClb[skill]}
                         </span>
@@ -648,25 +825,39 @@ export default function AssessmentTool() {
             <p className="asx-section-label">5 — Work Experience</p>
             <div className="asx-grid-2">
               <div className="asx-field">
-                <label className="asx-label">Foreign Work Experience (years)</label>
+                <label className="asx-label">
+                  Foreign Work Experience (years)
+                </label>
                 <input
                   className="asx-input"
                   type="number"
                   step="0.25"
                   min={0}
                   value={profile.foreignWorkExperienceYears || ''}
-                  onChange={e => set('foreignWorkExperienceYears', parseFloat(e.target.value) || 0)}
+                  onChange={(e) =>
+                    set(
+                      'foreignWorkExperienceYears',
+                      parseFloat(e.target.value) || 0,
+                    )
+                  }
                 />
               </div>
               <div className="asx-field">
-                <label className="asx-label">Canadian Work Experience (years)</label>
+                <label className="asx-label">
+                  Canadian Work Experience (years)
+                </label>
                 <input
                   className="asx-input"
                   type="number"
                   step="0.25"
                   min={0}
                   value={profile.canadianWorkExperienceYears || ''}
-                  onChange={e => set('canadianWorkExperienceYears', parseFloat(e.target.value) || 0)}
+                  onChange={(e) =>
+                    set(
+                      'canadianWorkExperienceYears',
+                      parseFloat(e.target.value) || 0,
+                    )
+                  }
                 />
               </div>
             </div>
@@ -676,25 +867,32 @@ export default function AssessmentTool() {
             <div className="asx-field" style={{ marginBottom: '1rem' }}>
               <label className="asx-label">What is your marital status?</label>
               <div className="asx-radio-group">
-                {([
-                  ['single', 'Single'],
-                  ['married', 'Married or common-law partner'],
-                  ['separated', 'Separated, divorced, or widowed'],
-                ] as const).map(([value, label]) => (
+                {(
+                  [
+                    ['single', 'Single'],
+                    ['married', 'Married or common-law partner'],
+                    ['separated', 'Separated, divorced, or widowed'],
+                  ] as const
+                ).map(([value, label]) => (
                   <label key={value} className="asx-radio-row">
                     <input
                       type="radio"
                       name="maritalStatus"
                       checked={maritalStatus === value}
                       onChange={() => {
-                        const newStatus = value
-                        setMaritalStatus(newStatus)
-                        const resetChildren = newStatus === 'single'
-                        const newChildren = resetChildren ? 0 : numberOfChildren
-                        if (resetChildren) setNumberOfChildren(0)
-                        const size = computeFamilySize(newChildren, newStatus === 'married')
+                        const newStatus = value;
+                        setMaritalStatus(newStatus);
+                        const resetChildren = newStatus === 'single';
+                        const newChildren = resetChildren
+                          ? 0
+                          : numberOfChildren;
+                        if (resetChildren) setNumberOfChildren(0);
+                        const size = computeFamilySize(
+                          newChildren,
+                          newStatus === 'married',
+                        );
                         if (newStatus !== 'married') {
-                          setProfile(prev => ({
+                          setProfile((prev) => ({
                             ...prev,
                             hasSpouse: false,
                             spouseEducation: undefined,
@@ -702,13 +900,13 @@ export default function AssessmentTool() {
                             spouseCanadianExperience: undefined,
                             familySize: size,
                             settlementFunds: minSettlementFunds(size),
-                          }))
+                          }));
                         } else {
-                          setProfile(prev => ({
+                          setProfile((prev) => ({
                             ...prev,
                             familySize: size,
                             settlementFunds: minSettlementFunds(size),
-                          }))
+                          }));
                         }
                       }}
                     />
@@ -718,97 +916,139 @@ export default function AssessmentTool() {
               </div>
             </div>
             {(maritalStatus === 'married' || maritalStatus === 'separated') && (
-              <div className="asx-field" style={{ marginBottom: '1rem', maxWidth: '220px' }}>
+              <div
+                className="asx-field"
+                style={{ marginBottom: '1rem', maxWidth: '220px' }}
+              >
                 <label className="asx-label">Number of Children</label>
                 <select
                   className="asx-select"
                   value={numberOfChildren}
-                  onChange={e => {
-                    const children = parseInt(e.target.value) || 0
-                    setNumberOfChildren(children)
-                    const size = computeFamilySize(children, maritalStatus === 'married')
-                    setProfile(prev => ({
+                  onChange={(e) => {
+                    const children = parseInt(e.target.value) || 0;
+                    setNumberOfChildren(children);
+                    const size = computeFamilySize(
+                      children,
+                      maritalStatus === 'married',
+                    );
+                    setProfile((prev) => ({
                       ...prev,
                       familySize: size,
                       settlementFunds: minSettlementFunds(size),
-                    }))
+                    }));
                   }}
                 >
                   {Array.from({ length: 11 }, (_, i) => (
                     <option key={i} value={i}>
-                      {i === 0 ? 'No children' : i === 1 ? '1 child' : `${i} children`}
+                      {i === 0
+                        ? 'No children'
+                        : i === 1
+                          ? '1 child'
+                          : `${i} children`}
                     </option>
                   ))}
                 </select>
               </div>
             )}
             {maritalStatus === 'married' && (
-            <label className="asx-checkbox-row" style={{ marginBottom: '1rem' }}>
-              <input
-                type="checkbox"
-                checked={profile.hasSpouse}
-                onChange={e => {
-                  const spouseComing = e.target.checked
-                  const size = computeFamilySize(numberOfChildren, maritalStatus === 'married')
-                  setProfile(prev => ({
-                    ...prev,
-                    hasSpouse: spouseComing,
-                    familySize: size,
-                    settlementFunds: minSettlementFunds(size),
-                    ...(!spouseComing ? {
-                      spouseEducation: undefined,
-                      spouseLanguageScores: undefined,
-                      spouseCanadianExperience: undefined,
-                    } : {}),
-                  }))
-                }}
-              />
-              <span className="asx-checkbox-label">
-                My spouse or common-law partner and children will come with me to Canada
-              </span>
-            </label>
+              <label
+                className="asx-checkbox-row"
+                style={{ marginBottom: '1rem' }}
+              >
+                <input
+                  type="checkbox"
+                  checked={profile.hasSpouse}
+                  onChange={(e) => {
+                    const spouseComing = e.target.checked;
+                    const size = computeFamilySize(
+                      numberOfChildren,
+                      maritalStatus === 'married',
+                    );
+                    setProfile((prev) => ({
+                      ...prev,
+                      hasSpouse: spouseComing,
+                      familySize: size,
+                      settlementFunds: minSettlementFunds(size),
+                      ...(!spouseComing
+                        ? {
+                            spouseEducation: undefined,
+                            spouseLanguageScores: undefined,
+                            spouseCanadianExperience: undefined,
+                          }
+                        : {}),
+                    }));
+                  }}
+                />
+                <span className="asx-checkbox-label">
+                  My spouse or common-law partner and children will come with me
+                  to Canada
+                </span>
+              </label>
             )}
 
             {maritalStatus === 'married' && profile.hasSpouse && (
               <>
                 <div className="asx-grid-2">
                   <div className="asx-field">
-                    <label className="asx-label">Partner&apos;s Highest Education</label>
+                    <label className="asx-label">
+                      Partner&apos;s Highest Education
+                    </label>
                     <select
                       className="asx-select"
                       value={profile.spouseEducation ?? 'secondary'}
-                      onChange={e => set('spouseEducation', e.target.value as EducationLevel)}
+                      onChange={(e) =>
+                        set('spouseEducation', e.target.value as EducationLevel)
+                      }
                     >
-                      {(Object.entries(EDU_LABELS) as [EducationLevel, string][]).map(([k, v]) => (
-                        <option key={k} value={k}>{v}</option>
+                      {(
+                        Object.entries(EDU_LABELS) as [EducationLevel, string][]
+                      ).map(([k, v]) => (
+                        <option key={k} value={k}>
+                          {v}
+                        </option>
                       ))}
                     </select>
                   </div>
                   <div className="asx-field">
-                    <label className="asx-label">Partner&apos;s Canadian Work Experience (years)</label>
+                    <label className="asx-label">
+                      Partner&apos;s Canadian Work Experience (years)
+                    </label>
                     <input
                       className="asx-input"
                       type="number"
                       step="0.25"
                       min={0}
                       value={profile.spouseCanadianExperience || ''}
-                      onChange={e => set('spouseCanadianExperience', parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        set(
+                          'spouseCanadianExperience',
+                          parseFloat(e.target.value) || 0,
+                        )
+                      }
                     />
                   </div>
                 </div>
 
-                <p className="asx-section-label" style={{ marginTop: '1.25rem' }}>
+                <p
+                  className="asx-section-label"
+                  style={{ marginTop: '1.25rem' }}
+                >
                   Partner&apos;s Language Test (if available)
                 </p>
-                <label className="asx-checkbox-row" style={{ marginBottom: '1rem' }}>
+                <label
+                  className="asx-checkbox-row"
+                  style={{ marginBottom: '1rem' }}
+                >
                   <input
                     type="checkbox"
                     checked={!!profile.spouseLanguageScores}
-                    onChange={e => {
-                      setProfile(prev => ({
+                    onChange={(e) => {
+                      setProfile((prev) => ({
                         ...prev,
-                        spouseLanguageScores: e.target.checked ? { ...DEFAULT_LANG } : undefined,
-                      }))
+                        spouseLanguageScores: e.target.checked
+                          ? { ...DEFAULT_LANG }
+                          : undefined,
+                      }));
                     }}
                   />
                   <span className="asx-checkbox-label">
@@ -818,15 +1058,25 @@ export default function AssessmentTool() {
 
                 {profile.spouseLanguageScores && (
                   <>
-                    <div className="asx-grid-2" style={{ marginBottom: '0.75rem' }}>
+                    <div
+                      className="asx-grid-2"
+                      style={{ marginBottom: '0.75rem' }}
+                    >
                       <div className="asx-field asx-full">
                         <label className="asx-label">Test Type</label>
                         <select
                           className="asx-select"
                           value={profile.spouseLanguageScores.testType}
-                          onChange={e => setSpouseLangScore('testType', e.target.value as LanguageScores['testType'])}
+                          onChange={(e) =>
+                            setSpouseLangScore(
+                              'testType',
+                              e.target.value as LanguageScores['testType'],
+                            )
+                          }
                         >
-                          <option value="IELTS_GT">IELTS General Training</option>
+                          <option value="IELTS_GT">
+                            IELTS General Training
+                          </option>
                           <option value="IELTS_Academic">IELTS Academic</option>
                           <option value="CELPIP">CELPIP-General</option>
                           <option value="TEF">TEF Canada</option>
@@ -835,9 +1085,13 @@ export default function AssessmentTool() {
                       </div>
                     </div>
                     <div className="asx-grid-4">
-                      {(['listening', 'reading', 'writing', 'speaking'] as const).map(skill => (
+                      {(
+                        ['listening', 'reading', 'writing', 'speaking'] as const
+                      ).map((skill) => (
                         <div className="asx-field" key={skill}>
-                          <label className="asx-label">{skill.charAt(0).toUpperCase() + skill.slice(1)}</label>
+                          <label className="asx-label">
+                            {skill.charAt(0).toUpperCase() + skill.slice(1)}
+                          </label>
                           <input
                             className="asx-input"
                             type="number"
@@ -845,12 +1099,23 @@ export default function AssessmentTool() {
                             min={0}
                             max={9}
                             value={profile.spouseLanguageScores?.[skill] || ''}
-                            onChange={e => setSpouseLangScore(skill, parseFloat(e.target.value) || 0)}
+                            onChange={(e) =>
+                              setSpouseLangScore(
+                                skill,
+                                parseFloat(e.target.value) || 0,
+                              )
+                            }
                           />
                           {spouseClb && (
                             <span
                               className="asx-clb-tag"
-                              data-level={spouseClb[skill] >= 9 ? 'high' : spouseClb[skill] >= 7 ? 'mid' : 'low'}
+                              data-level={
+                                spouseClb[skill] >= 9
+                                  ? 'high'
+                                  : spouseClb[skill] >= 7
+                                    ? 'mid'
+                                    : 'low'
+                              }
                             >
                               CLB {spouseClb[skill]}
                             </span>
@@ -867,15 +1132,21 @@ export default function AssessmentTool() {
             <p className="asx-section-label">7 — Additional Factors</p>
             <div className="asx-grid-2">
               <div className="asx-field">
-                <label className="asx-label">Settlement Funds Available (CAD)</label>
+                <label className="asx-label">
+                  Settlement Funds Available (CAD)
+                </label>
                 <input
                   className="asx-input"
                   type="number"
                   min={0}
                   value={profile.settlementFunds || ''}
-                  onChange={e => set('settlementFunds', parseInt(e.target.value) || 0)}
+                  onChange={(e) =>
+                    set('settlementFunds', parseInt(e.target.value) || 0)
+                  }
                 />
-                <span className="asx-hint">Required minimum varies by family size</span>
+                <span className="asx-hint">
+                  Required minimum varies by family size
+                </span>
               </div>
               <div className="asx-field">
                 <label className="asx-label">Family Size (including you)</label>
@@ -885,7 +1156,9 @@ export default function AssessmentTool() {
                   min={1}
                   max={10}
                   value={profile.familySize}
-                  onChange={e => set('familySize', parseInt(e.target.value) || 1)}
+                  onChange={(e) =>
+                    set('familySize', parseInt(e.target.value) || 1)
+                  }
                 />
               </div>
             </div>
@@ -895,33 +1168,47 @@ export default function AssessmentTool() {
                 <input
                   type="checkbox"
                   checked={profile.hasProvincialNomination}
-                  onChange={e => set('hasProvincialNomination', e.target.checked)}
+                  onChange={(e) =>
+                    set('hasProvincialNomination', e.target.checked)
+                  }
                 />
-                <span className="asx-checkbox-label">Has provincial nomination (+600 CRS)</span>
+                <span className="asx-checkbox-label">
+                  Has provincial nomination (+600 CRS)
+                </span>
               </label>
               <label className="asx-checkbox-row">
                 <input
                   type="checkbox"
                   checked={profile.hasCanadianEducation}
-                  onChange={e => set('hasCanadianEducation', e.target.checked)}
+                  onChange={(e) =>
+                    set('hasCanadianEducation', e.target.checked)
+                  }
                 />
-                <span className="asx-checkbox-label">Studied in Canada (2+ yr post-secondary)</span>
+                <span className="asx-checkbox-label">
+                  Studied in Canada (2+ yr post-secondary)
+                </span>
               </label>
               <label className="asx-checkbox-row">
                 <input
                   type="checkbox"
                   checked={profile.hasFamilyInCanada}
-                  onChange={e => set('hasFamilyInCanada', e.target.checked)}
+                  onChange={(e) => set('hasFamilyInCanada', e.target.checked)}
                 />
-                <span className="asx-checkbox-label">Has a relative in Canada (citizen or PR) — for FSW adaptability</span>
+                <span className="asx-checkbox-label">
+                  Has a relative in Canada (citizen or PR) — for FSW
+                  adaptability
+                </span>
               </label>
               <label className="asx-checkbox-row">
                 <input
                   type="checkbox"
                   checked={profile.hasSiblingInCanada ?? false}
-                  onChange={e => set('hasSiblingInCanada', e.target.checked)}
+                  onChange={(e) => set('hasSiblingInCanada', e.target.checked)}
                 />
-                <span className="asx-checkbox-label">Has a brother or sister (sibling) in Canada who is a citizen or PR (+15 CRS)</span>
+                <span className="asx-checkbox-label">
+                  Has a brother or sister (sibling) in Canada who is a citizen
+                  or PR (+15 CRS)
+                </span>
               </label>
             </div>
 
@@ -953,10 +1240,14 @@ export default function AssessmentTool() {
                     checked={profile.hasJobOffer === 'exempt'}
                     onChange={() => set('hasJobOffer', 'exempt')}
                   />
-                  <span>Yes — LMIA-exempt (e.g. intra-company transfer, CUSMA/USMCA)</span>
+                  <span>
+                    Yes — LMIA-exempt (e.g. intra-company transfer, CUSMA/USMCA)
+                  </span>
                 </label>
               </div>
-              <span className="asx-hint">Counts toward FSW 67-point adaptability grid (+5 pts)</span>
+              <span className="asx-hint">
+                Counts toward FSW 67-point adaptability grid (+5 pts)
+              </span>
             </div>
 
             {/* Section 8: Risk & Disclosure */}
@@ -966,13 +1257,21 @@ export default function AssessmentTool() {
                 <label className="asx-label">Criminal Record</label>
                 <div className="asx-radio-group">
                   <label className="asx-radio-row">
-                    <input type="radio" name="criminal" checked={!profile.hasCriminalRecord}
-                      onChange={() => set('hasCriminalRecord', false)} />
+                    <input
+                      type="radio"
+                      name="criminal"
+                      checked={!profile.hasCriminalRecord}
+                      onChange={() => set('hasCriminalRecord', false)}
+                    />
                     <span>None</span>
                   </label>
                   <label className="asx-radio-row">
-                    <input type="radio" name="criminal" checked={profile.hasCriminalRecord}
-                      onChange={() => set('hasCriminalRecord', true)} />
+                    <input
+                      type="radio"
+                      name="criminal"
+                      checked={profile.hasCriminalRecord}
+                      onChange={() => set('hasCriminalRecord', true)}
+                    />
                     <span>Yes</span>
                   </label>
                 </div>
@@ -981,13 +1280,21 @@ export default function AssessmentTool() {
                 <label className="asx-label">Medical Conditions</label>
                 <div className="asx-radio-group">
                   <label className="asx-radio-row">
-                    <input type="radio" name="medical" checked={!profile.hasMedicalCondition}
-                      onChange={() => set('hasMedicalCondition', false)} />
+                    <input
+                      type="radio"
+                      name="medical"
+                      checked={!profile.hasMedicalCondition}
+                      onChange={() => set('hasMedicalCondition', false)}
+                    />
                     <span>None</span>
                   </label>
                   <label className="asx-radio-row">
-                    <input type="radio" name="medical" checked={profile.hasMedicalCondition}
-                      onChange={() => set('hasMedicalCondition', true)} />
+                    <input
+                      type="radio"
+                      name="medical"
+                      checked={profile.hasMedicalCondition}
+                      onChange={() => set('hasMedicalCondition', true)}
+                    />
                     <span>Yes</span>
                   </label>
                 </div>
@@ -996,13 +1303,21 @@ export default function AssessmentTool() {
                 <label className="asx-label">Prior Visa Refusals</label>
                 <div className="asx-radio-group">
                   <label className="asx-radio-row">
-                    <input type="radio" name="refusal" checked={!profile.hasPriorRefusal}
-                      onChange={() => set('hasPriorRefusal', false)} />
+                    <input
+                      type="radio"
+                      name="refusal"
+                      checked={!profile.hasPriorRefusal}
+                      onChange={() => set('hasPriorRefusal', false)}
+                    />
                     <span>None</span>
                   </label>
                   <label className="asx-radio-row">
-                    <input type="radio" name="refusal" checked={profile.hasPriorRefusal}
-                      onChange={() => set('hasPriorRefusal', true)} />
+                    <input
+                      type="radio"
+                      name="refusal"
+                      checked={profile.hasPriorRefusal}
+                      onChange={() => set('hasPriorRefusal', true)}
+                    />
                     <span>Yes</span>
                   </label>
                 </div>
@@ -1015,66 +1330,89 @@ export default function AssessmentTool() {
                 <input
                   className="asx-input"
                   value={profile.refusalDetails ?? ''}
-                  onChange={e => set('refusalDetails', e.target.value)}
+                  onChange={(e) => set('refusalDetails', e.target.value)}
                   placeholder="Country, visa type, approximate date"
                 />
               </div>
             )}
 
             <div className="asx-submit-row">
-              <button
-                className="asx-submit-btn"
-                onClick={runAssessment}
-              >
+              <button className="asx-submit-btn" onClick={runAssessment}>
                 Check My Eligibility →
               </button>
               <p className="asx-submit-note">
                 Instant result. No login or email required.
               </p>
             </div>
-
           </div>
         </section>
       </div>
-    )
+    );
   }
 
   // ── RESULT ─────────────────────────────────────────────────────────────────
 
-  if (!result) return null
-  const { breakdown: bd, fswGrid: fsw, eligibility: elig, scenarios } = result
-  const total = bd.total
-  const poolEligible = elig.expressEntryPool.eligible
+  if (!result) return null;
+  const { breakdown: bd, fswGrid: fsw, eligibility: elig, scenarios } = result;
+  const total = bd.total;
+  const poolEligible = elig.expressEntryPool.eligible;
 
   // Draw history context
   // IRCC now runs category-specific draws only — no General draws since 2023.
   // Find the highest-priority draw category this applicant qualifies for, then compare
   // their CRS against the most recent draw in that category. If no category matches,
   // show a PNP pathway message instead of a misleading score comparison.
-  const allDraws = drawData.draws as Draw[]
-  const eligibleCategories = getEligibleDrawCategories(profile, elig, result.secondLanguageBands)
-  const topCategory = eligibleCategories[0] ?? null
+  const allDraws = drawData.draws as Draw[];
+  const eligibleCategories = getEligibleDrawCategories(
+    profile,
+    elig,
+    result.secondLanguageBands,
+  );
+  const topCategory = eligibleCategories[0] ?? null;
   const relevantDraw = topCategory
-    ? (allDraws.find(d => shortType(d.type) === topCategory) ?? null)
-    : null
-  const cutoff = relevantDraw?.cutoffScore ?? null
-  const gap = cutoff !== null ? total - cutoff : null
-  const hasDrawData = allDraws.length > 0
-  const pnpScore = total + 600
+    ? (allDraws.find((d) => shortType(d.type) === topCategory) ?? null)
+    : null;
+  const cutoff = relevantDraw?.cutoffScore ?? null;
+  const gap = cutoff !== null ? total - cutoff : null;
+  const hasDrawData = allDraws.length > 0;
+  const pnpScore = total + 600;
 
   const programs = [
-    { name: 'Express Entry Pool', eligible: elig.expressEntryPool.eligible, likely: false, reason: elig.expressEntryPool.reason },
-    { name: 'Federal Skilled Worker (FSW)', eligible: elig.fsw.eligible, likely: elig.fsw.likely ?? false, reason: elig.fsw.reason },
-    { name: 'Canadian Experience Class (CEC)', eligible: elig.cec.eligible, likely: elig.cec.likely ?? false, reason: elig.cec.reason },
-    { name: 'Federal Skilled Trades (FST)', eligible: elig.fst.eligible, likely: elig.fst.likely ?? false, reason: elig.fst.reason },
-  ]
+    {
+      name: 'Express Entry Pool',
+      eligible: elig.expressEntryPool.eligible,
+      likely: false,
+      reason: elig.expressEntryPool.reason,
+    },
+    {
+      name: 'Federal Skilled Worker (FSW)',
+      eligible: elig.fsw.eligible,
+      likely: elig.fsw.likely ?? false,
+      reason: elig.fsw.reason,
+    },
+    {
+      name: 'Canadian Experience Class (CEC)',
+      eligible: elig.cec.eligible,
+      likely: elig.cec.likely ?? false,
+      reason: elig.cec.reason,
+    },
+    {
+      name: 'Federal Skilled Trades (FST)',
+      eligible: elig.fst.eligible,
+      likely: elig.fst.likely ?? false,
+      reason: elig.fst.reason,
+    },
+  ];
 
-  const scoreColor = total >= 500 ? 'high' : total >= 400 ? 'mid' : 'low'
+  const scoreColor = total >= 500 ? 'high' : total >= 400 ? 'mid' : 'low';
 
   const ageTable = profile.hasSpouse
-    ? crsRules.sectionA.ageWithSpouse as Record<string, number>
-    : crsRules.sectionA.ageSingle as Record<string, number>
-  const ageAlert = getAgeAlert(dateOfBirth ? { dob: dateOfBirth } : null, ageTable)
+    ? (crsRules.sectionA.ageWithSpouse as Record<string, number>)
+    : (crsRules.sectionA.ageSingle as Record<string, number>);
+  const ageAlert = getAgeAlert(
+    dateOfBirth ? { dob: dateOfBirth } : null,
+    ageTable,
+  );
 
   return (
     <div className="asx-wrap asx-result-view">
@@ -1092,17 +1430,16 @@ export default function AssessmentTool() {
       </div>
 
       <div className="asx-result">
-
         {/* ── CVP-5: Age Alert Banner ──────────────────────────────── */}
         {ageAlert && (
           <div className="asx-age-alert">
             <p className="asx-age-alert-label">Age Alert</p>
             <p className="asx-age-alert-text">
               You turn <strong>{ageAlert.birthdayAge}</strong> in{' '}
-              {ageAlert.timeUntilLabel}{' '}
-              ({ageAlert.birthdayMonthYear}) — your CRS age points drop by{' '}
-              <strong>{ageAlert.pointsLost}</strong> ({ageAlert.currentPts} → {ageAlert.nextPts}).
-              {' '}Improve your score or submit your profile before this date to preserve those points.
+              {ageAlert.timeUntilLabel} ({ageAlert.birthdayMonthYear}) — your
+              CRS age points drop by <strong>{ageAlert.pointsLost}</strong> (
+              {ageAlert.currentPts} → {ageAlert.nextPts}). Improve your score or
+              submit your profile before this date to preserve those points.
             </p>
           </div>
         )}
@@ -1117,10 +1454,14 @@ export default function AssessmentTool() {
             </div>
 
             <div className="asx-score-meta">
-              <p className="asx-score-name">{profile.name || 'Your Assessment'}</p>
+              <p className="asx-score-name">
+                {profile.name || 'Your Assessment'}
+              </p>
               <p className="asx-score-occ">
                 {profile.occupationTitle || '—'} (TEER {profile.nocTeer})
-                {profile.countryOfCitizenship ? ` · ${profile.countryOfCitizenship}` : ''}
+                {profile.countryOfCitizenship
+                  ? ` · ${profile.countryOfCitizenship}`
+                  : ''}
               </p>
               <div
                 className="asx-pool-badge"
@@ -1131,21 +1472,24 @@ export default function AssessmentTool() {
                   : '✗ Express Entry Pool: NOT ELIGIBLE'}
               </div>
               <p className="asx-score-date">
-                Assessment generated {profile.reportDate} · All scoring per IRCC rules
+                Assessment generated {profile.reportDate} · All scoring per IRCC
+                rules
               </p>
             </div>
           </div>
         </section>
 
         <div className="asx-result-body">
-
           {/* ── Weakness Chips ───────────────────────────────────── */}
           {weaknesses.length > 0 && (
             <div className="asx-card asx-weaknesses-card">
               <h2 className="asx-card-title">Top Improvement Opportunities</h2>
               <div className="asx-chips">
                 {weaknesses.map((w, i) => (
-                  <div key={i} className={`asx-chip ${i === 0 ? 'asx-chip-primary' : 'asx-chip-secondary'}`}>
+                  <div
+                    key={i}
+                    className={`asx-chip ${i === 0 ? 'asx-chip-primary' : 'asx-chip-secondary'}`}
+                  >
                     <span className="asx-chip-label">{w.label}</span>
                     <span className="asx-chip-gain">+{w.pointGain} pts</span>
                   </div>
@@ -1165,9 +1509,13 @@ export default function AssessmentTool() {
               </div>
               <div className="asx-pathway-row">
                 <span className="asx-pathway-key">Draw date</span>
-                <span className="asx-pathway-val">{fmtDate(pathway.drawDate)}</span>
+                <span className="asx-pathway-val">
+                  {fmtDate(pathway.drawDate)}
+                </span>
               </div>
-              <p className={`asx-pathway-gap ${pathway.gap >= 0 ? 'above' : 'below'}`}>
+              <p
+                className={`asx-pathway-gap ${pathway.gap >= 0 ? 'above' : 'below'}`}
+              >
                 {pathway.gap >= 0
                   ? `You are ${pathway.gap} pts above the last cutoff`
                   : `You are ${Math.abs(pathway.gap)} pts below the last cutoff`}
@@ -1185,8 +1533,9 @@ export default function AssessmentTool() {
                 // Show the FSW gap instead and redirect attention to the improvement section.
                 <>
                   <p className="asx-card-sub">
-                    Draw cutoffs and CRS comparisons do not apply yet — you must first clear
-                    the FSW 67-point minimum to enter the Express Entry pool.
+                    Draw cutoffs and CRS comparisons do not apply yet — you must
+                    first clear the FSW 67-point minimum to enter the Express
+                    Entry pool.
                   </p>
                   <div className="asx-gap-row asx-gap-below">
                     <div className="asx-gap-score">
@@ -1195,30 +1544,44 @@ export default function AssessmentTool() {
                       <span className="asx-gap-meta">out of 100</span>
                     </div>
                     <div className="asx-gap-vs">
-                      <span className="asx-gap-your-label">Minimum Required</span>
+                      <span className="asx-gap-your-label">
+                        Minimum Required
+                      </span>
                       <span className="asx-gap-your-val">67</span>
-                      <span className="asx-gap-diff">{fsw.total - 67} pts below threshold</span>
+                      <span className="asx-gap-diff">
+                        {fsw.total - 67} pts below threshold
+                      </span>
                     </div>
                   </div>
                   <p className="asx-draws-source">
-                    Once you reach 67 FSW points, your CRS score and draw cutoff comparisons
-                    will appear here. See the <strong>How to Qualify for Express Entry</strong>{' '}
-                    section below for the highest-impact steps to close this gap.
+                    Once you reach 67 FSW points, your CRS score and draw cutoff
+                    comparisons will appear here. See the{' '}
+                    <strong>How to Qualify for Express Entry</strong> section
+                    below for the highest-impact steps to close this gap.
                   </p>
                 </>
               ) : (
                 // Pool-eligible: show normal draw cutoff comparison
                 <>
                   <p className="asx-card-sub">
-                    Your score compared to recent Express Entry draws from canada.ca.
+                    Your score compared to recent Express Entry draws from
+                    canada.ca.
                   </p>
 
                   {relevantDraw ? (
-                    <div className={`asx-gap-row${gap !== null && gap >= 0 ? ' asx-gap-above' : ' asx-gap-below'}`}>
+                    <div
+                      className={`asx-gap-row${gap !== null && gap >= 0 ? ' asx-gap-above' : ' asx-gap-below'}`}
+                    >
                       <div className="asx-gap-score">
-                        <span className="asx-gap-label">Most Recent {topCategory} Draw</span>
-                        <span className="asx-gap-val">{relevantDraw.cutoffScore}</span>
-                        <span className="asx-gap-meta">{fmtDate(relevantDraw.date)}</span>
+                        <span className="asx-gap-label">
+                          Most Recent {topCategory} Draw
+                        </span>
+                        <span className="asx-gap-val">
+                          {relevantDraw.cutoffScore}
+                        </span>
+                        <span className="asx-gap-meta">
+                          {fmtDate(relevantDraw.date)}
+                        </span>
                       </div>
                       <div className="asx-gap-vs">
                         <span className="asx-gap-your-label">Your Score</span>
@@ -1234,34 +1597,54 @@ export default function AssessmentTool() {
                     </div>
                   ) : (
                     <div className="asx-no-eligible-state">
-                      <p className="asx-no-eligible-heading">No active draw category matched</p>
+                      <p className="asx-no-eligible-heading">
+                        No active draw category matched
+                      </p>
                       <p className="asx-no-eligible-body">
-                        Your profile does not currently match an active draw category. Your primary
-                        pathway to Canadian PR is the Provincial Nominee Program (PNP) — enter the
-                        Express Entry pool and watch for Notifications of Interest from provinces like
-                        OINP, AINP, and others. Once nominated, your effective CRS becomes{' '}
-                        <strong>{pnpScore}</strong>, placing you well above PNP draw cutoffs.
+                        Your profile does not currently match an active draw
+                        category. Your primary pathway to Canadian PR is the
+                        Provincial Nominee Program (PNP) — enter the Express
+                        Entry pool and watch for Notifications of Interest from
+                        provinces like OINP, AINP, and others. Once nominated,
+                        your effective CRS becomes <strong>{pnpScore}</strong>,
+                        placing you well above PNP draw cutoffs.
                       </p>
                     </div>
                   )}
 
                   <div className="asx-draws-table">
                     <div className="asx-draws-header">
-                      <span>Date</span><span>Type</span><span>Cutoff</span><span>ITAs</span>
+                      <span>Date</span>
+                      <span>Type</span>
+                      <span>Cutoff</span>
+                      <span>ITAs</span>
                     </div>
                     {allDraws.slice(0, 5).map((d, i) => (
                       <div key={i} className="asx-draw-row">
                         <span className="asx-draw-date">{fmtDate(d.date)}</span>
-                        <span className="asx-draw-type">{shortType(d.type)}</span>
+                        <span className="asx-draw-type">
+                          {shortType(d.type)}
+                        </span>
                         <span className="asx-draw-score">{d.cutoffScore}</span>
-                        <span className="asx-draw-itas">{d.invitationsIssued.toLocaleString()}</span>
+                        <span className="asx-draw-itas">
+                          {d.invitationsIssued.toLocaleString()}
+                        </span>
                       </div>
                     ))}
                   </div>
                   <p className="asx-draws-source">
                     Data synced from{' '}
-                    <a href={drawData.url} target="_blank" rel="noopener noreferrer">canada.ca rounds of invitations</a>
-                    {drawData.lastUpdated ? ` · ${fmtDate(drawData.lastUpdated)}` : ''}.
+                    <a
+                      href={drawData.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      canada.ca rounds of invitations
+                    </a>
+                    {drawData.lastUpdated
+                      ? ` · ${fmtDate(drawData.lastUpdated)}`
+                      : ''}
+                    .
                   </p>
                 </>
               )}
@@ -1271,16 +1654,24 @@ export default function AssessmentTool() {
           {/* ── Program Eligibility ──────────────────────────────── */}
           <div className="asx-card">
             <h2 className="asx-card-title">Program Eligibility</h2>
-            <p className="asx-card-sub">Hard-gate assessment across active Express Entry streams.</p>
+            <p className="asx-card-sub">
+              Hard-gate assessment across active Express Entry streams.
+            </p>
             <div className="asx-elig-table">
-              {programs.map(prog => (
+              {programs.map((prog) => (
                 <div key={prog.name} className="asx-elig-row">
                   <span className="asx-elig-name">{prog.name}</span>
                   <span
                     className="asx-elig-badge"
-                    data-status={prog.eligible ? 'eligible' : prog.likely ? 'likely' : 'no'}
+                    data-status={
+                      prog.eligible ? 'eligible' : prog.likely ? 'likely' : 'no'
+                    }
                   >
-                    {prog.eligible ? 'ELIGIBLE' : prog.likely ? 'LIKELY' : 'NOT ELIGIBLE'}
+                    {prog.eligible
+                      ? 'ELIGIBLE'
+                      : prog.likely
+                        ? 'LIKELY'
+                        : 'NOT ELIGIBLE'}
                   </span>
                   <span className="asx-elig-reason">{prog.reason}</span>
                 </div>
@@ -1292,7 +1683,8 @@ export default function AssessmentTool() {
           <div className="asx-card">
             <h2 className="asx-card-title">Score Breakdown</h2>
             <p className="asx-card-sub">
-              CRS points across all four factors (post-March 2025 rules — job offer points removed).
+              CRS points across all four factors (post-March 2025 rules — job
+              offer points removed).
             </p>
             <div className="asx-breakdown-grid">
               <div className="asx-breakdown-item">
@@ -1317,20 +1709,51 @@ export default function AssessmentTool() {
             <h3 className="asx-sub-heading">FSW 67-Point Selection Grid</h3>
             <div className="asx-fsw-table">
               {[
-                { factor: 'Language Skills', value: `${fsw.language}/28`, pass: fsw.language >= 24 },
-                { factor: 'Education', value: `${fsw.education}/25`, pass: fsw.education >= 20 },
-                { factor: 'Work Experience', value: `${fsw.workExperience}/15`, pass: fsw.workExperience >= 9 },
+                {
+                  factor: 'Language Skills',
+                  value: `${fsw.language}/28`,
+                  pass: fsw.language >= 24,
+                },
+                {
+                  factor: 'Education',
+                  value: `${fsw.education}/25`,
+                  pass: fsw.education >= 20,
+                },
+                {
+                  factor: 'Work Experience',
+                  value: `${fsw.workExperience}/15`,
+                  pass: fsw.workExperience >= 9,
+                },
                 { factor: 'Age', value: `${fsw.age}/12`, pass: fsw.age >= 10 },
-                { factor: 'Adaptability', value: `${fsw.adaptability}/10`, pass: fsw.adaptability > 0 },
-                { factor: 'Total', value: `${fsw.total}/100`, pass: fsw.total >= 67 },
-              ].map(row => (
-                <div key={row.factor} className={`asx-fsw-row${row.factor === 'Total' ? ' asx-fsw-total' : ''}`}>
+                {
+                  factor: 'Adaptability',
+                  value: `${fsw.adaptability}/10`,
+                  pass: fsw.adaptability > 0,
+                },
+                {
+                  factor: 'Total',
+                  value: `${fsw.total}/100`,
+                  pass: fsw.total >= 67,
+                },
+              ].map((row) => (
+                <div
+                  key={row.factor}
+                  className={`asx-fsw-row${row.factor === 'Total' ? ' asx-fsw-total' : ''}`}
+                >
                   <span className="asx-fsw-factor">{row.factor}</span>
-                  <span className="asx-fsw-pts" data-pass={row.pass ? 'yes' : 'no'}>{row.value}</span>
+                  <span
+                    className="asx-fsw-pts"
+                    data-pass={row.pass ? 'yes' : 'no'}
+                  >
+                    {row.value}
+                  </span>
                 </div>
               ))}
             </div>
-            <p className="asx-fsw-verdict" data-pass={fsw.eligible ? 'yes' : 'no'}>
+            <p
+              className="asx-fsw-verdict"
+              data-pass={fsw.eligible ? 'yes' : 'no'}
+            >
               {fsw.eligible
                 ? `FSW pass mark reached (${fsw.total}/100). Profile qualifies for the Federal Skilled Worker stream.`
                 : `FSW pass mark not reached (${fsw.total}/100 — 67 required). FSW pathway currently unavailable.`}
@@ -1338,17 +1761,27 @@ export default function AssessmentTool() {
           </div>
 
           {/* ── Settlement Funds ─────────────────────────────────── */}
-          <div className={`asx-card asx-funds-card${result.proofOfFundsSufficient ? '' : ' asx-funds-warn'}`}>
+          <div
+            className={`asx-card asx-funds-card${result.proofOfFundsSufficient ? '' : ' asx-funds-warn'}`}
+          >
             <h2 className="asx-card-title">Settlement Funds</h2>
             <div className="asx-funds-row">
               <span className="asx-funds-label">Declared</span>
-              <span className="asx-funds-value">CAD ${profile.settlementFunds.toLocaleString()}</span>
+              <span className="asx-funds-value">
+                CAD ${profile.settlementFunds.toLocaleString()}
+              </span>
             </div>
             <div className="asx-funds-row">
-              <span className="asx-funds-label">Minimum Required (family of {profile.familySize})</span>
-              <span className="asx-funds-value">CAD ${result.proofOfFundsRequired.toLocaleString()}</span>
+              <span className="asx-funds-label">
+                Minimum Required (family of {profile.familySize})
+              </span>
+              <span className="asx-funds-value">
+                CAD ${result.proofOfFundsRequired.toLocaleString()}
+              </span>
             </div>
-            <div className={`asx-funds-status ${result.proofOfFundsSufficient ? 'ok' : 'fail'}`}>
+            <div
+              className={`asx-funds-status ${result.proofOfFundsSufficient ? 'ok' : 'fail'}`}
+            >
               {result.proofOfFundsSufficient
                 ? '✓ Funds sufficient'
                 : '✗ Below required threshold — must address before applying'}
@@ -1357,108 +1790,150 @@ export default function AssessmentTool() {
 
           {/* ── Improvement Guidance ─────────────────────────────── */}
           {/* Case A: Not pool-eligible — show how to reach the FSW 67-point minimum */}
-          {!result.eligibility.expressEntryPool.eligible && result.fswImprovements.length > 0 && (
-            <div className="asx-card">
-              <h2 className="asx-card-title">How to Qualify for Express Entry</h2>
-              <p className="asx-card-sub">
-                Your FSW selection factor score is <strong>{result.fswGrid.total}/100</strong>.
-                You need at least <strong>67 points</strong> to submit an Express Entry profile
-                — your CRS score is not relevant until this threshold is cleared.
-                The steps below show how to close the gap.
-              </p>
-              {result.fswImprovements.every((s: FswImprovementSuggestion) => !s.wouldQualify) && (
-                <p className="asx-scenarios-note" style={{ marginBottom: '1rem' }}>
-                  No single change below will reach 67 on its own — you will need to combine
-                  two or more of these improvements.
+          {!result.eligibility.expressEntryPool.eligible &&
+            result.fswImprovements.length > 0 && (
+              <div className="asx-card">
+                <h2 className="asx-card-title">
+                  How to Qualify for Express Entry
+                </h2>
+                <p className="asx-card-sub">
+                  Your FSW selection factor score is{' '}
+                  <strong>{result.fswGrid.total}/100</strong>. You need at least{' '}
+                  <strong>67 points</strong> to submit an Express Entry profile
+                  — your CRS score is not relevant until this threshold is
+                  cleared. The steps below show how to close the gap.
                 </p>
-              )}
-              <div className="asx-scenarios">
-                {result.fswImprovements.map((s: FswImprovementSuggestion, i: number) => {
-                  const label = String.fromCharCode(65 + i)
-                  return (
-                    <div key={i} className="asx-scenario-row">
-                      <div className="asx-scenario-delta positive">+{s.pointsGained}</div>
-                      <div className="asx-scenario-info">
-                        <p className="asx-scenario-name">{label}: {s.name}</p>
-                        <p className="asx-scenario-desc">{s.action}</p>
-                      </div>
-                      <div className="asx-scenario-projected">
-                        <span className="asx-projected-label">FSW Score</span>
-                        <span className="asx-projected-val">{s.projectedFswTotal}</span>
-                        <span
-                          className="asx-competitive-tag"
-                          data-meets={s.wouldQualify ? 'yes' : 'no'}
-                        >
-                          {s.wouldQualify ? '▲ Qualifies' : '▼ Below 67'}
-                        </span>
-                      </div>
-                    </div>
-                  )
-                })}
+                {result.fswImprovements.every(
+                  (s: FswImprovementSuggestion) => !s.wouldQualify,
+                ) && (
+                  <p
+                    className="asx-scenarios-note"
+                    style={{ marginBottom: '1rem' }}
+                  >
+                    No single change below will reach 67 on its own — you will
+                    need to combine two or more of these improvements.
+                  </p>
+                )}
+                <div className="asx-scenarios">
+                  {result.fswImprovements.map(
+                    (s: FswImprovementSuggestion, i: number) => {
+                      const label = String.fromCharCode(65 + i);
+                      return (
+                        <div key={i} className="asx-scenario-row">
+                          <div className="asx-scenario-delta positive">
+                            +{s.pointsGained}
+                          </div>
+                          <div className="asx-scenario-info">
+                            <p className="asx-scenario-name">
+                              {label}: {s.name}
+                            </p>
+                            <p className="asx-scenario-desc">{s.action}</p>
+                          </div>
+                          <div className="asx-scenario-projected">
+                            <span className="asx-projected-label">
+                              FSW Score
+                            </span>
+                            <span className="asx-projected-val">
+                              {s.projectedFswTotal}
+                            </span>
+                            <span
+                              className="asx-competitive-tag"
+                              data-meets={s.wouldQualify ? 'yes' : 'no'}
+                            >
+                              {s.wouldQualify ? '▲ Qualifies' : '▼ Below 67'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    },
+                  )}
+                </div>
+                <p className="asx-scenarios-note">
+                  FSW scoring rules sourced from{' '}
+                  <a
+                    href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/eligibility/federal-skilled-workers/six-selection-factors-federal-skilled-workers.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    canada.ca
+                  </a>
+                  . Verify current requirements before acting on any scenario.
+                </p>
               </div>
-              <p className="asx-scenarios-note">
-                FSW scoring rules sourced from{' '}
-                <a href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/eligibility/federal-skilled-workers/six-selection-factors-federal-skilled-workers.html"
-                  target="_blank" rel="noopener noreferrer">canada.ca</a>.
-                Verify current requirements before acting on any scenario.
-              </p>
-            </div>
-          )}
+            )}
 
           {/* Case B: Pool-eligible — show CRS improvement scenarios */}
-          {result.eligibility.expressEntryPool.eligible && scenarios.length > 0 && (
-            <div className="asx-card">
-              <h2 className="asx-card-title">How to Improve Your Score</h2>
-              <p className="asx-card-sub">
-                {relevantDraw !== null
-                  ? `Projections compared against the most recent ${topCategory} draw cutoff of ${cutoff} pts (${fmtDate(relevantDraw.date)}).`
-                  : 'The highest-impact changes you can make to your CRS score.'}
-              </p>
-              <div className="asx-scenarios">
-                {scenarios.map((s, i) => {
-                  const meetsReal = cutoff !== null
-                    ? s.projectedCrs >= cutoff
-                    : s.competitive
-                  const label = String.fromCharCode(65 + i)
-                  return (
-                    <div key={i} className="asx-scenario-row">
-                      <div className={`asx-scenario-delta${s.delta > 0 ? ' positive' : ''}`}>
-                        {s.delta > 0 ? '+' : ''}{s.delta}
-                      </div>
-                      <div className="asx-scenario-info">
-                        <p className="asx-scenario-name">{label}: {s.name}</p>
-                        <p className="asx-scenario-desc">{s.change}</p>
-                      </div>
-                      <div className="asx-scenario-projected">
-                        <span className="asx-projected-label">Projected</span>
-                        <span className="asx-projected-val">{s.projectedCrs}</span>
-                        <span
-                          className="asx-competitive-tag"
-                          data-meets={meetsReal ? 'yes' : 'no'}
+          {result.eligibility.expressEntryPool.eligible &&
+            scenarios.length > 0 && (
+              <div className="asx-card">
+                <h2 className="asx-card-title">How to Improve Your Score</h2>
+                <p className="asx-card-sub">
+                  {relevantDraw !== null
+                    ? `Projections compared against the most recent ${topCategory} draw cutoff of ${cutoff} pts (${fmtDate(relevantDraw.date)}).`
+                    : 'The highest-impact changes you can make to your CRS score.'}
+                </p>
+                <div className="asx-scenarios">
+                  {scenarios.map((s, i) => {
+                    const meetsReal =
+                      cutoff !== null
+                        ? s.projectedCrs >= cutoff
+                        : s.competitive;
+                    const label = String.fromCharCode(65 + i);
+                    return (
+                      <div key={i} className="asx-scenario-row">
+                        <div
+                          className={`asx-scenario-delta${s.delta > 0 ? ' positive' : ''}`}
                         >
-                          {meetsReal ? '▲ Cutoff met' : '▼ Below cutoff'}
-                        </span>
+                          {s.delta > 0 ? '+' : ''}
+                          {s.delta}
+                        </div>
+                        <div className="asx-scenario-info">
+                          <p className="asx-scenario-name">
+                            {label}: {s.name}
+                          </p>
+                          <p className="asx-scenario-desc">{s.change}</p>
+                        </div>
+                        <div className="asx-scenario-projected">
+                          <span className="asx-projected-label">Projected</span>
+                          <span className="asx-projected-val">
+                            {s.projectedCrs}
+                          </span>
+                          <span
+                            className="asx-competitive-tag"
+                            data-meets={meetsReal ? 'yes' : 'no'}
+                          >
+                            {meetsReal ? '▲ Cutoff met' : '▼ Below cutoff'}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  )
-                })}
-              </div>
-              <p className="asx-scenarios-note">
-                All projections assume current IRCC scoring rules. Verify live draw cutoffs at{' '}
-                <a href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry.html"
-                  target="_blank" rel="noopener noreferrer">canada.ca</a>{' · '}
-                <Link href={`/tools/crs-modeller?age=${profile.age}&edu=${profile.education}&spouse=${profile.hasSpouse}&l=${firstClb.listening}&r=${firstClb.reading}&w=${firstClb.writing}&s=${firstClb.speaking}&cwe=${Math.floor(profile.canadianWorkExperienceYears)}&fwe=${Math.floor(profile.foreignWorkExperienceYears)}`}>
-                  Try the What-If Modeller →
+                    );
+                  })}
+                </div>
+                <p className="asx-scenarios-note">
+                  All projections assume current IRCC scoring rules. Verify live
+                  draw cutoffs at{' '}
+                  <a
+                    href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    canada.ca
+                  </a>
+                  {' · '}
+                  <Link
+                    href={`/tools/crs-modeller?age=${profile.age}&edu=${profile.education}&spouse=${profile.hasSpouse}&l=${firstClb.listening}&r=${firstClb.reading}&w=${firstClb.writing}&s=${firstClb.speaking}&cwe=${Math.floor(profile.canadianWorkExperienceYears)}&fwe=${Math.floor(profile.foreignWorkExperienceYears)}`}
+                  >
+                    Try the What-If Modeller →
+                  </Link>
+                </p>
+                <Link
+                  href={`/tools/crs-modeller?age=${profile.age}&edu=${profile.education}&spouse=${profile.hasSpouse}&l=${firstClb.listening}&r=${firstClb.reading}&w=${firstClb.writing}&s=${firstClb.speaking}&cwe=${Math.floor(profile.canadianWorkExperienceYears)}&fwe=${Math.floor(profile.foreignWorkExperienceYears)}`}
+                  className="asx-modeller-link"
+                >
+                  Try the CRS What-If Modeller →
                 </Link>
-              </p>
-              <Link
-                href={`/tools/crs-modeller?age=${profile.age}&edu=${profile.education}&spouse=${profile.hasSpouse}&l=${firstClb.listening}&r=${firstClb.reading}&w=${firstClb.writing}&s=${firstClb.speaking}&cwe=${Math.floor(profile.canadianWorkExperienceYears)}&fwe=${Math.floor(profile.foreignWorkExperienceYears)}`}
-                className="asx-modeller-link"
-              >
-                Try the CRS What-If Modeller →
-              </Link>
-            </div>
-          )}
+              </div>
+            )}
 
           {/* ── CTA ──────────────────────────────────────────────── */}
           <div className="asx-cta-card">
@@ -1467,9 +1942,10 @@ export default function AssessmentTool() {
               Your score is calculated. Your strategy is the next step.
             </h2>
             <p className="asx-cta-body">
-              A Visa Forte consultation maps exactly which program, which draw cycle,
-              and which documentation gaps stand between your current profile and an ITA.
-              No templates. One consultant. Your file, personally reviewed.
+              A Visa Forte consultation maps exactly which program, which draw
+              cycle, and which documentation gaps stand between your current
+              profile and an ITA. No templates. One consultant. Your file,
+              personally reviewed.
             </p>
             <Link href="/booking" className="asx-cta-btn">
               Get Reviewed →
@@ -1485,45 +1961,69 @@ export default function AssessmentTool() {
               <p className="asx-email-success">Check your inbox ✓</p>
             ) : (
               <>
-                <h3 className="asx-email-heading">Want a copy in your inbox?</h3>
+                <h3 className="asx-email-heading">
+                  Want a copy in your inbox?
+                </h3>
                 <div className="asx-grid-2" style={{ marginBottom: '1rem' }}>
                   <div className="asx-field">
-                    <label className="asx-label" htmlFor="lead-name">Your Name</label>
+                    <label className="asx-label" htmlFor="lead-name">
+                      Your Name
+                    </label>
                     <input
                       id="lead-name"
                       className="asx-input"
                       type="text"
                       placeholder="Full name"
                       value={leadName}
-                      onChange={e => setLeadName(e.target.value)}
+                      onChange={(e) => setLeadName(e.target.value)}
                       autoComplete="name"
                     />
                   </div>
                   <div className="asx-field">
-                    <label className="asx-label" htmlFor="lead-email">Email Address</label>
+                    <label className="asx-label" htmlFor="lead-email">
+                      Email Address
+                    </label>
                     <input
                       id="lead-email"
                       className="asx-input"
                       type="email"
                       placeholder="you@example.com"
                       value={leadEmail}
-                      onChange={e => setLeadEmail(e.target.value)}
+                      onChange={(e) => setLeadEmail(e.target.value)}
                       autoComplete="email"
                     />
                   </div>
                 </div>
-                <label className="asx-checkbox-row" style={{ marginBottom: '0.5rem' }}>
+                <label
+                  className="asx-checkbox-row"
+                  style={{ marginBottom: '0.5rem' }}
+                >
                   <input type="checkbox" checked readOnly />
-                  <span className="asx-checkbox-label">Email me my CRS results and top improvement tips</span>
+                  <span className="asx-checkbox-label">
+                    Email me my CRS results and top improvement tips
+                  </span>
                 </label>
-                <label className="asx-checkbox-row" style={{ marginBottom: '1.25rem' }}>
-                  <input type="checkbox" checked={wantsAlert} onChange={e => setWantsAlert(e.target.checked)} />
-                  <span className="asx-checkbox-label">Alert me when a {eeCategory || 'relevant'} draw opens</span>
+                <label
+                  className="asx-checkbox-row"
+                  style={{ marginBottom: '1.25rem' }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={wantsAlert}
+                    onChange={(e) => setWantsAlert(e.target.checked)}
+                  />
+                  <span className="asx-checkbox-label">
+                    Alert me when a {eeCategory || 'relevant'} draw opens
+                  </span>
                 </label>
                 <button
                   className="asx-submit-btn"
                   onClick={handleSendResults}
-                  disabled={emailSending || !leadName.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(leadEmail.trim())}
+                  disabled={
+                    emailSending ||
+                    !leadName.trim() ||
+                    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(leadEmail.trim())
+                  }
                 >
                   {emailSending ? 'Sending…' : 'Send My Results →'}
                 </button>
@@ -1533,17 +2033,22 @@ export default function AssessmentTool() {
 
           {/* ── Legal Disclaimer ─────────────────────────────────── */}
           <div className="asx-disclaimer">
-            <p className="asx-disclaimer-title">Legal Disclaimer &amp; Data Sources</p>
-            <p className="asx-disclaimer-body">
-              The information provided in this assessment is for informational and guidance purposes
-              only, based on publicly available Immigration, Refugees and Citizenship Canada (IRCC)
-              regulations and policies. This does not constitute legal advice, and no
-              solicitor-client or consultant-client relationship is created by using this tool.
+            <p className="asx-disclaimer-title">
+              Legal Disclaimer &amp; Data Sources
             </p>
             <p className="asx-disclaimer-body">
-              Immigration regulations, program requirements, processing times, and CRS cutoff scores
-              are subject to frequent change without notice. You are responsible for verifying all
-              information with official IRCC sources at{' '}
+              The information provided in this assessment is for informational
+              and guidance purposes only, based on publicly available
+              Immigration, Refugees and Citizenship Canada (IRCC) regulations
+              and policies. This does not constitute legal advice, and no
+              solicitor-client or consultant-client relationship is created by
+              using this tool.
+            </p>
+            <p className="asx-disclaimer-body">
+              Immigration regulations, program requirements, processing times,
+              and CRS cutoff scores are subject to frequent change without
+              notice. You are responsible for verifying all information with
+              official IRCC sources at{' '}
               <a
                 href="https://www.canada.ca/immigration"
                 target="_blank"
@@ -1551,19 +2056,20 @@ export default function AssessmentTool() {
               >
                 www.canada.ca/immigration
               </a>{' '}
-              and confirming current eligibility requirements before taking any action.
+              and confirming current eligibility requirements before taking any
+              action.
             </p>
             <p className="asx-disclaimer-body">
-              All CRS scoring reflects current IRCC rules as published at canada.ca. Visa Forte
-              specialises in documentation consulting and eligibility guidance — helping applicants
-              prepare complete, accurate profiles and understand their pathways with clarity.
-              Scoring methodology is updated whenever IRCC announces regulatory changes; verify
-              the latest rules before acting on any assessment.
+              All CRS scoring reflects current IRCC rules as published at
+              canada.ca. Visa Forte specialises in documentation consulting and
+              eligibility guidance — helping applicants prepare complete,
+              accurate profiles and understand their pathways with clarity.
+              Scoring methodology is updated whenever IRCC announces regulatory
+              changes; verify the latest rules before acting on any assessment.
             </p>
           </div>
-
         </div>
       </div>
     </div>
-  )
+  );
 }

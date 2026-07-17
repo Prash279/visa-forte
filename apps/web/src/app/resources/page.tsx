@@ -2,19 +2,19 @@
 // Server component — SEO metadata, data loading, page layout.
 // All interactivity is delegated to FreeResourcesGrid (client component).
 
-import type { JSX } from "react";
-import "./resources.css";
-import { getAllFreeResources, getAllPremiumResources } from "@/lib/resources";
-import FreeResourcesGrid from "./FreeResourcesGrid";
-import ResourceCard from "@/components/ResourceCard";
-import MailtoButton from "@/components/MailtoButton";
-import { buildMetadata } from "@/lib/seo";
+import type { JSX } from 'react';
+import './resources.css';
+import { getAllFreeResources, getAllPremiumResources } from '@/lib/resources';
+import FreeResourcesGrid from './FreeResourcesGrid';
+import ResourceCard from '@/components/ResourceCard';
+import MailtoButton from '@/components/MailtoButton';
+import { buildMetadata } from '@/lib/seo';
 
 export const metadata = buildMetadata({
-  title: "Immigration Resources — Visa Forte | Checklists, Guides & Templates",
+  title: 'Immigration Resources — Visa Forte | Checklists, Guides & Templates',
   description:
-    "Free and premium immigration resources for Express Entry, PNP, and spousal sponsorship applicants. Checklists, application guides, cheat sheets, letter templates, and timelines — reviewed personally by Prashant Thirthingoth.",
-  path: "/resources",
+    'Free and premium immigration resources for Express Entry, PNP, and spousal sponsorship applicants. Checklists, application guides, cheat sheets, letter templates, and timelines — reviewed personally by Prashant Thirthingoth.',
+  path: '/resources',
 });
 
 export default function ResourcesPage(): JSX.Element {
@@ -71,7 +71,7 @@ export default function ResourcesPage(): JSX.Element {
             <a
               href="/tools/crs-modeller"
               className="tools-card"
-              style={{ textDecoration: "none" }}
+              style={{ textDecoration: 'none' }}
             >
               <div className="tools-card-badge">Free · No Login Required</div>
               <h4 className="tools-card-title">CRS What-If Modeller</h4>
@@ -84,7 +84,7 @@ export default function ResourcesPage(): JSX.Element {
             <a
               href="/tools/ita-countdown"
               className="tools-card"
-              style={{ textDecoration: "none" }}
+              style={{ textDecoration: 'none' }}
             >
               <div className="tools-card-badge">₹2,997 · Launch Tool →</div>
               <h4 className="tools-card-title">60-Day Countdown Planner</h4>
@@ -95,12 +95,12 @@ export default function ResourcesPage(): JSX.Element {
             </a>
             {[
               {
-                name: "NOC Code Verifier",
-                desc: "Confirm your 5-digit NOC 2021 code and TEER level against the official Statistics Canada CSV.",
+                name: 'NOC Code Verifier',
+                desc: 'Confirm your 5-digit NOC 2021 code and TEER level against the official Statistics Canada CSV.',
               },
               {
-                name: "Refusal Pattern Analyser",
-                desc: "Identify the most common refusal grounds for your NOC and build a pre-emption strategy.",
+                name: 'Refusal Pattern Analyser',
+                desc: 'Identify the most common refusal grounds for your NOC and build a pre-emption strategy.',
               },
             ].map((tool) => (
               <div key={tool.name} className="tools-card">

@@ -1,7 +1,7 @@
 // Public Canada PR eligibility assessment — /assessment
 // No authentication required. Runs entirely client-side (CRS engine is local).
 
-import AssessmentTool from './AssessmentTool'
+import AssessmentTool from './AssessmentTool';
 import { buildMetadata } from '@/lib/seo';
 
 export const metadata = buildMetadata({
@@ -11,5 +11,5 @@ export const metadata = buildMetadata({
   path: '/assessment',
 });
 export default function AssessmentPage() {
-  return <AssessmentTool />
+  return <AssessmentTool />;
 }

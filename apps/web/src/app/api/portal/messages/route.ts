@@ -8,11 +8,17 @@ import { getCurrentAuthSession } from '@/lib/auth-server';
 const ADMIN_EMAIL = 'prashant@visaforte.com';
 
 const ReplySchema = z.object({
-  body: z.string().min(1, 'Message body is required').max(4000, 'Message too long'),
+  body: z
+    .string()
+    .min(1, 'Message body is required')
+    .max(4000, 'Message too long'),
 });
 
 // Derive clientId from session — never from the request body (IDOR prevention).
-async function getClientForSession(): Promise<{ clientId: string; userId: string } | null> {
+async function getClientForSession(): Promise<{
+  clientId: string;
+  userId: string;
+} | null> {
   const session = await getCurrentAuthSession();
   if (!session?.session || !session.user?.id) return null;
   if (session.user.email === ADMIN_EMAIL) return null;
@@ -55,12 +61,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid request body' },
+      { status: 400 },
+    );
   }
 
   const result = ReplySchema.safeParse(body);
   if (!result.success) {
-    return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: result.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const [message] = await db

@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { asc, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { messages, clients, auditLog } from '../../../../../../../../drizzle/schema';
+import {
+  messages,
+  clients,
+  auditLog,
+} from '../../../../../../../../drizzle/schema';
 import { getCurrentAuthSession } from '@/lib/auth-server';
 import { uploadFile, generateDownloadUrl } from '@/lib/storage';
 import { log } from '@/lib/logger';
@@ -11,7 +15,12 @@ const ADMIN_EMAIL = 'prashant@visaforte.com';
 function formatTranscript(
   clientName: string,
   clientEmail: string,
-  thread: Array<{ senderRole: string; body: string; createdAt: Date; attachmentUrl?: string | null }>
+  thread: Array<{
+    senderRole: string;
+    body: string;
+    createdAt: Date;
+    attachmentUrl?: string | null;
+  }>,
 ): string {
   const header = [
     `VISA FORTE — MESSAGE TRANSCRIPT`,
@@ -24,8 +33,12 @@ function formatTranscript(
   const body = thread
     .map((m) => {
       const sender = m.senderRole === 'admin' ? 'Prashant (Admin)' : 'Client';
-      const ts = new Date(m.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-      const attachment = m.attachmentUrl ? `\n  [Attachment: ${m.attachmentUrl}]` : '';
+      const ts = new Date(m.createdAt).toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+      });
+      const attachment = m.attachmentUrl
+        ? `\n  [Attachment: ${m.attachmentUrl}]`
+        : '';
       return `[${ts}] ${sender}:\n  ${m.body}${attachment}`;
     })
     .join('\n\n');
@@ -38,7 +51,7 @@ function formatTranscript(
 // returns a download URL, and logs the event to auditLog per security.md §5.
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   const session = await getCurrentAuthSession();
   if (!session?.session || session.user?.email !== ADMIN_EMAIL) {
@@ -71,13 +84,21 @@ export async function GET(
     const { url: blobUrl } = await uploadFile(
       pathname,
       Buffer.from(transcriptText, 'utf-8'),
-      'text/plain'
+      'text/plain',
     );
     downloadUrl = generateDownloadUrl(blobUrl);
   } catch (err) {
-    log({ level: 'error', service: 'transcript', action: 'upload_failed', result: 'failure',
-          metadata: { clientId, error: String(err) } });
-    return NextResponse.json({ error: 'Failed to generate transcript' }, { status: 500 });
+    log({
+      level: 'error',
+      service: 'transcript',
+      action: 'upload_failed',
+      result: 'failure',
+      metadata: { clientId, error: String(err) },
+    });
+    return NextResponse.json(
+      { error: 'Failed to generate transcript' },
+      { status: 500 },
+    );
   }
 
   await db.insert(auditLog).values({
@@ -87,8 +108,13 @@ export async function GET(
     metadata: { messageCount: thread.length },
   });
 
-  log({ level: 'info', service: 'transcript', action: 'download_generated', result: 'success',
-        metadata: { clientId, messageCount: thread.length } });
+  log({
+    level: 'info',
+    service: 'transcript',
+    action: 'download_generated',
+    result: 'success',
+    metadata: { clientId, messageCount: thread.length },
+  });
 
   return NextResponse.json({ url: downloadUrl });
 }

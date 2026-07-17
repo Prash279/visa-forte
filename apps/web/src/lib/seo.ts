@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
 
 // Single source of truth for the site's public URL.
 // Used by robots.ts, sitemap.ts, layout.tsx (metadataBase) and buildMetadata.
 export const SITE_URL: string =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://visaforte.com";
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://visaforte.com';
 
-export const SITE_NAME = "Visa Forte";
+export const SITE_NAME = 'Visa Forte';
 
 // Builds the metadata object for one public page.
 // Why: every public page needs the same four things for Google — a title,
@@ -29,7 +29,7 @@ export function buildMetadata(opts: {
       description,
       url: path,
       siteName: SITE_NAME,
-      type: "website",
+      type: 'website',
     },
   };
 }
