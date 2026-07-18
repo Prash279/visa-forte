@@ -14,7 +14,7 @@
 - [x] TDD: 11 new tests in `crs-calculator.test.ts` (French 25/25/50/0/0, Canadian edu 15/30/0, 600 cap, cap-aware PNP scenario), expected values from canada.ca. Snapshots updated — diff is ONLY the two additive `*Points: 0` fields + the rules-hash bump (2ceb4a21→9b674267); no existing score moved.
 - [x] `tsc --noEmit` clean; `vitest run` **355/355** (was 344); eslint clean on changed files.
 - [ ] **Prashant Proof (browser) — pending Prash:** see report. Verify the new select renders and a French/Canadian-education profile shows the higher CRS on both tools.
-- [ ] Not committed — awaiting Prash's push instruction per git-workflow.md.
+- [ ] Committed locally as `0e81451` on `feat/resources-inr-only` — NOT pushed, awaiting Prash's push instruction per git-workflow.md.
 
 **Still open (flagged, not built):** the FSW `hasCanadianEducation` checkbox and the new Section D tier are two separate controls (each maps to a different grid — FSW adaptability vs CRS Section D). Left independent to avoid changing FSW behavior; unify later if Prash prefers a single control.
 
@@ -2162,7 +2162,7 @@ Decision: Add a `difficultyTags` array to each stream in `pnp-streams.json`. Tag
 ---
 
 ### TASK RT-1: CanVisa Pro Lite — `/tools/canvisa`
-**Status:** 🔲 NOT STARTED — awaiting Prash approval on this plan
+**Status:** ⚠️ SUPERSEDED (as of 2026-07-19 review) — no `/tools/canvisa` route was ever built. The /resources Tools-section hero card links to the existing `/assessment` tool instead, and only `lib/canvisa-lite-logic.ts` (+ tests) exists from this plan. Build the dedicated route only if Prash still wants it separate from /assessment.
 **What this delivers:** A public, ungated CRS assessment tool at visaforte.com/tools/canvisa. It gives the applicant their CRS score, the top 2–3 reasons their score is lower than the last draw cutoff, and the single highest-probability pathway. It withholds the multi-pathway comparison table, full action plan, and MARP download — those stay admin-only. After the result, a lead capture form offers "Email me my results" and "Alert me when my draw opens". Both offers have their own API routes and DB tables.
 
 **What is NOT included in this tool:**
