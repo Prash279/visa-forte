@@ -16,6 +16,8 @@
 - [ ] **Prashant Proof (browser) — pending Prash:** see report. Verify the new select renders and a French/Canadian-education profile shows the higher CRS on both tools.
 - [ ] Committed locally as `0e81451` on `feat/resources-inr-only` — NOT pushed, awaiting Prash's push instruction per git-workflow.md.
 
+**Follow-up closed (2026-07-19, PR #7):** Section D bonus sources now render as named line items — /assessment shows an "Additional points: …" detail line (cap note reads `sectionD.maxTotal` from crs-rules.json, per review), CanVisa Pro PDF/PPTX show per-source rows + "Additional Total (Sec. D)". Also root-caused CI-vs-Windows rules-hash flapping (CRLF) — `hash-crs-rules.mjs` now normalizes line endings; see lessons.md Workflow Lesson 6 + addendum. Live verification 2026-07-19: two production assessments cross-checked against canada.ca (draw rows vs IRCC rounds JSON, $15,263 PoF family-of-1) — all correct.
+
 **Still open (flagged, not built):** the FSW `hasCanadianEducation` checkbox and the new Section D tier are two separate controls (each maps to a different grid — FSW adaptability vs CRS Section D). Left independent to avoid changing FSW behavior; unify later if Prash prefers a single control.
 
 ---
