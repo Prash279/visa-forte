@@ -808,7 +808,11 @@ style: |
       <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:14px;">CRS Breakdown</div>
       ${row('Core / Human Capital', `${breakdown.coreTotal} pts`, true)}
       ${row('Transferability (Sec. C)', `${breakdown.transferTotal} pts`)}
-      ${row('Additional (PNP / Other)', `${breakdown.additionalTotal} pts`)}
+      ${breakdown.provincialNomination > 0 ? row('Provincial Nomination', `${breakdown.provincialNomination} pts`) : ''}
+      ${breakdown.siblingPoints > 0 ? row('Sibling in Canada', `${breakdown.siblingPoints} pts`) : ''}
+      ${breakdown.frenchBonusPoints > 0 ? row('French-Language Bonus', `${breakdown.frenchBonusPoints} pts`) : ''}
+      ${breakdown.canadianEducationPoints > 0 ? row('Canadian Education Bonus', `${breakdown.canadianEducationPoints} pts`) : ''}
+      ${row('Additional Total (Sec. D)', `${breakdown.additionalTotal} pts`)}
       ${row('Grand Total', `${total} pts`, true)}
     </div>
     <div style="flex:1;background:${CARD};padding:18px 20px;">
@@ -907,7 +911,11 @@ style: |
       <div style="height:1px;background:${BORDER};margin:10px 0;"></div>
       <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin:12px 0 10px;">Section C &amp; D</div>
       ${row('Transferability Factors', `${breakdown.transferTotal} pts`)}
-      ${breakdown.additionalTotal > 0 ? row('Additional (PNP/Other)', `${breakdown.additionalTotal} pts`) : ''}
+      ${breakdown.provincialNomination > 0 ? row('Provincial Nomination', `${breakdown.provincialNomination} pts`) : ''}
+      ${breakdown.siblingPoints > 0 ? row('Sibling in Canada', `${breakdown.siblingPoints} pts`) : ''}
+      ${breakdown.frenchBonusPoints > 0 ? row('French-Language Bonus', `${breakdown.frenchBonusPoints} pts`) : ''}
+      ${breakdown.canadianEducationPoints > 0 ? row('Canadian Education Bonus', `${breakdown.canadianEducationPoints} pts`) : ''}
+      ${breakdown.additionalTotal > 0 ? row('Additional Total (Sec. D)', `${breakdown.additionalTotal} pts`) : ''}
       <div style="height:1px;background:${TEAL};margin:10px 0;opacity:0.4;"></div>
       ${row('TOTAL CRS', `${total} pts`, true)}
     </div>

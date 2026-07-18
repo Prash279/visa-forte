@@ -11,8 +11,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const rulesPath = resolve(__dirname, '../src/lib/crs-rules.json')
 const outPath   = resolve(__dirname, '../src/lib/crs-rules.version.ts')
 
+// Normalize CRLF to LF before hashing: git materializes the JSON with CRLF on
+// Windows and LF on Linux CI, and the fingerprint must track rule content,
+// not the platform's line endings.
 const hash = createHash('sha256')
-  .update(readFileSync(rulesPath))
+  .update(readFileSync(rulesPath, 'utf8').replace(/\r\n/g, '\n'))
   .digest('hex')
   .slice(0, 8)
 
