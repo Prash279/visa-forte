@@ -1735,6 +1735,34 @@ export default function AssessmentTool() {
               </div>
             </div>
 
+            {/* Where the Section D points come from — shown only when the
+                applicant actually earned some, so the score jump is explained. */}
+            {bd.additionalTotal > 0 && (
+              <p className="asx-card-sub">
+                Additional points:{' '}
+                {(
+                  [
+                    ['Provincial nomination', bd.provincialNomination],
+                    ['Sibling in Canada', bd.siblingPoints],
+                    ['French-language bonus', bd.frenchBonusPoints],
+                    [
+                      'Canadian post-secondary credential',
+                      bd.canadianEducationPoints,
+                    ],
+                  ] as Array<[string, number]>
+                )
+                  .filter(([, pts]) => pts > 0)
+                  .map(([label, pts]) => `${label} +${pts}`)
+                  .join(' · ')}
+                {bd.provincialNomination +
+                  bd.siblingPoints +
+                  bd.frenchBonusPoints +
+                  bd.canadianEducationPoints >
+                  bd.additionalTotal &&
+                  ` (Section D capped at ${crsRules.sectionD.maxTotal})`}
+              </p>
+            )}
+
             {/* FSW 67-point grid */}
             <h3 className="asx-sub-heading">FSW 67-Point Selection Grid</h3>
             <div className="asx-fsw-table">
