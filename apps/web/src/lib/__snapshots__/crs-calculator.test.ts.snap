@@ -62,7 +62,7 @@ exports[`calculate — Harish Naik with-spouse Factor B verification > full CrsR
   "fswImprovements": [],
   "proofOfFundsRequired": 19001,
   "proofOfFundsSufficient": true,
-  "rulesVersion": "9b674267",
+  "rulesVersion": "5b5dd31e",
   "scenarios": [
     {
       "change": "Achieve CLB 10 in all four language abilities",
@@ -155,7 +155,7 @@ exports[`calculate — Kishore Sai ground-truth verification > full CrsResult sn
   "fswImprovements": [],
   "proofOfFundsRequired": 15263,
   "proofOfFundsSufficient": true,
-  "rulesVersion": "9b674267",
+  "rulesVersion": "5b5dd31e",
   "scenarios": [
     {
       "change": "Reach 3 full years of foreign work experience",
@@ -256,7 +256,7 @@ exports[`calculate — provincial nomination > full CrsResult snapshot — locks
   "fswImprovements": [],
   "proofOfFundsRequired": 15263,
   "proofOfFundsSufficient": true,
-  "rulesVersion": "9b674267",
+  "rulesVersion": "5b5dd31e",
   "scenarios": [
     {
       "change": "Reach 3 full years of foreign work experience",
