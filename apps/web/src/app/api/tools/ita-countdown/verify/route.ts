@@ -30,18 +30,32 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid request body' },
+      { status: 400 },
+    );
   }
 
   const result = Schema.safeParse(body);
   if (!result.success) {
-    return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: result.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const {
-    name, email, itaDate, citizenshipCountry, residenceCountries,
-    hasSpouse, numDependentChildren, tier,
-    razorpayOrderId, razorpayPaymentId, razorpaySignature,
+    name,
+    email,
+    itaDate,
+    citizenshipCountry,
+    residenceCountries,
+    hasSpouse,
+    numDependentChildren,
+    tier,
+    razorpayOrderId,
+    razorpayPaymentId,
+    razorpaySignature,
   } = result.data;
 
   // ── Signature verification ──────────────────────────────────────────────────
@@ -51,13 +65,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     .digest('hex');
 
   if (expectedSignature !== razorpaySignature) {
-    console.error('Razorpay signature mismatch — possible tampered payment (ita-countdown)');
-    return NextResponse.json({ error: 'Payment verification failed.' }, { status: 400 });
+    console.error(
+      'Razorpay signature mismatch — possible tampered payment (ita-countdown)',
+    );
+    return NextResponse.json(
+      { error: 'Payment verification failed.' },
+      { status: 400 },
+    );
   }
 
   const token = randomUUID();
   const checklist = generateChecklist({
-    itaDate, citizenshipCountry, residenceCountries, hasSpouse, numDependentChildren, tier,
+    itaDate,
+    citizenshipCountry,
+    residenceCountries,
+    hasSpouse,
+    numDependentChildren,
+    tier,
   });
 
   try {
@@ -78,8 +102,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   } catch (err) {
     console.error('ita-countdown order insert failed after payment:', err);
     return NextResponse.json(
-      { error: 'Payment received but your checklist could not be saved. Please contact prashant@visaforte.com with your payment ID.' },
-      { status: 500 }
+      {
+        error:
+          'Payment received but your checklist could not be saved. Please contact prashant@visaforte.com with your payment ID.',
+      },
+      { status: 500 },
     );
   }
 
@@ -100,7 +127,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           <div style="width:40px;height:2px;background:#C97B1E;margin-bottom:24px;"></div>
           <p style="margin:0 0 24px;line-height:1.7;color:#444;">Dear ${name}, here is your personalised 60-day document preparation timeline based on your ITA date of <strong>${itaDate}</strong>.</p>
           <table style="width:100%;border-collapse:collapse;">
-            ${checklist.map((item) => `
+            ${checklist
+              .map(
+                (item) => `
               <tr>
                 <td style="padding:10px 0;border-bottom:1px solid #eee;">
                   <strong style="color:#0C2340;">${item.task}</strong><br/>
@@ -108,7 +137,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
                   <span style="font-size:0.8rem;color:#888;">${item.notes}</span>
                 </td>
               </tr>
-            `).join('')}
+            `,
+              )
+              .join('')}
           </table>
           <p style="margin-top:24px;">
             <a href="${resultUrl}" style="color:#c97b1e;">View and print your checklist online →</a>
@@ -154,7 +185,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         `,
       });
     } catch (err) {
-      console.error('Premium notification to Prash failed (ita-countdown):', err);
+      console.error(
+        'Premium notification to Prash failed (ita-countdown):',
+        err,
+      );
     }
   }
 

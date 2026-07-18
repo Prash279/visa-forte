@@ -12,7 +12,9 @@ export default async function ActivatePage({ searchParams }: PageProps) {
   const { token } = await searchParams;
 
   if (!token || typeof token !== 'string') {
-    return <ErrorState message="This activation link is invalid. Please contact prashant@visaforte.com." />;
+    return (
+      <ErrorState message="This activation link is invalid. Please contact prashant@visaforte.com." />
+    );
   }
 
   const [booking] = await db
@@ -22,8 +24,8 @@ export default async function ActivatePage({ searchParams }: PageProps) {
       and(
         eq(bookings.portalToken, token),
         isNotNull(bookings.portalToken),
-        gt(bookings.portalTokenExpiresAt, new Date())
-      )
+        gt(bookings.portalTokenExpiresAt, new Date()),
+      ),
     )
     .limit(1);
 
@@ -51,7 +53,11 @@ function ErrorState({ message }: { message: string }) {
         <div>
           <p className="auth-brand-wordmark">Visa Forte</p>
           <div className="auth-brand-rule" />
-          <h1 className="auth-brand-headline">Engineered<br />for Passage.</h1>
+          <h1 className="auth-brand-headline">
+            Engineered
+            <br />
+            for Passage.
+          </h1>
           <p className="auth-brand-body">
             Expert immigration documentation, prepared with precision.
           </p>
@@ -62,7 +68,14 @@ function ErrorState({ message }: { message: string }) {
         <div className="auth-form-inner">
           <h2 className="auth-heading">Link Unavailable</h2>
           <div className="auth-rule" />
-          <p style={{ color: '#666', lineHeight: '1.7', marginTop: '1.25rem', fontSize: '0.95rem' }}>
+          <p
+            style={{
+              color: '#666',
+              lineHeight: '1.7',
+              marginTop: '1.25rem',
+              fontSize: '0.95rem',
+            }}
+          >
             {message}
           </p>
           <a

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect } from 'vitest';
 import {
   assessPnp,
   manualNocClassification,
@@ -8,9 +8,9 @@ import {
   type NocClassification,
   type PnpAssessmentResult,
   type PnpVerdict,
-} from './pnp-eligibility'
-import { type ApplicantProfile } from './crs-calculator'
-import pnpData from './pnp-streams.json'
+} from './pnp-eligibility';
+import { type ApplicantProfile } from './crs-calculator';
+import pnpData from './pnp-streams.json';
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -27,7 +27,13 @@ const strongProfile: ApplicantProfile = {
   reportDate: '2026-06-22',
   education: 'masters',
   hasEca: true,
-  firstLanguageScores: { testType: 'IELTS_GT', listening: 8.0, reading: 7.0, writing: 7.0, speaking: 7.0 },
+  firstLanguageScores: {
+    testType: 'IELTS_GT',
+    listening: 8.0,
+    reading: 7.0,
+    writing: 7.0,
+    speaking: 7.0,
+  },
   hasSecondLanguage: false,
   foreignWorkExperienceYears: 5,
   canadianWorkExperienceYears: 0,
@@ -41,7 +47,7 @@ const strongProfile: ApplicantProfile = {
   hasCriminalRecord: false,
   hasMedicalCondition: false,
   hasPriorRefusal: false,
-}
+};
 
 const baseCriteria: PnpCriteria = {
   allowedTeers: [0, 1, 2, 3],
@@ -55,12 +61,16 @@ const baseCriteria: PnpCriteria = {
   jobOfferRequired: 'not-required',
   provincialConnectionRequired: false,
   eoiRegistrationRequired: false,
-}
+};
 
-let seq = 0
-function mkStream(over: Omit<Partial<PnpStream>, 'criteria'> & { criteria?: Partial<PnpCriteria> }): PnpStream {
-  seq += 1
-  const { criteria: critOver, ...rest } = over
+let seq = 0;
+function mkStream(
+  over: Omit<Partial<PnpStream>, 'criteria'> & {
+    criteria?: Partial<PnpCriteria>;
+  },
+): PnpStream {
+  seq += 1;
+  const { criteria: critOver, ...rest } = over;
   return {
     id: `s${seq}`,
     province: 'Testland',
@@ -76,7 +86,7 @@ function mkStream(over: Omit<Partial<PnpStream>, 'criteria'> & { criteria?: Part
     criteria: { ...baseCriteria, ...critOver },
     roadmap: [{ step: 1, title: 'Register', detail: 'Register an EOI.' }],
     ...rest,
-  }
+  };
 }
 
 function mkNoc(teer: number, ambiguity = false): NocClassification {
@@ -88,55 +98,84 @@ function mkNoc(teer: number, ambiguity = false): NocClassification {
     confidence: 'high',
     verified: true,
     candidates: [
-      { nocCode: '21211', teer, title: 'Data Scientist', rationale: 'Builds ML models.', matchScore: 100, fitScore: 90 },
+      {
+        nocCode: '21211',
+        teer,
+        title: 'Data Scientist',
+        rationale: 'Builds ML models.',
+        matchScore: 100,
+        fitScore: 90,
+      },
     ],
     ambiguity: {
       flag: ambiguity,
-      alternatives: ambiguity ? [{ nocCode: '22220', teer: 2, title: 'Tech support' }] : [],
+      alternatives: ambiguity
+        ? [{ nocCode: '22220', teer: 2, title: 'Tech support' }]
+        : [],
     },
-  }
+  };
 }
 
 // ── Verdict logic ────────────────────────────────────────────────────────────
 
 describe('assessPnp — verdict logic', () => {
   it('all hard gates pass and no conditional requirements → confirmed', () => {
-    const streams = [mkStream({ id: 'confirmed' })]
-    const r = assessPnp(strongProfile, mkNoc(1), streams)
-    expect(r.eeLinked[0]?.verdict).toBe('confirmed')
-  })
+    const streams = [mkStream({ id: 'confirmed' })];
+    const r = assessPnp(strongProfile, mkNoc(1), streams);
+    expect(r.eeLinked[0]?.verdict).toBe('confirmed');
+  });
 
   it('a conditional requirement (EOI) downgrades a passing stream to likely', () => {
-    const streams = [mkStream({ id: 'eoi', criteria: { eoiRegistrationRequired: true } })]
-    const r = assessPnp(strongProfile, mkNoc(1), streams)
-    expect(r.eeLinked[0]?.verdict).toBe('likely')
-    expect(r.eeLinked[0]?.conditionalRequirements.some(x => /Expression of Interest/i.test(x))).toBe(true)
-  })
+    const streams = [
+      mkStream({ id: 'eoi', criteria: { eoiRegistrationRequired: true } }),
+    ];
+    const r = assessPnp(strongProfile, mkNoc(1), streams);
+    expect(r.eeLinked[0]?.verdict).toBe('likely');
+    expect(
+      r.eeLinked[0]?.conditionalRequirements.some((x) =>
+        /Expression of Interest/i.test(x),
+      ),
+    ).toBe(true);
+  });
 
   it('a required in-province job offer the applicant lacks → marginal', () => {
-    const streams = [mkStream({ id: 'jo', category: 'base', criteria: { jobOfferRequired: 'required' } })]
-    const r = assessPnp(strongProfile, mkNoc(1), streams)
-    expect(r.base[0]?.verdict).toBe('marginal')
-  })
+    const streams = [
+      mkStream({
+        id: 'jo',
+        category: 'base',
+        criteria: { jobOfferRequired: 'required' },
+      }),
+    ];
+    const r = assessPnp(strongProfile, mkNoc(1), streams);
+    expect(r.base[0]?.verdict).toBe('marginal');
+  });
 
   it('a hard gate failure (TEER outside accepted set) → ineligible and excluded from the shortlist', () => {
-    const streams = [mkStream({ id: 'teerfail', criteria: { allowedTeers: [0] } })]
-    const r = assessPnp(strongProfile, mkNoc(1), streams)
-    expect(r.eeLinked).toHaveLength(0)
-    expect(r.ineligible[0]?.verdict).toBe('ineligible')
-    expect(r.ineligible[0]?.unmetHardGates.length).toBeGreaterThan(0)
-  })
+    const streams = [
+      mkStream({ id: 'teerfail', criteria: { allowedTeers: [0] } }),
+    ];
+    const r = assessPnp(strongProfile, mkNoc(1), streams);
+    expect(r.eeLinked).toHaveLength(0);
+    expect(r.ineligible[0]?.verdict).toBe('ineligible');
+    expect(r.ineligible[0]?.unmetHardGates.length).toBeGreaterThan(0);
+  });
 
   it('language below the stream minimum → ineligible', () => {
     const weak: ApplicantProfile = {
       ...strongProfile,
-      firstLanguageScores: { testType: 'IELTS_GT', listening: 4.0, reading: 3.5, writing: 4.0, speaking: 4.0 },
-    }
-    const streams = [mkStream({ id: 'lang', criteria: { minClbOverall: 7 } })]
-    const r = assessPnp(weak, mkNoc(1), streams)
-    expect(r.ineligible).toHaveLength(1)
-  })
-})
+      firstLanguageScores: {
+        testType: 'IELTS_GT',
+        listening: 4.0,
+        reading: 3.5,
+        writing: 4.0,
+        speaking: 4.0,
+      },
+    };
+    const streams = [mkStream({ id: 'lang', criteria: { minClbOverall: 7 } })];
+    const r = assessPnp(weak, mkNoc(1), streams);
+    expect(r.ineligible).toHaveLength(1);
+  });
+});
 
 // ── Structural separation (EE-linked vs Base never merge) ────────────────────
 
@@ -145,109 +184,156 @@ describe('assessPnp — EE-linked and Base are structurally separate', () => {
     const streams = [
       mkStream({ id: 'ee', category: 'ee-linked' }),
       mkStream({ id: 'base', category: 'base' }),
-      mkStream({ id: 'dead', category: 'ee-linked', criteria: { allowedTeers: [0] } }),
-    ]
-    const r = assessPnp(strongProfile, mkNoc(1), streams)
-    const eeIds = r.eeLinked.map(m => m.stream.id)
-    const baseIds = r.base.map(m => m.stream.id)
-    expect(eeIds).toContain('ee')
-    expect(baseIds).toContain('base')
-    expect(eeIds.filter(id => baseIds.includes(id))).toHaveLength(0)
-    expect([...eeIds, ...baseIds]).not.toContain('dead')
-    expect(r.eeLinked.every(m => m.stream.category === 'ee-linked')).toBe(true)
-    expect(r.base.every(m => m.stream.category === 'base')).toBe(true)
-  })
-})
+      mkStream({
+        id: 'dead',
+        category: 'ee-linked',
+        criteria: { allowedTeers: [0] },
+      }),
+    ];
+    const r = assessPnp(strongProfile, mkNoc(1), streams);
+    const eeIds = r.eeLinked.map((m) => m.stream.id);
+    const baseIds = r.base.map((m) => m.stream.id);
+    expect(eeIds).toContain('ee');
+    expect(baseIds).toContain('base');
+    expect(eeIds.filter((id) => baseIds.includes(id))).toHaveLength(0);
+    expect([...eeIds, ...baseIds]).not.toContain('dead');
+    expect(r.eeLinked.every((m) => m.stream.category === 'ee-linked')).toBe(
+      true,
+    );
+    expect(r.base.every((m) => m.stream.category === 'base')).toBe(true);
+  });
+});
 
 // ── Ranking model ────────────────────────────────────────────────────────────
 
 describe('assessPnp — weighted ranking', () => {
   it('within a category, an open fast stream outranks a closed slow one', () => {
     const streams = [
-      mkStream({ id: 'slow-closed', status: 'closed', indicativeProcessingMonths: 15 }),
-      mkStream({ id: 'fast-open', status: 'open', indicativeProcessingMonths: 3 }),
-    ]
-    const r = assessPnp(strongProfile, mkNoc(1), streams)
-    expect(r.eeLinked[0]?.stream.id).toBe('fast-open')
-    expect(r.eeLinked[0]!.score).toBeGreaterThan(r.eeLinked[1]!.score)
-  })
+      mkStream({
+        id: 'slow-closed',
+        status: 'closed',
+        indicativeProcessingMonths: 15,
+      }),
+      mkStream({
+        id: 'fast-open',
+        status: 'open',
+        indicativeProcessingMonths: 3,
+      }),
+    ];
+    const r = assessPnp(strongProfile, mkNoc(1), streams);
+    expect(r.eeLinked[0]?.stream.id).toBe('fast-open');
+    expect(r.eeLinked[0]!.score).toBeGreaterThan(r.eeLinked[1]!.score);
+  });
 
   it('a confirmed EE-linked stream scores higher than the same stream as Base (strategic value)', () => {
-    const ee = assessPnp(strongProfile, mkNoc(1), [mkStream({ id: 'x', category: 'ee-linked' })])
-    const base = assessPnp(strongProfile, mkNoc(1), [mkStream({ id: 'y', category: 'base' })])
-    expect(ee.eeLinked[0]!.score).toBeGreaterThan(base.base[0]!.score)
-  })
-})
+    const ee = assessPnp(strongProfile, mkNoc(1), [
+      mkStream({ id: 'x', category: 'ee-linked' }),
+    ]);
+    const base = assessPnp(strongProfile, mkNoc(1), [
+      mkStream({ id: 'y', category: 'base' }),
+    ]);
+    expect(ee.eeLinked[0]!.score).toBeGreaterThan(base.base[0]!.score);
+  });
+});
 
 // ── Flags ────────────────────────────────────────────────────────────────────
 
 describe('assessPnp — flags', () => {
   it('raises [NOC AMBIGUITY] when the classification is ambiguous', () => {
-    const r = assessPnp(strongProfile, mkNoc(1, true), [mkStream({})])
-    expect(r.flags.some(f => f.startsWith('[NOC AMBIGUITY]'))).toBe(true)
-  })
+    const r = assessPnp(strongProfile, mkNoc(1, true), [mkStream({})]);
+    expect(r.flags.some((f) => f.startsWith('[NOC AMBIGUITY]'))).toBe(true);
+  });
 
   it('excludes needsVerification streams from scoring and raises [VERIFY]', () => {
-    const streams = [mkStream({ id: 'unverified', needsVerification: true })]
-    const r = assessPnp(strongProfile, mkNoc(1), streams)
-    expect(r.eeLinked).toHaveLength(0)
-    expect(r.ineligible).toHaveLength(0)
-    expect(r.flags.some(f => f.startsWith('[VERIFY]'))).toBe(true)
-  })
+    const streams = [mkStream({ id: 'unverified', needsVerification: true })];
+    const r = assessPnp(strongProfile, mkNoc(1), streams);
+    expect(r.eeLinked).toHaveLength(0);
+    expect(r.ineligible).toHaveLength(0);
+    expect(r.flags.some((f) => f.startsWith('[VERIFY]'))).toBe(true);
+  });
 
   it('flags an otherwise-eligible CLOSED stream', () => {
-    const streams = [mkStream({ id: 'closed', status: 'closed' })]
-    const r = assessPnp(strongProfile, mkNoc(1), streams)
-    expect(r.flags.some(f => /CLOSED/.test(f))).toBe(true)
-  })
-})
+    const streams = [mkStream({ id: 'closed', status: 'closed' })];
+    const r = assessPnp(strongProfile, mkNoc(1), streams);
+    expect(r.flags.some((f) => /CLOSED/.test(f))).toBe(true);
+  });
+});
 
 // ── Source & Verification Log ────────────────────────────────────────────────
 
 describe('assessPnp — source log', () => {
   it('emits one source-log entry per scorable stream', () => {
-    const streams = [mkStream({ id: 'a' }), mkStream({ id: 'b' })]
-    const r = assessPnp(strongProfile, mkNoc(1), streams)
-    expect(r.sourceLog).toHaveLength(2)
-    expect(r.sourceLog.every(e => e.sourceUrl.length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(e.lastVerified))).toBe(true)
-  })
-})
+    const streams = [mkStream({ id: 'a' }), mkStream({ id: 'b' })];
+    const r = assessPnp(strongProfile, mkNoc(1), streams);
+    expect(r.sourceLog).toHaveLength(2);
+    expect(
+      r.sourceLog.every(
+        (e) =>
+          e.sourceUrl.length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(e.lastVerified),
+      ),
+    ).toBe(true);
+  });
+});
 
 // ── Eligibility breakdown (per-criterion) ────────────────────────────────────
 
 describe('assessPnp — eligibility breakdown', () => {
   it('emits a check per constrained criterion with the applicant value and met status', () => {
-    const streams = [mkStream({ id: 'b' })]
-    const checks = assessPnp(strongProfile, mkNoc(1), streams).eeLinked[0]!.eligibilityChecks
-    const teer = checks.find(c => c.label === 'Occupation level (TEER)')
-    const lang = checks.find(c => c.label === 'Language (CLB)')
-    expect(teer?.applicant).toBe('TEER 1')
-    expect(teer?.status).toBe('met')
-    expect(lang?.status).toBe('met') // CLB derived from IELTS 8/7/7/7 → min 7, stream needs 7
-  })
+    const streams = [mkStream({ id: 'b' })];
+    const checks = assessPnp(strongProfile, mkNoc(1), streams).eeLinked[0]!
+      .eligibilityChecks;
+    const teer = checks.find((c) => c.label === 'Occupation level (TEER)');
+    const lang = checks.find((c) => c.label === 'Language (CLB)');
+    expect(teer?.applicant).toBe('TEER 1');
+    expect(teer?.status).toBe('met');
+    expect(lang?.status).toBe('met'); // CLB derived from IELTS 8/7/7/7 → min 7, stream needs 7
+  });
 
   it('marks an unsatisfied hard gate as unmet', () => {
-    const streams = [mkStream({ id: 't', criteria: { allowedTeers: [0] } })]
-    const checks = assessPnp(strongProfile, mkNoc(1), streams).ineligible[0]!.eligibilityChecks
-    expect(checks.find(c => c.label === 'Occupation level (TEER)')?.status).toBe('unmet')
-  })
+    const streams = [mkStream({ id: 't', criteria: { allowedTeers: [0] } })];
+    const checks = assessPnp(strongProfile, mkNoc(1), streams).ineligible[0]!
+      .eligibilityChecks;
+    expect(
+      checks.find((c) => c.label === 'Occupation level (TEER)')?.status,
+    ).toBe('unmet');
+  });
 
   it('marks a securable item (ECA not yet obtained) as conditional, not unmet', () => {
-    const noEca: ApplicantProfile = { ...strongProfile, hasEca: false }
-    const streams = [mkStream({ id: 'e', criteria: { ecaRequired: true } })]
-    const checks = assessPnp(noEca, mkNoc(1), streams).eeLinked[0]!.eligibilityChecks
-    expect(checks.find(c => c.label === 'Credential assessment (ECA)')?.status).toBe('conditional')
-  })
+    const noEca: ApplicantProfile = { ...strongProfile, hasEca: false };
+    const streams = [mkStream({ id: 'e', criteria: { ecaRequired: true } })];
+    const checks = assessPnp(noEca, mkNoc(1), streams).eeLinked[0]!
+      .eligibilityChecks;
+    expect(
+      checks.find((c) => c.label === 'Credential assessment (ECA)')?.status,
+    ).toBe('conditional');
+  });
 
   it('tags threshold criteria as threshold and yes/no gates as binary (so the report never prints "requires Required")', () => {
-    const streams = [mkStream({ id: 'k', category: 'base', criteria: { ecaRequired: true, jobOfferRequired: 'required' } })]
-    const checks = assessPnp(strongProfile, mkNoc(1), streams).base[0]!.eligibilityChecks
-    expect(checks.find(c => c.label === 'Language (CLB)')?.requirementKind).toBe('threshold')
-    expect(checks.find(c => c.label === 'Occupation level (TEER)')?.requirementKind).toBe('threshold')
-    expect(checks.find(c => c.label === 'Credential assessment (ECA)')?.requirementKind).toBe('binary')
-    expect(checks.find(c => c.label === 'In-province job offer')?.requirementKind).toBe('binary')
-  })
-})
+    const streams = [
+      mkStream({
+        id: 'k',
+        category: 'base',
+        criteria: { ecaRequired: true, jobOfferRequired: 'required' },
+      }),
+    ];
+    const checks = assessPnp(strongProfile, mkNoc(1), streams).base[0]!
+      .eligibilityChecks;
+    expect(
+      checks.find((c) => c.label === 'Language (CLB)')?.requirementKind,
+    ).toBe('threshold');
+    expect(
+      checks.find((c) => c.label === 'Occupation level (TEER)')
+        ?.requirementKind,
+    ).toBe('threshold');
+    expect(
+      checks.find((c) => c.label === 'Credential assessment (ECA)')
+        ?.requirementKind,
+    ).toBe('binary');
+    expect(
+      checks.find((c) => c.label === 'In-province job offer')?.requirementKind,
+    ).toBe('binary');
+  });
+});
 
 // ── NOC-targeted shortlist (over the REAL curated data) ──────────────────────
 
@@ -260,97 +346,138 @@ describe('assessPnp — NOC-targeted shortlist', () => {
     confidence: 'high',
     verified: true,
     candidates: [
-      { nocCode: '41404', teer: 1, title: 'Health policy researchers', rationale: 'health policy + databases', matchScore: 134, fitScore: 92 },
+      {
+        nocCode: '41404',
+        teer: 1,
+        title: 'Health policy researchers',
+        rationale: 'health policy + databases',
+        matchScore: 134,
+        fitScore: 92,
+      },
     ],
     ambiguity: { flag: false, alternatives: [] },
-  }
+  };
 
   it('caps the shortlist and excludes streams locked to a different occupation field', () => {
-    const r = assessPnp(strongProfile, healthNoc)
-    expect(r.shortlist.length).toBeGreaterThan(0)
-    expect(r.shortlist.length).toBeLessThanOrEqual(5)
-    const ids = r.shortlist.map(m => m.stream.id)
-    expect(ids).not.toContain('sk-tech')
-    expect(ids).not.toContain('ab-tourism')
-    expect(ids).not.toContain('ns-ccw')
-    expect(ids).not.toContain('on-trades')
-  })
+    const r = assessPnp(strongProfile, healthNoc);
+    expect(r.shortlist.length).toBeGreaterThan(0);
+    expect(r.shortlist.length).toBeLessThanOrEqual(5);
+    const ids = r.shortlist.map((m) => m.stream.id);
+    expect(ids).not.toContain('sk-tech');
+    expect(ids).not.toContain('ab-tourism');
+    expect(ids).not.toContain('ns-ccw');
+    expect(ids).not.toContain('on-trades');
+  });
 
   it('marks the health stream targeted and an off-field stream mismatch', () => {
     const all = (() => {
-      const r = assessPnp(strongProfile, healthNoc)
-      return [...r.eeLinked, ...r.base, ...r.ineligible]
-    })()
-    expect(all.find(m => m.stream.id === 'bc-health')?.relevance).toBe('targeted')
-    expect(all.find(m => m.stream.id === 'sk-tech')?.relevance).toBe('mismatch')
-  })
+      const r = assessPnp(strongProfile, healthNoc);
+      return [...r.eeLinked, ...r.base, ...r.ineligible];
+    })();
+    expect(all.find((m) => m.stream.id === 'bc-health')?.relevance).toBe(
+      'targeted',
+    );
+    expect(all.find((m) => m.stream.id === 'sk-tech')?.relevance).toBe(
+      'mismatch',
+    );
+  });
 
   it('leaves the full matrix unfiltered — the shortlist is a view, not a filter', () => {
-    const r = assessPnp(strongProfile, healthNoc)
-    expect(r.eeLinked.length + r.base.length).toBeGreaterThan(r.shortlist.length)
-  })
-})
+    const r = assessPnp(strongProfile, healthNoc);
+    expect(r.eeLinked.length + r.base.length).toBeGreaterThan(
+      r.shortlist.length,
+    );
+  });
+});
 
 // ── Provenance guard over the REAL curated data ──────────────────────────────
 // Strengthens automatically as streams are added: every curated stream must
 // carry a source and a verification date, so the report's log is never uncited.
 
 describe('pnp-streams.json — provenance & schema guard', () => {
-  const streams = (pnpData as { streams: PnpStream[] }).streams
-  const CATEGORIES = ['ee-linked', 'base']
-  const STATUSES = ['open', 'closed', 'intermittent']
+  const streams = (pnpData as { streams: PnpStream[] }).streams;
+  const CATEGORIES = ['ee-linked', 'base'];
+  const STATUSES = ['open', 'closed', 'intermittent'];
 
   it('every stream has a non-empty sourceUrl and an ISO lastVerified date', () => {
     for (const s of streams) {
-      expect(s.sourceUrl, `${s.id} sourceUrl`).toMatch(/^https?:\/\//)
-      expect(s.lastVerified, `${s.id} lastVerified`).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      expect(s.sourceUrl, `${s.id} sourceUrl`).toMatch(/^https?:\/\//);
+      expect(s.lastVerified, `${s.id} lastVerified`).toMatch(
+        /^\d{4}-\d{2}-\d{2}$/,
+      );
     }
-  })
+  });
 
   it('every stream has a valid category, status, and criteria object', () => {
     for (const s of streams) {
-      expect(CATEGORIES, `${s.id} category`).toContain(s.category)
-      expect(STATUSES, `${s.id} status`).toContain(s.status)
-      expect(s.criteria, `${s.id} criteria`).toBeTypeOf('object')
-      expect(Array.isArray(s.roadmap), `${s.id} roadmap`).toBe(true)
+      expect(CATEGORIES, `${s.id} category`).toContain(s.category);
+      expect(STATUSES, `${s.id} status`).toContain(s.status);
+      expect(s.criteria, `${s.id} criteria`).toBeTypeOf('object');
+      expect(Array.isArray(s.roadmap), `${s.id} roadmap`).toBe(true);
     }
-  })
+  });
 
   it('stream ids are unique', () => {
-    const ids = streams.map(s => s.id)
-    expect(new Set(ids).size).toBe(ids.length)
-  })
+    const ids = streams.map((s) => s.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
 
   // Guardrail: a stream can no longer ASSERT an occupation restriction without proof.
   // Every stream must declare occupationEligibility, and any restrictive mode must carry
   // its list/rule plus a source — so the engine never silently scores an uncited restriction.
   it('every stream declares a well-formed, sourced occupationEligibility', () => {
-    const MODES = ['unrestricted', 'teer-only', 'include-list', 'include-rule', 'exclude-list', 'sinp-excluded', 'employer-driven', 'unknown']
+    const MODES = [
+      'unrestricted',
+      'teer-only',
+      'include-list',
+      'include-rule',
+      'exclude-list',
+      'sinp-excluded',
+      'employer-driven',
+      'unknown',
+    ];
     for (const s of streams) {
-      const e = s.occupationEligibility as { mode: string; [k: string]: unknown } | undefined
-      expect(e, `${s.id} occupationEligibility`).toBeTypeOf('object')
-      expect(MODES, `${s.id} mode`).toContain(e!.mode)
+      const e = s.occupationEligibility as
+        { mode: string; [k: string]: unknown } | undefined;
+      expect(e, `${s.id} occupationEligibility`).toBeTypeOf('object');
+      expect(MODES, `${s.id} mode`).toContain(e!.mode);
       if (e!.mode === 'include-list' || e!.mode === 'exclude-list') {
-        expect(Array.isArray(e!.nocs) && (e!.nocs as string[]).length > 0, `${s.id} nocs`).toBe(true)
-        expect(e!.source, `${s.id} source`).toMatch(/^https?:\/\//)
-        expect(e!.lastVerified, `${s.id} lastVerified`).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+        expect(
+          Array.isArray(e!.nocs) && (e!.nocs as string[]).length > 0,
+          `${s.id} nocs`,
+        ).toBe(true);
+        expect(e!.source, `${s.id} source`).toMatch(/^https?:\/\//);
+        expect(e!.lastVerified, `${s.id} lastVerified`).toMatch(
+          /^\d{4}-\d{2}-\d{2}$/,
+        );
       }
       if (e!.mode === 'include-rule') {
-        expect(Array.isArray(e!.includeGroups) && (e!.includeGroups as string[]).length > 0, `${s.id} includeGroups`).toBe(true)
-        expect(e!.source, `${s.id} source`).toMatch(/^https?:\/\//)
-        expect(e!.lastVerified, `${s.id} lastVerified`).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+        expect(
+          Array.isArray(e!.includeGroups) &&
+            (e!.includeGroups as string[]).length > 0,
+          `${s.id} includeGroups`,
+        ).toBe(true);
+        expect(e!.source, `${s.id} source`).toMatch(/^https?:\/\//);
+        expect(e!.lastVerified, `${s.id} lastVerified`).toMatch(
+          /^\d{4}-\d{2}-\d{2}$/,
+        );
       }
       if (e!.mode === 'sinp-excluded' || e!.mode === 'employer-driven') {
-        expect(e!.source, `${s.id} source`).toMatch(/^https?:\/\//)
-        expect(e!.lastVerified, `${s.id} lastVerified`).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+        expect(e!.source, `${s.id} source`).toMatch(/^https?:\/\//);
+        expect(e!.lastVerified, `${s.id} lastVerified`).toMatch(
+          /^\d{4}-\d{2}-\d{2}$/,
+        );
       }
       if (e!.mode === 'unknown') {
-        expect(e!.source, `${s.id} source`).toMatch(/^https?:\/\//)
-        expect(typeof e!.note === 'string' && (e!.note as string).length > 0, `${s.id} note`).toBe(true)
+        expect(e!.source, `${s.id} source`).toMatch(/^https?:\/\//);
+        expect(
+          typeof e!.note === 'string' && (e!.note as string).length > 0,
+          `${s.id} note`,
+        ).toBe(true);
       }
     }
-  })
-})
+  });
+});
 
 // ── SINP Excluded Occupation List gate ───────────────────────────────────────
 // The SINP Express Entry / Occupations In-Demand sub-categories hard-exclude NOCs on
@@ -358,34 +485,48 @@ describe('pnp-streams.json — provenance & schema guard', () => {
 // must be unaffected. NOC 73300 (Transport truck drivers, TEER 3) is on that list.
 describe('assessPnp — SINP Excluded Occupation List gate', () => {
   function excludedNoc(): NocClassification {
-    return { ...mkNoc(3), nocCode: '73300', title: 'Transport truck drivers' }
+    return { ...mkNoc(3), nocCode: '73300', title: 'Transport truck drivers' };
   }
-  function verdictFor(r: PnpAssessmentResult, id: string): PnpVerdict | undefined {
-    return [...r.eeLinked, ...r.base, ...r.ineligible].find(m => m.stream.id === id)?.verdict
+  function verdictFor(
+    r: PnpAssessmentResult,
+    id: string,
+  ): PnpVerdict | undefined {
+    return [...r.eeLinked, ...r.base, ...r.ineligible].find(
+      (m) => m.stream.id === id,
+    )?.verdict;
   }
 
-  const sinpElig = { mode: 'sinp-excluded', source: 'https://www.saskatchewan.ca/sinp', lastVerified: '2026-06-26' } as const
+  const sinpElig = {
+    mode: 'sinp-excluded',
+    source: 'https://www.saskatchewan.ca/sinp',
+    lastVerified: '2026-06-26',
+  } as const;
 
   it('marks a SINP points stream ineligible for an excluded NOC', () => {
-    const stream = mkStream({ id: 'sk-pts', occupationEligibility: sinpElig })
-    const r = assessPnp(strongProfile, excludedNoc(), [stream])
-    expect(verdictFor(r, 'sk-pts')).toBe('ineligible')
-    const m = r.ineligible.find(x => x.stream.id === 'sk-pts')
-    expect(m?.unmetHardGates.some(g => /Excluded Occupation List/.test(g))).toBe(true)
-  })
+    const stream = mkStream({ id: 'sk-pts', occupationEligibility: sinpElig });
+    const r = assessPnp(strongProfile, excludedNoc(), [stream]);
+    expect(verdictFor(r, 'sk-pts')).toBe('ineligible');
+    const m = r.ineligible.find((x) => x.stream.id === 'sk-pts');
+    expect(
+      m?.unmetHardGates.some((g) => /Excluded Occupation List/.test(g)),
+    ).toBe(true);
+  });
 
   it('keeps a SINP points stream eligible for a TEER 0-3 NOC that is not excluded', () => {
-    const stream = mkStream({ id: 'sk-pts2', occupationEligibility: sinpElig })
-    const r = assessPnp(strongProfile, mkNoc(1), [stream]) // 21211 — not on the list
-    expect(verdictFor(r, 'sk-pts2')).not.toBe('ineligible')
-  })
+    const stream = mkStream({ id: 'sk-pts2', occupationEligibility: sinpElig });
+    const r = assessPnp(strongProfile, mkNoc(1), [stream]); // 21211 — not on the list
+    expect(verdictFor(r, 'sk-pts2')).not.toBe('ineligible');
+  });
 
   it('does not apply the exclusion to streams without a SINP rule', () => {
-    const stream = mkStream({ id: 'sk-offer', occupationEligibility: { mode: 'unrestricted' } })
-    const r = assessPnp(strongProfile, excludedNoc(), [stream])
-    expect(verdictFor(r, 'sk-offer')).not.toBe('ineligible')
-  })
-})
+    const stream = mkStream({
+      id: 'sk-offer',
+      occupationEligibility: { mode: 'unrestricted' },
+    });
+    const r = assessPnp(strongProfile, excludedNoc(), [stream]);
+    expect(verdictFor(r, 'sk-offer')).not.toBe('ineligible');
+  });
+});
 
 // ── End-to-end: Transport truck driver over the REAL curated data ─────────────
 // The scenario that drove the occupation-eligibility work. Encodes the Prashant Proof:
@@ -398,7 +539,7 @@ describe('assessPnp — truck driver (NOC 73300) over real curated data', () => 
     nocTeer: 3,
     occupationTitle: 'Transport truck driver',
     education: 'secondary',
-  }
+  };
   const truckerNoc: NocClassification = {
     nocCode: '73300',
     teer: 3,
@@ -407,123 +548,151 @@ describe('assessPnp — truck driver (NOC 73300) over real curated data', () => 
     confidence: 'high',
     verified: true,
     candidates: [
-      { nocCode: '73300', teer: 3, title: 'Transport truck drivers', rationale: 'Operates heavy trucks.', matchScore: 100, fitScore: 90 },
+      {
+        nocCode: '73300',
+        teer: 3,
+        title: 'Transport truck drivers',
+        rationale: 'Operates heavy trucks.',
+        matchScore: 100,
+        fitScore: 90,
+      },
     ],
     ambiguity: { flag: false, alternatives: [] },
-  }
-  const r = assessPnp(truckerProfile, truckerNoc)
+  };
+  const r = assessPnp(truckerProfile, truckerNoc);
   const matchFor = (id: string) =>
-    [...r.eeLinked, ...r.base, ...r.ineligible].find(m => m.stream.id === id)
+    [...r.eeLinked, ...r.base, ...r.ineligible].find((m) => m.stream.id === id);
 
   it('excludes 73300 from the SINP points sub-categories (on the Excluded Occupation List)', () => {
-    expect(matchFor('sk-isw-ee')?.verdict).toBe('ineligible')
-    expect(matchFor('sk-isw-oid')?.verdict).toBe('ineligible')
-    expect(matchFor('sk-isw-ee')?.occupationEligibility).toBe('ineligible-listed')
-  })
+    expect(matchFor('sk-isw-ee')?.verdict).toBe('ineligible');
+    expect(matchFor('sk-isw-oid')?.verdict).toBe('ineligible');
+    expect(matchFor('sk-isw-ee')?.occupationEligibility).toBe(
+      'ineligible-listed',
+    );
+  });
 
   it('affirmatively lists 73300 on Ontario Skilled Trades', () => {
-    const on = matchFor('on-trades')
-    expect(on?.occupationEligibility).toBe('eligible-listed')
-    expect(on?.verdict).not.toBe('ineligible')
-  })
+    const on = matchFor('on-trades');
+    expect(on?.occupationEligibility).toBe('eligible-listed');
+    expect(on?.verdict).not.toBe('ineligible');
+  });
 
   it('does not exclude 73300 from Alberta (not on the AOS ineligible list)', () => {
-    expect(matchFor('ab-aos')?.occupationEligibility).toBe('unrestricted')
-    expect(matchFor('ab-aos')?.verdict).not.toBe('ineligible')
-  })
+    expect(matchFor('ab-aos')?.occupationEligibility).toBe('unrestricted');
+    expect(matchFor('ab-aos')?.verdict).not.toBe('ineligible');
+  });
 
   it('leads the shortlist with the genuine occupation match (Ontario Skilled Trades)', () => {
-    expect(r.shortlist.some(m => m.stream.id === 'on-trades')).toBe(true)
-    expect(r.shortlist[0]?.occupationEligibility).toBe('eligible-listed')
-  })
-})
+    expect(r.shortlist.some((m) => m.stream.id === 'on-trades')).toBe(true);
+    expect(r.shortlist[0]?.occupationEligibility).toBe('eligible-listed');
+  });
+});
 
 // ── Occupation profile (broad category from NOC first digit) ───────────────────
 
 describe('assessPnp — occupation profile', () => {
   it('derives the broad occupational category from the NOC code first digit', () => {
-    const r = assessPnp(strongProfile, mkNoc(1), [mkStream({ id: 'p' })])
-    expect(r.occupationProfile.broadCategory).toBe('2') // 21211 → category 2
-    expect(r.occupationProfile.broadCategoryName).toMatch(/Natural and applied sciences/)
-  })
+    const r = assessPnp(strongProfile, mkNoc(1), [mkStream({ id: 'p' })]);
+    expect(r.occupationProfile.broadCategory).toBe('2'); // 21211 → category 2
+    expect(r.occupationProfile.broadCategoryName).toMatch(
+      /Natural and applied sciences/,
+    );
+  });
 
   it('maps a health-policy NOC (41404) to category 4, not health (3)', () => {
-    const noc = { ...mkNoc(1), nocCode: '41404', title: 'Health policy researchers' }
-    const r = assessPnp(strongProfile, noc, [mkStream({ id: 'p' })])
-    expect(r.occupationProfile.broadCategory).toBe('4')
-    expect(r.occupationProfile.broadCategoryName).toMatch(/education, law and social/i)
-  })
-})
+    const noc = {
+      ...mkNoc(1),
+      nocCode: '41404',
+      title: 'Health policy researchers',
+    };
+    const r = assessPnp(strongProfile, noc, [mkStream({ id: 'p' })]);
+    expect(r.occupationProfile.broadCategory).toBe('4');
+    expect(r.occupationProfile.broadCategoryName).toMatch(
+      /education, law and social/i,
+    );
+  });
+});
 
 // ── Ranked pathways (global ordering, shortlist is its head) ────────────────────
 
 describe('assessPnp — ranked pathways', () => {
   it('ranks every eligible field-relevant stream best-first and seeds the shortlist from the top', () => {
     const streams = [
-      mkStream({ id: 'slow', category: 'base', indicativeProcessingMonths: 16 }),
-      mkStream({ id: 'fast-ee', category: 'ee-linked', indicativeProcessingMonths: 3 }),
-    ]
-    const r = assessPnp(strongProfile, mkNoc(1), streams)
-    expect(r.rankedPathways.map(m => m.stream.id)).toEqual(['fast-ee', 'slow'])
+      mkStream({
+        id: 'slow',
+        category: 'base',
+        indicativeProcessingMonths: 16,
+      }),
+      mkStream({
+        id: 'fast-ee',
+        category: 'ee-linked',
+        indicativeProcessingMonths: 3,
+      }),
+    ];
+    const r = assessPnp(strongProfile, mkNoc(1), streams);
+    expect(r.rankedPathways.map((m) => m.stream.id)).toEqual([
+      'fast-ee',
+      'slow',
+    ]);
     // shortlist is the head of the ranked list, not a separately-sorted set
-    expect(r.shortlist).toEqual(r.rankedPathways.slice(0, r.shortlist.length))
+    expect(r.shortlist).toEqual(r.rankedPathways.slice(0, r.shortlist.length));
     // scores are monotonically non-increasing
-    const scores = r.rankedPathways.map(m => m.score)
-    expect([...scores].sort((a, b) => b - a)).toEqual(scores)
-  })
+    const scores = r.rankedPathways.map((m) => m.score);
+    expect([...scores].sort((a, b) => b - a)).toEqual(scores);
+  });
 
   it('excludes ineligible streams from the ranked pathways', () => {
     const streams = [
       mkStream({ id: 'ok' }),
       mkStream({ id: 'bad', criteria: { allowedTeers: [0] } }),
-    ]
-    const r = assessPnp(strongProfile, mkNoc(1), streams)
-    expect(r.rankedPathways.map(m => m.stream.id)).toEqual(['ok'])
-  })
-})
+    ];
+    const r = assessPnp(strongProfile, mkNoc(1), streams);
+    expect(r.rankedPathways.map((m) => m.stream.id)).toEqual(['ok']);
+  });
+});
 
 // ── Manual NOC override (expert-in-the-loop) ───────────────────────────────────
 
 describe('manualNocClassification — consultant override', () => {
   it('builds an authoritative single-candidate classification from the entered code', () => {
-    const noc = manualNocClassification('41404', 1, 'Health policy researcher')
-    expect(noc.nocCode).toBe('41404')
-    expect(noc.teer).toBe(1)
-    expect(noc.confidence).toBe('high')
-    expect(noc.ambiguity.flag).toBe(false)
-    expect(noc.candidates).toHaveLength(1)
-    expect(noc.candidates[0]?.fitScore).toBe(100)
-    expect(noc.citationUrl).toContain('41404')
-  })
+    const noc = manualNocClassification('41404', 1, 'Health policy researcher');
+    expect(noc.nocCode).toBe('41404');
+    expect(noc.teer).toBe(1);
+    expect(noc.confidence).toBe('high');
+    expect(noc.ambiguity.flag).toBe(false);
+    expect(noc.candidates).toHaveLength(1);
+    expect(noc.candidates[0]?.fitScore).toBe(100);
+    expect(noc.citationUrl).toContain('41404');
+  });
 
   it('falls back to a code-derived title when none is given', () => {
-    expect(manualNocClassification('41404', 1, '   ').title).toBe('NOC 41404')
-  })
+    expect(manualNocClassification('41404', 1, '   ').title).toBe('NOC 41404');
+  });
 
   it('drives the PNP assessment off the overridden code, not the duties', () => {
-    const noc = manualNocClassification('41404', 1, 'Health policy researcher')
-    const r = assessPnp(strongProfile, noc)
-    expect(r.noc.nocCode).toBe('41404')
-    expect(r.occupationProfile.broadCategory).toBe('4')
-  })
-})
+    const noc = manualNocClassification('41404', 1, 'Health policy researcher');
+    const r = assessPnp(strongProfile, noc);
+    expect(r.noc.nocCode).toBe('41404');
+    expect(r.occupationProfile.broadCategory).toBe('4');
+  });
+});
 
 // ── monthsSinceIso helper ─────────────────────────────────────────────────────
 
 describe('monthsSinceIso', () => {
   it('returns 0 when the date is the same month', () => {
-    expect(monthsSinceIso('2026-07-01', new Date('2026-07-15'))).toBe(0)
-  })
+    expect(monthsSinceIso('2026-07-01', new Date('2026-07-15'))).toBe(0);
+  });
 
   it('returns 6 for a date exactly 6 months prior', () => {
-    expect(monthsSinceIso('2026-01-10', new Date('2026-07-10'))).toBe(6)
-  })
+    expect(monthsSinceIso('2026-01-10', new Date('2026-07-10'))).toBe(6);
+  });
 
   it('returns 22 for the SINP pause date vs 2026-07-01', () => {
     // SINP EOI draws paused 2024-09-12; verified 2026-07-01 = 22 months
-    expect(monthsSinceIso('2024-09-12', new Date('2026-07-01'))).toBe(22)
-  })
-})
+    expect(monthsSinceIso('2024-09-12', new Date('2026-07-01'))).toBe(22);
+  });
+});
 
 // ── Draw dormancy filter ──────────────────────────────────────────────────────
 
@@ -531,33 +700,46 @@ describe('assessPnp — draw dormancy shortlist exclusion', () => {
   it('excludes a drawPausedSince stream from the shortlist when ≥6 months have passed', () => {
     // A stream paused 7 months ago should be excluded from the shortlist but
     // kept in rankedPathways (the full reference matrix).
-    const pausedDate = new Date()
-    pausedDate.setMonth(pausedDate.getMonth() - 7)
-    const isoDate = pausedDate.toISOString().slice(0, 10)
+    const pausedDate = new Date();
+    pausedDate.setMonth(pausedDate.getMonth() - 7);
+    const isoDate = pausedDate.toISOString().slice(0, 10);
 
-    const dormant = mkStream({ id: 'dormant-stream', drawPausedSince: isoDate })
-    const active  = mkStream({ id: 'active-stream' })
+    const dormant = mkStream({
+      id: 'dormant-stream',
+      drawPausedSince: isoDate,
+    });
+    const active = mkStream({ id: 'active-stream' });
 
-    const r = assessPnp(strongProfile, mkNoc(1), [dormant, active])
-    expect(r.shortlist.some(m => m.stream.id === 'dormant-stream')).toBe(false)
-    expect(r.rankedPathways.some(m => m.stream.id === 'dormant-stream')).toBe(true)
-    expect(r.flags.some(f => /dormant-stream/.test(f) || /excluded from shortlist/.test(f))).toBe(true)
-  })
+    const r = assessPnp(strongProfile, mkNoc(1), [dormant, active]);
+    expect(r.shortlist.some((m) => m.stream.id === 'dormant-stream')).toBe(
+      false,
+    );
+    expect(r.rankedPathways.some((m) => m.stream.id === 'dormant-stream')).toBe(
+      true,
+    );
+    expect(
+      r.flags.some(
+        (f) => /dormant-stream/.test(f) || /excluded from shortlist/.test(f),
+      ),
+    ).toBe(true);
+  });
 
   it('keeps a drawPausedSince stream in the shortlist when <6 months have passed', () => {
-    const pausedDate = new Date()
-    pausedDate.setMonth(pausedDate.getMonth() - 3)
-    const isoDate = pausedDate.toISOString().slice(0, 10)
+    const pausedDate = new Date();
+    pausedDate.setMonth(pausedDate.getMonth() - 3);
+    const isoDate = pausedDate.toISOString().slice(0, 10);
 
-    const recent = mkStream({ id: 'recent-pause', drawPausedSince: isoDate })
-    const r = assessPnp(strongProfile, mkNoc(1), [recent])
-    expect(r.shortlist.some(m => m.stream.id === 'recent-pause')).toBe(true)
-  })
+    const recent = mkStream({ id: 'recent-pause', drawPausedSince: isoDate });
+    const r = assessPnp(strongProfile, mkNoc(1), [recent]);
+    expect(r.shortlist.some((m) => m.stream.id === 'recent-pause')).toBe(true);
+  });
 
   it('sk-isw-ee is excluded from the shortlist over real curated data (draws paused Sep 2024)', () => {
     // As of 2026-07-01, that is 22 months — well over the 6-month threshold.
-    const r = assessPnp(strongProfile, mkNoc(1))
-    expect(r.shortlist.some(m => m.stream.id === 'sk-isw-ee')).toBe(false)
-    expect(r.rankedPathways.some(m => m.stream.id === 'sk-isw-ee')).toBe(true)
-  })
-})
+    const r = assessPnp(strongProfile, mkNoc(1));
+    expect(r.shortlist.some((m) => m.stream.id === 'sk-isw-ee')).toBe(false);
+    expect(r.rankedPathways.some((m) => m.stream.id === 'sk-isw-ee')).toBe(
+      true,
+    );
+  });
+});

@@ -6,17 +6,23 @@ import { leads } from '../../../../../../drizzle/schema';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ leadId: string }> }
+  { params }: { params: Promise<{ leadId: string }> },
 ): Promise<NextResponse> {
   const authSession = await getCurrentAuthSession();
-  if (!authSession?.session || authSession.user?.email !== 'prashant@visaforte.com') {
+  if (
+    !authSession?.session ||
+    authSession.user?.email !== 'prashant@visaforte.com'
+  ) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const { leadId } = await params;
 
   const [lead] = await db
-    .select({ resumeUrl: leads.resumeUrl, resumeFilename: leads.resumeFilename })
+    .select({
+      resumeUrl: leads.resumeUrl,
+      resumeFilename: leads.resumeFilename,
+    })
     .from(leads)
     .where(eq(leads.id, leadId))
     .limit(1);

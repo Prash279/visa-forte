@@ -10,7 +10,7 @@ const ADMIN_EMAIL = 'prashant@visaforte.com';
 // Called when admin opens the message modal for a client.
 export async function PATCH(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   const session = await getCurrentAuthSession();
   if (!session?.session || session.user?.email !== ADMIN_EMAIL) {
@@ -27,7 +27,7 @@ export async function PATCH(
         eq(messages.clientId, clientId),
         eq(messages.senderRole, 'client'),
         eq(messages.isRead, false),
-      )
+      ),
     );
 
   return new NextResponse(null, { status: 204 });

@@ -2,13 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { and, eq, gt } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { bookings, clients, users, accounts } from '../../../../../drizzle/schema';
+import {
+  bookings,
+  clients,
+  users,
+  accounts,
+} from '../../../../../drizzle/schema';
 import { hashPassword, generateRandomString } from 'better-auth/crypto';
 
 const Schema = z.object({
   token: z.string().min(1, 'Token is required'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  consentGiven: z.literal(true, { errorMap: () => ({ message: 'Consent is required to proceed' }) }),
+  consentGiven: z.literal(true, {
+    errorMap: () => ({ message: 'Consent is required to proceed' }),
+  }),
 });
 
 // POST /api/portal/activate
@@ -21,12 +28,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid request body' },
+      { status: 400 },
+    );
   }
 
   const result = Schema.safeParse(body);
   if (!result.success) {
-    return NextResponse.json({ error: result.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 });
+    return NextResponse.json(
+      { error: result.error.issues[0]?.message ?? 'Invalid input' },
+      { status: 400 },
+    );
   }
 
   const { token, password } = result.data;
@@ -40,15 +53,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     .where(
       and(
         eq(bookings.portalToken, token),
-        gt(bookings.portalTokenExpiresAt, new Date())
-      )
+        gt(bookings.portalTokenExpiresAt, new Date()),
+      ),
     )
     .limit(1);
 
   if (!booking) {
     return NextResponse.json(
       { error: 'This activation link has expired or is no longer valid.' },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -73,29 +86,29 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // Mirrors the pattern in /api/admin/clients/[id]/link/route.ts.
   // The client chose their own password — it is never stored in plain text.
   const passwordHash = await hashPassword(password);
-  const now          = new Date();
-  const newUserId    = generateRandomString(32, 'a-z', 'A-Z', '0-9');
-  const accountId    = generateRandomString(32, 'a-z', 'A-Z', '0-9');
+  const now = new Date();
+  const newUserId = generateRandomString(32, 'a-z', 'A-Z', '0-9');
+  const accountId = generateRandomString(32, 'a-z', 'A-Z', '0-9');
 
   await db.insert(users).values({
-    id:            newUserId,
-    name:          booking.name,
-    email:         booking.email,
+    id: newUserId,
+    name: booking.name,
+    email: booking.email,
     emailVerified: false,
-    role:          'client',
-    status:        'active',
-    createdAt:     now,
-    updatedAt:     now,
+    role: 'client',
+    status: 'active',
+    createdAt: now,
+    updatedAt: now,
   });
 
   await db.insert(accounts).values({
-    id:         accountId,
-    accountId:  newUserId,
+    id: accountId,
+    accountId: newUserId,
     providerId: 'credential',
-    userId:     newUserId,
-    password:   passwordHash,
-    createdAt:  now,
-    updatedAt:  now,
+    userId: newUserId,
+    password: passwordHash,
+    createdAt: now,
+    updatedAt: now,
   });
 
   // ── Create or link the CRM clients row ────────────────────────────────────
@@ -110,16 +123,21 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (existingClient) {
     await db
       .update(clients)
-      .set({ userId: newUserId, updatedAt: now, consentGiven: true, consentGivenAt })
+      .set({
+        userId: newUserId,
+        updatedAt: now,
+        consentGiven: true,
+        consentGivenAt,
+      })
       .where(eq(clients.id, existingClient.id));
   } else {
     await db.insert(clients).values({
-      name:          booking.name,
-      email:         booking.email,
-      serviceTier:   booking.serviceTier,
-      stage:         'Lead',   // Prash advances the stage after the first consultation
-      userId:        newUserId,
-      consentGiven:  true,
+      name: booking.name,
+      email: booking.email,
+      serviceTier: booking.serviceTier,
+      stage: 'Lead', // Prash advances the stage after the first consultation
+      userId: newUserId,
+      consentGiven: true,
       consentGivenAt,
     });
   }

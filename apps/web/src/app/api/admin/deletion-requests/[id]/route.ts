@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { deletionRequests, clients, clientDocuments, auditLog } from '../../../../../../drizzle/schema';
+import {
+  deletionRequests,
+  clients,
+  clientDocuments,
+  auditLog,
+} from '../../../../../../drizzle/schema';
 import { getCurrentAuthSession } from '@/lib/auth-server';
 import { deleteFile } from '@/lib/storage';
 
@@ -25,7 +30,7 @@ async function requireAdmin(): Promise<NextResponse | null> {
 // On reject: marks the request rejected with optional admin notes.
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   const deny = await requireAdmin();
   if (deny) return deny;
@@ -36,14 +41,17 @@ export async function PATCH(
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid request body' },
+      { status: 400 },
+    );
   }
 
   const result = ActionSchema.safeParse(body);
   if (!result.success) {
     return NextResponse.json(
       { error: result.error.issues[0]?.message ?? 'Invalid input' },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -57,13 +65,16 @@ export async function PATCH(
     .limit(1);
 
   if (!request) {
-    return NextResponse.json({ error: 'Deletion request not found.' }, { status: 404 });
+    return NextResponse.json(
+      { error: 'Deletion request not found.' },
+      { status: 404 },
+    );
   }
 
   if (request.status !== 'pending') {
     return NextResponse.json(
       { error: 'This request has already been processed.' },
-      { status: 409 }
+      { status: 409 },
     );
   }
 
@@ -75,7 +86,10 @@ export async function PATCH(
       .limit(1);
 
     if (!client) {
-      return NextResponse.json({ error: 'Client record not found.' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Client record not found.' },
+        { status: 404 },
+      );
     }
 
     // Delete all uploaded document blobs before removing the DB rows.
@@ -113,7 +127,11 @@ export async function PATCH(
   // action === 'reject'
   await db
     .update(deletionRequests)
-    .set({ status: 'rejected', processedAt: now, adminNotes: adminNotes ?? null })
+    .set({
+      status: 'rejected',
+      processedAt: now,
+      adminNotes: adminNotes ?? null,
+    })
     .where(eq(deletionRequests.id, id));
 
   await db.insert(auditLog).values({

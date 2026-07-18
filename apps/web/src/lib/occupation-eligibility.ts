@@ -12,7 +12,7 @@
 // transportation-officers sub-major without listing each code. SINP keeps its dedicated
 // excluded-list logic (sinp-2026.json) via the 'sinp-excluded' mode.
 
-import { classifySinpPathway } from './sinp-pathway'
+import { classifySinpPathway } from './sinp-pathway';
 
 // What the resolver concludes for a given NOC against a given stream.
 //  - 'eligible-listed'      NOC is affirmatively on the stream's eligible list/rule → strong positive
@@ -25,14 +25,14 @@ export type OccupationEligibilityResult =
   | 'ineligible-listed'
   | 'conditional-employer'
   | 'unrestricted'
-  | 'unknown'
+  | 'unknown';
 
 // Shared provenance for any list/rule that asserts an occupation restriction.
 interface EligibilitySource {
-  source: string        // official provincial URL the list/rule was verified against
-  lastVerified: string  // ISO date the list was checked
-  documentDate?: string // ISO date the province published the underlying list
-  note?: string
+  source: string; // official provincial URL the list/rule was verified against
+  lastVerified: string; // ISO date the list was checked
+  documentDate?: string; // ISO date the province published the underlying list
+  note?: string;
 }
 
 // A stream's occupation rule. Absent on a stream === { mode: 'unrestricted' }.
@@ -40,46 +40,54 @@ export type OccupationEligibility =
   | { mode: 'unrestricted' }
   | { mode: 'teer-only' }
   | ({ mode: 'include-list'; nocs: string[] } & EligibilitySource)
-  | ({ mode: 'include-rule'; includeGroups: string[]; excludeGroups?: string[] } & EligibilitySource)
+  | ({
+      mode: 'include-rule';
+      includeGroups: string[];
+      excludeGroups?: string[];
+    } & EligibilitySource)
   | ({ mode: 'exclude-list'; nocs: string[] } & EligibilitySource)
   | ({ mode: 'sinp-excluded' } & EligibilitySource)
   | ({ mode: 'employer-driven'; note: string } & EligibilitySource)
-  | { mode: 'unknown'; note: string; source: string }
+  | { mode: 'unknown'; note: string; source: string };
 
 // True when the NOC code starts with any of the given NOC-2021 prefixes.
 function matchesAnyGroup(nocCode: string, prefixes: string[]): boolean {
-  return prefixes.some((p) => nocCode.startsWith(p))
+  return prefixes.some((p) => nocCode.startsWith(p));
 }
 
 export function resolveOccupationEligibility(
   elig: OccupationEligibility | undefined,
   nocCode: string,
-  teer: number
+  teer: number,
 ): OccupationEligibilityResult {
-  if (!elig) return 'unrestricted'
+  if (!elig) return 'unrestricted';
   switch (elig.mode) {
     case 'unrestricted':
     case 'teer-only':
-      return 'unrestricted'
+      return 'unrestricted';
     case 'include-list':
-      return elig.nocs.includes(nocCode) ? 'eligible-listed' : 'ineligible-listed'
+      return elig.nocs.includes(nocCode)
+        ? 'eligible-listed'
+        : 'ineligible-listed';
     case 'include-rule': {
-      if (!matchesAnyGroup(nocCode, elig.includeGroups)) return 'ineligible-listed'
-      if (elig.excludeGroups && matchesAnyGroup(nocCode, elig.excludeGroups)) return 'ineligible-listed'
-      return 'eligible-listed'
+      if (!matchesAnyGroup(nocCode, elig.includeGroups))
+        return 'ineligible-listed';
+      if (elig.excludeGroups && matchesAnyGroup(nocCode, elig.excludeGroups))
+        return 'ineligible-listed';
+      return 'eligible-listed';
     }
     case 'exclude-list':
       // On the ineligible list → hard gate. Not on it → the occupation simply isn't a blocker.
-      return elig.nocs.includes(nocCode) ? 'ineligible-listed' : 'unrestricted'
+      return elig.nocs.includes(nocCode) ? 'ineligible-listed' : 'unrestricted';
     case 'sinp-excluded':
       // Delegates to the verified SINP Excluded Occupation List (sinp-2026.json). TEER 4/5
       // is handled by the stream's allowedTeers gate, so only the list result matters here.
       return classifySinpPathway(nocCode, teer).status === 'excluded-occupation'
         ? 'ineligible-listed'
-        : 'unrestricted'
+        : 'unrestricted';
     case 'employer-driven':
-      return 'conditional-employer'
+      return 'conditional-employer';
     case 'unknown':
-      return 'unknown'
+      return 'unknown';
   }
 }

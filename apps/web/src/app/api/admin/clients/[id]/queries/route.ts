@@ -16,7 +16,7 @@ async function requireAdmin(): Promise<NextResponse | null> {
 // Logs a new IRCC query for this client.
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   const deny = await requireAdmin();
   if (deny) return deny;
@@ -27,12 +27,18 @@ export async function POST(
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid request body' },
+      { status: 400 },
+    );
   }
 
   const result = CreateQuerySchema.safeParse(body);
   if (!result.success) {
-    return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: result.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const { queryType, receivedAt, responseDeadline, notes } = result.data;
@@ -52,6 +58,9 @@ export async function POST(
     return NextResponse.json({ query }, { status: 201 });
   } catch (err) {
     console.error('IRCC query insert failed:', err);
-    return NextResponse.json({ error: 'Could not create query' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Could not create query' },
+      { status: 500 },
+    );
   }
 }

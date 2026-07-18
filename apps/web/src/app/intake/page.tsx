@@ -36,9 +36,15 @@ export default function IntakePage() {
     if (!consentGiven) return;
 
     const form = e.currentTarget;
-    const name = (form.elements.namedItem('name') as HTMLInputElement).value.trim();
-    const email = (form.elements.namedItem('email') as HTMLInputElement).value.trim();
-    const serviceInterest = (form.elements.namedItem('serviceInterest') as HTMLSelectElement).value;
+    const name = (
+      form.elements.namedItem('name') as HTMLInputElement
+    ).value.trim();
+    const email = (
+      form.elements.namedItem('email') as HTMLInputElement
+    ).value.trim();
+    const serviceInterest = (
+      form.elements.namedItem('serviceInterest') as HTMLSelectElement
+    ).value;
 
     const errors: FieldErrors = {};
     if (!name) errors.name = 'Full name is required.';
@@ -47,7 +53,8 @@ export default function IntakePage() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       errors.email = 'Enter a valid email address (e.g. you@example.com).';
     }
-    if (!serviceInterest) errors.serviceInterest = 'Please select a service tier.';
+    if (!serviceInterest)
+      errors.serviceInterest = 'Please select a service tier.';
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -61,10 +68,17 @@ export default function IntakePage() {
     const data = {
       name,
       email,
-      phone: (form.elements.namedItem('phone') as HTMLInputElement).value.trim() || undefined,
+      phone:
+        (form.elements.namedItem('phone') as HTMLInputElement).value.trim() ||
+        undefined,
       serviceInterest,
-      notes: (form.elements.namedItem('notes') as HTMLTextAreaElement).value.trim() || undefined,
-      referralSource: (form.elements.namedItem('referralSource') as HTMLSelectElement).value || undefined,
+      notes:
+        (
+          form.elements.namedItem('notes') as HTMLTextAreaElement
+        ).value.trim() || undefined,
+      referralSource:
+        (form.elements.namedItem('referralSource') as HTMLSelectElement)
+          .value || undefined,
       consentGiven: true,
     };
 
@@ -76,214 +90,248 @@ export default function IntakePage() {
       });
 
       if (!res.ok) {
-        const json = await res.json() as { error?: string };
-        setErrorMessage(typeof json.error === 'string' ? json.error : 'Submission failed. Please try again.');
+        const json = (await res.json()) as { error?: string };
+        setErrorMessage(
+          typeof json.error === 'string'
+            ? json.error
+            : 'Submission failed. Please try again.',
+        );
         setFormState('error');
         return;
       }
 
       setFormState('success');
     } catch {
-      setErrorMessage('A network error occurred. Please check your connection and try again.');
+      setErrorMessage(
+        'A network error occurred. Please check your connection and try again.',
+      );
       setFormState('error');
     }
   }
 
   return (
     <main className="intake-page">
+      {/* ── Page header ── */}
+      <section className="intake-header">
+        <p className="intake-eyebrow">Client Intake</p>
+        <h1 className="intake-title">Begin Your Assessment</h1>
+        <p className="intake-subtitle">
+          Tell us about your situation. Prashant reviews every submission
+          personally and responds within 24 hours.
+        </p>
+      </section>
 
-        {/* ── Page header ── */}
-        <section className="intake-header">
-          <p className="intake-eyebrow">Client Intake</p>
-          <h1 className="intake-title">Begin Your Assessment</h1>
-          <p className="intake-subtitle">
-            Tell us about your situation. Prashant reviews every submission personally
-            and responds within 24 hours.
-          </p>
-        </section>
-
-        {/* ── Form or success state ── */}
-        <section className="intake-body">
-
-          {formState === 'success' ? (
-            // Success screen — shown after a valid submission
-            <div className="intake-success">
-              <div className="intake-success-icon" aria-hidden="true">✓</div>
-              <h2 className="intake-success-title">Submission Received</h2>
-              <p className="intake-success-body">
-                Thank you. Prashant will review your profile and respond to{' '}
-                <strong>your email</strong> within 24 hours with a personalised assessment.
-              </p>
-              <Link href="/services" className="intake-success-link">
-                View our service tiers →
-              </Link>
+      {/* ── Form or success state ── */}
+      <section className="intake-body">
+        {formState === 'success' ? (
+          // Success screen — shown after a valid submission
+          <div className="intake-success">
+            <div className="intake-success-icon" aria-hidden="true">
+              ✓
             </div>
-          ) : (
-            <form className="intake-form" onSubmit={handleSubmit} noValidate>
-
-              {/* Full name */}
-              <div className="intake-field">
-                <label className="intake-label" htmlFor="name">
-                  Full Name <span className="intake-required">*</span>
-                </label>
-                <input
-                  className={`intake-input${fieldErrors.name ? ' intake-input--error' : ''}`}
-                  id="name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  placeholder="Your full name"
-                  aria-describedby={fieldErrors.name ? 'error-name' : undefined}
-                  aria-invalid={!!fieldErrors.name}
-                  disabled={formState === 'submitting'}
-                />
-                {fieldErrors.name && (
-                  <span id="error-name" className="intake-field-error" role="alert">
-                    {fieldErrors.name}
-                  </span>
-                )}
-              </div>
-
-              {/* Email */}
-              <div className="intake-field">
-                <label className="intake-label" htmlFor="email">
-                  Email Address <span className="intake-required">*</span>
-                </label>
-                <input
-                  className={`intake-input${fieldErrors.email ? ' intake-input--error' : ''}`}
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="you@example.com"
-                  aria-describedby={fieldErrors.email ? 'error-email' : undefined}
-                  aria-invalid={!!fieldErrors.email}
-                  disabled={formState === 'submitting'}
-                />
-                {fieldErrors.email && (
-                  <span id="error-email" className="intake-field-error" role="alert">
-                    {fieldErrors.email}
-                  </span>
-                )}
-              </div>
-
-              {/* Phone (optional) */}
-              <div className="intake-field">
-                <label className="intake-label" htmlFor="phone">
-                  Phone Number <span className="intake-optional">(optional)</span>
-                </label>
-                <input
-                  className="intake-input"
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  autoComplete="tel"
-                  placeholder="+91 98765 43210"
-                  disabled={formState === 'submitting'}
-                />
-              </div>
-
-              {/* Service interest */}
-              <div className="intake-field">
-                <label className="intake-label" htmlFor="serviceInterest">
-                  Service of Interest <span className="intake-required">*</span>
-                </label>
-                <select
-                  className={`intake-select${fieldErrors.serviceInterest ? ' intake-input--error' : ''}`}
-                  id="serviceInterest"
-                  name="serviceInterest"
-                  defaultValue=""
-                  aria-describedby={fieldErrors.serviceInterest ? 'error-service' : undefined}
-                  aria-invalid={!!fieldErrors.serviceInterest}
-                  disabled={formState === 'submitting'}
+            <h2 className="intake-success-title">Submission Received</h2>
+            <p className="intake-success-body">
+              Thank you. Prashant will review your profile and respond to{' '}
+              <strong>your email</strong> within 24 hours with a personalised
+              assessment.
+            </p>
+            <Link href="/services" className="intake-success-link">
+              View our service tiers →
+            </Link>
+          </div>
+        ) : (
+          <form className="intake-form" onSubmit={handleSubmit} noValidate>
+            {/* Full name */}
+            <div className="intake-field">
+              <label className="intake-label" htmlFor="name">
+                Full Name <span className="intake-required">*</span>
+              </label>
+              <input
+                className={`intake-input${fieldErrors.name ? ' intake-input--error' : ''}`}
+                id="name"
+                name="name"
+                type="text"
+                autoComplete="name"
+                placeholder="Your full name"
+                aria-describedby={fieldErrors.name ? 'error-name' : undefined}
+                aria-invalid={!!fieldErrors.name}
+                disabled={formState === 'submitting'}
+              />
+              {fieldErrors.name && (
+                <span
+                  id="error-name"
+                  className="intake-field-error"
+                  role="alert"
                 >
-                  <option value="" disabled>Select a service tier</option>
-                  {SERVICE_TIERS.map((tier) => (
-                    <option key={tier} value={tier}>{tier}</option>
-                  ))}
-                </select>
-                {fieldErrors.serviceInterest && (
-                  <span id="error-service" className="intake-field-error" role="alert">
-                    {fieldErrors.serviceInterest}
-                  </span>
-                )}
-              </div>
-
-              {/* Referral source (optional) — tells Prash which marketing channel produced this lead */}
-              <div className="intake-field">
-                <label className="intake-label" htmlFor="referralSource">
-                  How did you hear about us? <span className="intake-optional">(optional)</span>
-                </label>
-                <select
-                  className="intake-select"
-                  id="referralSource"
-                  name="referralSource"
-                  defaultValue=""
-                  disabled={formState === 'submitting'}
-                >
-                  <option value="">Select an option</option>
-                  {REFERRAL_SOURCES.map((src) => (
-                    <option key={src} value={src}>{src}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Notes (optional) */}
-              <div className="intake-field">
-                <label className="intake-label" htmlFor="notes">
-                  Your Situation <span className="intake-optional">(optional)</span>
-                </label>
-                <textarea
-                  className="intake-textarea"
-                  id="notes"
-                  name="notes"
-                  rows={5}
-                  placeholder="Briefly describe your current immigration status, goals, or any previous applications..."
-                  disabled={formState === 'submitting'}
-                />
-              </div>
-
-              {/* DPDP consent — must be checked before submission */}
-              <ConsentCheckbox checked={consentGiven} onConsent={setConsentGiven} />
-
-              {/* Error message */}
-              {formState === 'error' && (
-                <p className="intake-error" role="alert">{errorMessage}</p>
+                  {fieldErrors.name}
+                </span>
               )}
+            </div>
 
-              {/* Submit */}
-              <button
-                className="intake-submit"
-                type="submit"
-                disabled={formState === 'submitting' || !consentGiven}
+            {/* Email */}
+            <div className="intake-field">
+              <label className="intake-label" htmlFor="email">
+                Email Address <span className="intake-required">*</span>
+              </label>
+              <input
+                className={`intake-input${fieldErrors.email ? ' intake-input--error' : ''}`}
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                aria-describedby={fieldErrors.email ? 'error-email' : undefined}
+                aria-invalid={!!fieldErrors.email}
+                disabled={formState === 'submitting'}
+              />
+              {fieldErrors.email && (
+                <span
+                  id="error-email"
+                  className="intake-field-error"
+                  role="alert"
+                >
+                  {fieldErrors.email}
+                </span>
+              )}
+            </div>
+
+            {/* Phone (optional) */}
+            <div className="intake-field">
+              <label className="intake-label" htmlFor="phone">
+                Phone Number <span className="intake-optional">(optional)</span>
+              </label>
+              <input
+                className="intake-input"
+                id="phone"
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                placeholder="+91 98765 43210"
+                disabled={formState === 'submitting'}
+              />
+            </div>
+
+            {/* Service interest */}
+            <div className="intake-field">
+              <label className="intake-label" htmlFor="serviceInterest">
+                Service of Interest <span className="intake-required">*</span>
+              </label>
+              <select
+                className={`intake-select${fieldErrors.serviceInterest ? ' intake-input--error' : ''}`}
+                id="serviceInterest"
+                name="serviceInterest"
+                defaultValue=""
+                aria-describedby={
+                  fieldErrors.serviceInterest ? 'error-service' : undefined
+                }
+                aria-invalid={!!fieldErrors.serviceInterest}
+                disabled={formState === 'submitting'}
               >
-                {formState === 'submitting' ? 'Submitting…' : 'Submit Intake Form →'}
-              </button>
+                <option value="" disabled>
+                  Select a service tier
+                </option>
+                {SERVICE_TIERS.map((tier) => (
+                  <option key={tier} value={tier}>
+                    {tier}
+                  </option>
+                ))}
+              </select>
+              {fieldErrors.serviceInterest && (
+                <span
+                  id="error-service"
+                  className="intake-field-error"
+                  role="alert"
+                >
+                  {fieldErrors.serviceInterest}
+                </span>
+              )}
+            </div>
 
-              <p className="intake-privacy">
-                Your information is used solely to assess your eligibility and will never be
-                shared with third parties.
+            {/* Referral source (optional) — tells Prash which marketing channel produced this lead */}
+            <div className="intake-field">
+              <label className="intake-label" htmlFor="referralSource">
+                How did you hear about us?{' '}
+                <span className="intake-optional">(optional)</span>
+              </label>
+              <select
+                className="intake-select"
+                id="referralSource"
+                name="referralSource"
+                defaultValue=""
+                disabled={formState === 'submitting'}
+              >
+                <option value="">Select an option</option>
+                {REFERRAL_SOURCES.map((src) => (
+                  <option key={src} value={src}>
+                    {src}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Notes (optional) */}
+            <div className="intake-field">
+              <label className="intake-label" htmlFor="notes">
+                Your Situation{' '}
+                <span className="intake-optional">(optional)</span>
+              </label>
+              <textarea
+                className="intake-textarea"
+                id="notes"
+                name="notes"
+                rows={5}
+                placeholder="Briefly describe your current immigration status, goals, or any previous applications..."
+                disabled={formState === 'submitting'}
+              />
+            </div>
+
+            {/* DPDP consent — must be checked before submission */}
+            <ConsentCheckbox
+              checked={consentGiven}
+              onConsent={setConsentGiven}
+            />
+
+            {/* Error message */}
+            {formState === 'error' && (
+              <p className="intake-error" role="alert">
+                {errorMessage}
               </p>
+            )}
 
-            </form>
-          )}
+            {/* Submit */}
+            <button
+              className="intake-submit"
+              type="submit"
+              disabled={formState === 'submitting' || !consentGiven}
+            >
+              {formState === 'submitting'
+                ? 'Submitting…'
+                : 'Submit Intake Form →'}
+            </button>
 
-        </section>
+            <p className="intake-privacy">
+              Your information is used solely to assess your eligibility and
+              will never be shared with third parties.
+            </p>
+          </form>
+        )}
+      </section>
 
-        {/* ── Legal disclaimer ── */}
-        <section className="intake-disclaimer">
-          <p>
-            The information provided is for informational and guidance purposes only, based on
-            publicly available Immigration, Refugees and Citizenship Canada (IRCC) regulations
-            and policies. This does not constitute legal advice, and no solicitor-client or
-            consultant-client relationship is created by accessing this content. Immigration
-            regulations, program requirements, processing times, and CRS cutoff scores are
-            subject to frequent change without notice. You are responsible for verifying all
-            information with official IRCC sources (www.canada.ca/immigration) and confirming
-            current eligibility requirements before taking any action.
-          </p>
-        </section>
-
+      {/* ── Legal disclaimer ── */}
+      <section className="intake-disclaimer">
+        <p>
+          The information provided is for informational and guidance purposes
+          only, based on publicly available Immigration, Refugees and
+          Citizenship Canada (IRCC) regulations and policies. This does not
+          constitute legal advice, and no solicitor-client or consultant-client
+          relationship is created by accessing this content. Immigration
+          regulations, program requirements, processing times, and CRS cutoff
+          scores are subject to frequent change without notice. You are
+          responsible for verifying all information with official IRCC sources
+          (www.canada.ca/immigration) and confirming current eligibility
+          requirements before taking any action.
+        </p>
+      </section>
     </main>
   );
 }

@@ -6,29 +6,29 @@
 // StatCan dataset, and it returns codes + reasoning ONLY. The authoritative TEER and
 // title are joined here from the dataset — never taken from the model.
 
-import { z } from 'zod'
-import { getGroupByCode, type NocRetrievalHit } from './noc-retrieval'
-import { type NocCandidate } from './pnp-eligibility'
+import { z } from 'zod';
+import { getGroupByCode, type NocRetrievalHit } from './noc-retrieval';
+import { type NocCandidate } from './pnp-eligibility';
 
-export const RETRIEVE_TOP_K = 30
-export const RANKED_RETURNED = 3
+export const RETRIEVE_TOP_K = 30;
+export const RANKED_RETURNED = 3;
 
 // A runner-up is only shown as a "considered match" when it is genuinely competitive:
 // its own fit must clear an absolute floor AND sit within a margin of the leader's fit.
 // Otherwise the leader stands alone — which is the correct signal, not manufactured doubt.
-export const ALT_MIN_FIT_SCORE = 55
-export const ALT_MAX_FIT_GAP = 20
+export const ALT_MIN_FIT_SCORE = 55;
+export const ALT_MAX_FIT_GAP = 20;
 
 // StatCan "Other ..." unit groups are residual catch-alls: they bundle several unrelated
 // minor occupations into one sprawling duty list, which makes loose keyword overlap easy
 // and lets them masquerade as a match (this is what put NOC 32109 ahead of 41404). By the
 // classification rule a SPECIFIC group wins whenever its fit is comparable, so a residual
 // leader is overruled by the best specific candidate within this fit margin.
-export const RESIDUAL_OVER_SPECIFIC_MARGIN = 15
+export const RESIDUAL_OVER_SPECIFIC_MARGIN = 15;
 
 // A unit group is residual when StatCan titles it as the "Other ..." bucket of its family.
 function isResidualGroup(title: string): boolean {
-  return /^other\b/i.test(title.trim())
+  return /^other\b/i.test(title.trim());
 }
 
 export const NOC_CLASSIFIER_SYSTEM = `You are an expert Canadian NOC 2021 (TEER) occupational classifier for immigration documentation. A wrong NOC code is the single highest-frequency PR refusal trigger — accuracy is paramount.
@@ -60,87 +60,91 @@ Confidence rules — judge the TOP code by scope fit, never by counting matching
 Set ambiguityFlag = true only if your top two choices are genuine rivals (close fitScores) OR describe materially different kinds of work at different TEER levels.
 
 Return ONLY a valid JSON object, no markdown fences and no commentary, in exactly this shape:
-{"ranked":[{"nocCode":"#####","fitScore":0,"rationale":"..."}],"confidence":"high","ambiguityFlag":false}`
+{"ranked":[{"nocCode":"#####","fitScore":0,"rationale":"..."}],"confidence":"high","ambiguityFlag":false}`;
 
 // Build the grounding block: the real StatCan lead statement, example titles and main
 // duties for each shortlisted unit group. Claude ranks against THIS, not memory.
 export function buildCandidateBlock(hits: NocRetrievalHit[]): string {
   return hits
     .map((h, i) => {
-      const g = h.group
-      const duties = g.mainDuties.map((d) => `  - ${d}`).join('\n')
-      const examples = g.examples.slice(0, 6).join('; ')
+      const g = h.group;
+      const duties = g.mainDuties.map((d) => `  - ${d}`).join('\n');
+      const examples = g.examples.slice(0, 6).join('; ');
       return `### Candidate ${i + 1} — NOC ${g.code} (TEER ${g.teer}): ${g.title}
 Lead statement: ${g.leadStatement}
 Example job titles: ${examples}
 Main duties:
-${duties}`
+${duties}`;
     })
-    .join('\n\n')
+    .join('\n\n');
 }
 
 // The model returns codes + reasoning only — never TEER/title, which we join ourselves.
 const rawSchema = z.object({
   ranked: z
-    .array(z.object({
-      nocCode: z.string(),
-      rationale: z.string().min(1),
-      fitScore: z.number().min(0).max(100),  // 0–100 semantic fit of the duties to this code's scope
-    }))
+    .array(
+      z.object({
+        nocCode: z.string(),
+        rationale: z.string().min(1),
+        fitScore: z.number().min(0).max(100), // 0–100 semantic fit of the duties to this code's scope
+      }),
+    )
     .min(1),
   confidence: z.enum(['high', 'medium', 'low']),
   ambiguityFlag: z.boolean(),
-})
-export type RawClassification = z.infer<typeof rawSchema>
+});
+export type RawClassification = z.infer<typeof rawSchema>;
 
 // Pull the first complete, balanced JSON object out of the model's reply, even if it
 // wraps the object in fences or adds commentary. String contents are skipped so braces
 // inside values don't end the scan early.
 export function extractJsonObject(text: string): string | null {
-  const start = text.indexOf('{')
-  if (start === -1) return null
-  let depth = 0
-  let inString = false
-  let escaped = false
+  const start = text.indexOf('{');
+  if (start === -1) return null;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
   for (let i = start; i < text.length; i++) {
-    const ch = text[i]
+    const ch = text[i];
     if (inString) {
-      if (escaped) escaped = false
-      else if (ch === '\\') escaped = true
-      else if (ch === '"') inString = false
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === '"') inString = false;
     } else if (ch === '"') {
-      inString = true
+      inString = true;
     } else if (ch === '{') {
-      depth++
+      depth++;
     } else if (ch === '}') {
-      depth--
-      if (depth === 0) return text.slice(start, i + 1)
+      depth--;
+      if (depth === 0) return text.slice(start, i + 1);
     }
   }
-  return null
+  return null;
 }
 
-export function parseRawClassification(modelText: string): RawClassification | null {
-  const json = extractJsonObject(modelText)
-  if (json === null) return null
+export function parseRawClassification(
+  modelText: string,
+): RawClassification | null {
+  const json = extractJsonObject(modelText);
+  if (json === null) return null;
   try {
-    const parsed = rawSchema.safeParse(JSON.parse(json))
-    return parsed.success ? parsed.data : null
+    const parsed = rawSchema.safeParse(JSON.parse(json));
+    return parsed.success ? parsed.data : null;
   } catch {
-    return null
+    return null;
   }
 }
 
 export interface GroundedClassification {
-  nocCode: string
-  teer: number
-  title: string
-  confidence: 'high' | 'medium' | 'low'
-  candidates: NocCandidate[]
+  nocCode: string;
+  teer: number;
+  title: string;
+  confidence: 'high' | 'medium' | 'low';
+  candidates: NocCandidate[];
   ambiguity: {
-    flag: boolean
-    alternatives: { nocCode: string; teer: number; title: string }[]
-  }
+    flag: boolean;
+    alternatives: { nocCode: string; teer: number; title: string }[];
+  };
 }
 
 // Keep only model codes that were actually in the shortlist, join the authoritative
@@ -148,57 +152,57 @@ export interface GroundedClassification {
 // if the model picked nothing from the shortlist.
 export function groundClassification(
   raw: RawClassification,
-  hits: NocRetrievalHit[]
+  hits: NocRetrievalHit[],
 ): GroundedClassification | null {
-  const scoreByCode = new Map(hits.map((h) => [h.group.code, h.score]))
-  const seen = new Set<string>()
-  const valid: NocCandidate[] = []
+  const scoreByCode = new Map(hits.map((h) => [h.group.code, h.score]));
+  const seen = new Set<string>();
+  const valid: NocCandidate[] = [];
 
   for (const r of raw.ranked) {
-    const group = getGroupByCode(r.nocCode)
-    if (!group) continue                       // not a real NOC code
-    if (!scoreByCode.has(r.nocCode)) continue   // not in the shortlist we supplied
-    if (seen.has(r.nocCode)) continue           // de-dupe
-    seen.add(r.nocCode)
+    const group = getGroupByCode(r.nocCode);
+    if (!group) continue; // not a real NOC code
+    if (!scoreByCode.has(r.nocCode)) continue; // not in the shortlist we supplied
+    if (seen.has(r.nocCode)) continue; // de-dupe
+    seen.add(r.nocCode);
     valid.push({
       nocCode: group.code,
-      teer: group.teer,                         // authoritative — never from the model
+      teer: group.teer, // authoritative — never from the model
       title: group.title,
       rationale: r.rationale,
       matchScore: Math.round(scoreByCode.get(r.nocCode) ?? 0),
       fitScore: Math.round(r.fitScore),
-    })
-    if (valid.length >= RANKED_RETURNED) break
+    });
+    if (valid.length >= RANKED_RETURNED) break;
   }
 
-  if (valid.length === 0) return null
+  if (valid.length === 0) return null;
 
   // Residual-group guard: if the model led with an "Other ..." catch-all, hand the lead
   // to the best specific candidate whose fit is within RESIDUAL_OVER_SPECIFIC_MARGIN. The
   // residual group only keeps the lead when no specific group fits comparably well.
-  let leaderIndex = 0
+  let leaderIndex = 0;
   if (isResidualGroup(valid[0]!.title)) {
     const challenger = valid.findIndex(
       (c, i) =>
         i !== 0 &&
         !isResidualGroup(c.title) &&
-        valid[0]!.fitScore - c.fitScore <= RESIDUAL_OVER_SPECIFIC_MARGIN
-    )
-    if (challenger !== -1) leaderIndex = challenger
+        valid[0]!.fitScore - c.fitScore <= RESIDUAL_OVER_SPECIFIC_MARGIN,
+    );
+    if (challenger !== -1) leaderIndex = challenger;
   }
 
   // The leader stands; a runner-up is shown only when it is genuinely competitive.
-  const winner = valid[leaderIndex]!
+  const winner = valid[leaderIndex]!;
   const candidates = [
     winner,
     ...valid.filter(
       (c, i) =>
         i !== leaderIndex &&
         c.fitScore >= ALT_MIN_FIT_SCORE &&
-        winner.fitScore - c.fitScore <= ALT_MAX_FIT_GAP
+        winner.fitScore - c.fitScore <= ALT_MAX_FIT_GAP,
     ),
-  ]
-  const teerSpread = new Set(candidates.map((c) => c.teer)).size > 1
+  ];
+  const teerSpread = new Set(candidates.map((c) => c.teer)).size > 1;
 
   return {
     nocCode: winner.nocCode,
@@ -212,15 +216,15 @@ export function groundClassification(
         .slice(1)
         .map((c) => ({ nocCode: c.nocCode, teer: c.teer, title: c.title })),
     },
-  }
+  };
 }
 
 // Client-facing citation: the ESDC occupational profile for the specific code.
 export function esdcProfileUrl(code: string): string {
-  return `https://noc.esdc.gc.ca/OaSIS/OaSISOccProfile?GocTemplateCulture=en-CA&code=${code}.00&version=2023.0`
+  return `https://noc.esdc.gc.ca/OaSIS/OaSISOccProfile?GocTemplateCulture=en-CA&code=${code}.00&version=2023.0`;
 }
 
 // Lightweight server-rendered page used for the live verification fetch.
 export function statcanUnitGroupUrl(code: string): string {
-  return `https://www23.statcan.gc.ca/imdb/p3VD.pl?Function=getVD&TVD=1322554&CVD=1322870&CPV=${code}&CST=01052021&CLV=5&MLV=5`
+  return `https://www23.statcan.gc.ca/imdb/p3VD.pl?Function=getVD&TVD=1322554&CVD=1322870&CPV=${code}&CST=01052021&CLV=5&MLV=5`;
 }

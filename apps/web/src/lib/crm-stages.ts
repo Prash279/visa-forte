@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 export const CRM_STAGES = [
   'Lead',
@@ -10,9 +10,9 @@ export const CRM_STAGES = [
   'Decision Pending',
   'Completed',
   'Archived',
-] as const
+] as const;
 
-export type CrmStage = (typeof CRM_STAGES)[number]
+export type CrmStage = (typeof CRM_STAGES)[number];
 
 // Stage filter pills shown in the CRM table toolbar.
 export const CRM_FILTER_STAGES: Array<CrmStage | 'all'> = [
@@ -22,14 +22,14 @@ export const CRM_FILTER_STAGES: Array<CrmStage | 'all'> = [
   'Active Client',
   'ITA Window',
   'Completed',
-]
+];
 
 export const CreateClientSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
   email: z.string().email('Valid email required'),
   phone: z.string().max(20).optional(),
   serviceTier: z.string().min(1, 'Service tier is required'),
-})
+});
 
 export const UpdateClientSchema = z
   .object({
@@ -38,5 +38,4 @@ export const UpdateClientSchema = z
   })
   .refine((d) => d.stage !== undefined || d.notes !== undefined, {
     message: 'Provide stage or notes',
-  })
-
+  });

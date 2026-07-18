@@ -12,7 +12,13 @@ const BookingSchema = z.object({
   email: z.string().email('A valid email address is required'),
   serviceTier: z.string().min(1, 'Please select a service'),
   bookingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
-  query: z.string().min(10, 'Please describe your question or issue in detail (minimum 10 characters)').max(2000),
+  query: z
+    .string()
+    .min(
+      10,
+      'Please describe your question or issue in detail (minimum 10 characters)',
+    )
+    .max(2000),
 });
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -20,12 +26,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid request body' },
+      { status: 400 },
+    );
   }
 
   const result = BookingSchema.safeParse(body);
   if (!result.success) {
-    return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: result.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const { name, email, serviceTier, bookingDate, query } = result.data;
@@ -38,19 +50,24 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   if (slots.length === 0 || !slots[0].isAvailable) {
     return NextResponse.json(
-      { error: 'Selected date is no longer available. Please choose another date.' },
-      { status: 409 }
+      {
+        error:
+          'Selected date is no longer available. Please choose another date.',
+      },
+      { status: 409 },
     );
   }
 
   // Save the booking first — email is non-fatal.
   try {
-    await db.insert(bookings).values({ name, email, serviceTier, bookingDate, query });
+    await db
+      .insert(bookings)
+      .values({ name, email, serviceTier, bookingDate, query });
   } catch (err) {
     console.error('Booking insert failed:', err);
     return NextResponse.json(
       { error: 'Could not save your booking. Please try again.' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 

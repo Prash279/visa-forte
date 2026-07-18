@@ -16,7 +16,6 @@ const Schema = z.object({
   serviceTier: z.string().min(1),
   bookingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   query: z.string().min(10).max(2000),
-  currency: z.enum(['INR', 'USD']),
   // Razorpay payment tokens returned by their checkout modal
   razorpayOrderId: z.string().min(1),
   razorpayPaymentId: z.string().min(1),
@@ -30,22 +29,37 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid request body' },
+      { status: 400 },
+    );
   }
 
   const result = Schema.safeParse(body);
   if (!result.success) {
-    return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: result.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const {
-    name, email, serviceTier, bookingDate, query, currency,
-    razorpayOrderId, razorpayPaymentId, razorpaySignature,
+    name,
+    email,
+    serviceTier,
+    bookingDate,
+    query,
+    razorpayOrderId,
+    razorpayPaymentId,
+    razorpaySignature,
   } = result.data;
 
   // Guard: tier must exist in the approved pricing table.
   if (!PRICING[serviceTier]) {
-    return NextResponse.json({ error: 'Invalid service tier.' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid service tier.' },
+      { status: 400 },
+    );
   }
 
   // ── Signature verification ──────────────────────────────────────────────────
@@ -58,7 +72,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   if (expectedSignature !== razorpaySignature) {
     console.error('Razorpay signature mismatch — possible tampered payment');
-    return NextResponse.json({ error: 'Payment verification failed.' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Payment verification failed.' },
+      { status: 400 },
+    );
   }
 
   // ── Date availability guard ─────────────────────────────────────────────────
@@ -69,16 +86,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   if (slots.length === 0 || !slots[0].isAvailable) {
     return NextResponse.json(
-      { error: 'Selected date is no longer available. Please contact us to arrange a refund.' },
-      { status: 409 }
+      {
+        error:
+          'Selected date is no longer available. Please contact us to arrange a refund.',
+      },
+      { status: 409 },
     );
   }
 
   // ── Save booking (with portal activation token) ─────────────────────────────
-  const amountPaid = getAmountInSmallestUnit(serviceTier, currency);
+  const amountPaid = getAmountInSmallestUnit(serviceTier);
 
   if (amountPaid === null) {
-    return NextResponse.json({ error: 'Pricing not available for this tier and currency.' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Pricing not available for this tier.' },
+      { status: 400 },
+    );
   }
 
   // Generate a single-use token so the client can activate their portal account.
@@ -95,7 +118,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       query,
       razorpayOrderId,
       razorpayPaymentId,
-      currency,
+      // Stored per booking so historical records stay readable if USD returns.
+      currency: 'INR',
       amountPaid,
       paymentStatus: 'paid',
       status: 'pending',
@@ -105,13 +129,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   } catch (err) {
     console.error('Booking insert failed after payment:', err);
     return NextResponse.json(
-      { error: 'Payment received but booking could not be saved. Please contact prashant@visaforte.com with your payment ID.' },
-      { status: 500 }
+      {
+        error:
+          'Payment received but booking could not be saved. Please contact prashant@visaforte.com with your payment ID.',
+      },
+      { status: 500 },
     );
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://visaforte.com';
-  const displayPrice = formatPrice(serviceTier, currency);
+  const displayPrice = formatPrice(serviceTier);
 
   // ── Notify Prash via email ──────────────────────────────────────────────────
   // Email failure is non-fatal — booking is already in the DB.
@@ -150,7 +177,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     await resend.emails.send({
       from: 'Visa Forte <noreply@visaforte.com>',
       to: email,
-      subject: 'Your Visa Forte consultation is confirmed — activate your client portal',
+      subject:
+        'Your Visa Forte consultation is confirmed — activate your client portal',
       html: `
         <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1A1A2E;">
           <h2 style="color:#0C2340;margin-bottom:4px;">Your consultation is confirmed.</h2>

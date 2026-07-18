@@ -15,7 +15,7 @@
 | Backend | Python 3.12+ · FastAPI | Async-first, type-safe, Pydantic-native. Runs AI tooling and background jobs. |
 | Database | PostgreSQL 16 · Drizzle ORM | Drizzle: type-safe queries, migration files version-controlled. See §6. |
 | Storage | Vercel Blob | Client documents only. Private blobs, Mumbai region. Zero extra accounts — same Vercel dashboard. |
-| Payments | Paddle (MoR/digital) · Wise Business (SWIFT/wire) | Paddle handles tax/compliance globally. Wise for wire transfers. |
+| Payments | Razorpay (only rail) | Only provider that onboards a non-registered individual/sole proprietor. India-first by decision (2026-07-17). Do not add a second provider without explicit approval from Prash. |
 | Auth | Better Auth | Open-source, zero SaaS fees, handles sessions, OAuth, 2FA. |
 | Testing | Vitest (TypeScript) · PyTest (Python) | Co-located tests. See §8. |
 | AI Layer | Claude API · `claude-sonnet-4-20250514` | Do not substitute model without explicit approval. |
@@ -87,7 +87,7 @@ visaforte/
 
 ## 5. Validation Architecture (Zod + Pydantic)
 
-Every external payload — API request bodies, Paddle webhooks, canada.ca responses, user form inputs, Claude API responses — must be parsed through a schema before any business logic executes. This is non-negotiable.
+Every external payload — API request bodies, Razorpay payment callbacks, canada.ca responses, user form inputs, Claude API responses — must be parsed through a schema before any business logic executes. This is non-negotiable.
 
 **TypeScript pattern:**
 ```typescript
@@ -159,8 +159,8 @@ NEXT_PUBLIC_APP_URL=
 
 # Server-only (never NEXT_PUBLIC_ prefix)
 DATABASE_URL=
-PADDLE_SECRET_KEY=
-PADDLE_WEBHOOK_SECRET=
+RAZORPAY_KEY_ID=          ← Public key ID; safe to send to the browser at checkout.
+RAZORPAY_KEY_SECRET=      ← Server-side only. Signs and verifies payments.
 BETTER_AUTH_SECRET=
 BLOB_READ_WRITE_TOKEN=
 ANTHROPIC_API_KEY=        ← Server-side only. Never exposed to the browser.
@@ -363,7 +363,7 @@ Every log entry must include: `timestamp` · `level` · `service` · `action` ·
 **Never log:**
 - Passwords, API keys, or session tokens (even partial)
 - Full request/response bodies containing client PII
-- Paddle webhook raw payload (signature header only for audit purposes)
+- Razorpay payment payloads, payment IDs, or order IDs (they contain billing data)
 
 ### Logging Implementation
 
@@ -433,9 +433,9 @@ logger.setLevel(logging.INFO)
 **Tool:** UptimeRobot (free tier monitors 50 endpoints at 5-minute intervals) [VERIFY]
 
 **Endpoints to monitor:**
-- `GET /api/health` — application health check (returns 200 if DB and R2 are reachable)
+- `GET /api/health` — application health check (returns 200 if DB and Blob storage are reachable)
 - `GET /` — landing page availability
-- Paddle webhook endpoint — confirm it is accepting connections
+- `POST /api/payment/create-order` — confirm Razorpay keys are configured (a 503 here means the rail is down)
 
 **Health check implementation:**
 ```typescript

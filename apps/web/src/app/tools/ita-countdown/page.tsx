@@ -1,4 +1,4 @@
-import ItaCountdownTool from './ItaCountdownTool'
+import ItaCountdownTool from './ItaCountdownTool';
 import { buildMetadata, SITE_URL } from '@/lib/seo';
 
 export const metadata = buildMetadata({
@@ -9,24 +9,29 @@ export const metadata = buildMetadata({
 });
 // Structured data: registers this free tool as a WebApplication with Google.
 const TOOL_JSONLD = {
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
   name: '60-Day Countdown Planner',
   description:
     'Personalised day-by-day document preparation timeline for your Express Entry ITA response window.',
   url: `${SITE_URL}/tools/ita-countdown`,
-  applicationCategory: "UtilityApplication",
-  operatingSystem: "Web",
-  offers: { "@type": "Offer", price: "0", priceCurrency: "CAD" },
-  provider: { "@type": "ProfessionalService", name: "Visa Forte" },
+  applicationCategory: 'UtilityApplication',
+  operatingSystem: 'Web',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'CAD' },
+  provider: { '@type': 'ProfessionalService', name: 'Visa Forte' },
 };
 
 const BREADCRUMB_JSONLD = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
   itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-    { "@type": "ListItem", position: 2, name: '60-Day Countdown Planner', item: `${SITE_URL}/tools/ita-countdown` },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: '60-Day Countdown Planner',
+      item: `${SITE_URL}/tools/ita-countdown`,
+    },
   ],
 };
 
@@ -43,5 +48,5 @@ export default function ItaCountdownPage() {
       />
       <ItaCountdownTool />
     </>
-  )
+  );
 }

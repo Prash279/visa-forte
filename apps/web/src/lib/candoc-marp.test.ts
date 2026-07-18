@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
-import { buildCandocMarp } from './candoc-marp'
-import type { FindingsJson } from './candoc-types'
+import { describe, it, expect } from 'vitest';
+import { buildCandocMarp } from './candoc-marp';
+import type { FindingsJson } from './candoc-types';
 
 const mockFindings: FindingsJson = {
   reviewedAt: '2026-05-22T10:00:00Z',
@@ -33,37 +33,37 @@ const mockFindings: FindingsJson = {
       findings: [],
     },
   ],
-}
+};
 
 describe('buildCandocMarp', () => {
   it('includes MARP front matter', () => {
-    const md = buildCandocMarp(mockFindings, 'John Doe')
-    expect(md).toContain('marp: true')
-  })
+    const md = buildCandocMarp(mockFindings, 'John Doe');
+    expect(md).toContain('marp: true');
+  });
 
   it('includes client name', () => {
-    const md = buildCandocMarp(mockFindings, 'John Doe')
-    expect(md).toContain('John Doe')
-  })
+    const md = buildCandocMarp(mockFindings, 'John Doe');
+    expect(md).toContain('John Doe');
+  });
 
   it('includes all SOP layer codes present in findings', () => {
-    const md = buildCandocMarp(mockFindings, 'John Doe')
-    expect(md).toContain('S0')
-    expect(md).toContain('S1')
-  })
+    const md = buildCandocMarp(mockFindings, 'John Doe');
+    expect(md).toContain('S0');
+    expect(md).toContain('S1');
+  });
 
   it('includes overall risk level in uppercase', () => {
-    const md = buildCandocMarp(mockFindings, 'John Doe')
-    expect(md).toContain('MAJOR')
-  })
+    const md = buildCandocMarp(mockFindings, 'John Doe');
+    expect(md).toContain('MAJOR');
+  });
 
   it('includes Prash annotations', () => {
-    const md = buildCandocMarp(mockFindings, 'John Doe')
-    expect(md).toContain('Client informed to renew by June 2026')
-  })
+    const md = buildCandocMarp(mockFindings, 'John Doe');
+    expect(md).toContain('Client informed to renew by June 2026');
+  });
 
   it('includes legal disclaimer', () => {
-    const md = buildCandocMarp(mockFindings, 'John Doe')
-    expect(md.toLowerCase()).toContain('informational')
-  })
-})
+    const md = buildCandocMarp(mockFindings, 'John Doe');
+    expect(md.toLowerCase()).toContain('informational');
+  });
+});

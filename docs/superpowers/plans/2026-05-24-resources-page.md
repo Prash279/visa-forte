@@ -1,5 +1,7 @@
 # Resources Page — Implementation Plan
 
+> ⚠️ **PARTIALLY SUPERSEDED — 2026-07-17.** Historical record; preserved as written. This plan was executed and the page shipped, but two of its assumptions are dead: **Paddle is not the payment rail** (Razorpay is the only rail — decision 2026-07-17), and the `paddleProductId` field it specifies is vestigial, replaced by a `pricingTier` key indexing into `PRICING` (`lib/pricing.ts`). Its "Paddle live payment integration — separate session" deferral is void. Current plan: *Resources Page - Plan.md* (Rev 3).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build a two-section public Resources page at `/resources` — free downloads first, premium resources below — backed by a typed JSON data file and a download API route.

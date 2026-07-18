@@ -20,12 +20,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid request body' },
+      { status: 400 },
+    );
   }
 
   const result = Schema.safeParse(body);
   if (!result.success) {
-    return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: result.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const { date, isAvailable } = result.data;
@@ -41,7 +47,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       });
   } catch (err) {
     console.error('Availability update failed:', err);
-    return NextResponse.json({ error: 'Could not update availability.' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Could not update availability.' },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ success: true });

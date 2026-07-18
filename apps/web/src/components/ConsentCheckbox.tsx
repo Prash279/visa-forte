@@ -19,8 +19,8 @@ export function ConsentCheckbox({
       />
       <span className="consent-checkbox-text">
         I agree that Visa Forte may collect and store the information I provide
-        to deliver immigration documentation services. I can request deletion
-        of my data at any time from my account settings.
+        to deliver immigration documentation services. I can request deletion of
+        my data at any time from my account settings.
       </span>
     </label>
   );

@@ -1,36 +1,58 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-import { Resend } from 'resend'
-import { db } from '@/lib/db'
-import { drawAlertSubscribers, toolEvents } from '../../../../../drizzle/schema'
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { Resend } from 'resend';
+import { db } from '@/lib/db';
+import {
+  drawAlertSubscribers,
+  toolEvents,
+} from '../../../../../drizzle/schema';
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const Schema = z.object({
-  name:          z.string().min(1).max(100),
-  email:         z.string().email(),
-  crsScore:      z.number().int().min(0).max(1200),
-  eeCategory:    z.string().min(1),
-  toolName:      z.string().min(1),
+  name: z.string().min(1).max(100),
+  email: z.string().email(),
+  crsScore: z.number().int().min(0).max(1200),
+  eeCategory: z.string().min(1),
+  toolName: z.string().min(1),
   wantsDrawAlert: z.boolean().optional().default(false),
-  weaknesses:    z.array(z.object({ label: z.string(), pointGain: z.number() })).optional(),
-  bestPathway:   z.object({ category: z.string(), cutoffScore: z.number(), gap: z.number() }).optional(),
-})
+  weaknesses: z
+    .array(z.object({ label: z.string(), pointGain: z.number() }))
+    .optional(),
+  bestPathway: z
+    .object({ category: z.string(), cutoffScore: z.number(), gap: z.number() })
+    .optional(),
+});
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  let body: unknown
+  let body: unknown;
   try {
-    body = await req.json()
+    body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Invalid request body' },
+      { status: 400 },
+    );
   }
 
-  const result = Schema.safeParse(body)
+  const result = Schema.safeParse(body);
   if (!result.success) {
-    return NextResponse.json({ error: result.error.flatten() }, { status: 400 })
+    return NextResponse.json(
+      { error: result.error.flatten() },
+      { status: 400 },
+    );
   }
 
-  const { name, email, crsScore, eeCategory, toolName, wantsDrawAlert, weaknesses, bestPathway } = result.data
+  const {
+    name,
+    email,
+    crsScore,
+    eeCategory,
+    toolName,
+    wantsDrawAlert,
+    weaknesses,
+    bestPathway,
+  } = result.data;
 
   // Subscribe to draw alerts if requested.
   if (wantsDrawAlert) {
@@ -41,27 +63,30 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         .onConflictDoUpdate({
           target: drawAlertSubscribers.email,
           set: { name, crsScore, eeCategory },
-        })
+        });
     } catch (err) {
-      console.error('draw_alert_subscribers upsert failed:', err)
+      console.error('draw_alert_subscribers upsert failed:', err);
     }
   }
 
   // Record the lead event.
   try {
-    await db.insert(toolEvents).values({ toolName, eventType: 'lead_captured', crsScore, eeCategory })
+    await db
+      .insert(toolEvents)
+      .values({ toolName, eventType: 'lead_captured', crsScore, eeCategory });
   } catch (err) {
-    console.error('tool_events insert failed:', err)
+    console.error('tool_events insert failed:', err);
   }
 
   // Email the subscriber their results.
-  const weaknessList = weaknesses && weaknesses.length > 0
-    ? weaknesses.map(w => `• ${w.label}: +${w.pointGain} pts`).join('\n')
-    : 'Run the tool for your full breakdown.'
+  const weaknessList =
+    weaknesses && weaknesses.length > 0
+      ? weaknesses.map((w) => `• ${w.label}: +${w.pointGain} pts`).join('\n')
+      : 'Run the tool for your full breakdown.';
 
   const pathwayLine = bestPathway
     ? `Best pathway: ${bestPathway.category} (cutoff ${bestPathway.cutoffScore}, you are ${bestPathway.gap >= 0 ? `+${bestPathway.gap} above` : `${Math.abs(bestPathway.gap)} below`} cutoff)`
-    : ''
+    : '';
 
   try {
     await resend.emails.send({
@@ -86,9 +111,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           </p>
         </div>
       `,
-    })
+    });
   } catch (err) {
-    console.error('Resend subscriber email failed:', err)
+    console.error('Resend subscriber email failed:', err);
   }
 
   // Notify Prash.
@@ -109,10 +134,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           </table>
         </div>
       `,
-    })
+    });
   } catch (err) {
-    console.error('Resend admin notification failed:', err)
+    console.error('Resend admin notification failed:', err);
   }
 
-  return NextResponse.json({ success: true }, { status: 201 })
+  return NextResponse.json({ success: true }, { status: 201 });
 }

@@ -39,7 +39,15 @@ describe('slaThresholdMs', () => {
   });
 
   it('returns 24 hours in ms for all other stages', () => {
-    const stages = ['Lead', 'Qualified', 'Active Client', 'Submitted', 'Decision Pending', 'Completed', 'Archived'];
+    const stages = [
+      'Lead',
+      'Qualified',
+      'Active Client',
+      'Submitted',
+      'Decision Pending',
+      'Completed',
+      'Archived',
+    ];
     for (const stage of stages) {
       expect(slaThresholdMs(stage)).toBe(24 * 60 * 60 * 1000);
     }

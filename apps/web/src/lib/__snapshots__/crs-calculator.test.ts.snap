@@ -5,6 +5,7 @@ exports[`calculate — Harish Naik with-spouse Factor B verification > full CrsR
   "breakdown": {
     "additionalTotal": 0,
     "agePoints": 55,
+    "canadianEducationPoints": 0,
     "canadianExpPoints": 0,
     "coreTotal": 314,
     "eduCanadianExpTransfer": 0,
@@ -13,6 +14,7 @@ exports[`calculate — Harish Naik with-spouse Factor B verification > full CrsR
     "firstLanguagePoints": 109,
     "foreignExpCanadianExpTransfer": 0,
     "foreignExpLanguageTransfer": 25,
+    "frenchBonusPoints": 0,
     "provincialNomination": 0,
     "secondLanguagePoints": 0,
     "siblingPoints": 0,
@@ -60,7 +62,7 @@ exports[`calculate — Harish Naik with-spouse Factor B verification > full CrsR
   "fswImprovements": [],
   "proofOfFundsRequired": 19001,
   "proofOfFundsSufficient": true,
-  "rulesVersion": "2ceb4a21",
+  "rulesVersion": "5b5dd31e",
   "scenarios": [
     {
       "change": "Achieve CLB 10 in all four language abilities",
@@ -96,6 +98,7 @@ exports[`calculate — Kishore Sai ground-truth verification > full CrsResult sn
   "breakdown": {
     "additionalTotal": 0,
     "agePoints": 110,
+    "canadianEducationPoints": 0,
     "canadianExpPoints": 0,
     "coreTotal": 372,
     "eduCanadianExpTransfer": 0,
@@ -104,6 +107,7 @@ exports[`calculate — Kishore Sai ground-truth verification > full CrsResult sn
     "firstLanguagePoints": 127,
     "foreignExpCanadianExpTransfer": 0,
     "foreignExpLanguageTransfer": 25,
+    "frenchBonusPoints": 0,
     "provincialNomination": 0,
     "secondLanguagePoints": 0,
     "siblingPoints": 0,
@@ -151,7 +155,7 @@ exports[`calculate — Kishore Sai ground-truth verification > full CrsResult sn
   "fswImprovements": [],
   "proofOfFundsRequired": 15263,
   "proofOfFundsSufficient": true,
-  "rulesVersion": "2ceb4a21",
+  "rulesVersion": "5b5dd31e",
   "scenarios": [
     {
       "change": "Reach 3 full years of foreign work experience",
@@ -195,6 +199,7 @@ exports[`calculate — provincial nomination > full CrsResult snapshot — locks
   "breakdown": {
     "additionalTotal": 600,
     "agePoints": 110,
+    "canadianEducationPoints": 0,
     "canadianExpPoints": 0,
     "coreTotal": 372,
     "eduCanadianExpTransfer": 0,
@@ -203,6 +208,7 @@ exports[`calculate — provincial nomination > full CrsResult snapshot — locks
     "firstLanguagePoints": 127,
     "foreignExpCanadianExpTransfer": 0,
     "foreignExpLanguageTransfer": 25,
+    "frenchBonusPoints": 0,
     "provincialNomination": 600,
     "secondLanguagePoints": 0,
     "siblingPoints": 0,
@@ -250,7 +256,7 @@ exports[`calculate — provincial nomination > full CrsResult snapshot — locks
   "fswImprovements": [],
   "proofOfFundsRequired": 15263,
   "proofOfFundsSufficient": true,
-  "rulesVersion": "2ceb4a21",
+  "rulesVersion": "5b5dd31e",
   "scenarios": [
     {
       "change": "Reach 3 full years of foreign work experience",

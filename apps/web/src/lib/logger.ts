@@ -8,9 +8,9 @@ type LogLevel = 'info' | 'warn' | 'error';
 interface LogEntry {
   timestamp: string;
   level: LogLevel;
-  service: string;   // which part of the app — e.g. 'booking', 'payment', 'health'
-  action: string;    // what was attempted — e.g. 'create_booking', 'verify_payment'
-  actorId?: string;  // user email or system identifier, if known
+  service: string; // which part of the app — e.g. 'booking', 'payment', 'health'
+  action: string; // what was attempted — e.g. 'create_booking', 'verify_payment'
+  actorId?: string; // user email or system identifier, if known
   result: 'success' | 'failure';
   metadata?: Record<string, unknown>; // any extra context — never include PII here
 }

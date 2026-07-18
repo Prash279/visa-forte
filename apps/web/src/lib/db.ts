@@ -11,10 +11,12 @@ const globalDb = globalThis as typeof globalThis & {
   _pgClient?: ReturnType<typeof postgres>;
 };
 
-const client = globalDb._pgClient ?? postgres(process.env.DATABASE_URL!, {
-  prepare: false, // required for Supabase pgBouncer pooler
-  max: 1,         // one connection per serverless function instance
-});
+const client =
+  globalDb._pgClient ??
+  postgres(process.env.DATABASE_URL!, {
+    prepare: false, // required for Supabase pgBouncer pooler
+    max: 1, // one connection per serverless function instance
+  });
 if (process.env.NODE_ENV !== 'production') globalDb._pgClient = client;
 
 export const db = drizzle(client, { schema });

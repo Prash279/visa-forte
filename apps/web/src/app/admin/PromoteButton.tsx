@@ -1,30 +1,32 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
+import { useState } from 'react';
 
 interface Props {
-  leadId: string
-  alreadyPromoted: boolean
+  leadId: string;
+  alreadyPromoted: boolean;
 }
 
 export default function PromoteButton({ leadId, alreadyPromoted }: Props) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>(
-    alreadyPromoted ? 'done' : 'idle'
-  )
+    alreadyPromoted ? 'done' : 'idle',
+  );
 
   async function handlePromote() {
-    setStatus('loading')
+    setStatus('loading');
     try {
-      const res = await fetch(`/api/admin/leads/${leadId}/promote`, { method: 'POST' })
+      const res = await fetch(`/api/admin/leads/${leadId}/promote`, {
+        method: 'POST',
+      });
       if (res.ok) {
-        setStatus('done')
+        setStatus('done');
       } else if (res.status === 409) {
-        setStatus('done') // already promoted by another session
+        setStatus('done'); // already promoted by another session
       } else {
-        setStatus('error')
+        setStatus('error');
       }
     } catch {
-      setStatus('error')
+      setStatus('error');
     }
   }
 
@@ -33,15 +35,18 @@ export default function PromoteButton({ leadId, alreadyPromoted }: Props) {
       <a href="/admin/clients" className="admin-promote-done">
         ✓ In CRM →
       </a>
-    )
+    );
   }
 
   if (status === 'error') {
     return (
-      <button className="admin-promote-btn admin-promote-btn-error" onClick={handlePromote}>
+      <button
+        className="admin-promote-btn admin-promote-btn-error"
+        onClick={handlePromote}
+      >
         Error — retry
       </button>
-    )
+    );
   }
 
   return (
@@ -52,5 +57,5 @@ export default function PromoteButton({ leadId, alreadyPromoted }: Props) {
     >
       {status === 'loading' ? 'Promoting…' : 'Promote →'}
     </button>
-  )
+  );
 }

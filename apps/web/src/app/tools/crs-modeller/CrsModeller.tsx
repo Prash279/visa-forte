@@ -1,45 +1,45 @@
-'use client'
+'use client';
 
-import '../../assessment/assessment.css'
-import './crs-modeller.css'
+import '../../assessment/assessment.css';
+import './crs-modeller.css';
 
-import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
+import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import {
   calculate,
   type ApplicantProfile,
   type EducationLevel,
-} from '@/lib/crs-calculator'
-import drawData from '@/lib/crs-draw-history.json'
+} from '@/lib/crs-calculator';
+import drawData from '@/lib/crs-draw-history.json';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface ModState {
-  age: number
-  hasSpouse: boolean
-  education: EducationLevel
-  langL: number
-  langR: number
-  langW: number
-  langS: number
-  canadianWE: number
-  foreignWE: number
+  age: number;
+  hasSpouse: boolean;
+  education: EducationLevel;
+  langL: number;
+  langR: number;
+  langW: number;
+  langS: number;
+  canadianWE: number;
+  foreignWE: number;
 }
 
 interface DrawEntry {
-  date: string
-  type: string
-  cutoffScore: number
-  invitationsIssued: number
+  date: string;
+  type: string;
+  cutoffScore: number;
+  invitationsIssued: number;
 }
 
 interface DeltaRow {
-  key: string
-  name: string
-  current: string
-  max: string
-  projected: number
-  gain: number
+  key: string;
+  name: string;
+  current: string;
+  max: string;
+  projected: number;
+  gain: number;
 }
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -54,7 +54,7 @@ const DEFAULTS: ModState = {
   langS: 7,
   canadianWE: 0,
   foreignWE: 0,
-}
+};
 
 const EDU_OPTIONS: { value: EducationLevel; label: string }[] = [
   { value: 'less_than_secondary', label: 'Less than high school' },
@@ -65,19 +65,25 @@ const EDU_OPTIONS: { value: EducationLevel; label: string }[] = [
   { value: 'two_or_more_degrees', label: 'Two or more degrees' },
   { value: 'masters', label: "Master's degree" },
   { value: 'doctoral', label: 'Doctoral degree (PhD)' },
-]
+];
 
-const VALID_EDU = new Set<string>(EDU_OPTIONS.map(o => o.value))
-const draws = drawData.draws as DrawEntry[]
+const VALID_EDU = new Set<string>(EDU_OPTIONS.map((o) => o.value));
+const draws = drawData.draws as DrawEntry[];
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 function buildProfile(s: ModState): ApplicantProfile {
   return {
-    name: '', nocCode: '', nocTeer: 1, occupationTitle: '',
-    countryOfCitizenship: '', countryOfResidence: '',
+    name: '',
+    nocCode: '',
+    nocTeer: 1,
+    occupationTitle: '',
+    countryOfCitizenship: '',
+    countryOfResidence: '',
     reportDate: new Date().toISOString().split('T')[0] ?? '',
-    age: s.age, education: s.education, hasEca: true,
+    age: s.age,
+    education: s.education,
+    hasEca: true,
     firstLanguageScores: {
       testType: 'CELPIP',
       listening: s.langL,
@@ -99,18 +105,18 @@ function buildProfile(s: ModState): ApplicantProfile {
     hasCriminalRecord: false,
     hasMedicalCondition: false,
     hasPriorRefusal: false,
-  }
+  };
 }
 
 function getRelevantDraw(canadianWE: number): DrawEntry | null {
   if (canadianWE >= 1)
-    return draws.find(d => /canadian experience class/i.test(d.type)) ?? null
+    return draws.find((d) => /canadian experience class/i.test(d.type)) ?? null;
   // ponytail: no draws[0] fallback — category draws (Healthcare, Trades) are wrong benchmarks for general-pool applicants
-  return draws.find(d => /all.programs|general/i.test(d.type)) ?? null
+  return draws.find((d) => /all.programs|general/i.test(d.type)) ?? null;
 }
 
 function fmtEdu(val: EducationLevel): string {
-  return EDU_OPTIONS.find(o => o.value === val)?.label ?? val
+  return EDU_OPTIONS.find((o) => o.value === val)?.label ?? val;
 }
 
 function maxGain(
@@ -119,87 +125,125 @@ function maxGain(
   maxVal: ModState[keyof ModState],
   base: number,
 ): { projected: number; gain: number } {
-  if (s[key] === maxVal) return { projected: base, gain: 0 }
-  const projected = calculate(buildProfile({ ...s, [key]: maxVal })).breakdown.total
-  return { projected, gain: projected - base }
+  if (s[key] === maxVal) return { projected: base, gain: 0 };
+  const projected = calculate(buildProfile({ ...s, [key]: maxVal })).breakdown
+    .total;
+  return { projected, gain: projected - base };
 }
 
 function computeDeltas(s: ModState, baseScore: number): DeltaRow[] {
   return [
-    { key: 'langL', name: 'Listening (CLB)', current: `CLB ${s.langL}`, max: 'CLB 12',
-      ...maxGain(s, 'langL', 12, baseScore) },
-    { key: 'langR', name: 'Reading (CLB)', current: `CLB ${s.langR}`, max: 'CLB 12',
-      ...maxGain(s, 'langR', 12, baseScore) },
-    { key: 'langW', name: 'Writing (CLB)', current: `CLB ${s.langW}`, max: 'CLB 12',
-      ...maxGain(s, 'langW', 12, baseScore) },
-    { key: 'langS', name: 'Speaking (CLB)', current: `CLB ${s.langS}`, max: 'CLB 12',
-      ...maxGain(s, 'langS', 12, baseScore) },
-    { key: 'education', name: 'Education', current: fmtEdu(s.education), max: 'Doctoral',
-      ...maxGain(s, 'education', 'doctoral', baseScore) },
-    { key: 'canadianWE', name: 'Canadian WE',
-      current: `${s.canadianWE} yr${s.canadianWE !== 1 ? 's' : ''}`, max: '5 yrs',
-      ...maxGain(s, 'canadianWE', 5, baseScore) },
-    { key: 'foreignWE', name: 'Foreign WE',
-      current: `${s.foreignWE} yr${s.foreignWE !== 1 ? 's' : ''}`, max: '5 yrs',
-      ...maxGain(s, 'foreignWE', 5, baseScore) },
-  ].sort((a, b) => b.gain - a.gain)
+    {
+      key: 'langL',
+      name: 'Listening (CLB)',
+      current: `CLB ${s.langL}`,
+      max: 'CLB 12',
+      ...maxGain(s, 'langL', 12, baseScore),
+    },
+    {
+      key: 'langR',
+      name: 'Reading (CLB)',
+      current: `CLB ${s.langR}`,
+      max: 'CLB 12',
+      ...maxGain(s, 'langR', 12, baseScore),
+    },
+    {
+      key: 'langW',
+      name: 'Writing (CLB)',
+      current: `CLB ${s.langW}`,
+      max: 'CLB 12',
+      ...maxGain(s, 'langW', 12, baseScore),
+    },
+    {
+      key: 'langS',
+      name: 'Speaking (CLB)',
+      current: `CLB ${s.langS}`,
+      max: 'CLB 12',
+      ...maxGain(s, 'langS', 12, baseScore),
+    },
+    {
+      key: 'education',
+      name: 'Education',
+      current: fmtEdu(s.education),
+      max: 'Doctoral',
+      ...maxGain(s, 'education', 'doctoral', baseScore),
+    },
+    {
+      key: 'canadianWE',
+      name: 'Canadian WE',
+      current: `${s.canadianWE} yr${s.canadianWE !== 1 ? 's' : ''}`,
+      max: '5 yrs',
+      ...maxGain(s, 'canadianWE', 5, baseScore),
+    },
+    {
+      key: 'foreignWE',
+      name: 'Foreign WE',
+      current: `${s.foreignWE} yr${s.foreignWE !== 1 ? 's' : ''}`,
+      max: '5 yrs',
+      ...maxGain(s, 'foreignWE', 5, baseScore),
+    },
+  ].sort((a, b) => b.gain - a.gain);
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export default function CrsModeller(): React.JSX.Element {
-  const [state, setState] = useState<ModState>(DEFAULTS)
-  const [initScore, setInitScore] = useState<number | null>(null)
-  const [leadName, setLeadName] = useState('')
-  const [leadEmail, setLeadEmail] = useState('')
-  const [wantsAlert, setWantsAlert] = useState(true)
-  const [emailSent, setEmailSent] = useState(false)
-  const [emailSending, setEmailSending] = useState(false)
+  const [state, setState] = useState<ModState>(DEFAULTS);
+  const [initScore, setInitScore] = useState<number | null>(null);
+  const [leadName, setLeadName] = useState('');
+  const [leadEmail, setLeadEmail] = useState('');
+  const [wantsAlert, setWantsAlert] = useState(true);
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailSending, setEmailSending] = useState(false);
 
   // Parse URL params on mount — pre-fills from /assessment handoff
   useEffect(() => {
-    const p = new URLSearchParams(window.location.search)
-    const parsed: Partial<ModState> = {}
+    const p = new URLSearchParams(window.location.search);
+    const parsed: Partial<ModState> = {};
 
-    const age = parseInt(p.get('age') ?? '', 10)
-    if (!isNaN(age) && age >= 18 && age <= 90) parsed.age = age
+    const age = parseInt(p.get('age') ?? '', 10);
+    if (!isNaN(age) && age >= 18 && age <= 90) parsed.age = age;
 
-    const spouse = p.get('spouse')
-    if (spouse === 'true') parsed.hasSpouse = true
-    else if (spouse === 'false') parsed.hasSpouse = false
+    const spouse = p.get('spouse');
+    if (spouse === 'true') parsed.hasSpouse = true;
+    else if (spouse === 'false') parsed.hasSpouse = false;
 
-    const edu = p.get('edu')
-    if (edu && VALID_EDU.has(edu)) parsed.education = edu as EducationLevel
+    const edu = p.get('edu');
+    if (edu && VALID_EDU.has(edu)) parsed.education = edu as EducationLevel;
 
-    const l = parseInt(p.get('l') ?? '', 10)
-    if (!isNaN(l) && l >= 4 && l <= 12) parsed.langL = l
-    const r = parseInt(p.get('r') ?? '', 10)
-    if (!isNaN(r) && r >= 4 && r <= 12) parsed.langR = r
-    const w = parseInt(p.get('w') ?? '', 10)
-    if (!isNaN(w) && w >= 4 && w <= 12) parsed.langW = w
-    const sp = parseInt(p.get('s') ?? '', 10)
-    if (!isNaN(sp) && sp >= 4 && sp <= 12) parsed.langS = sp
+    const l = parseInt(p.get('l') ?? '', 10);
+    if (!isNaN(l) && l >= 4 && l <= 12) parsed.langL = l;
+    const r = parseInt(p.get('r') ?? '', 10);
+    if (!isNaN(r) && r >= 4 && r <= 12) parsed.langR = r;
+    const w = parseInt(p.get('w') ?? '', 10);
+    if (!isNaN(w) && w >= 4 && w <= 12) parsed.langW = w;
+    const sp = parseInt(p.get('s') ?? '', 10);
+    if (!isNaN(sp) && sp >= 4 && sp <= 12) parsed.langS = sp;
 
-    const cwe = parseInt(p.get('cwe') ?? '', 10)
-    if (!isNaN(cwe) && cwe >= 0 && cwe <= 5) parsed.canadianWE = cwe
-    const fwe = parseInt(p.get('fwe') ?? '', 10)
-    if (!isNaN(fwe) && fwe >= 0 && fwe <= 5) parsed.foreignWE = fwe
+    const cwe = parseInt(p.get('cwe') ?? '', 10);
+    if (!isNaN(cwe) && cwe >= 0 && cwe <= 5) parsed.canadianWE = cwe;
+    const fwe = parseInt(p.get('fwe') ?? '', 10);
+    if (!isNaN(fwe) && fwe >= 0 && fwe <= 5) parsed.foreignWE = fwe;
 
-    const merged = { ...DEFAULTS, ...parsed }
-    setState(merged)
-    setInitScore(calculate(buildProfile(merged)).breakdown.total)
-  }, [])
+    const merged = { ...DEFAULTS, ...parsed };
+    setState(merged);
+    setInitScore(calculate(buildProfile(merged)).breakdown.total);
+  }, []);
 
-  const patch = useCallback(<K extends keyof ModState>(key: K, value: ModState[K]): void => {
-    setState(prev => ({ ...prev, [key]: value }))
-  }, [])
+  const patch = useCallback(
+    <K extends keyof ModState>(key: K, value: ModState[K]): void => {
+      setState((prev) => ({ ...prev, [key]: value }));
+    },
+    [],
+  );
 
   // ── Derived values ─────────────────────────────────────────────────────────
 
-  const currentScore = calculate(buildProfile(state)).breakdown.total
-  const draw = getRelevantDraw(state.canadianWE)
-  const gap = draw !== null ? draw.cutoffScore - currentScore : null
-  const gapPct = draw !== null ? Math.min(100, (currentScore / draw.cutoffScore) * 100) : 50
+  const currentScore = calculate(buildProfile(state)).breakdown.total;
+  const draw = getRelevantDraw(state.canadianWE);
+  const gap = draw !== null ? draw.cutoffScore - currentScore : null;
+  const gapPct =
+    draw !== null ? Math.min(100, (currentScore / draw.cutoffScore) * 100) : 50;
   const fillClass =
     gap !== null
       ? gap <= 0
@@ -207,32 +251,34 @@ export default function CrsModeller(): React.JSX.Element {
         : gap <= 20
           ? 'mod-fill-close'
           : 'mod-fill-below'
-      : 'mod-fill-below'
+      : 'mod-fill-below';
 
-  const deltas = computeDeltas(state, currentScore)
+  const deltas = computeDeltas(state, currentScore);
 
   // Greedy path-to-cutoff sentences
-  const pathSentences: string[] = []
+  const pathSentences: string[] = [];
   if (draw !== null && gap !== null && gap > 0) {
-    let remaining = gap
+    let remaining = gap;
     for (const row of deltas) {
-      if (row.gain <= 0 || remaining <= 0) break
-      remaining = draw.cutoffScore - row.projected
+      if (row.gain <= 0 || remaining <= 0) break;
+      remaining = draw.cutoffScore - row.projected;
       pathSentences.push(
         remaining <= 0
           ? `${row.name} to ${row.max} (+${row.gain} pts) → ${row.projected} — cutoff cleared ✓`
           : `${row.name} to ${row.max} (+${row.gain} pts) → ${row.projected} — ${remaining} pts short`,
-      )
+      );
     }
     if (remaining > 0) {
-      pathSentences.push('A Provincial Nomination (+600 pts) would clear any remaining gap.')
+      pathSentences.push(
+        'A Provincial Nomination (+600 pts) would clear any remaining gap.',
+      );
     }
   }
 
   // ── Lead capture ────────────────────────────────────────────────────────────
 
   async function handleSendResults(): Promise<void> {
-    setEmailSending(true)
+    setEmailSending(true);
     try {
       await fetch('/api/tools/lead-capture', {
         method: 'POST',
@@ -244,25 +290,27 @@ export default function CrsModeller(): React.JSX.Element {
           toolName: 'crs-modeller',
           wantsDrawAlert: wantsAlert,
         }),
-      })
-      setEmailSent(true)
+      });
+      setEmailSent(true);
     } catch {
       // non-critical — result is on screen
     } finally {
-      setEmailSending(false)
+      setEmailSending(false);
     }
   }
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
-  const langKeys = ['langL', 'langR', 'langW', 'langS'] as const
+  const langKeys = ['langL', 'langR', 'langW', 'langS'] as const;
   const langLabels: Record<string, string> = {
-    langL: 'Listening', langR: 'Reading', langW: 'Writing', langS: 'Speaking',
-  }
+    langL: 'Listening',
+    langR: 'Reading',
+    langW: 'Writing',
+    langS: 'Speaking',
+  };
 
   return (
     <div className="asx-wrap">
-
       {/* ── Hero ────────────────────────────────────────────────── */}
       <section className="asx-hero">
         <div className="asx-hero-inner">
@@ -270,8 +318,9 @@ export default function CrsModeller(): React.JSX.Element {
           <h1 className="asx-hero-headline r d1">CRS What-If Modeller</h1>
           <div className="rule r d2" />
           <p className="asx-hero-lead r d2">
-            Move one lever — language, education, or Canadian experience — and see exactly
-            how many CRS points you gain. Find the fastest path to the Express Entry cutoff.
+            Move one lever — language, education, or Canadian experience — and
+            see exactly how many CRS points you gain. Find the fastest path to
+            the Express Entry cutoff.
           </p>
         </div>
       </section>
@@ -279,7 +328,6 @@ export default function CrsModeller(): React.JSX.Element {
       {/* ── Tool body ───────────────────────────────────────────── */}
       <section className="asx-form-section">
         <div className="asx-form-inner">
-
           {/* Score hero */}
           <p className="asx-section-label">Your CRS Score</p>
           <div className="mod-score-row">
@@ -287,8 +335,11 @@ export default function CrsModeller(): React.JSX.Element {
               <span className="mod-score-label">Current</span>
               <span className="mod-score-num">{currentScore}</span>
               {initScore !== null && initScore !== currentScore && (
-                <span className={`mod-delta ${currentScore > initScore ? 'pos' : 'neg'}`}>
-                  {currentScore > initScore ? '+' : ''}{currentScore - initScore}
+                <span
+                  className={`mod-delta ${currentScore > initScore ? 'pos' : 'neg'}`}
+                >
+                  {currentScore > initScore ? '+' : ''}
+                  {currentScore - initScore}
                 </span>
               )}
             </div>
@@ -296,7 +347,9 @@ export default function CrsModeller(): React.JSX.Element {
               <>
                 <span className="mod-arrow">→</span>
                 <div className="mod-cutoff-info">
-                  <span className="mod-cutoff-label">Cutoff ({draw.type.split(',')[0]})</span>
+                  <span className="mod-cutoff-label">
+                    Cutoff ({draw.type.split(',')[0]})
+                  </span>
                   <span className="mod-cutoff-val">{draw.cutoffScore}</span>
                   {gap !== null && (
                     <span className={`mod-gap ${gap <= 0 ? 'above' : 'below'}`}>
@@ -343,7 +396,8 @@ export default function CrsModeller(): React.JSX.Element {
           {/* No-draw notice — shown when no CEC or All-Programs draw is found */}
           {draw === null && (
             <p className="mod-no-draw-note">
-              Express Entry is currently running category-based draws only — no All-Programs draw in the current cycle.{' '}
+              Express Entry is currently running category-based draws only — no
+              All-Programs draw in the current cycle.{' '}
               <a href={drawData.url} target="_blank" rel="noopener noreferrer">
                 Check canada.ca for your occupation&apos;s category draw →
               </a>
@@ -371,7 +425,7 @@ export default function CrsModeller(): React.JSX.Element {
               <select
                 className="asx-select"
                 value={state.hasSpouse ? 'yes' : 'no'}
-                onChange={e => patch('hasSpouse', e.target.value === 'yes')}
+                onChange={(e) => patch('hasSpouse', e.target.value === 'yes')}
               >
                 <option value="no">Single / Not Married</option>
                 <option value="yes">Married / Common-Law</option>
@@ -382,25 +436,31 @@ export default function CrsModeller(): React.JSX.Element {
               <select
                 className="asx-select"
                 value={state.education}
-                onChange={e => patch('education', e.target.value as EducationLevel)}
+                onChange={(e) =>
+                  patch('education', e.target.value as EducationLevel)
+                }
               >
-                {EDU_OPTIONS.map(o => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
+                {EDU_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
                 ))}
               </select>
             </div>
           </div>
 
           <div className="mod-levers">
-            {langKeys.map(key => (
+            {langKeys.map((key) => (
               <div key={key} className="mod-lever-row">
                 <span className="mod-lever-label">{langLabels[key]}</span>
                 <input
                   type="range"
                   className="mod-range"
-                  min={4} max={12} step={1}
+                  min={4}
+                  max={12}
+                  step={1}
                   value={state[key]}
-                  onChange={e => patch(key, parseInt(e.target.value, 10))}
+                  onChange={(e) => patch(key, parseInt(e.target.value, 10))}
                   aria-label={`${langLabels[key]} CLB band`}
                 />
                 <span className="mod-lever-val">CLB {state[key]}</span>
@@ -412,9 +472,13 @@ export default function CrsModeller(): React.JSX.Element {
               <input
                 type="range"
                 className="mod-range"
-                min={0} max={5} step={1}
+                min={0}
+                max={5}
+                step={1}
                 value={state.canadianWE}
-                onChange={e => patch('canadianWE', parseInt(e.target.value, 10))}
+                onChange={(e) =>
+                  patch('canadianWE', parseInt(e.target.value, 10))
+                }
                 aria-label="Canadian Work Experience years"
               />
               <span className="mod-lever-val">
@@ -427,9 +491,13 @@ export default function CrsModeller(): React.JSX.Element {
               <input
                 type="range"
                 className="mod-range"
-                min={0} max={5} step={1}
+                min={0}
+                max={5}
+                step={1}
                 value={state.foreignWE}
-                onChange={e => patch('foreignWE', parseInt(e.target.value, 10))}
+                onChange={(e) =>
+                  patch('foreignWE', parseInt(e.target.value, 10))
+                }
                 aria-label="Foreign Work Experience years"
               />
               <span className="mod-lever-val">
@@ -449,7 +517,7 @@ export default function CrsModeller(): React.JSX.Element {
               <span className="mod-delta-projected">If Maxed</span>
               <span className="mod-delta-gain">Max Gain</span>
             </div>
-            {deltas.map(row => (
+            {deltas.map((row) => (
               <div
                 key={row.key}
                 className={`mod-delta-row${row.gain > 0 ? ' has-gain' : ''}`}
@@ -457,7 +525,9 @@ export default function CrsModeller(): React.JSX.Element {
                 <span className="mod-delta-name">{row.name}</span>
                 <span className="mod-delta-current">{row.current}</span>
                 <span className="mod-delta-projected">{row.projected}</span>
-                <span className={`mod-delta-gain${row.gain > 0 ? ' positive' : ''}`}>
+                <span
+                  className={`mod-delta-gain${row.gain > 0 ? ' positive' : ''}`}
+                >
                   {row.gain > 0 ? `+${row.gain}` : '—'}
                 </span>
               </div>
@@ -472,7 +542,9 @@ export default function CrsModeller(): React.JSX.Element {
               </p>
               <div className="asx-card">
                 {pathSentences.map((sentence, i) => (
-                  <p key={i} className="mod-path-blurb">{sentence}</p>
+                  <p key={i} className="mod-path-blurb">
+                    {sentence}
+                  </p>
                 ))}
               </div>
             </>
@@ -480,12 +552,9 @@ export default function CrsModeller(): React.JSX.Element {
 
           {/* ── Scenarios note ────────────────────────────────────── */}
           <p className="asx-scenarios-note" style={{ marginTop: '2rem' }}>
-            All projections use current IRCC scoring rules. Verify live draw cutoffs at{' '}
-            <a
-              href={drawData.url}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            All projections use current IRCC scoring rules. Verify live draw
+            cutoffs at{' '}
+            <a href={drawData.url} target="_blank" rel="noopener noreferrer">
               canada.ca
             </a>
             {' · '}
@@ -498,44 +567,56 @@ export default function CrsModeller(): React.JSX.Element {
               <p className="asx-email-success">Check your inbox ✓</p>
             ) : (
               <>
-                <h3 className="asx-email-heading">Want a copy in your inbox?</h3>
+                <h3 className="asx-email-heading">
+                  Want a copy in your inbox?
+                </h3>
                 <div className="asx-grid-2" style={{ marginBottom: '1rem' }}>
                   <div className="asx-field">
-                    <label className="asx-label" htmlFor="mod-name">Your Name</label>
+                    <label className="asx-label" htmlFor="mod-name">
+                      Your Name
+                    </label>
                     <input
                       id="mod-name"
                       className="asx-input"
                       type="text"
                       placeholder="Full name"
                       value={leadName}
-                      onChange={e => setLeadName(e.target.value)}
+                      onChange={(e) => setLeadName(e.target.value)}
                       autoComplete="name"
                     />
                   </div>
                   <div className="asx-field">
-                    <label className="asx-label" htmlFor="mod-email">Email Address</label>
+                    <label className="asx-label" htmlFor="mod-email">
+                      Email Address
+                    </label>
                     <input
                       id="mod-email"
                       className="asx-input"
                       type="email"
                       placeholder="you@example.com"
                       value={leadEmail}
-                      onChange={e => setLeadEmail(e.target.value)}
+                      onChange={(e) => setLeadEmail(e.target.value)}
                       autoComplete="email"
                     />
                   </div>
                 </div>
-                <label className="asx-checkbox-row" style={{ marginBottom: '0.5rem' }}>
+                <label
+                  className="asx-checkbox-row"
+                  style={{ marginBottom: '0.5rem' }}
+                >
                   <input type="checkbox" checked readOnly />
                   <span className="asx-checkbox-label">
                     Email me my modeller results and improvement plan
                   </span>
                 </label>
-                <label className="asx-checkbox-row" style={{ marginBottom: '1.25rem' }}>
+                <label
+                  className="asx-checkbox-row"
+                  style={{ marginBottom: '1.25rem' }}
+                >
                   <input
                     type="checkbox"
                     checked={wantsAlert}
-                    onChange={e => setWantsAlert(e.target.checked)}
+                    onChange={(e) => setWantsAlert(e.target.checked)}
                   />
                   <span className="asx-checkbox-label">
                     Alert me when a relevant Express Entry draw opens
@@ -558,14 +639,17 @@ export default function CrsModeller(): React.JSX.Element {
 
           {/* ── Legal Disclaimer ──────────────────────────────────── */}
           <div className="asx-disclaimer">
-            <p className="asx-disclaimer-title">Legal Disclaimer &amp; Data Sources</p>
+            <p className="asx-disclaimer-title">
+              Legal Disclaimer &amp; Data Sources
+            </p>
             <p className="asx-disclaimer-body">
-              The information provided in this tool is for informational and guidance
-              purposes only, based on publicly available Immigration, Refugees and
-              Citizenship Canada (IRCC) regulations and policies. This does not constitute
-              legal advice, and no solicitor-client or consultant-client relationship is
-              created by using this tool. Immigration regulations, program requirements,
-              processing times, and CRS cutoff scores are subject to frequent change without
+              The information provided in this tool is for informational and
+              guidance purposes only, based on publicly available Immigration,
+              Refugees and Citizenship Canada (IRCC) regulations and policies.
+              This does not constitute legal advice, and no solicitor-client or
+              consultant-client relationship is created by using this tool.
+              Immigration regulations, program requirements, processing times,
+              and CRS cutoff scores are subject to frequent change without
               notice. Verify all information with official IRCC sources
               (www.canada.ca/immigration) before taking any action.
             </p>
@@ -577,9 +661,8 @@ export default function CrsModeller(): React.JSX.Element {
               — last updated {drawData.lastUpdated}.
             </p>
           </div>
-
         </div>
       </section>
     </div>
-  )
+  );
 }

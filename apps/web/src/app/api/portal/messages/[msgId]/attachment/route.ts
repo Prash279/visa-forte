@@ -24,7 +24,7 @@ async function getClientForSession(): Promise<string | null> {
 // Streams the private blob through the server — IDOR: clientId derived from session.
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ msgId: string }> }
+  { params }: { params: Promise<{ msgId: string }> },
 ): Promise<NextResponse> {
   const clientId = await getClientForSession();
   if (!clientId) {
@@ -40,7 +40,10 @@ export async function GET(
     .limit(1);
 
   if (!message?.attachmentUrl) {
-    return NextResponse.json({ error: 'Attachment not found' }, { status: 404 });
+    return NextResponse.json(
+      { error: 'Attachment not found' },
+      { status: 404 },
+    );
   }
 
   const blobRes = await fetch(message.attachmentUrl, {
@@ -48,11 +51,17 @@ export async function GET(
   });
 
   if (!blobRes.ok) {
-    return NextResponse.json({ error: 'Failed to fetch attachment' }, { status: 502 });
+    return NextResponse.json(
+      { error: 'Failed to fetch attachment' },
+      { status: 502 },
+    );
   }
 
-  const contentType = blobRes.headers.get('content-type') ?? 'application/octet-stream';
-  const filename = decodeURIComponent(message.attachmentUrl.split('/').pop() ?? 'attachment');
+  const contentType =
+    blobRes.headers.get('content-type') ?? 'application/octet-stream';
+  const filename = decodeURIComponent(
+    message.attachmentUrl.split('/').pop() ?? 'attachment',
+  );
 
   return new NextResponse(blobRes.body, {
     headers: {

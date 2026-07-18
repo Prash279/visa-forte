@@ -10,7 +10,11 @@ import {
   findSpawnPosition,
 } from './heroPrecision.utils';
 
-function drawGrid(ctx: CanvasRenderingContext2D, width: number, height: number): void {
+function drawGrid(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+): void {
   ctx.strokeStyle = 'rgba(248, 244, 238, 0.08)';
   ctx.lineWidth = 0.5;
   ctx.beginPath();
@@ -51,7 +55,9 @@ export default function HeroPrecision(): React.JSX.Element {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
 
     function setCanvasSize(): void {
       const dpr = window.devicePixelRatio ?? 1;

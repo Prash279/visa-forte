@@ -17,7 +17,7 @@ async function requireAdmin(): Promise<NextResponse | null> {
 // Updates the status (and optionally responseSubmittedAt + notes) of an IRCC query.
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string; queryId: string }> }
+  { params }: { params: Promise<{ id: string; queryId: string }> },
 ): Promise<NextResponse> {
   const deny = await requireAdmin();
   if (deny) return deny;
@@ -28,12 +28,18 @@ export async function PATCH(
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid request body' },
+      { status: 400 },
+    );
   }
 
   const result = UpdateQuerySchema.safeParse(body);
   if (!result.success) {
-    return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: result.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const { status, responseSubmittedAt, notes } = result.data;
@@ -56,6 +62,9 @@ export async function PATCH(
     return NextResponse.json({ query });
   } catch (err) {
     console.error('IRCC query update failed:', err);
-    return NextResponse.json({ error: 'Could not update query' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Could not update query' },
+      { status: 500 },
+    );
   }
 }

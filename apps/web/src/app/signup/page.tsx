@@ -1,52 +1,54 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { z } from "zod";
-import "../auth.css";
+import { useState } from 'react';
+import { z } from 'zod';
+import '../auth.css';
 
 const signupSchema = z.object({
-  email: z.string().email("Invalid email"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  email: z.string().email('Invalid email'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
 export default function SignupPage() {
-  const [email, setEmail]       = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError]       = useState("");
-  const [loading, setLoading]   = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event: { preventDefault: () => void }) => {
     event.preventDefault();
-    setError("");
+    setError('');
 
     const parsed = signupSchema.safeParse({ email, password });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Invalid input");
+      setError(parsed.error.issues[0]?.message ?? 'Invalid input');
       return;
     }
 
     try {
       setLoading(true);
-      const res = await fetch("/api/auth/sign-up/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/auth/sign-up/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
           password,
-          name: email.split("@")[0] ?? email,
+          name: email.split('@')[0] ?? email,
         }),
-        credentials: "include",
+        credentials: 'include',
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError((data as { message?: string }).message ?? "Signup failed. Try again.");
+        setError(
+          (data as { message?: string }).message ?? 'Signup failed. Try again.',
+        );
         return;
       }
 
-      window.location.href = "/admin";
+      window.location.href = '/admin';
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -54,12 +56,10 @@ export default function SignupPage() {
 
   return (
     <div className="auth-page">
-
       {/* ── Brand panel ─────────────────────────────────────────
           Mobile : compact strip — wordmark + saffron rule only
           Desktop: full-height sticky column with headline + footer */}
       <div className="auth-brand">
-
         {/* Top group — flex child 1.
             Mobile : wordmark + rule only (headline/body hidden via CSS).
             Desktop: wordmark + rule + headline + body all in one group,
@@ -68,20 +68,19 @@ export default function SignupPage() {
           <p className="auth-brand-wordmark">Visa Forte</p>
           <div className="auth-brand-rule" />
           <h1 className="auth-brand-headline">
-            Engineered<br />for Passage.
+            Engineered
+            <br />
+            for Passage.
           </h1>
           <p className="auth-brand-body">
-            Expert immigration documentation, prepared with precision.
-            Every file personally reviewed.
+            Expert immigration documentation, prepared with precision. Every
+            file personally reviewed.
           </p>
         </div>
 
         {/* Footer — flex child 2, pushed to bottom on desktop.
             Hidden on mobile via CSS. */}
-        <p className="auth-brand-footer">
-          visaforte.com · Secunderabad, India
-        </p>
-
+        <p className="auth-brand-footer">visaforte.com · Secunderabad, India</p>
       </div>
 
       {/* ── Form panel ──────────────────────────────────────────
@@ -89,7 +88,6 @@ export default function SignupPage() {
           Desktop: flex centred horizontally and vertically     */}
       <div className="auth-form-panel">
         <div className="auth-form-inner">
-
           <h2 className="auth-heading">Create your account.</h2>
           <div className="auth-rule" />
 
@@ -97,7 +95,9 @@ export default function SignupPage() {
             {error && <div className="auth-error">{error}</div>}
 
             <div className="auth-field">
-              <label className="auth-label" htmlFor="email">Email Address</label>
+              <label className="auth-label" htmlFor="email">
+                Email Address
+              </label>
               <input
                 id="email"
                 type="email"
@@ -126,18 +126,15 @@ export default function SignupPage() {
             </div>
 
             <button type="submit" className="auth-submit" disabled={loading}>
-              {loading ? "Creating account…" : "Create Account"}
+              {loading ? 'Creating account…' : 'Create Account'}
             </button>
           </form>
 
           <p className="auth-footer-note">
-            Already have an account?{" "}
-            <a href="/login">Sign in</a>
+            Already have an account? <a href="/login">Sign in</a>
           </p>
-
         </div>
       </div>
-
     </div>
   );
 }

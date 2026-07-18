@@ -3,13 +3,17 @@
 import { useState } from 'react';
 
 interface Props {
-  date: string;           // YYYY-MM-DD
-  label: string;          // e.g. "Mon 14 Apr"
+  date: string; // YYYY-MM-DD
+  label: string; // e.g. "Mon 14 Apr"
   initialIsAvailable: boolean;
 }
 
 // Single day toggle. Fires POST /api/availability on change.
-export default function AvailabilityToggle({ date, label, initialIsAvailable }: Props) {
+export default function AvailabilityToggle({
+  date,
+  label,
+  initialIsAvailable,
+}: Props) {
   const [isAvailable, setIsAvailable] = useState(initialIsAvailable);
   const [saving, setSaving] = useState(false);
 
@@ -51,7 +55,9 @@ export default function AvailabilityToggle({ date, label, initialIsAvailable }: 
       >
         <span className="avail-toggle-knob" />
       </button>
-      <span className="avail-day-status">{isAvailable ? 'Open' : 'Closed'}</span>
+      <span className="avail-day-status">
+        {isAvailable ? 'Open' : 'Closed'}
+      </span>
     </div>
   );
 }
