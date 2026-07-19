@@ -1,3 +1,54 @@
+## Session 2026-07-19 (later still) — RT-4 NOC Verifier + RT-5 Refusal Analyser (branch `feat/noc-verifier-refusal-analyser`)
+
+> Commissioned by Prash after PR #10 merged: "Now complete the NOC Code Verified and Refusal
+> Pattern Analyser." These are the two "Coming Soon" cards on /resources, spec'd as RT-4 and RT-5
+> at the bottom of this file.
+
+**Plan:** — ALL DONE, see checkmarks
+- [x] RT-4 `/tools/noc-verifier` (free, ungated, deterministic — per spec, NO Claude API call):
+      `POST /api/tools/noc-verifier` wraps the existing `retrieveCandidates()` lexical scorer
+      (noc-2021.json stays server-side — 1.2 MB never enters the client bundle) → top 3 matches
+      with code, TEER, official title, lead statement, main duties, ESDC profile link
+      (`esdcProfileUrl()` already exists). Client page clones the crs-modeller shell
+      (assessment.css + tool css, JSON-LD, mobile-first). Honest confidence bands from relative
+      score — labelled "strongest match / also review", never "your code is X".
+- [x] RT-5 `/tools/refusal-analyser` (premium): deterministic pattern library
+      `refusal-patterns.ts` — refusal grounds keyed on the standard phrases refusal letters use
+      (purpose of visit / would-not-leave, financial insufficiency, travel history, home-country
+      ties, work-experience/duties mismatch, proof of funds, incompleteness, misrepresentation,
+      medical, criminal/police cert, language validity, ECA) → ranked grounds + root causes +
+      reapplication strategy. ponytail: rules, not Claude API — testable, zero per-run cost,
+      and the letter text never needs to leave the request scope.
+- [x] RT-5 gating clones the shipped premium-resources flow: `create-order` (price server-side:
+      new `REFUSAL_ANALYSER_PAISE = 249700` in pricing.ts — ₹2,497, midpoint of the spec's
+      ₹1,997–₹2,997 range, one constant to change) → `verify` (HMAC check first) → access token
+      REUSES `premium-download-token.ts` (id "refusal-analyser", 30-day validity) → `analyse`
+      route requires the token. Receipt email = re-access link only.
+- [x] **Privacy deviation from RT-5 spec, deliberate:** spec said "result emailed as PDF" — NOT
+      built. The refusal letter and its analysis are client case PII; emailing them through Resend
+      would store case detail in a third-party mail log (security.md: never forward client PII
+      beyond task scope). Instead: analysis renders on-page with Print/Save-as-PDF (RT-3 print
+      pattern), letter text is never logged or stored, analyse route processes in-memory only.
+- [x] /resources tools grid: both "Coming Soon" cards → live links. Sitemap: add both pages.
+- [x] Tests: 16 new — noc-verifier route ×5 (incl. determinism + NOC 2021 2123x software codes;
+      caught my own stale-training-data bug: I first asserted the NOC 2016-era 217x prefix),
+      refusal pattern library ×7 (visitor/EE/misrep sample letters → expected top ground),
+      analyse route ×4 (403 no token, 403 cross-product token, 400 short letter, 200 valid).
+      `npm test` **388/388** · tsc clean · eslint clean · prod build green (both pages +
+      all 4 API routes present in build output).
+
+**Prashant Proof (browser, <60s):**
+1. Go to /resources → Interactive Tools: the two "Coming Soon" cards are now live links.
+2. /tools/noc-verifier: paste "I write and test software code for web applications and maintain
+   existing programs" → click Find My NOC Code → NOC 21232/21234 cards appear with TEER 1 and a
+   working "Confirm on the official ESDC profile" link.
+3. /tools/refusal-analyser: the free fictional example is visible; the paywall shows name/email +
+   "Unlock the Analyser — ₹2,497" opening Razorpay checkout. (Full flow needs a test payment;
+   after payment, paste any refusal letter → grounds + strategy render + Print/Save as PDF works.)
+4. Both pages at 375px: form, cards, and buttons stack cleanly.
+
+---
+
 ## Session 2026-07-19 (later) — Free resources batch 2 (branch `feat/free-resource-pdfs-batch2`)
 
 > Commissioned by Prash after PR #9 merged: the filter categories Application Guides, Sample Formats,

@@ -44,3 +44,7 @@ export function getPrice(tier: string): number | null {
 // RT-3: 60-Day Countdown Planner pricing (in paise).
 export const ITA_COUNTDOWN_STANDARD_PAISE = 299700; // ₹2,997
 export const ITA_COUNTDOWN_PREMIUM_PAISE = 399700; // ₹3,997
+
+// RT-5: Refusal Pattern Analyser — ₹2,497, midpoint of the spec'd
+// ₹1,997–₹2,997 range. One constant to change if Prash reprices.
+export const REFUSAL_ANALYSER_PAISE = 249700;

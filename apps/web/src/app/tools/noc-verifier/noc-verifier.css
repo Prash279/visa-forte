@@ -1,0 +1,217 @@
+/* noc-verifier.css — NOC Code Verifier tool.
+   nv-* prefix for all new classes. asx-* classes come from imported assessment.css.
+   Mobile-first: base styles are 375px; wider screens layer on below. */
+
+.nv-hero-sub {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 300;
+  line-height: 1.7;
+  color: rgba(248, 244, 238, 0.82);
+  max-width: 620px;
+  margin-top: 1rem;
+}
+
+.nv-body {
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+.nv-inner {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.nv-optional {
+  font-weight: 300;
+  color: rgba(26, 43, 60, 0.5);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.nv-textarea {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--sand);
+  padding: 0.7rem 0.85rem;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.nv-textarea:focus {
+  outline: none;
+  border-color: var(--saffron);
+}
+
+.nv-hint {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 300;
+  color: rgba(26, 43, 60, 0.55);
+  line-height: 1.5;
+  margin-top: 0.4rem;
+}
+
+.nv-error {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: #a4382a;
+  line-height: 1.5;
+  margin-top: 0.75rem;
+}
+
+.nv-empty p {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+.nv-empty a {
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Result cards */
+.nv-result {
+  background: #fff;
+  border: 1px solid var(--sand);
+  border-top: 3px solid var(--sand);
+  padding: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.nv-result--top {
+  border-top: 3px solid var(--saffron);
+}
+
+.nv-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+/* Single site-wide small-label style: saffron uppercase, thin saffron border */
+.nv-band,
+.nv-teer {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  border: 1px solid var(--saffron);
+  padding: 0.2rem 0.55rem;
+  background: transparent;
+}
+
+.nv-result-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--prussian);
+  line-height: 1.35;
+  margin-bottom: 0.5rem;
+}
+
+.nv-lead {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 300;
+  line-height: 1.65;
+  color: var(--ink);
+  margin-bottom: 0.75rem;
+}
+
+.nv-duties-label {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--prussian);
+  margin-bottom: 0.35rem;
+}
+
+.nv-duties {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.9rem;
+}
+
+.nv-duties li {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 300;
+  line-height: 1.6;
+  color: var(--ink);
+  padding-left: 1rem;
+  position: relative;
+  margin-bottom: 0.3rem;
+}
+
+.nv-duties li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 5px;
+  height: 5px;
+  background: var(--saffron);
+}
+
+.nv-esdc-link {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--teal);
+  text-decoration: none;
+}
+
+.nv-esdc-link:hover {
+  color: var(--prussian);
+}
+
+/* Guidance callout — amber fill + saffron left border (brand callout spec) */
+.nv-callout {
+  background: var(--amber, #edd9b0);
+  border-left: 3px solid var(--saffron);
+  padding: 1.1rem 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.nv-callout-head {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--prussian);
+  margin-bottom: 0.4rem;
+}
+
+.nv-callout p:last-child {
+  font-family: var(--font-body);
+  font-size: 0.87rem;
+  font-weight: 300;
+  line-height: 1.65;
+  color: var(--ink);
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .nv-body {
+    padding: 3.5rem 2rem 5rem;
+  }
+
+  .nv-result {
+    padding: 1.6rem 1.75rem;
+  }
+}

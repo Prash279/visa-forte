@@ -1,0 +1,313 @@
+/* refusal-analyser.css — Refusal Pattern Analyser tool.
+   ra-* prefix for all new classes. asx-* classes come from imported assessment.css.
+   Mobile-first: base styles are 375px; wider screens layer on below. */
+
+.ra-hero-sub {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 300;
+  line-height: 1.7;
+  color: rgba(248, 244, 238, 0.82);
+  max-width: 620px;
+  margin-top: 1rem;
+}
+
+.ra-body {
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+.ra-inner {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.ra-demo-label {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--prussian);
+  margin-bottom: 0.5rem;
+}
+
+.ra-demo-letter {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.7;
+  color: var(--ink);
+  background: var(--pearl);
+  border-left: 3px solid var(--sand);
+  padding: 0.9rem 1.1rem;
+  margin: 0 0 1.1rem;
+}
+
+.ra-demo-results {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ra-demo-results li {
+  border-top: 1px solid var(--sand);
+  padding: 0.7rem 0;
+}
+
+.ra-demo-results strong {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--prussian);
+  margin-bottom: 0.15rem;
+}
+
+.ra-demo-results span {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 300;
+  line-height: 1.55;
+  color: rgba(26, 43, 60, 0.7);
+}
+
+.ra-paywall {
+  margin-top: 1.5rem;
+}
+
+.ra-paywall-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--prussian);
+  margin-bottom: 0.75rem;
+}
+
+.ra-paywall-points {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.25rem;
+}
+
+.ra-paywall-points li {
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  font-weight: 300;
+  line-height: 1.6;
+  color: var(--ink);
+  padding-left: 1rem;
+  position: relative;
+  margin-bottom: 0.35rem;
+}
+
+.ra-paywall-points li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 5px;
+  height: 5px;
+  background: var(--saffron);
+}
+
+.ra-textarea {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--sand);
+  padding: 0.7rem 0.85rem;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.ra-textarea:focus {
+  outline: none;
+  border-color: var(--saffron);
+}
+
+.ra-access-note {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--teal);
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.ra-error {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: #a4382a;
+  line-height: 1.5;
+  margin-top: 0.75rem;
+}
+
+.ra-none-found {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 300;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+/* Results */
+.ra-results {
+  margin-top: 1.5rem;
+}
+
+.ra-results-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.ra-print-btn {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--prussian);
+  background: transparent;
+  border: 1px solid var(--prussian);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.ra-print-btn:hover {
+  background: var(--prussian);
+  color: var(--pearl);
+}
+
+.ra-ground {
+  background: #fff;
+  border: 1px solid var(--sand);
+  border-top: 3px solid var(--sand);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.ra-ground--top {
+  border-top: 3px solid var(--saffron);
+}
+
+.ra-ground-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+/* Single site-wide small-label style: saffron uppercase, thin saffron border */
+.ra-chip {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  border: 1px solid var(--saffron);
+  padding: 0.2rem 0.55rem;
+  background: transparent;
+}
+
+.ra-applies {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 300;
+  color: rgba(26, 43, 60, 0.6);
+}
+
+.ra-ground-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--prussian);
+  line-height: 1.35;
+  margin-bottom: 0.75rem;
+}
+
+.ra-section-label {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--prussian);
+  margin: 0.75rem 0 0.35rem;
+}
+
+.ra-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ra-list li {
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  font-weight: 300;
+  line-height: 1.65;
+  color: var(--ink);
+  padding-left: 1rem;
+  position: relative;
+  margin-bottom: 0.4rem;
+}
+
+.ra-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 5px;
+  height: 5px;
+  background: var(--saffron);
+}
+
+/* Amber fill + saffron left border (brand callout spec) */
+.ra-callout {
+  background: var(--amber, #edd9b0);
+  border-left: 3px solid var(--saffron);
+  padding: 1.1rem 1.25rem;
+}
+
+.ra-callout-head {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--prussian);
+  margin-bottom: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .ra-body {
+    padding: 3.5rem 2rem 5rem;
+  }
+
+  .ra-ground {
+    padding: 1.6rem 1.75rem;
+  }
+}
+
+@media print {
+  .ra-no-print {
+    display: none !important;
+  }
+
+  .asx-wrap {
+    background: #fff;
+  }
+
+  .ra-ground {
+    break-inside: avoid;
+    border: 1px solid #ddd;
+    border-top: 3px solid #ddd;
+  }
+}

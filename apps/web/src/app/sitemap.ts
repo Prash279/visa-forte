@@ -22,6 +22,12 @@ const PUBLIC_ROUTES: PublicRoute[] = [
   { path: '/resources', priority: 0.8, changeFrequency: 'weekly' },
   { path: '/tools/crs-modeller', priority: 0.8, changeFrequency: 'monthly' },
   { path: '/tools/ita-countdown', priority: 0.8, changeFrequency: 'monthly' },
+  { path: '/tools/noc-verifier', priority: 0.8, changeFrequency: 'monthly' },
+  {
+    path: '/tools/refusal-analyser',
+    priority: 0.8,
+    changeFrequency: 'monthly',
+  },
   { path: '/processing-times', priority: 0.7, changeFrequency: 'daily' },
   { path: '/about', priority: 0.7, changeFrequency: 'monthly' },
   { path: '/booking', priority: 0.7, changeFrequency: 'monthly' },
