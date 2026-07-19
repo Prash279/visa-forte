@@ -93,22 +93,32 @@ export default function ResourcesPage(): JSX.Element {
                 from your ITA date.
               </p>
             </a>
-            {[
-              {
-                name: 'NOC Code Verifier',
-                desc: 'Confirm your 5-digit NOC 2021 code and TEER level against the official Statistics Canada CSV.',
-              },
-              {
-                name: 'Refusal Pattern Analyser',
-                desc: 'Identify the most common refusal grounds for your NOC and build a pre-emption strategy.',
-              },
-            ].map((tool) => (
-              <div key={tool.name} className="tools-card">
-                <div className="tools-card-badge">Coming Soon</div>
-                <h4 className="tools-card-title">{tool.name}</h4>
-                <p className="tools-card-desc">{tool.desc}</p>
-              </div>
-            ))}
+            <a
+              href="/tools/noc-verifier"
+              className="tools-card"
+              style={{ textDecoration: 'none' }}
+            >
+              <div className="tools-card-badge">Free · No Login Required</div>
+              <h4 className="tools-card-title">NOC Code Verifier</h4>
+              <p className="tools-card-desc">
+                Confirm your 5-digit NOC 2021 code and TEER level against the
+                official Statistics Canada dataset — from your duties, not your
+                job title.
+              </p>
+            </a>
+            <a
+              href="/tools/refusal-analyser"
+              className="tools-card"
+              style={{ textDecoration: 'none' }}
+            >
+              <div className="tools-card-badge">₹2,497 · Launch Tool →</div>
+              <h4 className="tools-card-title">Refusal Pattern Analyser</h4>
+              <p className="tools-card-desc">
+                Paste your refusal letter, identify the grounds behind it, and
+                get a documentation strategy for reapplying. Your letter is
+                never stored.
+              </p>
+            </a>
           </div>
         </div>
       </section>
