@@ -236,20 +236,37 @@ export function esdcNocProfileUrl(code: string): string {
   return `https://noc.esdc.gc.ca/Structure/NocProfile?GocTemplateCulture=en-CA&code=${code}&version=2021.0`;
 }
 
-const VERIFY_TIMEOUT_MS = 5000;
+const VERIFY_TIMEOUT_MS = 8000;
 
 async function pageContainsTitle(url: string, title: string): Promise<boolean> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), VERIFY_TIMEOUT_MS);
   try {
     const res = await fetch(url, {
-      redirect: 'manual',
+      // Follow language/culture redirects — the final page must still carry
+      // the official title. Browser-like headers because gov WAFs can reject
+      // bare serverless fetches that a residential curl sails through.
+      redirect: 'follow',
       signal: controller.signal,
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml',
+        'Accept-Language': 'en-CA,en;q=0.9',
+      },
     });
-    if (res.status !== 200) return false;
+    if (res.status !== 200) {
+      console.warn(
+        `[noc-verify] source check non-200: ${new URL(url).host} status=${res.status}`,
+      );
+      return false;
+    }
     const html = await res.text();
     return html.toLowerCase().includes(title.toLowerCase());
-  } catch {
+  } catch (err) {
+    console.warn(
+      `[noc-verify] source check failed: ${new URL(url).host} ${err instanceof Error ? err.name : 'unknown'}`,
+    );
     return false;
   } finally {
     clearTimeout(timer);
