@@ -238,35 +238,43 @@ export function esdcNocProfileUrl(code: string): string {
 
 const VERIFY_TIMEOUT_MS = 8000;
 
-async function pageContainsTitle(url: string, title: string): Promise<boolean> {
+// Honest, transparent tool identification. The Government of Canada WAF
+// resets connections that claim a browser UA over a non-browser TLS
+// fingerprint, while passing clearly-identified tools (the same behaviour
+// this project documented for canada.ca: default curl UA passes, spoofed
+// Mozilla gets reset). Never impersonate a browser here.
+const VERIFY_USER_AGENT = 'VisaForteNOCVerifier/1.0 (+https://visaforte.com)';
+
+async function pageContainsTitle(
+  url: string,
+  title: string,
+  notes: string[],
+): Promise<boolean> {
+  const host = new URL(url).host;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), VERIFY_TIMEOUT_MS);
   try {
     const res = await fetch(url, {
       // Follow language/culture redirects — the final page must still carry
-      // the official title. Browser-like headers because gov WAFs can reject
-      // bare serverless fetches that a residential curl sails through.
+      // the official title.
       redirect: 'follow',
       signal: controller.signal,
       headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
+        'User-Agent': VERIFY_USER_AGENT,
         Accept: 'text/html,application/xhtml+xml',
         'Accept-Language': 'en-CA,en;q=0.9',
       },
     });
     if (res.status !== 200) {
-      console.warn(
-        `[noc-verify] source check non-200: ${new URL(url).host} status=${res.status}`,
-      );
+      notes.push(`${host} status=${res.status}`);
       return false;
     }
     const html = await res.text();
-    return html.toLowerCase().includes(title.toLowerCase());
+    if (html.toLowerCase().includes(title.toLowerCase())) return true;
+    notes.push(`${host} 200 but title absent`);
+    return false;
   } catch (err) {
-    console.warn(
-      `[noc-verify] source check failed: ${new URL(url).host} ${err instanceof Error ? err.name : 'unknown'}`,
-    );
+    notes.push(`${host} ${err instanceof Error ? err.name : 'unknown'}`);
     return false;
   } finally {
     clearTimeout(timer);
@@ -274,6 +282,13 @@ async function pageContainsTitle(url: string, title: string): Promise<boolean> {
 }
 
 export type LiveVerifySource = 'esdc' | 'statcan';
+
+export interface LiveVerifyResult {
+  source: LiveVerifySource | null;
+  // One entry per failed check ("<host> status=403" / "<host> AbortError") —
+  // production observability without log infrastructure.
+  notes: string[];
+}
 
 // Best-effort confirmation that the winning code still exists on the official
 // sources. ESDC (noc.esdc.gc.ca) is checked FIRST — it is the site IRCC
@@ -284,10 +299,13 @@ export type LiveVerifySource = 'esdc' | 'statcan';
 export async function verifyCodeLive(
   code: string,
   title: string,
-): Promise<LiveVerifySource | null> {
-  if (await pageContainsTitle(esdcNocProfileUrl(code), title)) return 'esdc';
-  if (await pageContainsTitle(statcanUnitGroupUrl(code), title)) {
-    return 'statcan';
+): Promise<LiveVerifyResult> {
+  const notes: string[] = [];
+  if (await pageContainsTitle(esdcNocProfileUrl(code), title, notes)) {
+    return { source: 'esdc', notes };
   }
-  return null;
+  if (await pageContainsTitle(statcanUnitGroupUrl(code), title, notes)) {
+    return { source: 'statcan', notes };
+  }
+  return { source: null, notes };
 }
