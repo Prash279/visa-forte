@@ -1,3 +1,30 @@
+## Session 2026-07-19 (later) — Free resources batch 2 (branch `feat/free-resource-pdfs-batch2`)
+
+> Commissioned by Prash after PR #9 merged: the filter categories Application Guides, Sample Formats,
+> Letter Templates, and Comparison Tables were empty — "Create downloadable PDF's for these as well
+> in the same way."
+
+- [x] Live-verified all new facts via curl (canonical URLs after redirects: `who-can-apply/*`,
+      `documents/education-assessment.html`, `documents/language-test.html`, ops-manual
+      completeness-check page). Confirmed: ECA 5-yr rule + 5 designated orgs + CACB/MCC/PEBC
+      professional bodies (CACB designated 2024-05-20, pre-2024-10-31 grandfather note); FSW 1yr/
+      1,560h in 10yrs + CLB 7 + 67/100 + PoF exemption (legal work + job offer); CEC 1yr in 3yrs +
+      CLB 7 (TEER 0/1) / CLB 5 (TEER 2/3) + no education + no PoF; FST 2yr/3,120h in 5yrs + Major
+      Groups 72(-726)/73/82/83/92/93(-932) + CLB 5 S/L + CLB 4 R/W + job offer OR certificate;
+      reference-letter mandatory elements incl. self-employed rules (no affidavits) + T4/NOA.
+- [x] 4 new builders in `generate_resource_pdfs.py`, one per empty type: `eca-application-guide`
+      (guide), `employment-reference-letter-sample` (sample), `employer-request-letter-template`
+      (letter), `fswp-cec-fstp-comparison` (comparison). 4 new `resources.json` free entries
+      (featured: false — original 3 stay first). All 7 filter pills now have content.
+- [x] Content verified via markitdown; tsc clean; `npm test` 372/372 (data-driven resources tests
+      cover the new entries automatically); README updated.
+
+**Prashant Proof:** go to /resources → Free Resources → click each filter pill (Application Guides,
+Sample Formats, Letter Templates, Comparison Tables) — each now shows a card, and its "Download
+Free →" saves a branded PDF.
+
+---
+
 ## Session 2026-07-19 — Resource PDF products + premium purchase flow (branch `feat/resource-pdf-products`)
 
 > Directly commissioned by Prash this session: "build the products for both the free resources and

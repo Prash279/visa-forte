@@ -17,6 +17,10 @@ rules update.
 - `ee-document-checklist.pdf`
 - `ielts-clb-crs-cheatsheet.pdf`
 - `ita-to-pr-roadmap.pdf`
+- `eca-application-guide.pdf`
+- `employment-reference-letter-sample.pdf`
+- `employer-request-letter-template.pdf`
+- `fswp-cec-fstp-comparison.pdf`
 
 ## Adding a new free resource
 

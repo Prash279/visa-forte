@@ -1508,11 +1508,424 @@ def build_gap_analysis() -> None:
     d.build()
 
 
+# ── Free batch 2 (2026-07-19): one document per remaining resource type ──────
+
+OPS_MANUAL_BASE = (
+    "canada.ca/en/immigration-refugees-citizenship/corporate/"
+    "publications-manuals/operational-bulletins-manuals/permanent-residence/"
+    "express-entry"
+)
+
+
+def build_eca_guide() -> None:
+    d = Doc(FREE_DIR / "eca-application-guide.pdf", "ECA Application Guide")
+    d.title(
+        "The ECA Application Guide",
+        "How to get your foreign education assessed for Express Entry - which "
+        "organization to use, what the report does for your file, and the "
+        "mistakes that cost applicants months.",
+    )
+    d.callout(
+        "Your ECA must be <b>less than 5 years old</b> both when you complete "
+        "your Express Entry profile and when you apply. IRCC's own wording: "
+        "applying with an expired ECA means <b>your application will be "
+        "refused</b>. If it will expire before you can apply, contact the "
+        "issuing organization - some report types can be re-issued.",
+        heading="The 5-year rule",
+    )
+
+    d.h2("Who needs an ECA")
+    d.bullets([
+        "<b>Federal Skilled Worker applicants</b> with foreign education - "
+        "mandatory. Without it you cannot meet the FSWP education requirement.",
+        "<b>Anyone claiming CRS points for education completed outside "
+        "Canada</b> - CEC and FSTP have no education requirement, but without "
+        "an ECA your foreign credential earns zero education points.",
+        "<b>Not needed</b> for education completed in Canada at a Canadian "
+        "high school or post-secondary institution.",
+    ])
+
+    d.h2("Step 1 - Choose your designated organization")
+    d.p(
+        "Most applicants may use any one of the five designated organizations. "
+        "Processing times and costs vary by organization - compare before you "
+        "commit, because the report is tied to the organization that issued it."
+    )
+    d.table(
+        ["Designated organization", "Commonly known as"],
+        [
+            ["Comparative Education Service - University of Toronto "
+             "School of Continuing Studies", "CES"],
+            ["International Credential Assessment Service of Canada", "ICAS"],
+            ["World Education Services", "WES"],
+            ["International Qualifications Assessment Service (Alberta)", "IQAS"],
+            ["International Credential Evaluation Service - British "
+             "Columbia Institute of Technology", "ICES"],
+        ],
+    )
+    d.note(
+        "Ask for the report type for immigration purposes ('ECA for IRCC'). A "
+        "standard academic evaluation from the same organization is not valid "
+        "for Express Entry."
+    )
+
+    d.h3("Regulated professions use their professional body instead")
+    d.bullets([
+        "<b>Architects (NOC 21200)</b> - Canadian Architectural Certification "
+        "Board (CACB), designated 20 May 2024. An ECA issued for this "
+        "occupation by another designated organization before 31 October 2024 "
+        "is still accepted while it remains valid.",
+        "<b>Doctors</b> - Medical Council of Canada, if your primary "
+        "occupation is a physician NOC.",
+        "<b>Pharmacists</b> - Pharmacy Examining Board of Canada, if you need "
+        "a licence to practise. Pharmacists who do not need a licence for "
+        "their intended work may use a designated organization instead.",
+    ])
+
+    d.h2("Step 2 - Submit your documents")
+    d.p(
+        "Once you choose the organization, they tell you exactly how to submit "
+        "your documents - requirements differ by organization and by country "
+        "of study. Most require transcripts sent directly from your "
+        "institution, which is usually the slowest step. Start the "
+        "institution's transcript process the same week you open the ECA file."
+    )
+
+    d.h2("Step 3 - Use the report correctly in your profile")
+    d.checklist([
+        "Enter the ECA report number and result exactly as issued - the "
+        "assessed Canadian equivalency, not your original credential name.",
+        "Assess your <b>highest</b> credential at minimum. If you hold two or "
+        "more credentials, ask the organization to assess both - 'two or more "
+        "credentials' is its own CRS education level and can be worth more "
+        "than the higher credential alone.",
+        "Check the expiry math against your realistic timeline in the pool - "
+        "a report issued 4.5 years ago is a liability, not an asset.",
+        "Keep the name on the report identical to your passport name; a "
+        "mismatch triggers requests for explanation.",
+    ])
+
+    d.sources([
+        f"{EE_BASE}/documents/education-assessment.html",
+        f"{EE_BASE}/who-can-apply/federal-skilled-workers.html",
+    ])
+    d.disclaimer()
+    d.build()
+
+
+def build_reference_letter_sample() -> None:
+    d = Doc(
+        FREE_DIR / "employment-reference-letter-sample.pdf",
+        "Employment Reference Letter - Sample",
+    )
+    d.title(
+        "Employment Reference Letter: The IRCC-Compliant Sample Format",
+        "Exactly what an Express Entry reference letter must contain, why "
+        "each element is mandatory, and a complete sample you can hand to "
+        "your employer.",
+    )
+    d.callout(
+        "A reference letter is <b>mandatory for every work experience you "
+        "declare</b>. An application missing one - or containing one that "
+        "omits a required element - can be rejected as incomplete or refused "
+        "on eligibility. This is the single most common documentation failure "
+        "in Express Entry files.",
+        heading="Why this letter decides your file",
+    )
+
+    d.h2("The mandatory elements (IRCC completeness standard)")
+    d.p(
+        "Per IRCC's completeness-check instructions, the letter should be an "
+        "official document printed on <b>company letterhead</b> and must "
+        "include:"
+    )
+    d.checklist([
+        "Your <b>name</b> as it appears in the application.",
+        "The company's <b>contact information</b>: address, telephone number, "
+        "and email address.",
+        "The <b>name, title, and signature</b> of your immediate supervisor "
+        "or a personnel officer.",
+        "<b>All positions held</b> while employed at the company, and for "
+        "each: <b>job title</b>, <b>duties and responsibilities</b>, <b>job "
+        "status</b> (if it is your current job), <b>dates worked</b>, "
+        "<b>number of work hours per week</b>, and <b>annual salary plus "
+        "benefits</b>.",
+    ])
+    d.note(
+        "Duties are what the officer maps to your NOC code - write them as "
+        "they were actually performed, in language that corresponds to the "
+        "NOC's main duties. A grand job title with vague duties earns nothing."
+    )
+
+    d.h2("Sample letter")
+    d.template_block(
+        "[COMPANY LETTERHEAD]\n"
+        "\n"
+        "Date: 4 March 2026\n"
+        "\n"
+        "To: Immigration, Refugees and Citizenship Canada\n"
+        "\n"
+        "RE: Employment reference - Ms Anjali Sharma\n"
+        "\n"
+        "This letter confirms that Ms Anjali Sharma has been employed by "
+        "Meridian Analytics Pvt Ltd since 15 June 2021 and remains a "
+        "full-time employee in good standing.\n"
+        "\n"
+        "Position 1 - Data Analyst (15 June 2021 to 31 May 2023)\n"
+        "Full-time, 40 hours per week. Annual salary INR 9,20,000 plus "
+        "health insurance and provident fund contributions.\n"
+        "Duties: collected and cleaned operational datasets; built and "
+        "maintained dashboards; prepared statistical summaries for "
+        "management; documented data-quality procedures.\n"
+        "\n"
+        "Position 2 - Senior Data Analyst (1 June 2023 to present, current "
+        "position)\n"
+        "Full-time, 40 hours per week. Annual salary INR 14,50,000 plus "
+        "health insurance, provident fund, and annual performance bonus.\n"
+        "Duties: designs analytical models to support business decisions; "
+        "leads a team of two junior analysts; presents findings to senior "
+        "management; liaises with engineering on data pipeline requirements.\n"
+        "\n"
+        "Please contact the undersigned for any verification.\n"
+        "\n"
+        "Sincerely,\n"
+        "\n"
+        "(signature)\n"
+        "Rahul Menon\n"
+        "Head of Human Resources\n"
+        "Meridian Analytics Pvt Ltd\n"
+        "Plot 14, Financial District, Hyderabad 500032, India\n"
+        "+91 40 0000 0000 - hr@meridiananalytics.example"
+    )
+    d.note(
+        "The names and company above are fictional - replace every detail "
+        "with your own. Keep the structure: one block per position, with "
+        "status, dates, hours, salary and benefits, then duties."
+    )
+
+    d.h2("If you are self-employed")
+    d.p(
+        "A reference letter from yourself is not acceptable - IRCC states "
+        "that self-declared main duties or affidavits are not acceptable "
+        "proof of self-employed work experience. Provide instead:"
+    )
+    d.bullets([
+        "Articles of incorporation or other evidence of business ownership.",
+        "Evidence of self-employment income.",
+        "Documentation from third-party clients describing the service "
+        "provided, along with payment details.",
+    ])
+
+    d.h2("If the experience is in Canada")
+    d.p(
+        "Supporting proof may include copies of T4 tax information slips and "
+        "CRA notices of assessment covering the same calendar years as the "
+        "claimed experience."
+    )
+
+    d.sources([
+        f"{OPS_MANUAL_BASE}/applications-received-on-after-january-1-2016-"
+        "completeness-check.html",
+    ])
+    d.disclaimer()
+    d.build()
+
+
+def build_employer_request_letter() -> None:
+    d = Doc(
+        FREE_DIR / "employer-request-letter-template.pdf",
+        "Reference Letter Request - Template",
+    )
+    d.title(
+        "Asking Your Employer: The Reference Letter Request Template",
+        "A ready-to-send letter that asks HR for an Express Entry reference "
+        "letter - and gets a compliant one back the first time.",
+    )
+    d.p(
+        "Most non-compliant reference letters are not the employer's fault - "
+        "they were never told what IRCC requires. HR departments issue "
+        "standard service certificates that omit duties, hours, and salary, "
+        "and each corrected round trip costs weeks. This template puts the "
+        "full IRCC specification in the request itself."
+    )
+    d.callout(
+        "Send the request in writing, attach the specification below, and "
+        "offer a pre-written draft your employer can put on letterhead. "
+        "Employers sign accurate drafts far faster than they write letters "
+        "from scratch.",
+        heading="The tactic that saves a month",
+    )
+
+    d.h2("The request letter")
+    d.template_block(
+        "Subject: Request for employment reference letter - "
+        "[your full name], [employee ID]\n"
+        "\n"
+        "Dear [HR manager / supervisor name],\n"
+        "\n"
+        "I am preparing an application for Canadian permanent residence "
+        "under Express Entry, and Immigration, Refugees and Citizenship "
+        "Canada (IRCC) requires a reference letter from my employer in a "
+        "specific format. I would be grateful if you could issue a letter "
+        "meeting the requirements below.\n"
+        "\n"
+        "The letter should be printed on company letterhead, and must "
+        "include:\n"
+        "  1. My full name as per company records;\n"
+        "  2. The company's address, telephone number, and email address;\n"
+        "  3. The name, title, and signature of my immediate supervisor or "
+        "a personnel officer;\n"
+        "  4. All positions I have held at the company, and for each: job "
+        "title, duties and responsibilities, job status (for my current "
+        "role), dates worked, number of work hours per week, and annual "
+        "salary plus benefits.\n"
+        "\n"
+        "To make this as easy as possible, I have attached a draft "
+        "containing the factual details, which you are welcome to verify, "
+        "amend, and place on letterhead.\n"
+        "\n"
+        "This letter is for immigration documentation only and creates no "
+        "obligation for the company. I would appreciate receiving it by "
+        "[date], as my application is time-bound.\n"
+        "\n"
+        "Thank you for your help.\n"
+        "\n"
+        "Sincerely,\n"
+        "[Your name]\n"
+        "[Department / employee ID]\n"
+        "[Phone - email]"
+    )
+
+    d.h2("If the company refuses or no longer exists")
+    d.bullets([
+        "Ask your direct supervisor (current or former) to sign the letter "
+        "in a personal capacity, stating their role, and pair it with "
+        "supporting evidence: employment contract, pay slips, promotion "
+        "letters, tax records.",
+        "If no letter is obtainable at all, assemble the alternative "
+        "evidence and explain the situation in a Letter of Explanation - "
+        "an officer can accept a documented, credible account of why the "
+        "standard letter is unavailable.",
+        "Never submit a letter you drafted and signed yourself as if it "
+        "came from the company - that is misrepresentation territory.",
+    ])
+
+    d.sources([
+        f"{OPS_MANUAL_BASE}/applications-received-on-after-january-1-2016-"
+        "completeness-check.html",
+    ])
+    d.disclaimer()
+    d.build()
+
+
+def build_program_comparison() -> None:
+    d = Doc(
+        FREE_DIR / "fswp-cec-fstp-comparison.pdf",
+        "FSWP vs CEC vs FSTP - Comparison",
+    )
+    d.title(
+        "FSWP vs CEC vs FSTP: The Eligibility Comparison Table",
+        "The three Express Entry programs side by side - work experience, "
+        "language minimums, education, funds, and the requirement that "
+        "usually decides which door you enter through.",
+    )
+    d.p(
+        "All three programs feed the same Express Entry pool and use the same "
+        "CRS score once you are in. Eligibility is what differs - and it is "
+        "assessed per program, so strengthening one requirement (language, "
+        "for instance) can open a second program and with it a second set of "
+        "draw types."
+    )
+
+    d.h2("The comparison")
+    d.table(
+        ["Requirement", "Federal Skilled Worker",
+         "Canadian Experience Class", "Federal Skilled Trades"],
+        [
+            ["Skilled work experience",
+             "1 year continuous (1,560 h) in the last 10 years",
+             "1 year (1,560 h) in the last 3 years",
+             "2 years (3,120 h) in the last 5 years"],
+            ["Where the experience counts",
+             "Canada or abroad",
+             "Canada only",
+             "Canada or abroad"],
+            ["Occupation type",
+             "TEER 0, 1, 2 or 3 (one NOC, continuous)",
+             "TEER 0, 1, 2 or 3",
+             "Skilled trade: NOC Major Group 72 (excl. 726), 73, 82, 83, "
+             "92 or 93 (excl. 932)"],
+            ["Language minimum",
+             "CLB/NCLC 7 in all four abilities",
+             "CLB/NCLC 7 (TEER 0/1 job) or CLB/NCLC 5 (TEER 2/3 job)",
+             "CLB/NCLC 5 speaking + listening; CLB/NCLC 4 reading + writing"],
+            ["Education",
+             "Secondary minimum; foreign credential needs an ECA",
+             "No education requirement",
+             "No education requirement"],
+            ["Job offer / certificate",
+             "Not required",
+             "Not required",
+             "1-year full-time job offer OR provincial/territorial/federal "
+             "certificate of qualification in the trade"],
+            ["Proof of funds",
+             "Required, unless legally working in Canada with a valid "
+             "job offer",
+             "Not required",
+             "Required, unless legally working in Canada with a valid "
+             "job offer"],
+            ["Extra gate",
+             "67/100 on the six selection factors",
+             "None",
+             "None"],
+        ],
+        widths=[34 * mm, None, None, None],
+    )
+    d.note(
+        "Part-time counts everywhere at the same total-hours arithmetic: "
+        "e.g. 15 hours/week for 24 months equals 1 year full-time "
+        "(1,560 hours). Volunteer work and unpaid internships never count - "
+        "experience must have been paid in wages or commission."
+    )
+
+    d.h2("How to read this strategically")
+    d.bullets([
+        "<b>One year in Canada changes everything</b> - CEC removes the "
+        "education requirement, the proof-of-funds requirement, and the "
+        "67-point grid in one move, and CEC-only draws are a recurring "
+        "draw type.",
+        "<b>FSWP is the only door that opens from abroad without a job "
+        "offer</b> - but it is also the only program with the 67-point "
+        "selection grid; check it before investing in anything else.",
+        "<b>FSTP's language bar is the lowest</b> (CLB 5/4) - but it trades "
+        "that for the hardest practical gate: a 1-year job offer or a "
+        "Canadian certificate of qualification. If the province where you "
+        "plan to live does not certify your trade, a job offer is the only "
+        "route.",
+        "<b>Eligible for more than one program?</b> You enter the same pool "
+        "with the same CRS either way - what changes is which "
+        "program-specific draws can reach you.",
+    ])
+
+    d.sources([
+        f"{EE_BASE}/who-can-apply/federal-skilled-workers.html",
+        f"{EE_BASE}/who-can-apply/canadian-experience-class.html",
+        f"{EE_BASE}/who-can-apply/federal-skilled-trades.html",
+        f"{EE_BASE}/documents/language-test.html",
+    ])
+    d.disclaimer()
+    d.build()
+
+
 if __name__ == "__main__":
     print("Generating Visa Forte resource PDFs...")
     build_ee_checklist()
     build_cheatsheet()
     build_roadmap()
+    build_eca_guide()
+    build_reference_letter_sample()
+    build_employer_request_letter()
+    build_program_comparison()
     build_loe_pack()
     build_audit_guide()
     build_gap_analysis()
