@@ -224,9 +224,49 @@
   text-transform: uppercase;
   padding: 0.75rem 1.4rem;
   border: none;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background 0.18s ease;
+}
+
+.resource-cta--premium:hover { background: var(--teal); }
+
+.resource-cta--premium:disabled {
   cursor: not-allowed;
   opacity: 0.65;
-  align-self: flex-start;
+}
+
+/* Buyer details inside the premium purchase flow */
+.resource-price { margin-bottom: 0.6rem; }
+
+.resource-buy-input {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--sand);
+  padding: 0.6rem 0.8rem;
+}
+
+.resource-buy-input:focus {
+  outline: none;
+  border-color: var(--saffron);
+}
+
+.resource-buy-error {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: #a4382a;
+  line-height: 1.5;
+}
+
+.resource-download-ready {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--teal);
+  line-height: 1.5;
 }
 
 .resource-cta-note {

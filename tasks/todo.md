@@ -1,3 +1,55 @@
+## Session 2026-07-19 — Resource PDF products + premium purchase flow (branch `feat/resource-pdf-products`)
+
+> Directly commissioned by Prash this session: "build the products for both the free resources and
+> premium resources on the Resources page that the client can download after the purchase as pdf
+> documents … and complete the resources page build." That instruction is the approval for this plan.
+
+**What exists:** /resources page UI is live; `public/downloads/` is empty (free downloads 503);
+premium "Buy Now" is a disabled button. `resources.json` defines 3 free + 3 premium products.
+
+**Plan:**
+- [x] 1. Verify content facts live against canada.ca via curl (CRS grid spot-checks vs `crs-rules.json`,
+      IELTS→CLB equivalency chart, EE document list, post-ITA process steps). No figure enters a PDF
+      without a same-session canada.ca citation or `crs-rules.json` provenance. **Done — crs-rules.json
+      matched canada.ca exactly on every spot-checked figure; two guessed URLs 404'd and were replaced
+      with canonical paths discovered from parent-page hrefs.**
+- [x] 2. Build `scripts/generate_resource_pdfs.py` (reportlab, Visa Forte brand system, same colour/
+      header/footer architecture as `generate_ee_questionnaire.py`). Cheat-sheet numbers are READ from
+      `crs-rules.json` at generation time — never hand-typed. Every PDF carries the standard legal
+      disclaimer + "Verified: <month year> · Source: canada.ca" header.
+- [x] 3. Generate 3 free PDFs → `apps/web/public/downloads/` (served by existing download route).
+      Content verified via markitdown text extraction (poppler not installed, so no page rendering).
+- [x] 4. Generate 3 premium PDFs → `apps/web/private/downloads/` (NOT in public/ — paid content must
+      not be URL-guessable). `outputFileTracingIncludes` added to next.config.ts so Vercel bundles
+      them into the download route; verified in `route.js.nft.json` after prod build.
+- [x] 5. Premium purchase flow, cloned from the proven ita-countdown pattern: `create-order` (amount
+      from resources.json server-side) → `verify` (HMAC signature check before anything else) →
+      stateless signed download token (`premium-download-token.ts`, HMAC over id+expiry with
+      RAZORPAY_KEY_SECRET — no new env var, 30-day validity, timing-safe compare) →
+      `premium/download` route streams the private PDF → purchase email + Prash sale notification
+      via Resend (both non-fatal). ponytail: no new DB table — Razorpay dashboard is the purchase
+      ledger; add a `resourceOrders` table later if refunds/revocation or CRM integration demand it
+      (schema change = Halt-and-Ask, deliberately avoided here).
+- [x] 6. Wire ResourceCard premium CTA to a client `PremiumBuyButton` (same Razorpay checkout.js flow
+      as ItaCountdownTool): name+email fields → checkout → verified payment auto-starts the download
+      and shows a re-download link. Free cards unchanged. `resources.json` premium entries gained
+      `fileName`; `findPremiumResource()` added.
+- [x] 7. Tests: 17 new (token sign/verify/expiry/tamper ×7, verify route ×4, download route auth ×4,
+      resources accessors ×2) — `npm test` **372/372**, `tsc --noEmit` clean, eslint clean,
+      prod build green.
+
+**Prashant Proof (browser, <60s):**
+1. Run `npm run dev` in `apps/web`, go to `/resources`.
+2. Free: click "Download Free →" on the Express Entry Document Checklist card — a branded PDF saves
+   to your computer (no more 503).
+3. Premium: on the LOE Master Template Pack card, the disabled "coming soon" button is gone — you see
+   name + email fields and a live "Buy Now →" that opens Razorpay checkout (test keys needed locally;
+   on visaforte.com the live keys are already in Vercel). After a test payment the PDF downloads
+   automatically and the link is emailed.
+4. Confirm at 375px width the inputs and button stack cleanly inside the card.
+
+---
+
 ## Session 2026-07-18 — CRS Section D bonuses: French + Canadian education (branch `feat/resources-inr-only`)
 
 > Approved by Prash in-session ("Proceed"). Root finding: the CRS calculator's Section D summed only
