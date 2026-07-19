@@ -26,6 +26,42 @@
       "description": "A visual end-to-end timeline from the day you receive an Invitation to Apply to the day you land in Canada. Includes realistic timeframes for each stage and what happens if a step is delayed.",
       "fileName": "ita-to-pr-roadmap.pdf",
       "featured": true
+    },
+    {
+      "id": "eca-application-guide",
+      "title": "The ECA Application Guide",
+      "type": "guide",
+      "category": "Credentials",
+      "description": "How to get your foreign education assessed for Express Entry — choosing between the five designated organizations, the professional-body rules for architects, doctors, and pharmacists, the 5-year validity rule, and the mistakes that cost applicants months.",
+      "fileName": "eca-application-guide.pdf",
+      "featured": false
+    },
+    {
+      "id": "employment-reference-letter-sample",
+      "title": "Employment Reference Letter — IRCC-Compliant Sample Format",
+      "type": "sample",
+      "category": "Work Experience",
+      "description": "Every element IRCC's completeness check requires in a reference letter — letterhead, supervisor signature, duties, hours, salary and benefits — plus a complete annotated sample letter you can hand to your employer, and the alternative evidence rules for self-employed applicants.",
+      "fileName": "employment-reference-letter-sample.pdf",
+      "featured": false
+    },
+    {
+      "id": "employer-request-letter-template",
+      "title": "Reference Letter Request — Employer Template",
+      "type": "letter",
+      "category": "Work Experience",
+      "description": "A ready-to-send letter that asks your HR department for an Express Entry reference letter with the full IRCC specification built into the request — so the letter comes back compliant the first time. Includes what to do if the company refuses or no longer exists.",
+      "fileName": "employer-request-letter-template.pdf",
+      "featured": false
+    },
+    {
+      "id": "fswp-cec-fstp-comparison",
+      "title": "FSWP vs CEC vs FSTP — Eligibility Comparison Table",
+      "type": "comparison",
+      "category": "Express Entry",
+      "description": "The three Express Entry programs side by side: work experience windows and hours, language minimums per program, education and proof-of-funds rules, and the job-offer/certificate gate for skilled trades — with strategic notes on which door to enter through.",
+      "fileName": "fswp-cec-fstp-comparison.pdf",
+      "featured": false
     }
   ],
   "premium": [
