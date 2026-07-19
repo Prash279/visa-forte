@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   findFreeResource,
+  findPremiumResource,
   getAllFreeResources,
   getAllPremiumResources,
 } from '@/lib/resources';
@@ -81,6 +82,7 @@ describe('getAllPremiumResources', () => {
       expect(r.priceINR, `${r.id}: priceINR must be positive`).toBeGreaterThan(
         0,
       );
+      expect(r.fileName, `${r.id}: missing fileName`).toMatch(/\.pdf$/);
       expect(
         (VALID_TYPES as readonly string[]).includes(r.type),
         `${r.id}: invalid type "${r.type}"`,
@@ -92,5 +94,18 @@ describe('getAllPremiumResources', () => {
     const resources = getAllPremiumResources();
     const ids = resources.map((r) => r.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+});
+
+describe('findPremiumResource', () => {
+  it('returns the resource when the id exists', () => {
+    const resource = findPremiumResource('loe-master-template-pack');
+    expect(resource).toBeDefined();
+    expect(resource?.fileName).toBe('loe-master-template-pack.pdf');
+  });
+
+  it('returns undefined for an unknown or free-only id', () => {
+    expect(findPremiumResource('this-does-not-exist')).toBeUndefined();
+    expect(findPremiumResource('ee-document-checklist')).toBeUndefined();
   });
 });

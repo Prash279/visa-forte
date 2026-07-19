@@ -36,6 +36,7 @@
       "category": "Express Entry",
       "description": "Eight professionally written LOE templates covering the most common explanation scenarios: employment gaps, travel history discrepancies, study-to-work transitions, and more. Each template includes annotated notes explaining what IRCC officers look for.",
       "priceINR": 1997,
+      "fileName": "loe-master-template-pack.pdf",
       "featured": true
     },
     {
@@ -45,6 +46,7 @@
       "category": "Express Entry",
       "description": "A 40-point audit checklist with worked examples for every section of the e-APR. Covers every common rejection trigger, what to do when a document doesn't match the form exactly, and how to write explanatory notes that satisfy IRCC without triggering a request for more information.",
       "priceINR": 3997,
+      "fileName": "ee-pre-submission-audit-guide.pdf",
       "featured": true
     },
     {
@@ -54,6 +56,7 @@
       "category": "Express Entry",
       "description": "A 20-point diagnostic that identifies exactly where CRS points are being left on the table and what actions would move the score. Covers language band gaps, Canadian experience scenarios, spousal contribution modelling, and when a provincial nominee pathway outperforms waiting for a draw.",
       "priceINR": 2497,
+      "fileName": "crs-gap-analysis-action-plan.pdf",
       "featured": true
     }
   ]

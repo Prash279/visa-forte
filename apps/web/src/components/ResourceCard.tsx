@@ -1,10 +1,12 @@
 // apps/web/src/components/ResourceCard.tsx
 // Shared card UI for both free and premium resources.
 // Uses a discriminated union so TypeScript enforces the right props per kind.
-// No client-side state — safe to use in server components.
+// The card itself is a server component; premium cards embed the
+// PremiumBuyButton client component for the Razorpay purchase flow.
 
 import type { JSX } from 'react';
 import type { ResourceType } from '@/lib/resources';
+import PremiumBuyButton from './PremiumBuyButton';
 
 // Human-readable label for each resource type (shown as the badge text)
 const TYPE_LABELS: Record<ResourceType, string> = {
@@ -66,26 +68,13 @@ export default function ResourceCard(props: ResourceCardProps): JSX.Element {
             Download Free →
           </a>
         ) : (
-          <div className="resource-premium-cta">
+          <div>
             <div className="resource-price">
               <span className="resource-price-inr">
                 ₹{props.priceINR.toLocaleString('en-IN')}
               </span>
             </div>
-            <button
-              className="resource-cta resource-cta--premium"
-              disabled
-              aria-disabled="true"
-            >
-              Buy Now →
-            </button>
-            <p className="resource-cta-note">
-              Payment integration coming soon.{' '}
-              <a href="mailto:prashant@visaforte.com?subject=Purchase%20Enquiry%20%E2%80%94%20Resource">
-                Contact to purchase
-              </a>
-              .
-            </p>
+            <PremiumBuyButton resourceId={props.id} title={props.title} />
           </div>
         )}
       </div>

@@ -13,22 +13,31 @@ const csp = [
   "font-src 'self' data:",
   // *.google-analytics.com covers the regional collection endpoints GA4 routes through
   "connect-src 'self' https://o4511213768540160.ingest.us.sentry.io https://api.razorpay.com https://lumberjack.razorpay.com https://cloudflareinsights.com https://*.google-analytics.com https://www.googletagmanager.com",
-  "frame-src https://api.razorpay.com",
+  'frame-src https://api.razorpay.com',
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
 ].join('; ');
 
 const securityHeaders = [
-  { key: 'X-Frame-Options',          value: 'DENY' },
-  { key: 'X-Content-Type-Options',   value: 'nosniff' },
-  { key: 'Referrer-Policy',          value: 'strict-origin-when-cross-origin' },
-  { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
-  { key: 'Content-Security-Policy',  value: csp },
+  { key: 'X-Frame-Options', value: 'DENY' },
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  {
+    key: 'Strict-Transport-Security',
+    value: 'max-age=63072000; includeSubDomains; preload',
+  },
+  { key: 'Content-Security-Policy', value: csp },
 ];
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ['require-in-the-middle', 'import-in-the-middle'],
+  // The premium PDFs live in private/ (not public/) so they can't be fetched
+  // by guessing a URL. File tracing can't see the dynamic fs.readFile path,
+  // so the folder must be bundled into the download route explicitly.
+  outputFileTracingIncludes: {
+    '/api/resources/premium/download': ['./private/downloads/**/*'],
+  },
   turbopack: {
     root: __dirname,
   },
