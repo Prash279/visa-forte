@@ -229,29 +229,48 @@ export function statcanUnitGroupUrl(code: string): string {
   return `https://www23.statcan.gc.ca/imdb/p3VD.pl?Function=getVD&TVD=1322554&CVD=1322870&CPV=${code}&CST=01052021&CLV=5&MLV=5`;
 }
 
+// The ESDC NOC 2021 profile page for a unit group — the site IRCC's
+// "Find your NOC" page directs applicants to. Server-rendered, contains the
+// official title verbatim, and 404s for codes that do not exist.
+export function esdcNocProfileUrl(code: string): string {
+  return `https://noc.esdc.gc.ca/Structure/NocProfile?GocTemplateCulture=en-CA&code=${code}&version=2021.0`;
+}
+
 const VERIFY_TIMEOUT_MS = 5000;
 
-// Best-effort confirmation that the winning code still exists on the official
-// Statistics Canada source. Never throws: a verification hiccup must not fail
-// the whole classification. Shared by the admin PNP classifier and the public
-// NOC verifier.
-export async function verifyCodeLive(
-  code: string,
-  title: string,
-): Promise<boolean> {
+async function pageContainsTitle(url: string, title: string): Promise<boolean> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), VERIFY_TIMEOUT_MS);
   try {
-    const res = await fetch(statcanUnitGroupUrl(code), {
+    const res = await fetch(url, {
       redirect: 'manual',
       signal: controller.signal,
     });
     if (res.status !== 200) return false;
     const html = await res.text();
-    return html.includes(title);
+    return html.toLowerCase().includes(title.toLowerCase());
   } catch {
     return false;
   } finally {
     clearTimeout(timer);
   }
+}
+
+export type LiveVerifySource = 'esdc' | 'statcan';
+
+// Best-effort confirmation that the winning code still exists on the official
+// sources. ESDC (noc.esdc.gc.ca) is checked FIRST — it is the site IRCC
+// directs applicants to — with Statistics Canada (the NOC 2021 co-publisher
+// and origin of the bundled dataset) as fallback. Never throws: a
+// verification hiccup must not fail the whole classification. Shared by the
+// admin PNP classifier and the public NOC verifier.
+export async function verifyCodeLive(
+  code: string,
+  title: string,
+): Promise<LiveVerifySource | null> {
+  if (await pageContainsTitle(esdcNocProfileUrl(code), title)) return 'esdc';
+  if (await pageContainsTitle(statcanUnitGroupUrl(code), title)) {
+    return 'statcan';
+  }
+  return null;
 }

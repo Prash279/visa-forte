@@ -89,7 +89,10 @@ interface VerifierMatch {
 interface VerifierResponse {
   method: 'ai' | 'lexical';
   confidence?: 'high' | 'medium' | 'low';
-  verifiedLive?: boolean;
+  // Which official source confirmed the winning code live: the ESDC NOC site
+  // (noc.esdc.gc.ca — where IRCC directs applicants) or Statistics Canada
+  // (NOC 2021 co-publisher, fallback). null = verification unavailable.
+  verifiedSource?: 'esdc' | 'statcan' | null;
   matches: VerifierMatch[];
 }
 
@@ -167,7 +170,7 @@ async function aiRank(
   const grounded = groundClassification(raw, hits);
   if (grounded === null) return null;
 
-  const verifiedLive = await verifyCodeLive(grounded.nocCode, grounded.title);
+  const verifiedSource = await verifyCodeLive(grounded.nocCode, grounded.title);
 
   const matches = grounded.candidates
     .map((c, i) =>
@@ -181,7 +184,7 @@ async function aiRank(
   return {
     method: 'ai',
     confidence: grounded.confidence,
-    verifiedLive,
+    verifiedSource,
     matches,
   };
 }

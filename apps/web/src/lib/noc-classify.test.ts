@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { getGroupByCode, type NocRetrievalHit } from './noc-retrieval';
 import {
   buildCandidateBlock,
@@ -267,5 +267,53 @@ describe('grounding block + citation urls', () => {
   it('builds code-specific official URLs', () => {
     expect(esdcProfileUrl('41404')).toContain('code=41404.00');
     expect(statcanUnitGroupUrl('41404')).toContain('CPV=41404');
+  });
+});
+
+describe('verifyCodeLive', () => {
+  const htmlWith = (text: string) =>
+    Promise.resolve({ status: 200, text: async () => `<html>${text}</html>` });
+
+  it('verifies on ESDC first and never touches StatCan when ESDC confirms', async () => {
+    const calls: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        calls.push(String(url));
+        return htmlWith('Data scientists');
+      }),
+    );
+    const { verifyCodeLive } = await import('./noc-classify');
+    const source = await verifyCodeLive('21211', 'Data scientists');
+    vi.unstubAllGlobals();
+    expect(source).toBe('esdc');
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toContain('noc.esdc.gc.ca');
+  });
+
+  it('falls back to StatCan when the ESDC check fails', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) =>
+        String(url).includes('noc.esdc.gc.ca')
+          ? Promise.resolve({ status: 404, text: async () => '' })
+          : htmlWith('Data scientists'),
+      ),
+    );
+    const { verifyCodeLive } = await import('./noc-classify');
+    const source = await verifyCodeLive('21211', 'Data scientists');
+    vi.unstubAllGlobals();
+    expect(source).toBe('statcan');
+  });
+
+  it('returns null when neither source confirms the title', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => htmlWith('a page about something else entirely')),
+    );
+    const { verifyCodeLive } = await import('./noc-classify');
+    const source = await verifyCodeLive('21211', 'Data scientists');
+    vi.unstubAllGlobals();
+    expect(source).toBeNull();
   });
 });

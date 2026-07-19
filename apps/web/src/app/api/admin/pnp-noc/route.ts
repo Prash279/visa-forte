@@ -125,8 +125,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // 4) Verify the winning code live against the official StatCan page.
-    const verified = await verifyCodeLive(grounded.nocCode, grounded.title);
+    // 4) Verify the winning code live against the official sources (ESDC
+    // first, StatCan fallback).
+    const verified =
+      (await verifyCodeLive(grounded.nocCode, grounded.title)) !== null;
 
     const classification: NocClassification = {
       ...grounded,
