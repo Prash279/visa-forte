@@ -80,7 +80,7 @@
   background: var(--amber, #edd9b0);
   border-left: 3px solid var(--saffron);
   padding: 1rem 1.25rem;
-  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
 }
 
 .nv-caution p {
@@ -103,7 +103,7 @@
   font-weight: 600;
   color: var(--teal);
   line-height: 1.5;
-  margin-bottom: 0.5rem;
+  margin: 0.1rem 0 0.9rem;
 }
 
 .nv-rationale {
@@ -112,10 +112,9 @@
   font-weight: 300;
   line-height: 1.65;
   color: var(--ink);
-  background: var(--pearl);
   border-left: 3px solid var(--teal);
-  padding: 0.6rem 0.9rem;
-  margin-bottom: 0.75rem;
+  padding: 0.15rem 0 0.15rem 0.95rem;
+  margin-bottom: 1rem;
 }
 
 .nv-rationale strong {
@@ -123,17 +122,18 @@
   color: var(--prussian);
 }
 
-/* Result cards */
+/* Result cards — house card language: pearl fill, sand hairline border
+   (assessment.css .asx-card). This page has no print flow. */
 .nv-result {
-  background: #fff;
+  background: var(--pearl);
   border: 1px solid var(--sand);
-  border-top: 3px solid var(--sand);
-  padding: 1.25rem;
+  padding: 1.5rem 1.25rem;
   margin-top: 1.25rem;
 }
 
 .nv-result--top {
   border-top: 3px solid var(--saffron);
+  margin-top: 0;
 }
 
 .nv-result-head {
@@ -160,10 +160,11 @@
 
 .nv-result-title {
   font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 600;
+  font-size: 1.35rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
   color: var(--prussian);
-  line-height: 1.35;
+  line-height: 1.3;
   margin-bottom: 0.5rem;
 }
 
@@ -227,12 +228,18 @@
   color: var(--prussian);
 }
 
-/* Guidance callout — amber fill + saffron left border (brand callout spec) */
+/* Guidance callout — amber fill + saffron left border (brand callout spec).
+   Generous clearance above and below so it never fuses with the disclaimer
+   into one amber wall. */
 .nv-callout {
   background: var(--amber, #edd9b0);
   border-left: 3px solid var(--saffron);
-  padding: 1.1rem 1.25rem;
-  margin-top: 1.5rem;
+  padding: 1.25rem 1.4rem;
+  margin-top: 2.75rem;
+}
+
+.nv-inner .asx-disclaimer {
+  margin-top: 2.5rem;
 }
 
 .nv-callout-head {
@@ -260,6 +267,6 @@
   }
 
   .nv-result {
-    padding: 1.6rem 1.75rem;
+    padding: 2rem 2.25rem;
   }
 }
