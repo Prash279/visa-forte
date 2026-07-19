@@ -67,6 +67,10 @@ function rateLimited(ip: string): boolean {
 const Schema = z.object({
   jobTitle: z.string().max(120).optional(),
   duties: z.string().min(30).max(3000),
+  // When true, the response includes verifyNotes (upstream host + status for
+  // failed live checks). Harmless to expose; exists so verification failures
+  // in the serverless environment can be diagnosed without log infrastructure.
+  debug: z.boolean().optional(),
 });
 
 // Keep candidates scoring under half of the top lexical hit out of the
@@ -93,6 +97,7 @@ interface VerifierResponse {
   // (noc.esdc.gc.ca — where IRCC directs applicants) or Statistics Canada
   // (NOC 2021 co-publisher, fallback). null = verification unavailable.
   verifiedSource?: 'esdc' | 'statcan' | null;
+  verifyNotes?: string[];
   matches: VerifierMatch[];
 }
 
@@ -170,7 +175,7 @@ async function aiRank(
   const grounded = groundClassification(raw, hits);
   if (grounded === null) return null;
 
-  const verifiedSource = await verifyCodeLive(grounded.nocCode, grounded.title);
+  const liveVerify = await verifyCodeLive(grounded.nocCode, grounded.title);
 
   const matches = grounded.candidates
     .map((c, i) =>
@@ -184,7 +189,8 @@ async function aiRank(
   return {
     method: 'ai',
     confidence: grounded.confidence,
-    verifiedSource,
+    verifiedSource: liveVerify.source,
+    verifyNotes: liveVerify.notes,
     matches,
   };
 }
@@ -223,7 +229,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { jobTitle, duties } = result.data;
+  const { jobTitle, duties, debug } = result.data;
   const hits = retrieveCandidates(duties, jobTitle, RETRIEVE_TOP_K);
   if (hits.length === 0) {
     return NextResponse.json({
@@ -234,7 +240,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   try {
     const aiResult = await aiRank(duties, jobTitle, hits);
-    if (aiResult !== null) return NextResponse.json(aiResult);
+    if (aiResult !== null) {
+      if (!debug) delete aiResult.verifyNotes;
+      return NextResponse.json(aiResult);
+    }
   } catch (err) {
     console.error(
       'NOC verifier AI ranking failed, falling back to lexical:',

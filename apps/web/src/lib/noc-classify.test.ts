@@ -284,9 +284,10 @@ describe('verifyCodeLive', () => {
       }),
     );
     const { verifyCodeLive } = await import('./noc-classify');
-    const source = await verifyCodeLive('21211', 'Data scientists');
+    const result = await verifyCodeLive('21211', 'Data scientists');
     vi.unstubAllGlobals();
-    expect(source).toBe('esdc');
+    expect(result.source).toBe('esdc');
+    expect(result.notes).toEqual([]);
     expect(calls).toHaveLength(1);
     expect(calls[0]).toContain('noc.esdc.gc.ca');
   });
@@ -301,9 +302,10 @@ describe('verifyCodeLive', () => {
       ),
     );
     const { verifyCodeLive } = await import('./noc-classify');
-    const source = await verifyCodeLive('21211', 'Data scientists');
+    const result = await verifyCodeLive('21211', 'Data scientists');
     vi.unstubAllGlobals();
-    expect(source).toBe('statcan');
+    expect(result.source).toBe('statcan');
+    expect(result.notes.some((n) => n.includes('esdc') && n.includes('404'))).toBe(true);
   });
 
   it('returns null when neither source confirms the title', async () => {
@@ -312,8 +314,9 @@ describe('verifyCodeLive', () => {
       vi.fn(() => htmlWith('a page about something else entirely')),
     );
     const { verifyCodeLive } = await import('./noc-classify');
-    const source = await verifyCodeLive('21211', 'Data scientists');
+    const result = await verifyCodeLive('21211', 'Data scientists');
     vi.unstubAllGlobals();
-    expect(source).toBeNull();
+    expect(result.source).toBeNull();
+    expect(result.notes).toHaveLength(2);
   });
 });
