@@ -307,6 +307,6 @@
   .services-cta-body              { font-size: 0.9rem; }
   .services-cta-actions           { flex-direction: column; align-items: flex-start; gap: 1rem; }
   .process-step                   { min-width: 140px; }
-  .process-step-title             { font-size: 0.7rem; }
+  .process-step-title             { font-size: 0.75rem; }
   .process-step-body              { font-size: 0.8rem; }
 }
