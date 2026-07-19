@@ -171,6 +171,10 @@ export default function NocVerifierTool(): JSX.Element {
             </div>
           )}
 
+          {state === 'done' && matches.length > 0 && (
+            <p className="asx-section-label">Your Result</p>
+          )}
+
           {state === 'done' &&
             result?.method === 'lexical' &&
             matches.length > 0 && (

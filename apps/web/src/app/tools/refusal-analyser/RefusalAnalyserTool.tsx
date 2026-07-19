@@ -434,6 +434,7 @@ export default function RefusalAnalyserTool(): JSX.Element {
 
               {analyseState === 'done' && analysis && (
                 <div className="ra-results">
+                  <p className="asx-section-label">Your Analysis</p>
                   <div className="ra-results-toolbar ra-no-print">
                     <button
                       className="ra-print-btn"
