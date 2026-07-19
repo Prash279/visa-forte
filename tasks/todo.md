@@ -1,3 +1,35 @@
+## Session 2026-07-19 (night) — NOC Verifier accuracy rework (branch `fix/noc-verifier-ai-ranking`)
+
+> Prash correction after PR #11 went live: "Data Science Engineer" input returned Civil Engineers.
+> Root cause: RT-4 shipped only the TF-IDF recall layer as the final answer (per the original
+> "no Claude API call" spec). **Prash overrode that spec — accuracy over per-call cost.**
+> Full post-mortem: lessons.md Lesson 5.
+
+- [x] Public route now runs the same three-stage pipeline as the admin PNP classifier:
+      retrieval shortlist (top 30) → Claude (claude-sonnet-4-6, extended thinking) ranks against
+      each group's real StatCan lead statement/duties with the scope-not-vocabulary system prompt →
+      `groundClassification` (model can only pick shortlisted codes; TEER/title joined from the
+      dataset) → **`verifyCodeLive` checks the winning code against the official StatCan page**
+      (the live canada.ca-family cross-verification Prash asked for). `verifyCodeLive` moved to
+      `noc-classify.ts` and shared with the admin route (was duplicated-private there).
+- [x] New DOMAIN_ANCHOR for data science/ML/AI vocabulary (21211/21232/21231/21223, all verified
+      against the bundled StatCan dataset) — guarantees these codes reach the shortlist for the
+      exact input class that failed; anchor-wins promotes them when Claude ranks any of them.
+      Probe with the verbatim screenshot input: anchored codes present in shortlist ✓.
+- [x] Graceful degradation: Claude unreachable/no key → lexical top-3 explicitly labelled
+      `method:"lexical"`, UI shows an amber caution ("keyword matches only — try again"). Never
+      presents keyword matches with AI-result confidence again.
+- [x] Free-endpoint cost guard: per-IP in-memory rate limit 20/hour (ponytail: per serverless
+      instance; shared store only if traffic demands). Input capped at 3,000 chars.
+- [x] UI: confidence chip (high/medium/low), "✓ live-verified against Statistics Canada" line,
+      "Why this code" rationale from the classifier, updated hero + disclaimer copy.
+- [x] Tests rewritten with mocked Anthropic client: grounding rejects codes not in shortlist,
+      anchor-wins promotion, lexical fallback on API failure and on missing key. 390/390, tsc,
+      eslint, prod build. **Deploy gate: after deploy, POST the screenshot input to production —
+      must return method:"ai" (if "lexical", ANTHROPIC_API_KEY scope in Vercel needs fixing).**
+
+---
+
 ## Session 2026-07-19 (later still) — RT-4 NOC Verifier + RT-5 Refusal Analyser (branch `feat/noc-verifier-refusal-analyser`)
 
 > Commissioned by Prash after PR #10 merged: "Now complete the NOC Code Verified and Refusal

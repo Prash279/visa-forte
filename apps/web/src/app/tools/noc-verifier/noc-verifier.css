@@ -75,6 +75,54 @@
   text-underline-offset: 2px;
 }
 
+/* Degraded-mode caution — shown when AI ranking was unavailable */
+.nv-caution {
+  background: var(--amber, #edd9b0);
+  border-left: 3px solid var(--saffron);
+  padding: 1rem 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.nv-caution p {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 300;
+  line-height: 1.6;
+  color: var(--ink);
+  margin: 0;
+}
+
+.nv-chips {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.nv-verified {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--teal);
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+
+.nv-rationale {
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  font-weight: 300;
+  line-height: 1.65;
+  color: var(--ink);
+  background: var(--pearl);
+  border-left: 3px solid var(--teal);
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.nv-rationale strong {
+  font-weight: 600;
+  color: var(--prussian);
+}
+
 /* Result cards */
 .nv-result {
   background: #fff;

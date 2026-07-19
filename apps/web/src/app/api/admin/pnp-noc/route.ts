@@ -10,7 +10,7 @@ import {
   parseRawClassification,
   groundClassification,
   esdcProfileUrl,
-  statcanUnitGroupUrl,
+  verifyCodeLive,
 } from '@/lib/noc-classify';
 import { type NocClassification } from '@/lib/pnp-eligibility';
 
@@ -23,7 +23,6 @@ export const maxDuration = 60;
 const MODEL = 'claude-sonnet-4-6';
 const MAX_TOKENS = 4096;
 const THINKING_BUDGET = 2048;
-const VERIFY_TIMEOUT_MS = 5000;
 const ADMIN_EMAIL = 'prashant@visaforte.com';
 
 async function requireAdmin(): Promise<NextResponse | null> {
@@ -48,26 +47,6 @@ const requestSchema = z.object({
     .regex(/^\d{5}$/)
     .optional(),
 });
-
-// Best-effort confirmation that the winning code still exists on the official source.
-// Never throws: a verification hiccup must not fail the whole classification.
-async function verifyCodeLive(code: string, title: string): Promise<boolean> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), VERIFY_TIMEOUT_MS);
-  try {
-    const res = await fetch(statcanUnitGroupUrl(code), {
-      redirect: 'manual',
-      signal: controller.signal,
-    });
-    if (res.status !== 200) return false;
-    const html = await res.text();
-    return html.includes(title);
-  } catch {
-    return false;
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 // POST /api/admin/pnp-noc  Body: { occupationTitle?, jobDuties }
 export async function POST(req: NextRequest): Promise<NextResponse> {

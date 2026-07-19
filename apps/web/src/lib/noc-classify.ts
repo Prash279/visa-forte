@@ -228,3 +228,30 @@ export function esdcProfileUrl(code: string): string {
 export function statcanUnitGroupUrl(code: string): string {
   return `https://www23.statcan.gc.ca/imdb/p3VD.pl?Function=getVD&TVD=1322554&CVD=1322870&CPV=${code}&CST=01052021&CLV=5&MLV=5`;
 }
+
+const VERIFY_TIMEOUT_MS = 5000;
+
+// Best-effort confirmation that the winning code still exists on the official
+// Statistics Canada source. Never throws: a verification hiccup must not fail
+// the whole classification. Shared by the admin PNP classifier and the public
+// NOC verifier.
+export async function verifyCodeLive(
+  code: string,
+  title: string,
+): Promise<boolean> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), VERIFY_TIMEOUT_MS);
+  try {
+    const res = await fetch(statcanUnitGroupUrl(code), {
+      redirect: 'manual',
+      signal: controller.signal,
+    });
+    if (res.status !== 200) return false;
+    const html = await res.text();
+    return html.includes(title);
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}

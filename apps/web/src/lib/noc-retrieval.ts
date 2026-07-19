@@ -180,6 +180,20 @@ const DOMAIN_ANCHORS: ReadonlyArray<{
       /clinical[\s-]+trial|clinical[\s-]+research|\beTMF\b|\bTMF\b|\bIRB\b|\bICF\b|informed\s+consent|\bCRC\b|\bCRA\b|site[\s-]+activation|study[\s-]+start[\s-]?up|\bAE\/SAE\b|\bCTMS\b/i,
     codes: ['41404'],
   },
+  {
+    // Data science / ML / AI product roles. Real-world vocabulary (Python, ML
+    // models, pipelines, LLMs, conversational AI) barely appears in the NOC
+    // 2021 StatCan text, while generic engineering words ("engineer",
+    // "monitor", "optimization") drag traditional engineering groups up the
+    // TF-IDF ranking — the exact failure seen with a "Data Science Engineer"
+    // input scoring Civil Engineers first (2026-07-19). Codes verified against
+    // the bundled StatCan dataset: 21211 Data scientists, 21232 Software
+    // developers and programmers, 21231 Software engineers and designers,
+    // 21223 Database analysts and data administrators.
+    pattern:
+      /machine[\s-]?learning|\bML\b|\bAI\b|\bLLM\b|artificial intelligence|data[\s-]scien(ce|tist)|deep[\s-]learning|neural[\s-]network|\bNLP\b|natural language processing|conversational (ai|agent|workflow)|chatbot|\bpython\b|data pipeline|model training|\betl\b/i,
+    codes: ['21211', '21232', '21231', '21223'],
+  },
 ];
 
 // Rank all unit groups against the applicant's duties (and optional title) and

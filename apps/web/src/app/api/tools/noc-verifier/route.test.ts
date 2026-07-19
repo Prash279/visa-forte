@@ -1,5 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest } from 'next/server';
+
+// Claude is mocked: these tests pin the pipeline around the model (grounding,
+// anchor-wins, fallback), not the model itself.
+const { createMock } = vi.hoisted(() => ({ createMock: vi.fn() }));
+vi.mock('@anthropic-ai/sdk', () => ({
+  default: class {
+    messages = { create: createMock };
+  },
+}));
+
 import { POST } from './route';
 
 function postRequest(body: unknown): NextRequest {
@@ -9,12 +19,36 @@ function postRequest(body: unknown): NextRequest {
   });
 }
 
+function claudeReply(json: unknown) {
+  return { content: [{ type: 'text', text: JSON.stringify(json) }] };
+}
+
 const DEVELOPER_DUTIES =
   'Write, modify, integrate and test software code for web applications. ' +
   'Maintain existing computer programs, identify and communicate technical ' +
   'problems, and prepare reports on software status.';
 
+const DATA_SCIENCE_DUTIES =
+  'Built Python-driven data collection, analysis, and visualization ' +
+  'workflows across multiple AI call agent tasks to monitor latency, cost, ' +
+  'routing quality, and user interaction trends, improving operational ' +
+  'visibility and enabling continuous optimization with machine learning.';
+
 describe('POST /api/tools/noc-verifier', () => {
+  beforeEach(() => {
+    process.env.ANTHROPIC_API_KEY = 'test_key';
+    createMock.mockReset();
+    // verifyCodeLive network call — stubbed out; "not verified" path.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ status: 500, text: async () => '' }),
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it('rejects duties under 30 characters with 400', async () => {
     const res = await POST(postRequest({ duties: 'too short' }));
     expect(res.status).toBe(400);
@@ -25,44 +59,106 @@ describe('POST /api/tools/noc-verifier', () => {
     expect(res.status).toBe(400);
   });
 
-  it('returns up to 3 ranked matches with the expected shape', async () => {
+  it('returns the AI-ranked, dataset-grounded result', async () => {
+    createMock.mockResolvedValue(
+      claudeReply({
+        ranked: [
+          {
+            nocCode: '21232',
+            fitScore: 92,
+            rationale: 'Writing, modifying and testing software code.',
+          },
+        ],
+        confidence: 'high',
+        ambiguityFlag: false,
+      }),
+    );
     const res = await POST(
       postRequest({ jobTitle: 'Software Developer', duties: DEVELOPER_DUTIES }),
     );
     expect(res.status).toBe(200);
-    const { matches } = (await res.json()) as {
+    const json = (await res.json()) as {
+      method: string;
+      confidence: string;
+      verifiedLive: boolean;
       matches: Array<Record<string, unknown>>;
     };
-    expect(matches.length).toBeGreaterThan(0);
-    expect(matches.length).toBeLessThanOrEqual(3);
-
-    const top = matches[0]!;
-    expect(top.band).toBe('strongest');
-    expect(String(top.code)).toMatch(/^\d{5}$/);
-    expect([0, 1, 2, 3, 4, 5]).toContain(top.teer);
-    expect(String(top.esdcUrl)).toContain(String(top.code));
-    expect(Array.isArray(top.mainDuties)).toBe(true);
+    expect(json.method).toBe('ai');
+    expect(json.confidence).toBe('high');
+    expect(json.verifiedLive).toBe(false); // stubbed fetch → not verified
+    expect(json.matches[0]?.code).toBe('21232');
+    // TEER joined from the bundled dataset, never from the model
+    expect(json.matches[0]?.teer).toBe(1);
+    expect(json.matches[0]?.band).toBe('strongest');
+    expect(String(json.matches[0]?.rationale)).toContain('software');
   });
 
-  it('surfaces software occupations for software duties (deterministic)', async () => {
+  it('ignores model codes that were not in the shortlist (grounding)', async () => {
+    createMock.mockResolvedValue(
+      claudeReply({
+        // 21300 Civil Engineers will not be in the shortlist for pure
+        // software duties, so grounding must reject it and fall back.
+        ranked: [{ nocCode: '99999', fitScore: 90, rationale: 'invented' }],
+        confidence: 'high',
+        ambiguityFlag: false,
+      }),
+    );
+    const res = await POST(postRequest({ duties: DEVELOPER_DUTIES }));
+    const json = (await res.json()) as { method: string };
+    // Grounding failed → explicit lexical fallback, never a fabricated code
+    expect(json.method).toBe('lexical');
+  });
+
+  it('promotes an anchored code the model ranked lower (anchor-wins)', async () => {
+    // DATA_SCIENCE_DUTIES fires the ML/AI domain anchor (21211 et al).
+    createMock.mockResolvedValue(
+      claudeReply({
+        ranked: [
+          { nocCode: '21234', fitScore: 70, rationale: 'Web workflows.' },
+          {
+            nocCode: '21211',
+            fitScore: 68,
+            rationale: 'Python data collection, analysis and ML monitoring.',
+          },
+        ],
+        confidence: 'medium',
+        ambiguityFlag: true,
+      }),
+    );
+    const res = await POST(
+      postRequest({
+        jobTitle: 'Data Science Engineer',
+        duties: DATA_SCIENCE_DUTIES,
+      }),
+    );
+    const json = (await res.json()) as {
+      method: string;
+      matches: Array<{ code: string; band: string }>;
+    };
+    expect(json.method).toBe('ai');
+    expect(json.matches[0]?.code).toBe('21211'); // Data scientists won via anchor
+  });
+
+  it('falls back to labelled lexical matches when Claude is unreachable', async () => {
+    createMock.mockRejectedValue(new Error('api down'));
     const res = await POST(
       postRequest({ jobTitle: 'Software Developer', duties: DEVELOPER_DUTIES }),
     );
-    const { matches } = (await res.json()) as {
+    expect(res.status).toBe(200);
+    const json = (await res.json()) as {
+      method: string;
       matches: Array<{ code: string }>;
     };
-    // 2123x = software and web development unit groups in NOC 2021
-    // (21232 software developers, 21234 web developers, 21231 software engineers)
-    expect(matches.some((m) => m.code.startsWith('2123'))).toBe(true);
+    expect(json.method).toBe('lexical');
+    expect(json.matches.length).toBeGreaterThan(0);
+    expect(json.matches.some((m) => m.code.startsWith('2123'))).toBe(true);
   });
 
-  it('is deterministic: identical input gives identical output', async () => {
-    const a = await (
-      await POST(postRequest({ duties: DEVELOPER_DUTIES }))
-    ).json();
-    const b = await (
-      await POST(postRequest({ duties: DEVELOPER_DUTIES }))
-    ).json();
-    expect(a).toEqual(b);
+  it('falls back to lexical when no API key is configured', async () => {
+    delete process.env.ANTHROPIC_API_KEY;
+    const res = await POST(postRequest({ duties: DEVELOPER_DUTIES }));
+    const json = (await res.json()) as { method: string };
+    expect(json.method).toBe('lexical');
+    expect(createMock).not.toHaveBeenCalled();
   });
 });
