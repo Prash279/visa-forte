@@ -80,12 +80,12 @@ describe('POST /api/tools/noc-verifier', () => {
     const json = (await res.json()) as {
       method: string;
       confidence: string;
-      verifiedLive: boolean;
+      verifiedSource: 'esdc' | 'statcan' | null;
       matches: Array<Record<string, unknown>>;
     };
     expect(json.method).toBe('ai');
     expect(json.confidence).toBe('high');
-    expect(json.verifiedLive).toBe(false); // stubbed fetch → not verified
+    expect(json.verifiedSource).toBeNull(); // stubbed fetch → not verified
     expect(json.matches[0]?.code).toBe('21232');
     // TEER joined from the bundled dataset, never from the model
     expect(json.matches[0]?.teer).toBe(1);

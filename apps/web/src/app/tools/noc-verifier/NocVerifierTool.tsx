@@ -26,9 +26,15 @@ interface Match {
 interface VerifierResponse {
   method: 'ai' | 'lexical';
   confidence?: 'high' | 'medium' | 'low';
-  verifiedLive?: boolean;
+  verifiedSource?: 'esdc' | 'statcan' | null;
   matches: Match[];
 }
+
+const VERIFIED_LABELS: Record<'esdc' | 'statcan', string> = {
+  esdc: '✓ Code live-verified just now on the official ESDC NOC website (noc.esdc.gc.ca)',
+  statcan:
+    '✓ Code live-verified just now against Statistics Canada, co-publisher of NOC 2021',
+};
 
 type ToolState = 'idle' | 'loading' | 'done' | 'error';
 
@@ -94,9 +100,10 @@ export default function NocVerifierTool(): JSX.Element {
           <p className="nv-hero-sub r d2">
             Enter your job title and what you actually do all day. The tool
             shortlists candidates from all 516 official NOC 2021 unit groups,
-            AI-ranks them against each group&apos;s real Statistics Canada
-            duties — judging the scope of your work, not shared keywords — and
-            live-verifies the winning code against the official StatCan page.
+            AI-ranks them against each group&apos;s real official duties —
+            judging the scope of your work, not shared keywords — and
+            live-verifies the winning code on the official ESDC NOC website
+            (noc.esdc.gc.ca), the site IRCC directs applicants to.
           </p>
         </div>
       </section>
@@ -201,10 +208,9 @@ export default function NocVerifierTool(): JSX.Element {
               <h3 className="nv-result-title">
                 NOC {m.code} — {m.title}
               </h3>
-              {m.band === 'strongest' && result?.verifiedLive && (
+              {m.band === 'strongest' && result?.verifiedSource && (
                 <p className="nv-verified">
-                  ✓ Code live-verified against the official Statistics Canada
-                  page just now
+                  {VERIFIED_LABELS[result.verifiedSource]}
                 </p>
               )}
               {m.rationale && (
@@ -247,14 +253,15 @@ export default function NocVerifierTool(): JSX.Element {
           <div className="asx-disclaimer">
             <p className="asx-disclaimer-title">Disclaimer</p>
             <p className="asx-disclaimer-body">
-              This tool ranks your duties against the official Statistics Canada
-              NOC 2021 dataset and live-verifies the leading code against the
-              official StatCan source. It is provided for informational and
-              guidance purposes only, does not constitute legal advice, and no
-              consultant-client relationship is created by using it. The final
-              NOC determination for any application rests with you — verify
-              against the official ESDC profile and IRCC requirements
-              (www.canada.ca/immigration) before relying on any result.
+              This tool ranks your duties against the official NOC 2021 dataset
+              (published by ESDC and Statistics Canada) and live-verifies the
+              leading code on the official ESDC NOC website (noc.esdc.gc.ca). It
+              is provided for informational and guidance purposes only, does not
+              constitute legal advice, and no consultant-client relationship is
+              created by using it. The final NOC determination for any
+              application rests with you — verify against the official ESDC
+              profile and IRCC requirements (www.canada.ca/immigration) before
+              relying on any result.
             </p>
           </div>
         </div>

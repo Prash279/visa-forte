@@ -1,3 +1,21 @@
+## Session 2026-07-19 (night, follow-up) — Live-verify source: ESDC first (branch `fix/noc-verify-esdc-source`)
+
+> Prash correction on the PR #12 result: the live check verified against Statistics Canada; it
+> should be anchored to noc.esdc.gc.ca — the site IRCC's "Find your NOC" directs applicants to.
+> Both publish the identical NOC 2021 classification (no wrong data was shown), but the
+> verification claim must follow the user's authority chain. lessons.md Lesson 6.
+
+- [x] `verifyCodeLive` now checks the ESDC NOC 2021 profile (`noc.esdc.gc.ca/Structure/NocProfile`,
+      version 2021.0 — confirmed server-rendered, title verbatim, 404 on bogus codes) FIRST, with
+      StatCan as fallback; returns which source confirmed ('esdc' | 'statcan' | null).
+- [x] Public route responds `verifiedSource`; UI names the actual confirming source; hero +
+      disclaimer copy re-anchored to ESDC. Admin route unchanged in behaviour (boolean from source).
+- [x] 3 new unit tests pin the order (ESDC-first short-circuits, StatCan fallback, null when
+      neither confirms). 393/393 · tsc · eslint · prod build. Deploy gate: production replay must
+      show `verifiedSource:"esdc"`.
+
+---
+
 ## Session 2026-07-19 (night) — NOC Verifier accuracy rework (branch `fix/noc-verifier-ai-ranking`)
 
 > Prash correction after PR #11 went live: "Data Science Engineer" input returned Civil Engineers.
