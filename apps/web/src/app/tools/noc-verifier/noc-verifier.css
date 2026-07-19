@@ -123,7 +123,7 @@
 }
 
 /* Result cards — house card language: pearl fill, sand hairline border
-   (assessment.css .asx-card). White is reserved for print. */
+   (assessment.css .asx-card). This page has no print flow. */
 .nv-result {
   background: var(--pearl);
   border: 1px solid var(--sand);

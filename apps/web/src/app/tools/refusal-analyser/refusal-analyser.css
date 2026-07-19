@@ -314,6 +314,7 @@
   }
 
   .ra-ground {
+    background: #fff;
     break-inside: avoid;
     border: 1px solid #ddd;
     border-top: 3px solid #ddd;
