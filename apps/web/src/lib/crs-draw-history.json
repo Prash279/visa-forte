@@ -1,8 +1,14 @@
 {
   "source": "canada.ca",
   "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/submit-profile/rounds-invitations.html",
-  "lastUpdated": "2026-07-11",
+  "lastUpdated": "2026-07-21",
   "draws": [
+    {
+      "date": "2026-07-20",
+      "type": "Provincial Nominee Program",
+      "cutoffScore": 744,
+      "invitationsIssued": 511
+    },
     {
       "date": "2026-07-10",
       "type": "Senior managers with Canadian Work Experience, 2026-Version 1",
@@ -146,12 +152,6 @@
       "type": "Provincial Nominee Program",
       "cutoffScore": 742,
       "invitationsIssued": 362
-    },
-    {
-      "date": "2026-03-05",
-      "type": "Senior managers with Canadian Work Experience, 2026-Version 1",
-      "cutoffScore": 429,
-      "invitationsIssued": 250
     }
   ]
 }
