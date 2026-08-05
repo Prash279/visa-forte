@@ -1,8 +1,14 @@
 {
   "source": "canada.ca",
   "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/submit-profile/rounds-invitations.html",
-  "lastUpdated": "2026-07-24",
+  "lastUpdated": "2026-08-05",
   "draws": [
+    {
+      "date": "2026-08-04",
+      "type": "Provincial Nominee Program",
+      "cutoffScore": 768,
+      "invitationsIssued": 507
+    },
     {
       "date": "2026-07-23",
       "type": "Skilled Military Recruits, 2026-Version 1",
@@ -146,12 +152,6 @@
       "type": "Canadian Experience Class",
       "cutoffScore": 509,
       "invitationsIssued": 2250
-    },
-    {
-      "date": "2026-03-30",
-      "type": "Provincial Nominee Program",
-      "cutoffScore": 802,
-      "invitationsIssued": 356
     }
   ]
 }
