@@ -1,8 +1,14 @@
 {
   "source": "canada.ca",
   "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/submit-profile/rounds-invitations.html",
-  "lastUpdated": "2026-08-07",
+  "lastUpdated": "2026-08-08",
   "draws": [
+    {
+      "date": "2026-08-07",
+      "type": "Transport Occupations, 2026-Version 2",
+      "cutoffScore": 470,
+      "invitationsIssued": 300
+    },
     {
       "date": "2026-08-06",
       "type": "French-Language proficiency 2026-Version 2",
@@ -146,12 +152,6 @@
       "type": "Canadian Experience Class",
       "cutoffScore": 515,
       "invitationsIssued": 2000
-    },
-    {
-      "date": "2026-04-13",
-      "type": "Provincial Nominee Program",
-      "cutoffScore": 786,
-      "invitationsIssued": 324
     }
   ]
 }
