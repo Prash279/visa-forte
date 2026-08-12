@@ -1,9 +1,10 @@
 {
   "meta": {
-    "source": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/eligibility/criteria-comprehensive-ranking-system/grid.html",
-    "lastVerified": "2026-05-09",
-    "lastUpdated": "2026-05-09",
-    "note": "Post-March 2025 rules. Job offer points removed per IRCC update March 2025."
+    "source": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/check-score/crs-criteria.html",
+    "lastVerified": "2026-08-12",
+    "lastUpdated": "2026-08-12",
+    "fswSource": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/who-can-apply/federal-skilled-workers.html",
+    "note": "Post-March 2025 rules. Job offer points removed per IRCC update March 2025. 2026-08-11 re-verification against canada.ca (grid date modified 2026-06-22) corrected: sectionC education tiers (single bachelor's is 13/25, not 25/50), sectionC per-group 50 cap, sectionA second-language combined cap, FSW work-experience tier boundary (13 pts starts at 4 years, not 3), FSW second language (all-or-nothing 4), FSW age 43-46, FSW own-Canadian-work adaptability (10, not 5). 2026-08-12: added cec.minClbByTeer (CEC language bar is CLB 5 for TEER 2/3, not CLB 7 for everyone) and the fst block (FST was hardcoded ineligible with a fixed 'NOC TEER 1' message)."
   },
   "sectionA": {
     "ageSingle": {
@@ -64,6 +65,8 @@
       { "minClb": 7, "points": 3 },
       { "minClb": 5, "points": 1 }
     ],
+    "secondLanguageMaxSingle": 24,
+    "secondLanguageMaxWithSpouse": 22,
     "canadianExpSingle": [
       { "minYears": 5, "points": 80 },
       { "minYears": 4, "points": 72 },
@@ -105,13 +108,16 @@
   },
   "sectionC": {
     "maxTotal": 100,
+    "groupMax": 50,
+    "_educationTierNote": "canada.ca grid: the education transferability table has THREE tiers, not two. A single bachelor's degree is 'Post-secondary program credential of one year or longer' (13/25). The 25/50 tier requires two or more credentials with one of three years or longer, a master's / entry-to-practice professional degree, or a doctorate. Verified against crs-criteria.html (date modified 2026-06-22) on 2026-08-11.",
+    "_groupMaxNote": "canada.ca caps each transferability GROUP at 50: education (language + Canadian experience rows combined) and foreign work experience (language + Canadian experience rows combined). The 100 overall cap applies on top of both.",
     "eduLanguage": {
-      "postSecondary12": { "clb9": 25, "clb7": 13 },
-      "bachelorsPlus":   { "clb9": 50, "clb7": 25 }
+      "oneYearOrLonger":     { "clb9": 25, "clb7": 13 },
+      "twoOrMoreOrGraduate": { "clb9": 50, "clb7": 25 }
     },
     "eduCanadianExp": {
-      "bachelorsPlus":   { "cwe2plus": 50, "cwe1": 25 },
-      "postSecondary12": { "cwe2plus": 25, "cwe1": 13 }
+      "oneYearOrLonger":     { "cwe2plus": 25, "cwe1": 13 },
+      "twoOrMoreOrGraduate": { "cwe2plus": 50, "cwe1": 25 }
     },
     "foreignExpLanguage": {
       "fwe3plus": { "clb9": 50, "clb7": 25 },
@@ -136,6 +142,21 @@
     },
     "_note": "frenchLanguageBonus + canadianEducation verified against canada.ca crs-criteria.html (date modified 2026-06-22) on 2026-07-18. French bonus is two-tier (25/50), not a flat 50. Consumed by crs-calculator.ts Section D: frenchLanguageBonus() derives French-vs-English from the language test type (TEF/TCF vs IELTS/CELPIP); canadianEducationBonus() reads the optional canadianEducationLevel profile field; Section D total capped at maxTotal 600."
   },
+  "cec": {
+    "_note": "canada.ca language-test.html (date modified 2026-06-22): CEC minimum first-language CLB depends on the NOC TEER of the Canadian work experience — TEER 0/1 needs CLB 7, TEER 2/3 needs CLB 5. Verified 2026-08-12.",
+    "minClbByTeer": { "0": 7, "1": 7, "2": 5, "3": 5 },
+    "minCanadianYears": 1
+  },
+  "fst": {
+    "_note": "canada.ca federal-skilled-trades.html + language-test.html (both date modified 2026-06-22), verified 2026-08-12. Skilled-trade NOC groups are matched on the 5-digit 2021 NOC code: major group = first 2 digits, sub-major = first 3, minor = first 4, unit = all 5.",
+    "majorGroups": ["72", "73", "82", "83", "92", "93"],
+    "excludedSubMajorGroups": ["726", "932"],
+    "minorGroups": ["6320"],
+    "unitGroups": ["62200"],
+    "minYearsExperience": 2,
+    "minClbSpeakingListening": 5,
+    "minClbReadingWriting": 4
+  },
   "fsw": {
     "passmark": 67,
     "minFirstLanguageClb": 7,
@@ -154,12 +175,13 @@
       { "minClb": 8, "points": 5 },
       { "minClb": 7, "points": 4 }
     ],
-    "secondLanguageCapBands": 4,
+    "secondLanguagePoints": 4,
     "secondLanguageMinClb": 5,
     "maxLanguageTotal": 28,
+    "_secondLanguageNote": "All-or-nothing: 4 points only when CLB 5 or higher is met in ALL FOUR abilities. No partial credit per ability.",
     "workExp": [
       { "minYears": 6, "points": 15 },
-      { "minYears": 3, "points": 13 },
+      { "minYears": 4, "points": 13 },
       { "minYears": 2, "points": 11 },
       { "minYears": 1, "points": 9  }
     ],
@@ -167,10 +189,13 @@
       "18": 12, "19": 12, "20": 12, "21": 12, "22": 12, "23": 12, "24": 12,
       "25": 12, "26": 12, "27": 12, "28": 12, "29": 12, "30": 12, "31": 12,
       "32": 12, "33": 12, "34": 12, "35": 12,
-      "36": 11, "37": 10, "38": 9, "39": 8, "40": 7, "41": 6, "42": 5
+      "36": 11, "37": 10, "38": 9, "39": 8, "40": 7, "41": 6, "42": 5,
+      "43": 4, "44": 3, "45": 2, "46": 1
     },
     "adaptabilityPerFactor": 5,
-    "adaptabilityMax": 10
+    "adaptabilityOwnCanadianWork": 10,
+    "adaptabilityMax": 10,
+    "_adaptabilityNote": "canada.ca lists 'Your past work in Canada' at 10 points; every other adaptability element is 5. Combined maximum 10."
   },
   "languageConversion": {
     "IELTS_GT": {

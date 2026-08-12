@@ -3,7 +3,7 @@
 // changes the CRS grid), edit that JSON file only — no TypeScript changes needed.
 //
 // Source: canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/
-//   express-entry/eligibility/criteria-comprehensive-ranking-system/grid.html
+//   express-entry/check-score/crs-criteria.html
 
 import rules from './crs-rules.json';
 import fundsData from './proof-of-funds.json';
@@ -317,13 +317,21 @@ function secondLangPointsPerBand(clb: number): number {
   return fromClbPts(rules.sectionA.secondLanguage, clb);
 }
 
-function secondLanguagePoints(bands: LanguageBands): number {
-  return (
+// Second official language is 6 points per ability, but canada.ca applies a combined
+// ceiling on top: 24 without a spouse, 22 with one.
+function secondLanguagePoints(
+  bands: LanguageBands,
+  hasSpouse: boolean,
+): number {
+  const raw =
     secondLangPointsPerBand(bands.listening) +
     secondLangPointsPerBand(bands.reading) +
     secondLangPointsPerBand(bands.writing) +
-    secondLangPointsPerBand(bands.speaking)
-  );
+    secondLangPointsPerBand(bands.speaking);
+  const cap = hasSpouse
+    ? rules.sectionA.secondLanguageMaxWithSpouse
+    : rules.sectionA.secondLanguageMaxSingle;
+  return Math.min(cap, raw);
 }
 
 function canadianExpPoints(years: number, hasSpouse: boolean): number {
@@ -346,30 +354,42 @@ function minClb(bands: LanguageBands): number {
   );
 }
 
+// Which of the three canada.ca skill-transferability education tiers an applicant sits in.
+// Both Section C education tables (language and Canadian experience) use this SAME tier
+// split, so it is decided once here.
+//
+// IMPORTANT — a single bachelor's degree does NOT reach the top tier. canada.ca lists it
+// under "Post-secondary program credential of one year or longer". The top tier requires
+// two or more credentials with one of three years or longer, a master's / entry-to-practice
+// professional degree, or a doctorate.
+type EduTransferTier = 'none' | 'oneYearOrLonger' | 'twoOrMoreOrGraduate';
+
+function eduTransferTier(edu: EducationLevel): EduTransferTier {
+  switch (edu) {
+    case 'one_year_post_secondary':
+    case 'two_year_post_secondary':
+    case 'bachelors':
+      return 'oneYearOrLonger';
+    case 'two_or_more_degrees':
+    case 'masters':
+    case 'doctoral':
+      return 'twoOrMoreOrGraduate';
+    default:
+      return 'none'; // secondary school or less
+  }
+}
+
 function eduLanguageTransfer(
   edu: EducationLevel,
   langBands: LanguageBands,
 ): number {
+  const tier = eduTransferTier(edu);
+  if (tier === 'none') return 0;
+  const cfg = rules.sectionC.eduLanguage[tier];
   const min = minClb(langBands);
-  const isPostSecondary12 =
-    edu === 'one_year_post_secondary' || edu === 'two_year_post_secondary';
-  const isBachelorsPlus =
-    edu === 'bachelors' ||
-    edu === 'two_or_more_degrees' ||
-    edu === 'masters' ||
-    edu === 'doctoral';
-  const cfg = rules.sectionC.eduLanguage;
 
-  if (isPostSecondary12) {
-    if (min >= 9) return cfg.postSecondary12.clb9;
-    if (min >= 7) return cfg.postSecondary12.clb7;
-    return 0;
-  }
-  if (isBachelorsPlus) {
-    if (min >= 9) return cfg.bachelorsPlus.clb9;
-    if (min >= 7) return cfg.bachelorsPlus.clb7;
-    return 0;
-  }
+  if (min >= 9) return cfg.clb9;
+  if (min >= 7) return cfg.clb7;
   return 0;
 }
 
@@ -379,22 +399,11 @@ function eduCanadianExpTransfer(
 ): number {
   const cWhole = Math.floor(canadianYears);
   if (cWhole < 1) return 0;
-  const isBachelorsPlus =
-    edu === 'bachelors' ||
-    edu === 'two_or_more_degrees' ||
-    edu === 'masters' ||
-    edu === 'doctoral';
-  const isPostSecondary12 =
-    edu === 'one_year_post_secondary' || edu === 'two_year_post_secondary';
-  const cfg = rules.sectionC.eduCanadianExp;
+  const tier = eduTransferTier(edu);
+  if (tier === 'none') return 0;
+  const cfg = rules.sectionC.eduCanadianExp[tier];
 
-  if (isBachelorsPlus)
-    return cWhole >= 2 ? cfg.bachelorsPlus.cwe2plus : cfg.bachelorsPlus.cwe1;
-  if (isPostSecondary12)
-    return cWhole >= 2
-      ? cfg.postSecondary12.cwe2plus
-      : cfg.postSecondary12.cwe1;
-  return 0;
+  return cWhole >= 2 ? cfg.cwe2plus : cfg.cwe1;
 }
 
 function foreignExpLanguageTransfer(
@@ -450,18 +459,13 @@ function fswLanguagePoints(
     fswLangPerBand(firstBands.writing) +
     fswLangPerBand(firstBands.speaking);
 
-  let second = 0;
-  if (secondBands) {
-    second = Math.min(
-      rules.fsw.secondLanguageCapBands,
-      [
-        secondBands.listening,
-        secondBands.reading,
-        secondBands.writing,
-        secondBands.speaking,
-      ].filter((clb) => clb >= rules.fsw.secondLanguageMinClb).length,
-    );
-  }
+  // FSW second official language is all-or-nothing: canada.ca awards the 4 points only
+  // when CLB 5 is met in every one of the four abilities. There is no per-ability credit.
+  const second =
+    secondBands &&
+    allAbilitiesAtLeast(secondBands, rules.fsw.secondLanguageMinClb)
+      ? rules.fsw.secondLanguagePoints
+      : 0;
 
   return Math.min(rules.fsw.maxLanguageTotal, first + second);
 }
@@ -475,19 +479,50 @@ function fswAgePoints(age: number): number {
   return table[String(age)] ?? 0;
 }
 
-function fswAdaptabilityPoints(
-  hasCanadianEducation: boolean,
-  hasFamilyInCanada: boolean,
-  canadianWorkYears: number,
-  hasJobOffer?: boolean,
-): number {
+// The adaptability elements canada.ca scores. Passed as one object so the "what if I
+// changed X" callers below can override a single element with a spread.
+interface AdaptabilityInputs {
+  hasCanadianEducation: boolean;
+  hasFamilyInCanada: boolean;
+  canadianWorkYears: number;
+  hasJobOffer: boolean;
+  spouseLanguageClb4: boolean;
+  spouseCanadianWorkYears: number;
+}
+
+function fswAdaptabilityPoints(a: AdaptabilityInputs): number {
   const perFactor = rules.fsw.adaptabilityPerFactor;
   let pts = 0;
-  if (hasCanadianEducation) pts += perFactor;
-  if (hasFamilyInCanada) pts += perFactor;
-  if (Math.floor(canadianWorkYears) >= 1) pts += perFactor;
-  if (hasJobOffer) pts += perFactor;
+  if (a.hasCanadianEducation) pts += perFactor;
+  if (a.hasFamilyInCanada) pts += perFactor;
+  // canada.ca scores the applicant's own past work in Canada at 10, not 5.
+  if (Math.floor(a.canadianWorkYears) >= 1)
+    pts += rules.fsw.adaptabilityOwnCanadianWork;
+  if (a.hasJobOffer) pts += perFactor;
+  if (a.spouseLanguageClb4) pts += perFactor;
+  if (Math.floor(a.spouseCanadianWorkYears) >= 1) pts += perFactor;
   return Math.min(rules.fsw.adaptabilityMax, pts);
+}
+
+// The adaptability elements as they stand today, before any scenario override.
+function currentAdaptabilityInputs(
+  profile: ApplicantProfile,
+): AdaptabilityInputs {
+  const spouseBands =
+    profile.hasSpouse && profile.spouseLanguageScores
+      ? scoresToClb(profile.spouseLanguageScores)
+      : undefined;
+  return {
+    hasCanadianEducation: profile.hasCanadianEducation,
+    hasFamilyInCanada: profile.hasFamilyInCanada,
+    canadianWorkYears: profile.canadianWorkExperienceYears,
+    hasJobOffer:
+      profile.hasJobOffer === 'lmia' || profile.hasJobOffer === 'exempt',
+    spouseLanguageClb4: spouseBands !== undefined && minClb(spouseBands) >= 4,
+    spouseCanadianWorkYears: profile.hasSpouse
+      ? (profile.spouseCanadianExperience ?? 0)
+      : 0,
+  };
 }
 
 // ── Section D — Additional points ─────────────────────────────────────────────
@@ -570,6 +605,19 @@ function spouseCwePoints(years: number): number {
 
 // ── Stream Eligibility ───────────────────────────────────────────────────────
 
+// Does this 2021 NOC code sit in a Federal Skilled Trades occupation group?
+// The 5-digit code nests: first 2 digits are the major group, first 3 the sub-major,
+// first 4 the minor group, all 5 the unit group.
+function isSkilledTradeNoc(nocCode: string): boolean {
+  const code = nocCode.trim();
+  if (code.length !== 5) return false;
+  const cfg = rules.fst;
+  if (cfg.unitGroups.includes(code)) return true;
+  if (cfg.minorGroups.includes(code.slice(0, 4))) return true;
+  if (cfg.excludedSubMajorGroups.includes(code.slice(0, 3))) return false;
+  return cfg.majorGroups.includes(code.slice(0, 2));
+}
+
 function assessStreamEligibility(
   profile: ApplicantProfile,
   fswGrid: FswGrid,
@@ -598,19 +646,40 @@ function assessStreamEligibility(
   else
     fswReason = `Scores ${fswGrid.total}/100 on FSW ${rules.fsw.passmark}-point grid — clears the pass mark. Eligible to create profile.`;
 
-  // CEC: 1yr authorized Canadian work in TEER 0-3, CLB 7 minimum
+  // CEC: 1yr authorized Canadian work in TEER 0-3. The language bar depends on the
+  // TEER — canada.ca asks CLB 7 of TEER 0/1 but only CLB 5 of TEER 2/3.
+  const cecMinClb =
+    (rules.cec.minClbByTeer as Record<string, number>)[
+      String(profile.nocTeer)
+    ] ?? minLangClb;
+  const cecLangOk = minFirstLang >= cecMinClb;
   const cecEligible =
-    canadianWhole >= 1 && qualifyingTeer && minFirstLang >= minLangClb;
+    canadianWhole >= rules.cec.minCanadianYears && qualifyingTeer && cecLangOk;
   const cecReason = cecEligible
     ? 'Meets 1-year Canadian work experience requirement.'
-    : canadianWhole < 1
+    : canadianWhole < rules.cec.minCanadianYears
       ? 'Requires at least 1 year of authorized Canadian work experience.'
-      : 'NOC TEER or language requirement not met.';
+      : !qualifyingTeer
+        ? 'NOC TEER 4-5 does not qualify for CEC.'
+        : `Minimum CLB ${cecMinClb} in all four abilities not met for a NOC TEER ${profile.nocTeer} occupation.`;
 
-  // FST: qualifying skilled trade occupation
-  const fstEligible = false;
-  const fstReason =
-    'NOC TEER 1 professional occupation does not qualify as a skilled trade.';
+  // FST: the occupation itself must sit in one of the skilled-trade NOC groups,
+  // plus 2 years of experience and a lower language bar than FSW/CEC.
+  const tradeOccupation = isSkilledTradeNoc(profile.nocCode);
+  const fstLangOk =
+    Math.min(firstBands.speaking, firstBands.listening) >=
+      rules.fst.minClbSpeakingListening &&
+    Math.min(firstBands.reading, firstBands.writing) >=
+      rules.fst.minClbReadingWriting;
+  const fstExpOk = foreignWhole + canadianWhole >= rules.fst.minYearsExperience;
+  const fstEligible = tradeOccupation && fstLangOk && fstExpOk;
+  const fstReason = !tradeOccupation
+    ? `NOC ${profile.nocCode} is not in a Federal Skilled Trades occupation group.`
+    : !fstExpOk
+      ? `Requires at least ${rules.fst.minYearsExperience} years of experience in the skilled trade.`
+      : !fstLangOk
+        ? `Minimum CLB ${rules.fst.minClbSpeakingListening} speaking/listening and CLB ${rules.fst.minClbReadingWriting} reading/writing not met.`
+        : 'Qualifies as a skilled trade occupation and meets the language and experience minimums.';
 
   // Express Entry pool: eligible if eligible for any stream
   const poolEligible = fswEligible || cecEligible;
@@ -775,20 +844,18 @@ function buildFswImprovementSuggestions(
     }
   }
 
-  const currentHasJobOffer =
-    profile.hasJobOffer === 'lmia' || profile.hasJobOffer === 'exempt';
+  const adapt = currentAdaptabilityInputs(profile);
+  const currentHasJobOffer = adapt.hasJobOffer;
 
   // Adaptability: gain Canadian work experience
   if (
     Math.floor(profile.canadianWorkExperienceYears) === 0 &&
     fswGrid.adaptability < rules.fsw.adaptabilityMax
   ) {
-    const newAdapt = fswAdaptabilityPoints(
-      profile.hasCanadianEducation,
-      profile.hasFamilyInCanada,
-      1,
-      currentHasJobOffer,
-    );
+    const newAdapt = fswAdaptabilityPoints({
+      ...adapt,
+      canadianWorkYears: 1,
+    });
     const gain = newAdapt - fswGrid.adaptability;
     if (gain > 0) {
       suggestions.push({
@@ -805,12 +872,7 @@ function buildFswImprovementSuggestions(
 
   // Adaptability: secure a valid job offer
   if (!currentHasJobOffer && fswGrid.adaptability < rules.fsw.adaptabilityMax) {
-    const newAdapt = fswAdaptabilityPoints(
-      profile.hasCanadianEducation,
-      profile.hasFamilyInCanada,
-      profile.canadianWorkExperienceYears,
-      true,
-    );
+    const newAdapt = fswAdaptabilityPoints({ ...adapt, hasJobOffer: true });
     const gain = newAdapt - fswGrid.adaptability;
     if (gain > 0) {
       suggestions.push({
@@ -830,12 +892,10 @@ function buildFswImprovementSuggestions(
     !profile.hasCanadianEducation &&
     fswGrid.adaptability < rules.fsw.adaptabilityMax
   ) {
-    const newAdapt = fswAdaptabilityPoints(
-      true,
-      profile.hasFamilyInCanada,
-      profile.canadianWorkExperienceYears,
-      currentHasJobOffer,
-    );
+    const newAdapt = fswAdaptabilityPoints({
+      ...adapt,
+      hasCanadianEducation: true,
+    });
     const gain = newAdapt - fswGrid.adaptability;
     if (gain > 0) {
       suggestions.push({
@@ -959,7 +1019,9 @@ export function calculate(profile: ApplicantProfile): CrsResult {
     profile.hasSpouse,
   );
   const firstLangPoints = firstLanguagePoints(firstBands, profile.hasSpouse);
-  const secondLangPoints = secondBands ? secondLanguagePoints(secondBands) : 0;
+  const secondLangPoints = secondBands
+    ? secondLanguagePoints(secondBands, profile.hasSpouse)
+    : 0;
   const canadianExp = canadianExpPoints(
     profile.canadianWorkExperienceYears,
     profile.hasSpouse,
@@ -1010,9 +1072,16 @@ export function calculate(profile: ApplicantProfile): CrsResult {
     profile.foreignWorkExperienceYears,
     profile.canadianWorkExperienceYears,
   );
+  // canada.ca caps each transferability GROUP at 50 before the overall 100 cap applies:
+  // the two education rows share one 50-point ceiling, and the two foreign-work rows
+  // share another. Summing all four against a single 100 cap over-scores anyone who
+  // holds both strong language results and Canadian work experience.
+  const groupMax = rules.sectionC.groupMax;
+  const eduGroup = Math.min(groupMax, eduLangTr + eduCanTr);
+  const foreignGroup = Math.min(groupMax, foreignLangTr + foreignCanTr);
   const transferTotal = Math.min(
     rules.sectionC.maxTotal,
-    eduLangTr + eduCanTr + foreignLangTr + foreignCanTr,
+    eduGroup + foreignGroup,
   );
 
   // Section D — Additional (capped at 600 per canada.ca)
@@ -1060,12 +1129,7 @@ export function calculate(profile: ApplicantProfile): CrsResult {
     ] ?? 0;
   const fswExp = fswWorkExpPoints(profile.foreignWorkExperienceYears);
   const fswAge = fswAgePoints(profile.age);
-  const fswAdapt = fswAdaptabilityPoints(
-    profile.hasCanadianEducation,
-    profile.hasFamilyInCanada,
-    profile.canadianWorkExperienceYears,
-    profile.hasJobOffer === 'lmia' || profile.hasJobOffer === 'exempt',
-  );
+  const fswAdapt = fswAdaptabilityPoints(currentAdaptabilityInputs(profile));
   const fswTotal = fswLang + fswEdu + fswExp + fswAge + fswAdapt;
   const fswGrid: FswGrid = {
     language: fswLang,

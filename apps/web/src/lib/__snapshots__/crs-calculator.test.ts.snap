@@ -36,12 +36,12 @@ exports[`calculate — Harish Naik with-spouse Factor B verification > full CrsR
     "fst": {
       "eligible": false,
       "likely": false,
-      "reason": "NOC TEER 1 professional occupation does not qualify as a skilled trade.",
+      "reason": "NOC 21211 is not in a Federal Skilled Trades occupation group.",
     },
     "fsw": {
       "eligible": true,
       "likely": true,
-      "reason": "Scores 70/100 on FSW 67-point grid — clears the pass mark. Eligible to create profile.",
+      "reason": "Scores 75/100 on FSW 67-point grid — clears the pass mark. Eligible to create profile.",
     },
   },
   "firstLanguageBands": {
@@ -51,18 +51,18 @@ exports[`calculate — Harish Naik with-spouse Factor B verification > full CrsR
     "writing": 9,
   },
   "fswGrid": {
-    "adaptability": 0,
+    "adaptability": 5,
     "age": 9,
     "education": 23,
     "eligible": true,
     "language": 23,
-    "total": 70,
+    "total": 75,
     "workExperience": 15,
   },
   "fswImprovements": [],
   "proofOfFundsRequired": 19001,
   "proofOfFundsSufficient": true,
-  "rulesVersion": "5b5dd31e",
+  "rulesVersion": "1d1abc5d",
   "scenarios": [
     {
       "change": "Achieve CLB 10 in all four language abilities",
@@ -129,7 +129,7 @@ exports[`calculate — Kishore Sai ground-truth verification > full CrsResult sn
     "fst": {
       "eligible": false,
       "likely": false,
-      "reason": "NOC TEER 1 professional occupation does not qualify as a skilled trade.",
+      "reason": "NOC 21211 is not in a Federal Skilled Trades occupation group.",
     },
     "fsw": {
       "eligible": true,
@@ -155,7 +155,7 @@ exports[`calculate — Kishore Sai ground-truth verification > full CrsResult sn
   "fswImprovements": [],
   "proofOfFundsRequired": 15263,
   "proofOfFundsSufficient": true,
-  "rulesVersion": "5b5dd31e",
+  "rulesVersion": "1d1abc5d",
   "scenarios": [
     {
       "change": "Reach 3 full years of foreign work experience",
@@ -230,7 +230,7 @@ exports[`calculate — provincial nomination > full CrsResult snapshot — locks
     "fst": {
       "eligible": false,
       "likely": false,
-      "reason": "NOC TEER 1 professional occupation does not qualify as a skilled trade.",
+      "reason": "NOC 21211 is not in a Federal Skilled Trades occupation group.",
     },
     "fsw": {
       "eligible": true,
@@ -256,7 +256,7 @@ exports[`calculate — provincial nomination > full CrsResult snapshot — locks
   "fswImprovements": [],
   "proofOfFundsRequired": 15263,
   "proofOfFundsSufficient": true,
-  "rulesVersion": "5b5dd31e",
+  "rulesVersion": "1d1abc5d",
   "scenarios": [
     {
       "change": "Reach 3 full years of foreign work experience",
