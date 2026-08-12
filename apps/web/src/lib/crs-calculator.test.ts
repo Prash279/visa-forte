@@ -539,3 +539,260 @@ describe('calculate — Section D bonuses (French + Canadian education)', () => 
     expect(pnp!.delta).toBe(600 - 65);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Regression suite for the 2026-08-12 canada.ca re-verification.
+// Each block locks one defect that made the engine disagree with the official
+// IRCC calculator. Sources: crs-criteria.html, federal-skilled-workers.html,
+// federal-skilled-trades.html, language-test.html — all date modified 2026-06-22.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// IELTS GT scores that convert to CLB 9 in all four abilities.
+const clb9: LanguageScores = {
+  testType: 'IELTS_GT',
+  listening: 8.0,
+  reading: 7.0,
+  writing: 7.0,
+  speaking: 7.0,
+};
+
+describe('Section C — education transferability tiers', () => {
+  // The reported bug: a single bachelor's was scored in the top 25/50 tier.
+  // canada.ca puts it under "post-secondary credential of one year or longer" (13/25).
+  it("single bachelor's at CLB 9 scores 25, not 50", () => {
+    const r = calculate({
+      ...kishoreProfile,
+      education: 'bachelors',
+      firstLanguageScores: clb9,
+    });
+    expect(r.breakdown.eduLanguageTransfer).toBe(25);
+  });
+
+  it("single bachelor's at CLB 7 scores 13, not 25", () => {
+    const r = calculate({
+      ...kishoreProfile,
+      education: 'bachelors',
+      firstLanguageScores: {
+        testType: 'IELTS_GT',
+        listening: 6.0,
+        reading: 6.0,
+        writing: 6.0,
+        speaking: 6.0,
+      },
+    });
+    expect(r.breakdown.eduLanguageTransfer).toBe(13);
+  });
+
+  it("master's at CLB 9 still reaches the top tier (50)", () => {
+    const r = calculate({ ...kishoreProfile, firstLanguageScores: clb9 });
+    expect(r.breakdown.eduLanguageTransfer).toBe(50);
+  });
+
+  it('two-year post-secondary sits in the same tier as a bachelor’s', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      education: 'two_year_post_secondary',
+      firstLanguageScores: clb9,
+    });
+    expect(r.breakdown.eduLanguageTransfer).toBe(25);
+  });
+
+  it('secondary school or less scores 0', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      education: 'secondary',
+      firstLanguageScores: clb9,
+    });
+    expect(r.breakdown.eduLanguageTransfer).toBe(0);
+  });
+});
+
+describe('Section C — per-group 50 cap', () => {
+  // Education language (50) + education Canadian experience (50) must not sum to
+  // 100 for one applicant: canada.ca caps the education group at 50.
+  it('education group is capped at 50 even when both rows max out', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      firstLanguageScores: clb9,
+      canadianWorkExperienceYears: 3,
+      foreignWorkExperienceYears: 0,
+    });
+    expect(r.breakdown.eduLanguageTransfer).toBe(50);
+    expect(r.breakdown.eduCanadianExpTransfer).toBe(50);
+    expect(r.breakdown.transferTotal).toBe(50);
+  });
+
+  it('foreign-work group is capped at 50 independently of the education group', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      firstLanguageScores: clb9,
+      canadianWorkExperienceYears: 3,
+      foreignWorkExperienceYears: 5,
+    });
+    // Education group 50 + foreign-work group 50 = 100 overall cap.
+    expect(r.breakdown.transferTotal).toBe(100);
+  });
+});
+
+describe('Section A — second official language combined cap', () => {
+  // 6 points per ability × 4 = 24 raw. The cap is 24 single / 22 with a spouse,
+  // so only the with-spouse case is actually clipped.
+  const frenchClb9: LanguageScores = {
+    testType: 'TEF',
+    listening: 316,
+    reading: 263,
+    writing: 393,
+    speaking: 393,
+  };
+
+  it('caps at 22 with a spouse', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      hasSpouse: true,
+      spouseEducation: 'bachelors',
+      hasSecondLanguage: true,
+      secondLanguageScores: frenchClb9,
+    });
+    expect(r.breakdown.secondLanguagePoints).toBe(22);
+  });
+
+  it('caps at 24 without a spouse', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      hasSecondLanguage: true,
+      secondLanguageScores: frenchClb9,
+    });
+    expect(r.breakdown.secondLanguagePoints).toBe(24);
+  });
+});
+
+describe('FSW grid — canada.ca 67-point selection factors', () => {
+  it('exactly 3 years of foreign work experience scores 11, not 13', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      foreignWorkExperienceYears: 3,
+    });
+    expect(r.fswGrid.workExperience).toBe(11);
+  });
+
+  it('4 years of foreign work experience scores 13', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      foreignWorkExperienceYears: 4,
+    });
+    expect(r.fswGrid.workExperience).toBe(13);
+  });
+
+  it('ages 43-46 still score (4/3/2/1), not 0', () => {
+    const pts = [43, 44, 45, 46].map(
+      (age) => calculate({ ...kishoreProfile, age }).fswGrid.age,
+    );
+    expect(pts).toEqual([4, 3, 2, 1]);
+  });
+
+  it('own Canadian work experience is worth 10 adaptability points', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      canadianWorkExperienceYears: 1,
+    });
+    expect(r.fswGrid.adaptability).toBe(10);
+  });
+
+  it('adaptability is capped at 10 when several elements apply', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      canadianWorkExperienceYears: 2,
+      hasCanadianEducation: true,
+      hasFamilyInCanada: true,
+    });
+    expect(r.fswGrid.adaptability).toBe(10);
+  });
+
+  it('second official language is all-or-nothing: CLB 5 in only some abilities scores 0', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      hasSecondLanguage: true,
+      secondLanguageScores: {
+        testType: 'TEF',
+        listening: 249, // CLB 5
+        reading: 206, // CLB 5
+        writing: 100, // below CLB 5
+        speaking: 100, // below CLB 5
+      },
+    });
+    const withoutSecond = calculate(kishoreProfile).fswGrid.language;
+    expect(r.fswGrid.language).toBe(withoutSecond);
+  });
+});
+
+describe('Stream eligibility — CEC and FST', () => {
+  it('CEC accepts CLB 5 for a TEER 2 occupation (not CLB 7)', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      nocTeer: 2,
+      nocCode: '22310',
+      canadianWorkExperienceYears: 1,
+      firstLanguageScores: {
+        testType: 'IELTS_GT',
+        listening: 5.0, // CLB 5
+        reading: 4.0, // CLB 5
+        writing: 5.0, // CLB 5
+        speaking: 5.0, // CLB 5
+      },
+    });
+    expect(r.eligibility.cec.eligible).toBe(true);
+  });
+
+  it('CEC still requires CLB 7 for a TEER 1 occupation', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      nocTeer: 1,
+      canadianWorkExperienceYears: 1,
+      firstLanguageScores: {
+        testType: 'IELTS_GT',
+        listening: 5.0,
+        reading: 4.0,
+        writing: 5.0,
+        speaking: 5.0,
+      },
+    });
+    expect(r.eligibility.cec.eligible).toBe(false);
+  });
+
+  it('FST is actually assessed: a major-group-72 trade with 2 years qualifies', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      nocCode: '72200', // electricians — Major Group 72
+      nocTeer: 2,
+      foreignWorkExperienceYears: 3,
+    });
+    expect(r.eligibility.fst.eligible).toBe(true);
+  });
+
+  it('FST excludes Sub-Major Group 726', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      nocCode: '72600',
+      nocTeer: 2,
+      foreignWorkExperienceYears: 3,
+    });
+    expect(r.eligibility.fst.eligible).toBe(false);
+  });
+
+  it('FST reason names the applicant’s own NOC, not a hardcoded TEER 1', () => {
+    const r = calculate({ ...kishoreProfile, nocTeer: 2, nocCode: '22310' });
+    expect(r.eligibility.fst.reason).toContain('22310');
+    expect(r.eligibility.fst.reason).not.toContain('TEER 1');
+  });
+
+  it('FST rejects a qualifying trade with under 2 years of experience', () => {
+    const r = calculate({
+      ...kishoreProfile,
+      nocCode: '72200',
+      nocTeer: 2,
+      foreignWorkExperienceYears: 1,
+      canadianWorkExperienceYears: 0,
+    });
+    expect(r.eligibility.fst.eligible).toBe(false);
+  });
+});
