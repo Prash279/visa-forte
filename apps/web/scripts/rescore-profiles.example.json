@@ -1,0 +1,79 @@
+[
+  {
+    "name": "Example — single bachelor's, CLB 9 (the reported bug)",
+    "age": 28,
+    "education": "bachelors",
+    "firstLanguageScores": {
+      "testType": "IELTS_GT",
+      "listening": 8.0,
+      "reading": 7.0,
+      "writing": 7.0,
+      "speaking": 7.0
+    },
+    "foreignWorkExperienceYears": 4,
+    "canadianWorkExperienceYears": 0,
+    "hasSpouse": false,
+    "nocTeer": 2,
+    "nocCode": "52120"
+  },
+  {
+    "name": "Example — master's, unaffected by the education tier fix",
+    "age": 26,
+    "education": "masters",
+    "firstLanguageScores": {
+      "testType": "IELTS_GT",
+      "listening": 8.0,
+      "reading": 8.5,
+      "writing": 7.0,
+      "speaking": 7.0
+    },
+    "foreignWorkExperienceYears": 2.25,
+    "canadianWorkExperienceYears": 0,
+    "hasSpouse": false,
+    "nocTeer": 1,
+    "nocCode": "21211"
+  },
+  {
+    "name": "Example — master's + Canadian work, no foreign work: the missing group cap",
+    "age": 30,
+    "education": "masters",
+    "firstLanguageScores": {
+      "testType": "IELTS_GT",
+      "listening": 8.0,
+      "reading": 7.0,
+      "writing": 7.0,
+      "speaking": 7.0
+    },
+    "foreignWorkExperienceYears": 0,
+    "canadianWorkExperienceYears": 2,
+    "hasSpouse": false,
+    "nocTeer": 1,
+    "nocCode": "21211"
+  },
+  {
+    "name": "Example — with spouse (spouseEducation is required when hasSpouse is true)",
+    "age": 38,
+    "education": "masters",
+    "firstLanguageScores": {
+      "testType": "IELTS_GT",
+      "listening": 8.0,
+      "reading": 6.5,
+      "writing": 7.0,
+      "speaking": 7.0
+    },
+    "foreignWorkExperienceYears": 6,
+    "canadianWorkExperienceYears": 0,
+    "hasSpouse": true,
+    "spouseEducation": "masters",
+    "spouseLanguageScores": {
+      "testType": "IELTS_GT",
+      "listening": 7.0,
+      "reading": 7.0,
+      "writing": 6.0,
+      "speaking": 6.0
+    },
+    "spouseCanadianExperience": 0,
+    "nocTeer": 1,
+    "nocCode": "21211"
+  }
+]
