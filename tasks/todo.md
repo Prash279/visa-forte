@@ -1,3 +1,65 @@
+## Session 2026-08-13 — Search by Job Duties on the assessment forms (branch `feat/noc-duties-search`)
+
+> Prash's ask: add a "Search by Job Duties / Responsibilities" section directly below the existing
+> "Search by Job Title / Designation" box, where an applicant pastes the duties from their reference
+> letter and the system cross-checks them against the official NOC job descriptions to identify the
+> closest-matching NOC code. Plan approved 2026-08-13.
+
+### What already existed (no new AI engine was built)
+
+The matching engine is already live as `/tools/noc-verifier`, backed by `POST /api/tools/noc-verifier`:
+deterministic TF-IDF shortlist over all 516 official NOC 2021 unit groups → Claude (claude-sonnet-4-6,
+extended thinking) ranks that shortlist against each group's **real StatCan lead statement and main
+duties**, judging scope of work not shared vocabulary → winning code live-verified on noc.esdc.gc.ca.
+Returns top 3 with a 0–100 fit score, a one-sentence rationale and a confidence band, and carries the
+domain anchors that fixed the "Data Science Engineer → Civil Engineers" failure. **This task wires that
+existing engine into the two assessment forms — it touches no prompt, no dataset, and no IRCC figure.**
+
+### Decisions Prash confirmed before any code
+
+| Question | Decision |
+|---|---|
+| Engine | Reuse `/api/tools/noc-verifier` as-is — no new endpoint, no offline-only mode |
+| Result handling | Show top 3, applicant clicks one — nothing auto-applied to the NOC field |
+| Coexistence with title search | Both feed one NOC field, last selection wins, chip names which method found it |
+| Where | Public Assessment page **and** admin CanVisa Pro, as one shared component |
+| Rate limit | Public stays 20/hour per IP; **admin session exempt** so CanVisa Pro never eats the public budget |
+
+### Tasks
+
+- [ ] 1. Make `NocSearch` a controlled component — lift the selected-NOC state out of it. Two boxes
+      writing to one field cannot work while that state is hidden inside one of them.
+- [ ] 2. New shared `NocPicker` component owning the single selection and rendering both routes to it
+      (title search on top, duties panel below). Props match today's `NocSearch` so both call sites
+      swap one component name. Selecting from either route clears the other.
+- [ ] 3. Duties panel: textarea (30–3,000 chars, matching the API), live character count, "Find
+      Matching NOC" button, duties-not-titles hint. The Occupation / Job Title already on the form is
+      passed silently as context.
+- [ ] 4. Results: top 3 cards — code, official title, TEER, fit score, one-sentence rationale, ESDC
+      link, "Use this code" button. Only that button writes to the form.
+- [ ] 5. Honest labelling of degraded results (lessons.md Lesson 5): amber caution when the API falls
+      back to keyword-only matching; name the source that live-confirmed the code (Lesson 6).
+- [ ] 6. Admin exemption in the route: reuse the `getCurrentAuthSession()` + ADMIN_EMAIL pattern from
+      `/api/admin/pnp-noc`, checked before the rate limiter. Public limit unchanged at 20/hour per IP.
+- [ ] 7. Wire both call sites: `AssessmentTool.tsx` (light) and `CanVisaProTool.tsx` (dark). CanVisa
+      Pro's existing habit of also copying the NOC title into `occupationTitle` is preserved.
+- [ ] 8. Mobile-first CSS in the same commit — 375px base, then 768 and 1280, both themes, nothing
+      below 0.75rem, reusing the site's single tag style (saffron text, thin border, no fill).
+- [ ] 9. Verify: full `npm test` (not bare vitest), `tsc`, `eslint`, production build, plus an
+      adversarial résumé-speak probe per Lesson 5. **Honest limitation: this repo has no
+      component-level test harness — no `.test.tsx` exists anywhere.** The engine's own tests cover
+      the matching logic; the new UI is verified by build, typecheck and browser check, not unit tests.
+
+### Prashant Proof (60-second browser check)
+
+Go to `/assessment`, Section 1. Below "Search by Job Title / Designation" you will see "Search by Job
+Duties / Responsibilities". Paste three or four sentences of real duties from a client reference letter
+and click "Find Matching NOC". Three NOC candidates appear, strongest first, each explaining why it
+fits. Click "Use this code" and confirm the NOC chip above updates and says it was matched from duties.
+Repeat at `/admin/canvisa-pro`.
+
+---
+
 ## Session 2026-07-19 (night, follow-up) — Live-verify source: ESDC first (branch `fix/noc-verify-esdc-source`)
 
 > Prash correction on the PR #12 result: the live check verified against Statistics Canada; it
