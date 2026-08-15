@@ -19,7 +19,7 @@ import drawData from '@/lib/crs-draw-history.json';
 import fundsData from '@/lib/proof-of-funds.json';
 import crsRules from '@/lib/crs-rules.json';
 import './canvisa-pro.css';
-import NocSearch from '@/components/NocSearch';
+import NocPicker from '@/components/NocPicker';
 import PnpReport from './PnpReport';
 import {
   assessPnp,
@@ -1520,8 +1520,9 @@ export default function CanVisaProTool() {
               />
             </div>
             <div className="cvp-field full">
-              <NocSearch
+              <NocPicker
                 theme="dark"
+                jobTitleContext={profile.occupationTitle}
                 onSelect={(code, teer, title) =>
                   setProfile((prev) => ({
                     ...prev,

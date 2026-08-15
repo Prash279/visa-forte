@@ -56,46 +56,8 @@
   font-style: italic;
 }
 
-.noc-selected-wrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 0.875rem;
-}
-
-.noc-selected-text {
-  flex: 1;
-  min-width: 0;
-  font-weight: 500;
-}
-
-.noc-clear-btn {
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: opacity 0.15s;
-  white-space: nowrap;
-}
-
-.noc-clear-btn:hover {
-  opacity: 0.8;
-}
-
-.noc-verify-link {
-  font-size: 0.8rem;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.noc-verify-link:hover {
-  text-decoration: underline;
-}
+/* The selected-answer chip moved to NocPicker (it owns the one selection now),
+   so the styles for it live in NocPicker.css. */
 
 /* ─── Light theme ──────────────────────────────────────────── */
 
@@ -130,24 +92,6 @@
 
 .noc-light .noc-no-match {
   color: #6b7280;
-}
-
-.noc-light .noc-selected-wrap {
-  background: #f0f4f8;
-  border: 1px solid #d1d5db;
-}
-
-.noc-light .noc-selected-text {
-  color: #1e3a5f;
-}
-
-.noc-light .noc-clear-btn {
-  background: #1e3a5f;
-  color: #ffffff;
-}
-
-.noc-light .noc-verify-link {
-  color: #1e3a5f;
 }
 
 /* ─── Dark theme ───────────────────────────────────────────── */
@@ -185,34 +129,3 @@
   color: var(--cvp-muted);
 }
 
-.noc-dark .noc-selected-wrap {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--cvp-border);
-}
-
-.noc-dark .noc-selected-text {
-  color: var(--cvp-brand-teal);
-}
-
-.noc-dark .noc-clear-btn {
-  background: var(--cvp-brand-teal);
-  color: #0a1628;
-}
-
-.noc-dark .noc-verify-link {
-  color: var(--cvp-brand-teal);
-}
-
-/* ─── Mobile: stack selected state vertically ──────────────── */
-
-@media (max-width: 480px) {
-  .noc-selected-wrap {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .noc-selected-text {
-    width: 100%;
-  }
-}

@@ -1,0 +1,549 @@
+/* NocPicker — title search + duties matcher feeding one NOC answer.
+   Mobile-first: base styles are 375px; 768px and 1280px layer on at the bottom.
+   Two themes: .nocp-light (assessment page, brand vars) and .nocp-dark
+   (CanVisa Pro, cvp-* vars). Nothing below 0.75rem — brand text floor.
+   Tags reuse the single site-wide small-label style: saffron uppercase text,
+   thin saffron border, transparent fill. No colour-per-category fills. */
+
+.nocp {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+/* ─── The one selected answer, whichever route found it ─────── */
+
+.nocp-chosen {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+}
+
+.nocp-chosen-text {
+  flex: 1 1 100%;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.nocp-source {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  border: 1px solid var(--saffron);
+  background: transparent;
+  padding: 0.15rem 0.5rem;
+}
+
+.nocp-clear {
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  border: none;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.nocp-clear:hover {
+  opacity: 0.8;
+}
+
+.nocp-verify {
+  font-size: 0.78rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.nocp-verify:hover {
+  text-decoration: underline;
+}
+
+/* ─── Duties panel ──────────────────────────────────────────── */
+
+.nocp-duties {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.nocp-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.nocp-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.nocp-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nocp-hint {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 300;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.nocp-count {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.nocp-btn {
+  align-self: flex-start;
+  margin-top: 0.35rem;
+  padding: 0.6rem 1.1rem;
+  border: none;
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.nocp-btn:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.nocp-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.nocp-error {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #a4382a;
+  margin: 0.4rem 0 0;
+}
+
+/* Degraded mode — keyword-only results are never dressed as AI results. */
+.nocp-caution {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 300;
+  line-height: 1.6;
+  background: var(--amber, #edd9b0);
+  border-left: 3px solid var(--saffron);
+  color: var(--ink, #1a2b3c);
+  padding: 0.75rem 0.9rem;
+  margin-top: 0.9rem;
+}
+
+.nocp-empty {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 300;
+  line-height: 1.6;
+  margin: 0.9rem 0 0;
+}
+
+/* ─── Result cards ──────────────────────────────────────────── */
+
+.nocp-card {
+  padding: 1rem 0.9rem;
+  margin-top: 0.9rem;
+}
+
+.nocp-card--top {
+  border-top-width: 3px;
+  border-top-style: solid;
+  border-top-color: var(--saffron);
+}
+
+.nocp-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.nocp-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.nocp-tag {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--saffron);
+  border: 1px solid var(--saffron);
+  background: transparent;
+  padding: 0.15rem 0.5rem;
+  white-space: nowrap;
+}
+
+.nocp-card-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1.35;
+  margin: 0 0 0.4rem;
+}
+
+.nocp-verified {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.5;
+  margin: 0 0 0.6rem;
+}
+
+.nocp-rationale {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 300;
+  line-height: 1.6;
+  border-left: 3px solid;
+  padding: 0.1rem 0 0.1rem 0.75rem;
+  margin: 0 0 0.75rem;
+}
+
+.nocp-official {
+  margin-bottom: 0.75rem;
+}
+
+.nocp-official summary {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.nocp-lead {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 300;
+  line-height: 1.6;
+  margin: 0.55rem 0 0.5rem;
+}
+
+.nocp-duty-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nocp-duty-list li {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 300;
+  line-height: 1.55;
+  padding-left: 0.85rem;
+  position: relative;
+  margin-bottom: 0.25rem;
+}
+
+.nocp-duty-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 4px;
+  height: 4px;
+  background: var(--saffron);
+}
+
+.nocp-card-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.nocp-use {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.nocp-use:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.nocp-use:disabled {
+  cursor: default;
+}
+
+.nocp-use--active {
+  opacity: 0.75;
+}
+
+.nocp-esdc {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.nocp-esdc:hover {
+  text-decoration: underline;
+}
+
+.nocp-note {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 300;
+  line-height: 1.6;
+  margin: 1rem 0 0;
+}
+
+/* ─── Light theme (assessment page) ─────────────────────────── */
+
+.nocp-light .nocp-chosen {
+  background: #f0f4f8;
+  border: 1px solid #d1d5db;
+}
+
+.nocp-light .nocp-chosen-text {
+  color: #1e3a5f;
+}
+
+.nocp-light .nocp-clear {
+  background: #1e3a5f;
+  color: #ffffff;
+}
+
+.nocp-light .nocp-verify {
+  color: #1e3a5f;
+}
+
+.nocp-light .nocp-label {
+  color: #374151;
+}
+
+.nocp-light .nocp-textarea {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #111827;
+}
+
+.nocp-light .nocp-textarea:focus {
+  border-color: var(--saffron);
+}
+
+.nocp-light .nocp-hint,
+.nocp-light .nocp-count {
+  color: #6b7280;
+}
+
+.nocp-light .nocp-btn,
+.nocp-light .nocp-use {
+  background: #1e3a5f;
+  color: #ffffff;
+}
+
+.nocp-light .nocp-empty,
+.nocp-light .nocp-note {
+  color: #4b5563;
+}
+
+.nocp-light .nocp-card {
+  background: var(--pearl, #f8f4ee);
+  border: 1px solid var(--sand, #e0d8cc);
+}
+
+.nocp-light .nocp-card-title {
+  color: var(--prussian, #1e3a5f);
+}
+
+.nocp-light .nocp-verified {
+  color: var(--teal, #2c6e75);
+}
+
+.nocp-light .nocp-rationale {
+  border-left-color: var(--teal, #2c6e75);
+  color: #1f2937;
+}
+
+.nocp-light .nocp-rationale strong {
+  font-weight: 600;
+  color: var(--prussian, #1e3a5f);
+}
+
+.nocp-light .nocp-official summary,
+.nocp-light .nocp-esdc {
+  color: var(--teal, #2c6e75);
+}
+
+.nocp-light .nocp-lead,
+.nocp-light .nocp-duty-list li {
+  color: #374151;
+}
+
+/* ─── Dark theme (CanVisa Pro) ──────────────────────────────── */
+
+.nocp-dark .nocp-chosen {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--cvp-border);
+}
+
+.nocp-dark .nocp-chosen-text {
+  color: var(--cvp-brand-teal);
+}
+
+.nocp-dark .nocp-clear {
+  background: var(--cvp-brand-teal);
+  color: #0a1628;
+}
+
+.nocp-dark .nocp-verify {
+  color: var(--cvp-brand-teal);
+}
+
+.nocp-dark .nocp-label {
+  color: var(--cvp-muted);
+}
+
+.nocp-dark .nocp-textarea {
+  background: var(--cvp-card);
+  border: 1px solid var(--cvp-border);
+  color: var(--cvp-text);
+}
+
+.nocp-dark .nocp-textarea:focus {
+  border-color: var(--cvp-brand-teal);
+}
+
+.nocp-dark .nocp-hint,
+.nocp-dark .nocp-count {
+  color: var(--cvp-muted);
+}
+
+.nocp-dark .nocp-btn,
+.nocp-dark .nocp-use {
+  background: var(--cvp-brand-teal);
+  color: #0a1628;
+}
+
+.nocp-dark .nocp-empty,
+.nocp-dark .nocp-note {
+  color: var(--cvp-muted);
+}
+
+.nocp-dark .nocp-card {
+  background: var(--cvp-card);
+  border: 1px solid var(--cvp-border);
+}
+
+.nocp-dark .nocp-card-title {
+  color: var(--cvp-text);
+}
+
+.nocp-dark .nocp-verified {
+  color: var(--cvp-brand-teal);
+}
+
+.nocp-dark .nocp-rationale {
+  border-left-color: var(--cvp-brand-teal);
+  color: var(--cvp-text);
+}
+
+.nocp-dark .nocp-rationale strong {
+  font-weight: 600;
+  color: var(--cvp-brand-teal);
+}
+
+.nocp-dark .nocp-official summary,
+.nocp-dark .nocp-esdc {
+  color: var(--cvp-brand-teal);
+}
+
+.nocp-dark .nocp-lead,
+.nocp-dark .nocp-duty-list li {
+  color: var(--cvp-text);
+}
+
+/* Amber caution is a light-surface component; keep its text dark in both themes. */
+.nocp-dark .nocp-caution {
+  color: #1a2b3c;
+}
+
+/* ─── Tablet and up ─────────────────────────────────────────── */
+
+@media (min-width: 768px) {
+  .nocp-chosen-text {
+    flex: 1 1 auto;
+  }
+
+  .nocp-meta {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .nocp-hint {
+    flex: 1;
+  }
+
+  .nocp-count {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .nocp-card {
+    padding: 1.25rem 1.4rem;
+  }
+
+  .nocp-card-title {
+    font-size: 1.15rem;
+  }
+
+  .nocp-card-foot {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .nocp-card {
+    padding: 1.5rem 1.75rem;
+  }
+}

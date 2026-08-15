@@ -40,6 +40,7 @@ import {
   verifyCodeLive,
 } from '@/lib/noc-classify';
 import { titleCaseOccupation } from '@/lib/noc-format';
+import { getCurrentAuthSession } from '@/lib/auth-server';
 
 export const maxDuration = 60;
 
@@ -54,6 +55,17 @@ const THINKING_BUDGET = 2048;
 const RATE_LIMIT = 20;
 const RATE_WINDOW_MS = 60 * 60 * 1000;
 const hitLog = new Map<string, number[]>();
+
+// The admin's own CanVisa Pro sessions embed this same matcher while preparing
+// client files, and that work must never eat into the public tool's hourly
+// budget. Same identity check the admin routes use; a failed/absent session
+// simply falls through to the normal public limit.
+const ADMIN_EMAIL = 'prashant@visaforte.com';
+
+async function isAdminSession(): Promise<boolean> {
+  const session = await getCurrentAuthSession();
+  return Boolean(session?.session) && session?.user?.email === ADMIN_EMAIL;
+}
 
 function rateLimited(ip: string): boolean {
   const now = Date.now();
@@ -219,7 +231,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const ip =
     req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-  if (rateLimited(ip)) {
+  const admin = await isAdminSession();
+  if (!admin && rateLimited(ip)) {
     return NextResponse.json(
       {
         error:

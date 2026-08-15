@@ -27,28 +27,57 @@ existing engine into the two assessment forms — it touches no prompt, no datas
 
 ### Tasks
 
-- [ ] 1. Make `NocSearch` a controlled component — lift the selected-NOC state out of it. Two boxes
-      writing to one field cannot work while that state is hidden inside one of them.
-- [ ] 2. New shared `NocPicker` component owning the single selection and rendering both routes to it
-      (title search on top, duties panel below). Props match today's `NocSearch` so both call sites
-      swap one component name. Selecting from either route clears the other.
-- [ ] 3. Duties panel: textarea (30–3,000 chars, matching the API), live character count, "Find
-      Matching NOC" button, duties-not-titles hint. The Occupation / Job Title already on the form is
-      passed silently as context.
-- [ ] 4. Results: top 3 cards — code, official title, TEER, fit score, one-sentence rationale, ESDC
-      link, "Use this code" button. Only that button writes to the form.
-- [ ] 5. Honest labelling of degraded results (lessons.md Lesson 5): amber caution when the API falls
-      back to keyword-only matching; name the source that live-confirmed the code (Lesson 6).
-- [ ] 6. Admin exemption in the route: reuse the `getCurrentAuthSession()` + ADMIN_EMAIL pattern from
-      `/api/admin/pnp-noc`, checked before the rate limiter. Public limit unchanged at 20/hour per IP.
-- [ ] 7. Wire both call sites: `AssessmentTool.tsx` (light) and `CanVisaProTool.tsx` (dark). CanVisa
-      Pro's existing habit of also copying the NOC title into `occupationTitle` is preserved.
-- [ ] 8. Mobile-first CSS in the same commit — 375px base, then 768 and 1280, both themes, nothing
-      below 0.75rem, reusing the site's single tag style (saffron text, thin border, no fill).
-- [ ] 9. Verify: full `npm test` (not bare vitest), `tsc`, `eslint`, production build, plus an
-      adversarial résumé-speak probe per Lesson 5. **Honest limitation: this repo has no
-      component-level test harness — no `.test.tsx` exists anywhere.** The engine's own tests cover
-      the matching logic; the new UI is verified by build, typecheck and browser check, not unit tests.
+- [x] 1. `NocSearch` is now controlled — it holds only the query box and dropdown, and reports the
+      whole chosen entry upward (`onSelect(entry: NocEntry)`). Its private `selected` state and the
+      chip that rendered it are gone. Two boxes writing to one field cannot work while that state is
+      hidden inside one of them. Its dead chip CSS (16 rule blocks) was deleted, not left orphaned.
+- [x] 2. `NocPicker` owns the one selection and renders both routes into it — title search on top,
+      duties panel below. Whichever route the applicant picked last wins, and the chip records which
+      route it was ("Matched from duties" / "Matched from job title"), so the two can never disagree.
+- [x] 3. Duties panel: textarea capped at the API's own 3,000 chars, live count that shows the 30-char
+      minimum until it is met, disabled button below it, duties-not-titles hint. The Occupation / Job
+      Title already on the form rides along as context (trimmed to 120 chars) — never retyped.
+- [x] 4. Results: top 3 cards — code, official title, TEER, fit score, rationale, collapsible official
+      lead statement + main duties, ESDC deep link, "Use this code". Only that button writes to the
+      form; a match whose TEER is outside 0–5 disables its own button rather than coercing a value.
+- [x] 5. Degraded results labelled honestly (Lesson 5): amber caution whenever `method:"lexical"`,
+      naming keyword-matching as the cause and telling the applicant to retry. Confidence chip shown
+      only for AI results. The verified line names the actual confirming source, ESDC or StatCan
+      (Lesson 6). Added back the "Verify on canada.ca ↗" link the old chip carried — the refactor had
+      silently dropped it, leaving a title-route code with no route back to IRCC's own NOC page.
+- [x] 6. Admin exemption in the route: `getCurrentAuthSession()` + ADMIN_EMAIL, checked before the
+      limiter; absent/failed session falls through to the normal public 20/hour per IP.
+      **`getCurrentAuthSession` was being called without being imported** — caught at this gate, not
+      in production. One-line fix; it would have failed the CI typecheck.
+- [x] 7. Both call sites swapped to `NocPicker` with `jobTitleContext={profile.occupationTitle}` —
+      `AssessmentTool.tsx` (light) and `CanVisaProTool.tsx` (dark, still copying the NOC title into
+      `occupationTitle` as before).
+- [x] 8. Mobile-first CSS: 375px base, `min-width` layers at 768 and 1280, both themes, nothing below
+      0.75rem, tags reusing the single site-wide style (saffron text, thin saffron border, no fill —
+      Lesson 5 of the UI category).
+- [x] 9. Verified: `npm test` 391/393, `tsc` clean, `eslint` clean, production build compiled ✓.
+      **Honest limitation: this repo has no component-level test harness — no `.test.tsx` exists
+      anywhere.** The engine's own tests cover the matching logic; the new UI is verified by build,
+      typecheck and browser check, not unit tests. Three caveats, none caused by this feature:
+      - The 2 failing tests (`pnp-pptx`, `ita-countdown/verify`) are 5s-default timeouts under
+        cold-import contention in the full run — both pass in 1.9s when run alone. Pre-existing,
+        and a latent CI flake worth a `testTimeout` bump in a separate change.
+      - `next build` compiled clean but its post-compile typecheck tripped on a **0-byte
+        `.next/dev/types/routes.d.ts`** left by an interrupted dev server, which `tsconfig.json:30`
+        pulls into the typecheck. Local artifact only — CI checks out fresh, so it is unaffected.
+        Typecheck was re-run against source alone (`.next` excluded) and came back clean.
+      - The **dev server on :3000 (PID 14912) is wedged** — it does not answer `/` either, so it
+        predates these changes and is the same process that truncated `routes.d.ts`. It needs a
+        restart before the browser check below can run.
+- [x] 10. Adversarial résumé-speak probe (Lesson 5), run against the retrieval stage directly since
+      the dev server is down. Input: "Data Science Engineer" + productionising ML models, feature
+      engineering, A/B lift tests, Python/SQL pipelines, feature store. Result: **raw TF-IDF still
+      ranks 21300 Civil engineers #1** — the documented Lesson 5 failure reproduces exactly at the
+      recall layer — while all four anchored codes reach the shortlist (21211 Data scientists at #2,
+      plus 21232, 21231, 21223). That is the architecture behaving as designed: recall carries the
+      right answer forward and Claude's ranking stage picks it. Titles read from the bundled StatCan
+      dataset, not from memory (Lesson 5, Immigration Domain). **Still outstanding: the end-to-end
+      probe through the live route, which needs the dev server back up.**
 
 ### Prashant Proof (60-second browser check)
 

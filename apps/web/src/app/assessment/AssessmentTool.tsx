@@ -18,7 +18,7 @@ import drawData from '@/lib/crs-draw-history.json';
 import fundsData from '@/lib/proof-of-funds.json';
 import crsRules from '@/lib/crs-rules.json';
 import './assessment.css';
-import NocSearch from '@/components/NocSearch';
+import NocPicker from '@/components/NocPicker';
 import {
   getWeaknesses,
   getBestPathway,
@@ -621,8 +621,9 @@ export default function AssessmentTool() {
                 />
               </div>
               <div className="asx-field asx-full">
-                <NocSearch
+                <NocPicker
                   theme="light"
+                  jobTitleContext={profile.occupationTitle}
                   onSelect={(code, teer) =>
                     setProfile((prev) => ({
                       ...prev,

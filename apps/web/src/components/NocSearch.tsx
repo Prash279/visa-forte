@@ -1,9 +1,17 @@
 'use client';
 
+// Job-title route to a NOC code: fuzzy search over the bundled NOC 2021 titles
+// and example job titles.
+//
+// This component no longer owns "which NOC is selected". NocPicker does, because
+// the applicant can arrive at a code by two different routes (title or duties) and
+// only one answer can win. A search box that privately remembered its own pick
+// would leave two chips disagreeing about the applicant's NOC.
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import './NocSearch.css';
 
-interface NocEntry {
+export interface NocEntry {
   code: string;
   teer: 0 | 1 | 2 | 3 | 4 | 5;
   title: string;
@@ -11,8 +19,7 @@ interface NocEntry {
 }
 
 interface NocSearchProps {
-  onSelect: (code: string, teer: 0 | 1 | 2 | 3 | 4 | 5, title: string) => void;
-  onClear?: () => void;
+  onSelect: (entry: NocEntry) => void;
   theme: 'light' | 'dark';
 }
 
@@ -22,13 +29,11 @@ interface FuseInstance {
 
 export default function NocSearch({
   onSelect,
-  onClear,
   theme,
 }: NocSearchProps): React.JSX.Element {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<NocEntry[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState<NocEntry | null>(null);
   const fuseRef = useRef<FuseInstance | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -74,20 +79,10 @@ export default function NocSearch({
   }
 
   function handleSelect(entry: NocEntry): void {
-    setSelected(entry);
     setQuery('');
     setResults([]);
     setIsOpen(false);
-    onSelect(entry.code, entry.teer, entry.title);
-  }
-
-  function handleClear(): void {
-    setSelected(null);
-    setQuery('');
-    setResults([]);
-    setIsOpen(false);
-    if (onClear) onClear();
-    else onSelect('', 1, '');
+    onSelect(entry);
   }
 
   return (
@@ -95,55 +90,36 @@ export default function NocSearch({
       <label className="noc-label">
         Search by Job Title / Designation (optional)
       </label>
-      {selected ? (
-        <div className="noc-selected-wrap">
-          <span className="noc-selected-text">
-            {selected.title} — {selected.code} · TEER {selected.teer}
-          </span>
-          <button type="button" className="noc-clear-btn" onClick={handleClear}>
-            Clear
-          </button>
-          <a
-            className="noc-verify-link"
-            href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/eligibility/find-national-occupation-code.html"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Verify on canada.ca/noc ↗
-          </a>
-        </div>
-      ) : (
-        <div className="noc-input-wrap">
-          <input
-            className="noc-input"
-            type="text"
-            value={query}
-            onChange={handleChange}
-            placeholder="e.g. Software Engineer, Registered Nurse…"
-            autoComplete="off"
-          />
-          {isOpen && (
-            <div className="noc-dropdown">
-              {results.length > 0 ? (
-                results.map((entry) => (
-                  <button
-                    key={entry.code}
-                    type="button"
-                    className="noc-result-item"
-                    onClick={() => handleSelect(entry)}
-                  >
-                    {entry.title} — {entry.code} · TEER {entry.teer}
-                  </button>
-                ))
-              ) : (
-                <div className="noc-no-match">
-                  No match found — enter NOC code manually below
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      <div className="noc-input-wrap">
+        <input
+          className="noc-input"
+          type="text"
+          value={query}
+          onChange={handleChange}
+          placeholder="e.g. Software Engineer, Registered Nurse…"
+          autoComplete="off"
+        />
+        {isOpen && (
+          <div className="noc-dropdown">
+            {results.length > 0 ? (
+              results.map((entry) => (
+                <button
+                  key={entry.code}
+                  type="button"
+                  className="noc-result-item"
+                  onClick={() => handleSelect(entry)}
+                >
+                  {entry.title} — {entry.code} · TEER {entry.teer}
+                </button>
+              ))
+            ) : (
+              <div className="noc-no-match">
+                No match found — try the duties search below
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
