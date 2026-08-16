@@ -270,7 +270,11 @@ export default function NocPicker({
             >
               <div className="nocp-card-head">
                 <span className="nocp-tag">
-                  {m.band === 'strongest' ? 'Strongest match' : 'Also review'}
+                  {m.band === 'strongest'
+                    ? 'Strongest match'
+                    : result?.method === 'lexical'
+                      ? 'Possible match'
+                      : 'Also review'}
                 </span>
                 <span className="nocp-tags">
                   {m.band === 'strongest' &&

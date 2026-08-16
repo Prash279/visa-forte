@@ -137,7 +137,11 @@ function lexicalFallback(hits: NocRetrievalHit[]): VerifierResponse {
   const matches = hits
     .filter((h) => h.score >= topScore * MIN_RELATIVE_SCORE && h.score > 0)
     .slice(0, LEXICAL_RESULTS)
-    .map((h, i) => toMatch(h.group.code, i === 0 ? 'strongest' : 'review'))
+    // Keyword order is not a ranking. Raw TF-IDF puts "Civil engineers" first for
+    // data-science duties, so promoting hit #1 to "Strongest match" would give the
+    // wrong code the badge and the highlight while the caution says the opposite.
+    // Everything in degraded mode is a candidate to review, nothing more.
+    .map((h) => toMatch(h.group.code, 'review'))
     .filter((m): m is VerifierMatch => m !== null);
   return { method: 'lexical', matches };
 }

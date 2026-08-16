@@ -76,8 +76,24 @@ existing engine into the two assessment forms — it touches no prompt, no datas
       recall layer — while all four anchored codes reach the shortlist (21211 Data scientists at #2,
       plus 21232, 21231, 21223). That is the architecture behaving as designed: recall carries the
       right answer forward and Claude's ranking stage picks it. Titles read from the bundled StatCan
-      dataset, not from memory (Lesson 5, Immigration Domain). **Still outstanding: the end-to-end
-      probe through the live route, which needs the dev server back up.**
+      dataset, not from memory (Lesson 5, Immigration Domain).
+- [x] 11. End-to-end probe through the live `/api/tools/noc-verifier` route, dev server restarted.
+      The three earlier environment blockers are all cleared: the wedged process is gone,
+      `.next/dev/types/routes.d.ts` regenerated at 7,236 bytes so **full `npm run typecheck` now
+      passes with `.next` included**, and the two timeout-flaky tests did not recur — **393/393**.
+      The probe returned `method:"lexical"`, not `"ai"`: `ANTHROPIC_API_KEY` is absent from
+      `apps/web/.env.local`, so `aiRank` returns null at its key check (no "AI ranking failed" line
+      in the dev log, which rules out an API error). Environment gap, not a code defect — but it
+      made the degraded path reachable and exposed a real bug, below.
+- [x] 12. **Bug found and fixed by that probe.** `lexicalFallback` badged raw TF-IDF hit #1 as
+      `'strongest'`, so the live degraded response ranked **21300 Civil Engineers as "Strongest
+      match"** for data-science duties, with the `nocp-card--top` highlight — while the amber
+      caution directly above said the results were keyword matches and could be wrong. The page
+      contradicted itself and put the emphasis on the wrong code. Fix: degraded mode assigns
+      `'review'` to every hit, and the card label reads "Possible match" when `method === 'lexical'`.
+      Re-probed: all three now return `band:"review"` and nothing claims to be strongest.
+      Gates after the fix — tests 393/393, `tsc` clean, `eslint` clean.
+      **Still outstanding: the `method:"ai"` path, which needs `ANTHROPIC_API_KEY` in `.env.local`.**
 
 ### Prashant Proof (60-second browser check)
 
