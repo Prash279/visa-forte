@@ -20,9 +20,10 @@ import { type NocClassification } from '@/lib/pnp-eligibility';
 // are joined from the bundled dataset server-side — never trusted from the model.
 export const maxDuration = 60;
 
-const MODEL = 'claude-sonnet-4-6';
+// Sonnet 5 thinks adaptively; extended thinking with an explicit budget is not
+// supported on it, so no `thinking` block is sent with the ranking call.
+const MODEL = 'claude-sonnet-5';
 const MAX_TOKENS = 4096;
-const THINKING_BUDGET = 2048;
 const ADMIN_EMAIL = 'prashant@visaforte.com';
 
 async function requireAdmin(): Promise<NextResponse | null> {
@@ -80,7 +81,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const message = await anthropic.messages.create({
       model: MODEL,
       max_tokens: MAX_TOKENS,
-      thinking: { type: 'enabled', budget_tokens: THINKING_BUDGET },
       system: NOC_CLASSIFIER_SYSTEM,
       messages: [
         {

@@ -45,9 +45,11 @@ import { getCurrentAuthSession } from '@/lib/auth-server';
 export const maxDuration = 60;
 
 // Same model configuration as the admin classifier — proven accurate there.
-const MODEL = 'claude-sonnet-4-6';
+// Sonnet 5 thinks adaptively and has no `thinking` parameter to set: extended
+// thinking with an explicit budget is not supported on this model, so the
+// ranking call below passes no thinking block at all.
+const MODEL = 'claude-sonnet-5';
 const MAX_TOKENS = 4096;
-const THINKING_BUDGET = 2048;
 
 // ponytail: in-memory per-IP limiter — per serverless instance, not global.
 // Enough to stop casual abuse of a free Claude-backed endpoint; move to a
@@ -157,7 +159,6 @@ async function aiRank(
   const message = await anthropic.messages.create({
     model: MODEL,
     max_tokens: MAX_TOKENS,
-    thinking: { type: 'enabled', budget_tokens: THINKING_BUDGET },
     system: NOC_CLASSIFIER_SYSTEM,
     messages: [
       {
