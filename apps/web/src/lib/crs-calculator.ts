@@ -357,13 +357,15 @@ function eduLanguageTransfer(
   langBands: LanguageBands,
 ): number {
   const min = minClb(langBands);
+  // IRCC's official table (canada.ca CRS criteria) puts a single bachelor's degree
+  // in the same "one credential, 1yr+" tier as a 1-2yr post-secondary credential —
+  // the higher tier is only for 2+ credentials (one 3yr+), master's, or doctoral.
   const isPostSecondary12 =
-    edu === 'one_year_post_secondary' || edu === 'two_year_post_secondary';
+    edu === 'one_year_post_secondary' ||
+    edu === 'two_year_post_secondary' ||
+    edu === 'bachelors';
   const isBachelorsPlus =
-    edu === 'bachelors' ||
-    edu === 'two_or_more_degrees' ||
-    edu === 'masters' ||
-    edu === 'doctoral';
+    edu === 'two_or_more_degrees' || edu === 'masters' || edu === 'doctoral';
   const cfg = rules.sectionC.eduLanguage;
 
   if (isPostSecondary12) {
@@ -385,13 +387,14 @@ function eduCanadianExpTransfer(
 ): number {
   const cWhole = Math.floor(canadianYears);
   if (cWhole < 1) return 0;
+  // Same tier split as eduLanguageTransfer above — a single bachelor's degree
+  // belongs with the 1-2yr post-secondary tier, not the 2+ credential tier.
   const isBachelorsPlus =
-    edu === 'bachelors' ||
-    edu === 'two_or_more_degrees' ||
-    edu === 'masters' ||
-    edu === 'doctoral';
+    edu === 'two_or_more_degrees' || edu === 'masters' || edu === 'doctoral';
   const isPostSecondary12 =
-    edu === 'one_year_post_secondary' || edu === 'two_year_post_secondary';
+    edu === 'one_year_post_secondary' ||
+    edu === 'two_year_post_secondary' ||
+    edu === 'bachelors';
   const cfg = rules.sectionC.eduCanadianExp;
 
   if (isBachelorsPlus)

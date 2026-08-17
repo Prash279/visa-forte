@@ -334,6 +334,46 @@ describe('calculate — ECA pending on foreign education (regression: /assessmen
     });
     expect(result.ecaPending).toBe(false);
   });
+
+  // A single bachelor's degree was wrongly classified with the "2+ credentials /
+  // master's / doctoral" transferability tier (25/50 pts), doubling the real
+  // canada.ca tier for "one credential, 1yr+" (13/25 pts) that a lone bachelor's
+  // degree actually falls into. Cross-checked against the applicant's live IRCC
+  // CRS calculator screenshot: Skill Transferability = 75, not 100; total CRS =
+  // 429, not 454. Verified against canada.ca check-score/crs-criteria.html
+  // (2026-08-17): only "two or more post-secondary credentials (one 3yr+)",
+  // master's, and doctoral get the 25/50 tier — a single credential of any
+  // length, bachelor's included, gets 13/25.
+  it('single bachelors degree gets the 25pt (not 50pt) education+language tier', () => {
+    const result = calculate(noEcaProfile);
+    expect(result.breakdown.eduLanguageTransfer).toBe(25);
+    expect(result.breakdown.eduCanadianExpTransfer).toBe(0); // 0 Canadian experience
+    expect(result.breakdown.foreignExpLanguageTransfer).toBe(50); // 4yr foreign, CLB9+
+    expect(result.breakdown.transferTotal).toBe(75);
+  });
+
+  it('two_or_more_degrees still gets the higher 50pt tier', () => {
+    const result = calculate({
+      ...noEcaProfile,
+      education: 'two_or_more_degrees',
+    });
+    expect(result.breakdown.eduLanguageTransfer).toBe(50);
+  });
+
+  it('masters and doctoral also stay in the higher 50pt tier', () => {
+    const masters = calculate({ ...noEcaProfile, education: 'masters' });
+    const doctoral = calculate({ ...noEcaProfile, education: 'doctoral' });
+    expect(masters.breakdown.eduLanguageTransfer).toBe(50);
+    expect(doctoral.breakdown.eduLanguageTransfer).toBe(50);
+  });
+
+  it('one/two-year post-secondary is unaffected, still 25pt tier', () => {
+    const result = calculate({
+      ...noEcaProfile,
+      education: 'one_year_post_secondary',
+    });
+    expect(result.breakdown.eduLanguageTransfer).toBe(25);
+  });
 });
 
 describe('calculate — proof of funds', () => {
