@@ -162,6 +162,12 @@ export interface CrsResult {
   scenarios: ScenarioProjection[];
   // Populated only when applicant is NOT Express Entry pool-eligible.
   fswImprovements: FswImprovementSuggestion[];
+  // Applicant claimed foreign education but has not confirmed an ECA yet.
+  // Every education-derived point in this result (Section A, Section C, FSW
+  // grid) is scored AS IF that education will assess as declared — every
+  // consumer (report UI, PDF export, email) must render a visible caveat
+  // wherever those numbers appear whenever this is true.
+  ecaPending: boolean;
   proofOfFundsRequired: number; // CAD
   proofOfFundsSufficient: boolean;
   // 8-char SHA-256 prefix of crs-rules.json at build time.
@@ -574,6 +580,7 @@ function assessStreamEligibility(
   profile: ApplicantProfile,
   fswGrid: FswGrid,
   firstBands: LanguageBands,
+  ecaPending: boolean,
 ): StreamEligibility {
   const minFirstLang = minClb(firstBands);
   const foreignWhole = Math.floor(profile.foreignWorkExperienceYears);
@@ -587,6 +594,13 @@ function assessStreamEligibility(
   const fswEligible =
     fswGrid.eligible && fswLangOk && qualifyingTeer && fswExpOk;
 
+  // Real IRCC requires a completed ECA to actually earn foreign-education CRS
+  // points or apply under FSW — this tool scores as if it will confirm, and
+  // relies on this caveat (plus CrsResult.ecaPending) to say so everywhere.
+  const ecaCaveat = ecaPending
+    ? ' Provisional — assumes your declared education will confirm on ECA.'
+    : '';
+
   let fswReason = '';
   if (!qualifyingTeer) fswReason = 'NOC TEER 4-5 does not qualify for FSW.';
   else if (!fswLangOk)
@@ -594,9 +608,9 @@ function assessStreamEligibility(
   else if (!fswExpOk)
     fswReason = 'At least 1 year of qualifying work experience required.';
   else if (!fswGrid.eligible)
-    fswReason = `FSW ${rules.fsw.passmark}-point grid not met (scored ${fswGrid.total}/100).`;
+    fswReason = `FSW ${rules.fsw.passmark}-point grid not met (scored ${fswGrid.total}/100).${ecaCaveat}`;
   else
-    fswReason = `Scores ${fswGrid.total}/100 on FSW ${rules.fsw.passmark}-point grid — clears the pass mark. Eligible to create profile.`;
+    fswReason = `Scores ${fswGrid.total}/100 on FSW ${rules.fsw.passmark}-point grid — clears the pass mark. Eligible to create profile.${ecaCaveat}`;
 
   // CEC: 1yr authorized Canadian work in TEER 0-3, CLB 7 minimum
   const cecEligible =
@@ -614,8 +628,11 @@ function assessStreamEligibility(
 
   // Express Entry pool: eligible if eligible for any stream
   const poolEligible = fswEligible || cecEligible;
+  // Only reachable via FSW here, since CEC has no education component.
+  const poolEcaCaveat =
+    poolEligible && fswEligible && !cecEligible ? ecaCaveat : '';
   const poolReason = poolEligible
-    ? 'Eligible to create and submit an Express Entry profile immediately.'
+    ? `Eligible to create and submit an Express Entry profile immediately.${poolEcaCaveat}`
     : 'Must qualify for FSW, CEC, or FST to enter the pool.';
 
   return {
@@ -952,6 +969,17 @@ export function calculate(profile: ApplicantProfile): CrsResult {
       ? scoresToClb(profile.secondLanguageScores)
       : undefined;
 
+  // Every education-derived point below is scored on the applicant's stated
+  // education level regardless of ECA status — Prash's call: show the
+  // provisional score as if the ECA confirms it, flagged via ecaPending
+  // rather than zeroed. canada.ca ("Educational credential assessment") does
+  // require a completed ECA to actually earn these points on a real
+  // application; this tool is a self-serve estimate, not a submission, so the
+  // gap is bridged with a caveat everywhere these numbers are shown instead
+  // of a hard block. See ecaPending on CrsResult.
+  const ecaPending =
+    !profile.hasEca && profile.education !== 'less_than_secondary';
+
   // Section A — Core
   const agePoints_ = agePoints(profile.age, profile.hasSpouse);
   const educationPoints_ = educationPoints(
@@ -1077,8 +1105,14 @@ export function calculate(profile: ApplicantProfile): CrsResult {
     eligible: fswTotal >= rules.fsw.passmark,
   };
 
-  const eligibility = assessStreamEligibility(profile, fswGrid, firstBands);
+  const eligibility = assessStreamEligibility(
+    profile,
+    fswGrid,
+    firstBands,
+    ecaPending,
+  );
   const scenarios = buildScenarios(profile, total, firstBands);
+
   const fswImprovements = !eligibility.expressEntryPool.eligible
     ? buildFswImprovementSuggestions(profile, fswGrid, firstBands, secondBands)
     : [];
@@ -1093,6 +1127,7 @@ export function calculate(profile: ApplicantProfile): CrsResult {
     eligibility,
     scenarios,
     fswImprovements,
+    ecaPending,
     proofOfFundsRequired: fundsRequired,
     proofOfFundsSufficient: profile.settlementFunds >= fundsRequired,
     rulesVersion: CRS_RULES_VERSION,

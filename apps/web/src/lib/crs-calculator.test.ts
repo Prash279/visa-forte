@@ -253,6 +253,89 @@ describe('calculate — stream eligibility', () => {
   });
 });
 
+describe('calculate — ECA pending on foreign education (regression: /assessment 2026-08-17)', () => {
+  // Reproduces the exact profile from a live production report ("Deep Sagar")
+  // — Bachelor's degree from India, ECA checkbox left unchecked. hasEca was
+  // captured by the form but never read by the calculator: a dead field, so
+  // the report showed a full, unflagged score identical to an ECA-confirmed
+  // applicant's. Per canada.ca (educational-credential-assessment page,
+  // verified 2026-08-17), a completed ECA is required to actually earn
+  // foreign-education CRS points or apply under FSW. Prash's call (2026-08-17):
+  // this self-serve tool is not a submission, so it scores the declared
+  // education AS IF the ECA will confirm it, rather than zeroing it — but
+  // every consumer must surface CrsResult.ecaPending as a visible caveat
+  // wherever the affected numbers are shown.
+  const noEcaProfile: ApplicantProfile = {
+    name: 'Deep Sagar',
+    age: 27,
+    nocCode: '21231',
+    nocTeer: 1,
+    occupationTitle: 'Software Engineer',
+    countryOfCitizenship: 'India',
+    countryOfResidence: 'India',
+    reportDate: '2026-08-17',
+    education: 'bachelors',
+    hasEca: false,
+    firstLanguageScores: {
+      testType: 'IELTS_GT',
+      listening: 8.0,
+      reading: 7.0,
+      writing: 7.0,
+      speaking: 7.0,
+    },
+    hasSecondLanguage: false,
+    foreignWorkExperienceYears: 4,
+    canadianWorkExperienceYears: 0,
+    hasSpouse: false,
+    hasProvincialNomination: false,
+    hasCanadianEducation: false,
+    hasFamilyInCanada: false,
+    hasJobOffer: 'none',
+    settlementFunds: 15263,
+    familySize: 1,
+    hasCriminalRecord: false,
+    hasMedicalCondition: false,
+    hasPriorRefusal: false,
+  };
+
+  it('ecaPending is true, and scores are unaffected by the missing ECA', () => {
+    const result = calculate(noEcaProfile);
+    expect(result.ecaPending).toBe(true);
+    expect(result.breakdown.educationPoints).toBe(120);
+    expect(result.fswGrid.education).toBe(21);
+    expect(result.fswGrid.total).toBe(70);
+  });
+
+  it('FSW and Express Entry Pool are still eligible (provisional, not blocked)', () => {
+    const result = calculate(noEcaProfile);
+    expect(result.eligibility.fsw.eligible).toBe(true);
+    expect(result.eligibility.expressEntryPool.eligible).toBe(true);
+  });
+
+  it('FSW and pool reasons carry an explicit provisional/ECA caveat', () => {
+    const result = calculate(noEcaProfile);
+    expect(result.eligibility.fsw.reason).toMatch(/[Pp]rovisional.*ECA/);
+    expect(result.eligibility.expressEntryPool.reason).toMatch(
+      /[Pp]rovisional.*ECA/,
+    );
+  });
+
+  it('same profile WITH an ECA confirmed carries no caveat', () => {
+    const result = calculate({ ...noEcaProfile, hasEca: true });
+    expect(result.ecaPending).toBe(false);
+    expect(result.eligibility.fsw.reason).not.toMatch(/ECA/);
+    expect(result.eligibility.expressEntryPool.reason).not.toMatch(/ECA/);
+  });
+
+  it('less-than-secondary education never flags ecaPending (nothing to assess)', () => {
+    const result = calculate({
+      ...noEcaProfile,
+      education: 'less_than_secondary',
+    });
+    expect(result.ecaPending).toBe(false);
+  });
+});
+
 describe('calculate — proof of funds', () => {
   const f = fundsData.byFamilySize as Record<string, number>;
 

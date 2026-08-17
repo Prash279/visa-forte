@@ -763,7 +763,7 @@ style: |
       <div style="background:${CARD};border-top:3px solid ${TEAL};padding:18px 22px;flex:1;">
         <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:8px;">CRS Score</div>
         <div style="color:${TEAL};font-size:40px;font-weight:700;line-height:1;">${total}</div>
-        <div style="color:${DIM};font-size:11px;margin-top:4px;">out of 1200</div>
+        <div style="color:${DIM};font-size:11px;margin-top:4px;">${r.ecaPending ? 'out of 1200 · provisional, ECA pending' : 'out of 1200'}</div>
       </div>
       <div style="background:${CARD};border-top:3px solid ${poolEligible ? GREEN : RED};padding:18px 22px;flex:1;">
         <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:8px;">Pool Status</div>
@@ -797,7 +797,7 @@ style: |
   ${sectionBar('Executive Summary')}
 
   <div style="display:flex;gap:12px;margin-bottom:20px;">
-    ${mc('CRS Score', total, 'out of 1200', TEAL)}
+    ${mc('CRS Score', total, r.ecaPending ? 'out of 1200 · provisional, ECA pending' : 'out of 1200', TEAL)}
     ${mc('FSW Grid', `${fswGrid.total}/67`, fswGrid.eligible ? 'Threshold Met' : 'Below Threshold', fswGrid.eligible ? GREEN : RED)}
     ${mc('Canadian WE', `${p.canadianWorkExperienceYears}y`, p.canadianWorkExperienceYears >= 1 ? 'CEC Eligible' : 'Below Min', p.canadianWorkExperienceYears >= 1 ? GREEN : MUTED)}
     ${mc('Settlement', `$${Math.round(p.settlementFunds / 1000)}K`, r.proofOfFundsSufficient ? 'Funds Sufficient' : 'Below Threshold', r.proofOfFundsSufficient ? GREEN : RED)}
@@ -1522,6 +1522,7 @@ export default function CanVisaProTool() {
             <div className="cvp-field full">
               <NocPicker
                 theme="dark"
+                dutiesMatch
                 jobTitleContext={profile.occupationTitle}
                 onSelect={(code, teer, title) =>
                   setProfile((prev) => ({
@@ -2482,6 +2483,13 @@ export default function CanVisaProTool() {
                 ? '✓ Express Entry Pool: ELIGIBLE'
                 : '✗ Express Entry Pool: NOT ELIGIBLE'}
             </div>
+            {result.ecaPending && (
+              <p className="cvp2-eca-caveat">
+                Provisional score — assumes declared education confirms on an
+                Educational Credential Assessment (ECA). Points and eligibility
+                above are not final until an ECA is completed.
+              </p>
+            )}
             <p className="cvp2-hero-date">
               Assessment {profile.reportDate} · {maritalStatusStr} · Family of{' '}
               {profile.familySize}
@@ -2762,6 +2770,13 @@ export default function CanVisaProTool() {
               <span className="cvp2-bd-tile-value">{total}</span>
             </div>
           </div>
+          {result.ecaPending && (
+            <p className="cvp2-eca-caveat">
+              Education points above assume the declared credential confirms on
+              an Educational Credential Assessment (ECA) — required by IRCC to
+              actually count toward CRS.
+            </p>
+          )}
         </div>
 
         {/* ── 5: FSW 67-Point Grid ──────────────────────────────────────── */}
@@ -2855,7 +2870,7 @@ export default function CanVisaProTool() {
             data-pass={fsw.eligible ? 'yes' : 'no'}
           >
             {fsw.eligible
-              ? `FSW pass mark cleared (${fsw.total}/100). Profile qualifies for Federal Skilled Worker stream.`
+              ? `FSW pass mark cleared (${fsw.total}/100). Profile qualifies for Federal Skilled Worker stream.${result.ecaPending ? ' Provisional — pending ECA confirmation of declared education.' : ''}`
               : `FSW pass mark not reached (${fsw.total}/100 — 67 required). FSW pathway currently unavailable.`}
           </p>
         </div>

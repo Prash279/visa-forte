@@ -54,6 +54,7 @@ function makeResult(
       expressEntryPool: { eligible: true, likely: true, reason: '' },
     },
     fswImprovements: [],
+    ecaPending: false,
     proofOfFundsRequired: 13310,
     proofOfFundsSufficient: true,
     rulesVersion: 'test',

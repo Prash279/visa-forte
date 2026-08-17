@@ -20,6 +20,7 @@ const LeadSchema = z.object({
   bestPathway: z
     .object({ category: z.string(), cutoffScore: z.number(), gap: z.number() })
     .optional(),
+  ecaPending: z.boolean().optional().default(false),
 });
 
 const DrawAlertSchema = z.object({
@@ -106,5 +107,18 @@ describe('draw-alert: upsert semantics', () => {
       wantsDrawAlert: undefined,
     });
     expect(parsed.wantsDrawAlert).toBe(false);
+  });
+
+  it('ecaPending defaults to false when omitted', () => {
+    const parsed = LeadSchema.parse({
+      ...VALID_LEAD,
+      ecaPending: undefined,
+    });
+    expect(parsed.ecaPending).toBe(false);
+  });
+
+  it('accepts ecaPending: true', () => {
+    const parsed = LeadSchema.parse({ ...VALID_LEAD, ecaPending: true });
+    expect(parsed.ecaPending).toBe(true);
   });
 });
