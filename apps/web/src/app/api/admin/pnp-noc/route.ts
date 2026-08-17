@@ -5,7 +5,7 @@ import { getCurrentAuthSession } from '@/lib/auth-server';
 import { retrieveCandidates, getAnchoredCodes } from '@/lib/noc-retrieval';
 import {
   NOC_CLASSIFIER_SYSTEM,
-  RETRIEVE_TOP_K,
+  ADMIN_RETRIEVE_TOP_K,
   buildCandidateBlock,
   parseRawClassification,
   groundClassification,
@@ -64,8 +64,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
     const { occupationTitle, jobDuties, manualNocHint } = parsed.data;
 
-    // 1) Retrieval: narrow 516 unit groups to a grounded shortlist.
-    const hits = retrieveCandidates(jobDuties, occupationTitle, RETRIEVE_TOP_K);
+    // 1) Retrieval: narrow 516 unit groups to a grounded shortlist. Admin runs
+    // use the wider shortlist — a paid, accuracy-critical assessment can afford
+    // the larger candidate block; the correct code has to be on the list before
+    // Claude can rank it.
+    const hits = retrieveCandidates(
+      jobDuties,
+      occupationTitle,
+      ADMIN_RETRIEVE_TOP_K,
+    );
     if (hits.length === 0) {
       return NextResponse.json(
         {
@@ -76,8 +83,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('PNP NOC classifier: ANTHROPIC_API_KEY is not configured.');
+      return NextResponse.json(
+        {
+          error:
+            'The NOC classifier is not configured. Add ANTHROPIC_API_KEY and retry.',
+        },
+        { status: 503 },
+      );
+    }
+
     // 2) Claude ranks the shortlist against the candidates' real StatCan duties.
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const message = await anthropic.messages.create({
       model: MODEL,
       max_tokens: MAX_TOKENS,

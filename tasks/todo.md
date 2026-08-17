@@ -1,3 +1,47 @@
+## Session 2026-08-17 — NOC Classifier: admin-only, spend bounded, accuracy raised (branch `feat/noc-duties-search`)
+
+> Prash's ask: the duties→NOC Classifier (paste responsibilities → Claude cross-checks official NOC
+> descriptions → closest code + TEER) lives ONLY in admin CanVisa Pro. Remove it from the public
+> /assessment page. Purpose: stop API-cost abuse. Plan grilled and approved via /grill-me 2026-08-17.
+
+### Decisions Prash confirmed in the grill (2026-08-17)
+
+| Question | Decision |
+|---|---|
+| Public /assessment | Keep free client-side title search; REMOVE the duties→AI matcher |
+| No NOC selected | FSW/CEC lines show "Select your occupation (NOC) above to assess this" — no verdict from the TEER-1 default |
+| Rate limit | New additive `tool_rate_limits` table (SHA-256 hashed key, never raw IP) replaces the in-memory Map — migration approved |
+| /tools/noc-verifier page | Stays public, durable rate limit only — NO email gate |
+| Accuracy eval | Dataset self-test now (free, CI); Prash's ~20 anonymized duties→NOC pairs later (paid `eval:noc`) |
+| Push | Authorized: push branch + open PR once tests green + diff summary shown |
+
+### Tasks
+
+- [ ] A1. `NocPicker` gets `dutiesMatch?: boolean` prop, **default false**, wrapping the whole
+      `.nocp-duties` block. CanVisa Pro passes `dutiesMatch`; /assessment untouched (inherits off).
+      Future mounts must opt IN to spending money.
+- [ ] A2. /assessment no-NOC state: when `nocCode === ''`, FSW/CEC program verdicts are replaced by
+      a "select your NOC" prompt — never a verdict computed from the silent TEER-1 default.
+- [ ] B1. Additive Drizzle table `tool_rate_limits` (key text PK, count int, window_start timestamp).
+- [ ] B2. `/api/tools/noc-verifier` swaps the in-memory `hitLog` Map for the durable table.
+      Admin session stays exempt.
+- [ ] C1. Admin calls never silently degrade to lexical: Claude unreachable → 503 with retry message
+      (both the catch path and the missing-key path).
+- [ ] C2. Admin runs (noc-verifier admin mode + `/api/admin/pnp-noc`) widen the shortlist 30 → 60.
+- [ ] C3. Guard the unguarded `ANTHROPIC_API_KEY!` in pnp-noc with an explicit 503.
+- [ ] C4. Dataset self-test: feed each sampled NOC group's own official duties back through
+      retrieval; assert the source code lands in the shortlist. Free, runs in CI.
+- [ ] Prashant Proof: /assessment shows title search only (no duties box); CanVisa Pro duties
+      matching works end-to-end; 21st rapid POST to the public endpoint returns 429. 375/768/1280px.
+
+### Not doing (deliberate)
+
+- DOMAIN_ANCHORS expansion — blocked until the eval exists to measure it.
+- Email gate on /tools/noc-verifier — Prash declined; revisit only if he wants the leads.
+- Vercel env var — blocked on Prash's 2FA account recovery; local + code ship now.
+
+---
+
 ## Session 2026-08-13 — Search by Job Duties on the assessment forms (branch `feat/noc-duties-search`)
 
 > Prash's ask: add a "Search by Job Duties / Responsibilities" section directly below the existing

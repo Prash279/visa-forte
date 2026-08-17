@@ -21,9 +21,13 @@
 // lexical top-3, explicitly labelled method:"lexical" so the UI shows a
 // caution instead of presenting keyword matches as the answer.
 
+import { createHash } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import Anthropic from '@anthropic-ai/sdk';
+import { sql } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { toolRateLimits } from '../../../../../drizzle/schema';
 import {
   retrieveCandidates,
   getAnchoredCodes,
@@ -33,6 +37,7 @@ import type { NocRetrievalHit } from '@/lib/noc-retrieval';
 import {
   NOC_CLASSIFIER_SYSTEM,
   RETRIEVE_TOP_K,
+  ADMIN_RETRIEVE_TOP_K,
   buildCandidateBlock,
   parseRawClassification,
   groundClassification,
@@ -51,12 +56,13 @@ export const maxDuration = 60;
 const MODEL = 'claude-sonnet-5';
 const MAX_TOKENS = 4096;
 
-// ponytail: in-memory per-IP limiter — per serverless instance, not global.
-// Enough to stop casual abuse of a free Claude-backed endpoint; move to a
-// shared store only if real traffic ever demands it.
+// Durable per-IP limiter backed by Postgres (tool_rate_limits). The previous
+// in-memory Map reset on every serverless cold start and never spanned
+// instances, so a scripted caller effectively had no limit — on an endpoint
+// that spends Anthropic credits per request. One atomic upsert per request:
+// the first hit in a window stamps it; an expired window resets in place.
 const RATE_LIMIT = 20;
 const RATE_WINDOW_MS = 60 * 60 * 1000;
-const hitLog = new Map<string, number[]>();
 
 // The admin's own CanVisa Pro sessions embed this same matcher while preparing
 // client files, and that work must never eat into the public tool's hourly
@@ -69,13 +75,26 @@ async function isAdminSession(): Promise<boolean> {
   return Boolean(session?.session) && session?.user?.email === ADMIN_EMAIL;
 }
 
-function rateLimited(ip: string): boolean {
-  const now = Date.now();
-  const recent = (hitLog.get(ip) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
-  if (recent.length >= RATE_LIMIT) return true;
-  recent.push(now);
-  hitLog.set(ip, recent);
-  return false;
+// Only a one-way hash of the IP is ever stored — never the raw IP (privacy gate).
+function rateLimitKey(ip: string): string {
+  return createHash('sha256').update(`noc-verifier:${ip}`).digest('hex');
+}
+
+async function rateLimited(ip: string): Promise<boolean> {
+  const windowFloor = new Date(Date.now() - RATE_WINDOW_MS);
+  const expired = sql`${toolRateLimits.windowStart} < ${windowFloor}`;
+  const [row] = await db
+    .insert(toolRateLimits)
+    .values({ key: rateLimitKey(ip), count: 1 })
+    .onConflictDoUpdate({
+      target: toolRateLimits.key,
+      set: {
+        count: sql`case when ${expired} then 1 else ${toolRateLimits.count} + 1 end`,
+        windowStart: sql`case when ${expired} then now() else ${toolRateLimits.windowStart} end`,
+      },
+    })
+    .returning({ count: toolRateLimits.count });
+  return (row?.count ?? 0) > RATE_LIMIT;
 }
 
 const Schema = z.object({
@@ -153,7 +172,10 @@ async function aiRank(
   jobTitle: string | undefined,
   hits: NocRetrievalHit[],
 ): Promise<VerifierResponse | null> {
-  if (!process.env.ANTHROPIC_API_KEY) return null;
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error('NOC verifier: ANTHROPIC_API_KEY is not configured.');
+    return null;
+  }
 
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const message = await anthropic.messages.create({
@@ -237,7 +259,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const ip =
     req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
   const admin = await isAdminSession();
-  if (!admin && rateLimited(ip)) {
+  if (!admin && (await rateLimited(ip))) {
     return NextResponse.json(
       {
         error:
@@ -248,12 +270,51 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const { jobTitle, duties, debug } = result.data;
-  const hits = retrieveCandidates(duties, jobTitle, RETRIEVE_TOP_K);
+  const topK = admin ? ADMIN_RETRIEVE_TOP_K : RETRIEVE_TOP_K;
+  const hits = retrieveCandidates(duties, jobTitle, topK);
   if (hits.length === 0) {
+    if (admin) {
+      return NextResponse.json(
+        {
+          error:
+            'The duties did not match any occupation. Add more concrete, task-level detail.',
+        },
+        { status: 422 },
+      );
+    }
     return NextResponse.json({
       method: 'lexical',
       matches: [],
     } satisfies VerifierResponse);
+  }
+
+  // Admin runs are a paid, accuracy-critical assessment — a keyword-only result
+  // presented with the same confidence as an AI ranking would be an invisible
+  // downgrade on a real client file. Admin gets a clear retry error instead of
+  // the public degraded mode.
+  if (admin) {
+    try {
+      const aiResult = await aiRank(duties, jobTitle, hits);
+      if (aiResult !== null) {
+        if (!debug) delete aiResult.verifyNotes;
+        return NextResponse.json(aiResult);
+      }
+      return NextResponse.json(
+        {
+          error:
+            'The NOC classifier could not produce a verified result. Please retry.',
+        },
+        { status: 503 },
+      );
+    } catch (err) {
+      console.error('NOC verifier (admin) AI ranking failed:', err);
+      return NextResponse.json(
+        {
+          error: 'The NOC classifier is temporarily unavailable. Please retry.',
+        },
+        { status: 503 },
+      );
+    }
   }
 
   try {
