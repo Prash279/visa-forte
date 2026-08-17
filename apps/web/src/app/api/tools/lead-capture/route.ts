@@ -22,6 +22,7 @@ const Schema = z.object({
   bestPathway: z
     .object({ category: z.string(), cutoffScore: z.number(), gap: z.number() })
     .optional(),
+  ecaPending: z.boolean().optional().default(false),
 });
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -52,6 +53,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     wantsDrawAlert,
     weaknesses,
     bestPathway,
+    ecaPending,
   } = result.data;
 
   // Subscribe to draw alerts if requested.
@@ -88,6 +90,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     ? `Best pathway: ${bestPathway.category} (cutoff ${bestPathway.cutoffScore}, you are ${bestPathway.gap >= 0 ? `+${bestPathway.gap} above` : `${Math.abs(bestPathway.gap)} below`} cutoff)`
     : '';
 
+  const ecaCaveatHtml = ecaPending
+    ? `<p style="font-size:13px;color:#92400E;background:#FFFBEB;border:1px solid #FDE68A;border-radius:4px;padding:10px 14px;line-height:1.6;">
+         <strong>Provisional score:</strong> this assumes your declared education confirms on an
+         Educational Credential Assessment (ECA) — required by IRCC to actually count toward your CRS score.
+       </p>`
+    : '';
+
   try {
     await resend.emails.send({
       from: 'Visa Forte <noreply@visaforte.com>',
@@ -97,6 +106,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1a2b3c;">
           <h2 style="color:#0c2340;margin-bottom:4px;">Your CRS Score: ${crsScore}</h2>
           <p style="color:#888;font-size:14px;margin-top:0;">Express Entry pool eligibility category: ${eeCategory}</p>
+          ${ecaCaveatHtml}
           <hr style="border:none;border-top:1px solid #e5e0d8;margin:20px 0;" />
           <h3 style="color:#0c2340;">Top Improvement Opportunities</h3>
           <pre style="font-family:sans-serif;font-size:14px;line-height:1.7;white-space:pre-wrap;">${weaknessList}</pre>
@@ -131,6 +141,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             <tr><td style="padding:6px 0;color:#666;">CRS Score</td><td style="padding:6px 0;font-weight:600;">${crsScore}</td></tr>
             <tr><td style="padding:6px 0;color:#666;">Category</td><td style="padding:6px 0;">${eeCategory}</td></tr>
             <tr><td style="padding:6px 0;color:#666;">Draw Alert</td><td style="padding:6px 0;">${wantsDrawAlert ? 'Yes' : 'No'}</td></tr>
+            <tr><td style="padding:6px 0;color:#666;">ECA Pending</td><td style="padding:6px 0;${ecaPending ? 'font-weight:600;color:#92400E;' : ''}">${ecaPending ? 'Yes — score is provisional' : 'No'}</td></tr>
           </table>
         </div>
       `,

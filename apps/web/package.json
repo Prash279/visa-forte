@@ -5,7 +5,7 @@
   "scripts": {
     "postinstall": "node scripts/hash-crs-rules.mjs",
     "predev": "node scripts/hash-crs-rules.mjs",
-    "dev": "next dev",
+    "dev": "node --max-old-space-size=6144 node_modules/next/dist/bin/next dev",
     "prebuild": "node scripts/hash-crs-rules.mjs",
     "build": "next build",
     "start": "next start",

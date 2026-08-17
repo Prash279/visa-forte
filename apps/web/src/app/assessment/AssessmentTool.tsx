@@ -18,7 +18,7 @@ import drawData from '@/lib/crs-draw-history.json';
 import fundsData from '@/lib/proof-of-funds.json';
 import crsRules from '@/lib/crs-rules.json';
 import './assessment.css';
-import NocSearch from '@/components/NocSearch';
+import NocPicker from '@/components/NocPicker';
 import {
   getWeaknesses,
   getBestPathway,
@@ -438,6 +438,7 @@ export default function AssessmentTool() {
           eeCategory,
           toolName: 'assessment',
           wantsDrawAlert: wantsAlert,
+          ecaPending: result.ecaPending,
           weaknesses,
           bestPathway: pathway
             ? {
@@ -621,8 +622,9 @@ export default function AssessmentTool() {
                 />
               </div>
               <div className="asx-field asx-full">
-                <NocSearch
+                <NocPicker
                   theme="light"
+                  jobTitleContext={profile.occupationTitle}
                   onSelect={(code, teer) =>
                     setProfile((prev) => ({
                       ...prev,
@@ -1386,6 +1388,12 @@ export default function AssessmentTool() {
   const { breakdown: bd, fswGrid: fsw, eligibility: elig, scenarios } = result;
   const total = bd.total;
   const poolEligible = elig.expressEntryPool.eligible;
+  // No NOC selected means the profile's TEER is just the form default, so any
+  // FSW/CEC verdict computed from it would be a guess. Those verdicts (and the
+  // pool badge they feed) are withheld and replaced with a prompt instead.
+  const nocMissing = profile.nocCode === '';
+  const nocPrompt =
+    'Select your occupation (NOC) — use the job-title search on the form — to assess this program.';
 
   // Draw history context
   // IRCC now runs category-specific draws only — no General draws since 2023.
@@ -1407,27 +1415,33 @@ export default function AssessmentTool() {
   const hasDrawData = allDraws.length > 0;
   const pnpScore = total + 600;
 
+  // `pending` marks the NOC-dependent verdicts that are withheld until a NOC
+  // is selected. FST already reports its own "not assessed" reason either way.
   const programs = [
     {
       name: 'Express Entry Pool',
+      pending: nocMissing,
       eligible: elig.expressEntryPool.eligible,
       likely: false,
-      reason: elig.expressEntryPool.reason,
+      reason: nocMissing ? nocPrompt : elig.expressEntryPool.reason,
     },
     {
       name: 'Federal Skilled Worker (FSW)',
+      pending: nocMissing,
       eligible: elig.fsw.eligible,
       likely: elig.fsw.likely ?? false,
-      reason: elig.fsw.reason,
+      reason: nocMissing ? nocPrompt : elig.fsw.reason,
     },
     {
       name: 'Canadian Experience Class (CEC)',
+      pending: nocMissing,
       eligible: elig.cec.eligible,
       likely: elig.cec.likely ?? false,
-      reason: elig.cec.reason,
+      reason: nocMissing ? nocPrompt : elig.cec.reason,
     },
     {
       name: 'Federal Skilled Trades (FST)',
+      pending: false,
       eligible: elig.fst.eligible,
       likely: elig.fst.likely ?? false,
       reason: elig.fst.reason,
@@ -1488,19 +1502,31 @@ export default function AssessmentTool() {
                 {profile.name || 'Your Assessment'}
               </p>
               <p className="asx-score-occ">
-                {profile.occupationTitle || '—'} (TEER {profile.nocTeer})
+                {profile.occupationTitle || '—'}
+                {!nocMissing && ` (TEER ${profile.nocTeer})`}
                 {profile.countryOfCitizenship
                   ? ` · ${profile.countryOfCitizenship}`
                   : ''}
               </p>
               <div
                 className="asx-pool-badge"
-                data-eligible={poolEligible ? 'yes' : 'no'}
+                data-eligible={
+                  nocMissing ? 'pending' : poolEligible ? 'yes' : 'no'
+                }
               >
-                {poolEligible
-                  ? '✓ Express Entry Pool: ELIGIBLE'
-                  : '✗ Express Entry Pool: NOT ELIGIBLE'}
+                {nocMissing
+                  ? 'Express Entry Pool: select your NOC to assess'
+                  : poolEligible
+                    ? '✓ Express Entry Pool: ELIGIBLE'
+                    : '✗ Express Entry Pool: NOT ELIGIBLE'}
               </div>
+              {!nocMissing && result.ecaPending && (
+                <p className="asx-eca-caveat">
+                  Provisional score — assumes your declared education confirms
+                  on an Educational Credential Assessment (ECA). Points and
+                  eligibility above are not final until an ECA is completed.
+                </p>
+              )}
               <p className="asx-score-date">
                 Assessment generated {profile.reportDate} · All scoring per IRCC
                 rules
@@ -1694,14 +1720,22 @@ export default function AssessmentTool() {
                   <span
                     className="asx-elig-badge"
                     data-status={
-                      prog.eligible ? 'eligible' : prog.likely ? 'likely' : 'no'
+                      prog.pending
+                        ? 'pending'
+                        : prog.eligible
+                          ? 'eligible'
+                          : prog.likely
+                            ? 'likely'
+                            : 'no'
                     }
                   >
-                    {prog.eligible
-                      ? 'ELIGIBLE'
-                      : prog.likely
-                        ? 'LIKELY'
-                        : 'NOT ELIGIBLE'}
+                    {prog.pending
+                      ? 'NOC REQUIRED'
+                      : prog.eligible
+                        ? 'ELIGIBLE'
+                        : prog.likely
+                          ? 'LIKELY'
+                          : 'NOT ELIGIBLE'}
                   </span>
                   <span className="asx-elig-reason">{prog.reason}</span>
                 </div>
@@ -1734,6 +1768,14 @@ export default function AssessmentTool() {
                 <span className="asx-bd-total-value">{total}</span>
               </div>
             </div>
+
+            {result.ecaPending && (
+              <p className="asx-card-sub asx-eca-caveat-light">
+                Education points above assume your declared credential confirms
+                on an Educational Credential Assessment (ECA) — required by IRCC
+                to actually count toward CRS.
+              </p>
+            )}
 
             {/* Where the Section D points come from — shown only when the
                 applicant actually earned some, so the score jump is explained. */}
@@ -1813,7 +1855,7 @@ export default function AssessmentTool() {
               data-pass={fsw.eligible ? 'yes' : 'no'}
             >
               {fsw.eligible
-                ? `FSW pass mark reached (${fsw.total}/100). Profile qualifies for the Federal Skilled Worker stream.`
+                ? `FSW pass mark reached (${fsw.total}/100). Profile qualifies for the Federal Skilled Worker stream.${result.ecaPending ? ' Provisional — pending ECA confirmation of your declared education.' : ''}`
                 : `FSW pass mark not reached (${fsw.total}/100 — 67 required). FSW pathway currently unavailable.`}
             </p>
           </div>

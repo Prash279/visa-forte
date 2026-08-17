@@ -173,7 +173,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
+      model: 'claude-sonnet-5',
       max_tokens: 8192,
       system: SOP_SYSTEM_PROMPT,
       messages: [

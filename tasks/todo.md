@@ -1,3 +1,154 @@
+## Session 2026-08-17 — NOC Classifier: admin-only, spend bounded, accuracy raised (branch `feat/noc-duties-search`)
+
+> Prash's ask: the duties→NOC Classifier (paste responsibilities → Claude cross-checks official NOC
+> descriptions → closest code + TEER) lives ONLY in admin CanVisa Pro. Remove it from the public
+> /assessment page. Purpose: stop API-cost abuse. Plan grilled and approved via /grill-me 2026-08-17.
+
+### Decisions Prash confirmed in the grill (2026-08-17)
+
+| Question | Decision |
+|---|---|
+| Public /assessment | Keep free client-side title search; REMOVE the duties→AI matcher |
+| No NOC selected | FSW/CEC lines show "Select your occupation (NOC) above to assess this" — no verdict from the TEER-1 default |
+| Rate limit | New additive `tool_rate_limits` table (SHA-256 hashed key, never raw IP) replaces the in-memory Map — migration approved |
+| /tools/noc-verifier page | Stays public, durable rate limit only — NO email gate |
+| Accuracy eval | Dataset self-test now (free, CI); Prash's ~20 anonymized duties→NOC pairs later (paid `eval:noc`) |
+| Push | Authorized: push branch + open PR once tests green + diff summary shown |
+
+### Tasks
+
+- [ ] A1. `NocPicker` gets `dutiesMatch?: boolean` prop, **default false**, wrapping the whole
+      `.nocp-duties` block. CanVisa Pro passes `dutiesMatch`; /assessment untouched (inherits off).
+      Future mounts must opt IN to spending money.
+- [ ] A2. /assessment no-NOC state: when `nocCode === ''`, FSW/CEC program verdicts are replaced by
+      a "select your NOC" prompt — never a verdict computed from the silent TEER-1 default.
+- [ ] B1. Additive Drizzle table `tool_rate_limits` (key text PK, count int, window_start timestamp).
+- [ ] B2. `/api/tools/noc-verifier` swaps the in-memory `hitLog` Map for the durable table.
+      Admin session stays exempt.
+- [ ] C1. Admin calls never silently degrade to lexical: Claude unreachable → 503 with retry message
+      (both the catch path and the missing-key path).
+- [ ] C2. Admin runs (noc-verifier admin mode + `/api/admin/pnp-noc`) widen the shortlist 30 → 60.
+- [ ] C3. Guard the unguarded `ANTHROPIC_API_KEY!` in pnp-noc with an explicit 503.
+- [ ] C4. Dataset self-test: feed each sampled NOC group's own official duties back through
+      retrieval; assert the source code lands in the shortlist. Free, runs in CI.
+- [ ] Prashant Proof: /assessment shows title search only (no duties box); CanVisa Pro duties
+      matching works end-to-end; 21st rapid POST to the public endpoint returns 429. 375/768/1280px.
+
+### Not doing (deliberate)
+
+- DOMAIN_ANCHORS expansion — blocked until the eval exists to measure it.
+- Email gate on /tools/noc-verifier — Prash declined; revisit only if he wants the leads.
+- Vercel env var — blocked on Prash's 2FA account recovery; local + code ship now.
+
+---
+
+## Session 2026-08-13 — Search by Job Duties on the assessment forms (branch `feat/noc-duties-search`)
+
+> Prash's ask: add a "Search by Job Duties / Responsibilities" section directly below the existing
+> "Search by Job Title / Designation" box, where an applicant pastes the duties from their reference
+> letter and the system cross-checks them against the official NOC job descriptions to identify the
+> closest-matching NOC code. Plan approved 2026-08-13.
+
+### What already existed (no new AI engine was built)
+
+The matching engine is already live as `/tools/noc-verifier`, backed by `POST /api/tools/noc-verifier`:
+deterministic TF-IDF shortlist over all 516 official NOC 2021 unit groups → Claude (claude-sonnet-4-6,
+extended thinking) ranks that shortlist against each group's **real StatCan lead statement and main
+duties**, judging scope of work not shared vocabulary → winning code live-verified on noc.esdc.gc.ca.
+Returns top 3 with a 0–100 fit score, a one-sentence rationale and a confidence band, and carries the
+domain anchors that fixed the "Data Science Engineer → Civil Engineers" failure. **This task wires that
+existing engine into the two assessment forms — it touches no prompt, no dataset, and no IRCC figure.**
+
+### Decisions Prash confirmed before any code
+
+| Question | Decision |
+|---|---|
+| Engine | Reuse `/api/tools/noc-verifier` as-is — no new endpoint, no offline-only mode |
+| Result handling | Show top 3, applicant clicks one — nothing auto-applied to the NOC field |
+| Coexistence with title search | Both feed one NOC field, last selection wins, chip names which method found it |
+| Where | Public Assessment page **and** admin CanVisa Pro, as one shared component |
+| Rate limit | Public stays 20/hour per IP; **admin session exempt** so CanVisa Pro never eats the public budget |
+
+### Tasks
+
+- [x] 1. `NocSearch` is now controlled — it holds only the query box and dropdown, and reports the
+      whole chosen entry upward (`onSelect(entry: NocEntry)`). Its private `selected` state and the
+      chip that rendered it are gone. Two boxes writing to one field cannot work while that state is
+      hidden inside one of them. Its dead chip CSS (16 rule blocks) was deleted, not left orphaned.
+- [x] 2. `NocPicker` owns the one selection and renders both routes into it — title search on top,
+      duties panel below. Whichever route the applicant picked last wins, and the chip records which
+      route it was ("Matched from duties" / "Matched from job title"), so the two can never disagree.
+- [x] 3. Duties panel: textarea capped at the API's own 3,000 chars, live count that shows the 30-char
+      minimum until it is met, disabled button below it, duties-not-titles hint. The Occupation / Job
+      Title already on the form rides along as context (trimmed to 120 chars) — never retyped.
+- [x] 4. Results: top 3 cards — code, official title, TEER, fit score, rationale, collapsible official
+      lead statement + main duties, ESDC deep link, "Use this code". Only that button writes to the
+      form; a match whose TEER is outside 0–5 disables its own button rather than coercing a value.
+- [x] 5. Degraded results labelled honestly (Lesson 5): amber caution whenever `method:"lexical"`,
+      naming keyword-matching as the cause and telling the applicant to retry. Confidence chip shown
+      only for AI results. The verified line names the actual confirming source, ESDC or StatCan
+      (Lesson 6). Added back the "Verify on canada.ca ↗" link the old chip carried — the refactor had
+      silently dropped it, leaving a title-route code with no route back to IRCC's own NOC page.
+- [x] 6. Admin exemption in the route: `getCurrentAuthSession()` + ADMIN_EMAIL, checked before the
+      limiter; absent/failed session falls through to the normal public 20/hour per IP.
+      **`getCurrentAuthSession` was being called without being imported** — caught at this gate, not
+      in production. One-line fix; it would have failed the CI typecheck.
+- [x] 7. Both call sites swapped to `NocPicker` with `jobTitleContext={profile.occupationTitle}` —
+      `AssessmentTool.tsx` (light) and `CanVisaProTool.tsx` (dark, still copying the NOC title into
+      `occupationTitle` as before).
+- [x] 8. Mobile-first CSS: 375px base, `min-width` layers at 768 and 1280, both themes, nothing below
+      0.75rem, tags reusing the single site-wide style (saffron text, thin saffron border, no fill —
+      Lesson 5 of the UI category).
+- [x] 9. Verified: `npm test` 391/393, `tsc` clean, `eslint` clean, production build compiled ✓.
+      **Honest limitation: this repo has no component-level test harness — no `.test.tsx` exists
+      anywhere.** The engine's own tests cover the matching logic; the new UI is verified by build,
+      typecheck and browser check, not unit tests. Three caveats, none caused by this feature:
+      - The 2 failing tests (`pnp-pptx`, `ita-countdown/verify`) are 5s-default timeouts under
+        cold-import contention in the full run — both pass in 1.9s when run alone. Pre-existing,
+        and a latent CI flake worth a `testTimeout` bump in a separate change.
+      - `next build` compiled clean but its post-compile typecheck tripped on a **0-byte
+        `.next/dev/types/routes.d.ts`** left by an interrupted dev server, which `tsconfig.json:30`
+        pulls into the typecheck. Local artifact only — CI checks out fresh, so it is unaffected.
+        Typecheck was re-run against source alone (`.next` excluded) and came back clean.
+      - The **dev server on :3000 (PID 14912) is wedged** — it does not answer `/` either, so it
+        predates these changes and is the same process that truncated `routes.d.ts`. It needs a
+        restart before the browser check below can run.
+- [x] 10. Adversarial résumé-speak probe (Lesson 5), run against the retrieval stage directly since
+      the dev server is down. Input: "Data Science Engineer" + productionising ML models, feature
+      engineering, A/B lift tests, Python/SQL pipelines, feature store. Result: **raw TF-IDF still
+      ranks 21300 Civil engineers #1** — the documented Lesson 5 failure reproduces exactly at the
+      recall layer — while all four anchored codes reach the shortlist (21211 Data scientists at #2,
+      plus 21232, 21231, 21223). That is the architecture behaving as designed: recall carries the
+      right answer forward and Claude's ranking stage picks it. Titles read from the bundled StatCan
+      dataset, not from memory (Lesson 5, Immigration Domain).
+- [x] 11. End-to-end probe through the live `/api/tools/noc-verifier` route, dev server restarted.
+      The three earlier environment blockers are all cleared: the wedged process is gone,
+      `.next/dev/types/routes.d.ts` regenerated at 7,236 bytes so **full `npm run typecheck` now
+      passes with `.next` included**, and the two timeout-flaky tests did not recur — **393/393**.
+      The probe returned `method:"lexical"`, not `"ai"`: `ANTHROPIC_API_KEY` is absent from
+      `apps/web/.env.local`, so `aiRank` returns null at its key check (no "AI ranking failed" line
+      in the dev log, which rules out an API error). Environment gap, not a code defect — but it
+      made the degraded path reachable and exposed a real bug, below.
+- [x] 12. **Bug found and fixed by that probe.** `lexicalFallback` badged raw TF-IDF hit #1 as
+      `'strongest'`, so the live degraded response ranked **21300 Civil Engineers as "Strongest
+      match"** for data-science duties, with the `nocp-card--top` highlight — while the amber
+      caution directly above said the results were keyword matches and could be wrong. The page
+      contradicted itself and put the emphasis on the wrong code. Fix: degraded mode assigns
+      `'review'` to every hit, and the card label reads "Possible match" when `method === 'lexical'`.
+      Re-probed: all three now return `band:"review"` and nothing claims to be strongest.
+      Gates after the fix — tests 393/393, `tsc` clean, `eslint` clean.
+      **Still outstanding: the `method:"ai"` path, which needs `ANTHROPIC_API_KEY` in `.env.local`.**
+
+### Prashant Proof (60-second browser check)
+
+Go to `/assessment`, Section 1. Below "Search by Job Title / Designation" you will see "Search by Job
+Duties / Responsibilities". Paste three or four sentences of real duties from a client reference letter
+and click "Find Matching NOC". Three NOC candidates appear, strongest first, each explaining why it
+fits. Click "Use this code" and confirm the NOC chip above updates and says it was matched from duties.
+Repeat at `/admin/canvisa-pro`.
+
+---
+
 ## Session 2026-07-19 (night, follow-up) — Live-verify source: ESDC first (branch `fix/noc-verify-esdc-source`)
 
 > Prash correction on the PR #12 result: the live check verified against Statistics Canada; it

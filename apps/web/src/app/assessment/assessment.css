@@ -384,10 +384,37 @@
   border: 1px solid rgba(252, 165, 165, 0.3);
 }
 
+/* No NOC selected: verdict withheld — neutral, neither green nor red */
+.asx-pool-badge[data-eligible="pending"] {
+  background: rgba(248, 244, 238, 0.1);
+  color: rgba(248, 244, 238, 0.8);
+  border: 1px solid rgba(248, 244, 238, 0.25);
+}
+
 .asx-score-date {
   font-size: 0.75rem;
   color: rgba(248,244,238,0.75);
   letter-spacing: 0.04em;
+}
+
+/* ECA-pending caveat — hero card is dark navy, so this uses a light-on-dark
+   amber tint (vs. the light-card amber used elsewhere on this page). */
+.asx-eca-caveat {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: #FBBF24;
+  background: rgba(251,191,36,0.12);
+  border: 1px solid rgba(251,191,36,0.3);
+  border-radius: 4px;
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 1rem;
+  max-width: 32rem;
+}
+
+/* Same caveat, restyled to sit inside a light card (Score Breakdown). */
+.asx-eca-caveat-light {
+  color: #92400E;
+  margin-top: 0.75rem;
 }
 
 /* ── Result: body ────────────────────────────────────────────── */
@@ -464,6 +491,11 @@
 .asx-elig-badge[data-status="no"] {
   background: rgba(239,68,68,0.08);
   color: #991b1b;
+}
+/* Verdict withheld until a NOC is selected — neutral grey, not a verdict colour */
+.asx-elig-badge[data-status="pending"] {
+  background: rgba(113,128,150,0.12);
+  color: #4A5568;
 }
 
 .asx-elig-reason {

@@ -11,6 +11,10 @@ import { getGroupByCode, type NocRetrievalHit } from './noc-retrieval';
 import { type NocCandidate } from './pnp-eligibility';
 
 export const RETRIEVE_TOP_K = 30;
+// Admin runs (CanVisa Pro, PNP classifier) accept a larger, slower candidate
+// block in exchange for a better chance the correct code is on the shortlist
+// at all — Claude can only rank what retrieval surfaces. Public stays at 30.
+export const ADMIN_RETRIEVE_TOP_K = 60;
 export const RANKED_RETURNED = 3;
 
 // A runner-up is only shown as a "considered match" when it is genuinely competitive:

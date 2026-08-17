@@ -3,10 +3,34 @@ import { NextRequest } from 'next/server';
 
 // Claude is mocked: these tests pin the pipeline around the model (grounding,
 // anchor-wins, fallback), not the model itself.
-const { createMock } = vi.hoisted(() => ({ createMock: vi.fn() }));
+const { createMock, sessionMock, rateLimitCount } = vi.hoisted(() => ({
+  createMock: vi.fn(),
+  sessionMock: vi.fn(),
+  rateLimitCount: { value: 1 },
+}));
 vi.mock('@anthropic-ai/sdk', () => ({
   default: class {
     messages = { create: createMock };
+  },
+}));
+
+vi.mock('@/lib/auth-server', () => ({
+  getCurrentAuthSession: sessionMock,
+}));
+
+// The durable rate limiter's upsert — returns rateLimitCount.value as the
+// post-increment count, so individual tests can push it over RATE_LIMIT.
+vi.mock('@/lib/db', () => ({
+  db: {
+    insert: vi.fn(() => ({
+      values: vi.fn(() => ({
+        onConflictDoUpdate: vi.fn(() => ({
+          returning: vi
+            .fn()
+            .mockImplementation(async () => [{ count: rateLimitCount.value }]),
+        })),
+      })),
+    })),
   },
 }));
 
@@ -38,6 +62,8 @@ describe('POST /api/tools/noc-verifier', () => {
   beforeEach(() => {
     process.env.ANTHROPIC_API_KEY = 'test_key';
     createMock.mockReset();
+    sessionMock.mockReset().mockResolvedValue(null); // non-admin by default
+    rateLimitCount.value = 1; // well under RATE_LIMIT by default
     // verifyCodeLive network call — stubbed out; "not verified" path.
     vi.stubGlobal(
       'fetch',
@@ -160,5 +186,79 @@ describe('POST /api/tools/noc-verifier', () => {
     const json = (await res.json()) as { method: string };
     expect(json.method).toBe('lexical');
     expect(createMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects a non-admin caller past RATE_LIMIT with 429', async () => {
+    rateLimitCount.value = 21; // one past the 20/hour limit
+    const res = await POST(postRequest({ duties: DEVELOPER_DUTIES }));
+    expect(res.status).toBe(429);
+    expect(createMock).not.toHaveBeenCalled();
+  });
+
+  it('exempts an admin session from the public rate limit', async () => {
+    sessionMock.mockResolvedValue({
+      session: { id: 's1' },
+      user: { email: 'prashant@visaforte.com' },
+    });
+    rateLimitCount.value = 999; // would 429 a non-admin
+    createMock.mockResolvedValue(
+      claudeReply({
+        ranked: [
+          {
+            nocCode: '21232',
+            fitScore: 92,
+            rationale: 'Writing, modifying and testing software code.',
+          },
+        ],
+        confidence: 'high',
+        ambiguityFlag: false,
+      }),
+    );
+    const res = await POST(
+      postRequest({ jobTitle: 'Software Developer', duties: DEVELOPER_DUTIES }),
+    );
+    expect(res.status).toBe(200);
+  });
+
+  it('admin never receives a silent lexical downgrade — gets 503 instead', async () => {
+    sessionMock.mockResolvedValue({
+      session: { id: 's1' },
+      user: { email: 'prashant@visaforte.com' },
+    });
+    createMock.mockRejectedValue(new Error('api down'));
+    const res = await POST(
+      postRequest({ jobTitle: 'Software Developer', duties: DEVELOPER_DUTIES }),
+    );
+    expect(res.status).toBe(503);
+    const json = (await res.json()) as { error: string };
+    expect(json.error).toMatch(/unavailable|retry/i);
+  });
+
+  it('admin gets the wider ADMIN_RETRIEVE_TOP_K shortlist', async () => {
+    sessionMock.mockResolvedValue({
+      session: { id: 's1' },
+      user: { email: 'prashant@visaforte.com' },
+    });
+    createMock.mockResolvedValue(
+      claudeReply({
+        ranked: [
+          {
+            nocCode: '21232',
+            fitScore: 92,
+            rationale: 'Writing, modifying and testing software code.',
+          },
+        ],
+        confidence: 'high',
+        ambiguityFlag: false,
+      }),
+    );
+    await POST(
+      postRequest({ jobTitle: 'Software Developer', duties: DEVELOPER_DUTIES }),
+    );
+    const promptText = createMock.mock.calls[0]?.[0]?.messages?.[0]?.content as
+      string | undefined;
+    const candidateCount = (promptText?.match(/### Candidate \d+/g) ?? [])
+      .length;
+    expect(candidateCount).toBeGreaterThan(30); // wider than the public RETRIEVE_TOP_K
   });
 });

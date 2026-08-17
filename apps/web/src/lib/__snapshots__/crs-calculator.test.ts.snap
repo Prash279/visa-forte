@@ -22,6 +22,7 @@ exports[`calculate — Harish Naik with-spouse Factor B verification > full CrsR
     "total": 364,
     "transferTotal": 50,
   },
+  "ecaPending": false,
   "eligibility": {
     "cec": {
       "eligible": false,
@@ -115,6 +116,7 @@ exports[`calculate — Kishore Sai ground-truth verification > full CrsResult sn
     "total": 447,
     "transferTotal": 75,
   },
+  "ecaPending": false,
   "eligibility": {
     "cec": {
       "eligible": false,
@@ -216,6 +218,7 @@ exports[`calculate — provincial nomination > full CrsResult snapshot — locks
     "total": 1047,
     "transferTotal": 75,
   },
+  "ecaPending": false,
   "eligibility": {
     "cec": {
       "eligible": false,

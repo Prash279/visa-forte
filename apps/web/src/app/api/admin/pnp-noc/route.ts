@@ -5,7 +5,7 @@ import { getCurrentAuthSession } from '@/lib/auth-server';
 import { retrieveCandidates, getAnchoredCodes } from '@/lib/noc-retrieval';
 import {
   NOC_CLASSIFIER_SYSTEM,
-  RETRIEVE_TOP_K,
+  ADMIN_RETRIEVE_TOP_K,
   buildCandidateBlock,
   parseRawClassification,
   groundClassification,
@@ -20,9 +20,10 @@ import { type NocClassification } from '@/lib/pnp-eligibility';
 // are joined from the bundled dataset server-side — never trusted from the model.
 export const maxDuration = 60;
 
-const MODEL = 'claude-sonnet-4-6';
+// Sonnet 5 thinks adaptively; extended thinking with an explicit budget is not
+// supported on it, so no `thinking` block is sent with the ranking call.
+const MODEL = 'claude-sonnet-5';
 const MAX_TOKENS = 4096;
-const THINKING_BUDGET = 2048;
 const ADMIN_EMAIL = 'prashant@visaforte.com';
 
 async function requireAdmin(): Promise<NextResponse | null> {
@@ -63,8 +64,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
     const { occupationTitle, jobDuties, manualNocHint } = parsed.data;
 
-    // 1) Retrieval: narrow 516 unit groups to a grounded shortlist.
-    const hits = retrieveCandidates(jobDuties, occupationTitle, RETRIEVE_TOP_K);
+    // 1) Retrieval: narrow 516 unit groups to a grounded shortlist. Admin runs
+    // use the wider shortlist — a paid, accuracy-critical assessment can afford
+    // the larger candidate block; the correct code has to be on the list before
+    // Claude can rank it.
+    const hits = retrieveCandidates(
+      jobDuties,
+      occupationTitle,
+      ADMIN_RETRIEVE_TOP_K,
+    );
     if (hits.length === 0) {
       return NextResponse.json(
         {
@@ -75,12 +83,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('PNP NOC classifier: ANTHROPIC_API_KEY is not configured.');
+      return NextResponse.json(
+        {
+          error:
+            'The NOC classifier is not configured. Add ANTHROPIC_API_KEY and retry.',
+        },
+        { status: 503 },
+      );
+    }
+
     // 2) Claude ranks the shortlist against the candidates' real StatCan duties.
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const message = await anthropic.messages.create({
       model: MODEL,
       max_tokens: MAX_TOKENS,
-      thinking: { type: 'enabled', budget_tokens: THINKING_BUDGET },
       system: NOC_CLASSIFIER_SYSTEM,
       messages: [
         {
