@@ -97,7 +97,16 @@ export interface NocCandidate {
   title: string;
   rationale: string; // one sentence tying the code to the applicant's specific duties
   matchScore: number; // lexical-retrieval relevance (higher = stronger duty overlap)
-  fitScore: number; // 0–100 semantic fit of the duties to this code's scope (model judgement)
+  fitScore: number; // 0–100: share of this code's main duties the applicant evidenced
+  // The IRPR s.80(3) two-part test, recorded per candidate so a reviewer can see the
+  // officer's own worksheet rather than just the verdict. Optional because "not
+  // assessed" is a real state: a code the consultant sets by hand from the reference
+  // letter has never been through the test, and saying so is more honest than
+  // defaulting it to a pass.
+  leadStatementMatch?: boolean; // Test A — performed the lead statement's actions
+  essentialDutiesMet?: boolean; // Test B — performed all essential duties
+  mainDutiesMatched?: number; // duties evidenced, out of mainDutiesTotal
+  mainDutiesTotal?: number; // joined from the bundled dataset, never from the model
 }
 
 // One classified occupation, produced by /api/admin/pnp-noc (Claude) or entered manually.

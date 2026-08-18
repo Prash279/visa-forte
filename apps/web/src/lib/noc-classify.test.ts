@@ -23,6 +23,118 @@ const HITS: NocRetrievalHit[] = [
   hit('21223', 90),
 ];
 
+describe('statutory duty test (IRPR s.80(3)) gating', () => {
+  // Both limbs must pass. A candidate failing either cannot lead while another passes
+  // both — this is the officer's test, not a ranking preference.
+  it('a candidate failing the lead statement cannot win over one that passes', () => {
+    const raw: RawClassification = {
+      ranked: [
+        {
+          nocCode: '41404',
+          rationale: 'high overlap but wrong core function',
+          fitScore: 88,
+          leadStatementMatch: false,
+          essentialDutiesMet: true,
+        },
+        {
+          nocCode: '12111',
+          rationale: 'passes both limbs',
+          fitScore: 71,
+          leadStatementMatch: true,
+          essentialDutiesMet: true,
+        },
+      ],
+      confidence: 'medium',
+      ambiguityFlag: true,
+    };
+    expect(groundClassification(raw, HITS)!.nocCode).toBe('12111');
+  });
+
+  it('a candidate missing an essential duty cannot win over one that passes', () => {
+    const raw: RawClassification = {
+      ranked: [
+        {
+          nocCode: '41404',
+          rationale: 'substantial duties but an essential one absent',
+          fitScore: 90,
+          leadStatementMatch: true,
+          essentialDutiesMet: false,
+        },
+        {
+          nocCode: '12111',
+          rationale: 'passes both limbs',
+          fitScore: 62,
+          leadStatementMatch: true,
+          essentialDutiesMet: true,
+        },
+      ],
+      confidence: 'medium',
+      ambiguityFlag: true,
+    };
+    expect(groundClassification(raw, HITS)!.nocCode).toBe('12111');
+  });
+
+  it('keeps the ranking when NO candidate passes, rather than returning nothing', () => {
+    // A near-miss is exactly what the consultant needs to see — it tells them which
+    // duty the reference letter has to evidence.
+    const raw: RawClassification = {
+      ranked: [
+        {
+          nocCode: '41404',
+          rationale: 'closest available',
+          fitScore: 55,
+          leadStatementMatch: false,
+          essentialDutiesMet: false,
+        },
+      ],
+      confidence: 'low',
+      ambiguityFlag: false,
+    };
+    const out = groundClassification(raw, HITS)!;
+    expect(out.nocCode).toBe('41404');
+    expect(out.candidates[0]!.leadStatementMatch).toBe(false);
+  });
+
+  it("carries duty coverage through, with OUR denominator not the model's", () => {
+    const raw: RawClassification = {
+      ranked: [
+        {
+          nocCode: '41404',
+          rationale: 'x',
+          fitScore: 80,
+          mainDutiesMatched: 999, // model overshoots; must be clamped to reality
+        },
+      ],
+      confidence: 'high',
+      ambiguityFlag: false,
+    };
+    const c = groundClassification(raw, HITS)!.candidates[0]!;
+    expect(c.mainDutiesTotal).toBe(getGroupByCode('41404')!.mainDuties.length);
+    expect(c.mainDutiesMatched).toBe(c.mainDutiesTotal);
+    // Omitted limbs default to passing so a truncated reply cannot silently fail
+    // every candidate and collapse the classification.
+    expect(c.leadStatementMatch).toBe(true);
+  });
+});
+
+describe('the prompt states the actual legal test', () => {
+  it('carries both statutory limbs and the employment-requirements exclusion', () => {
+    expect(NOC_CLASSIFIER_SYSTEM).toContain('lead statement');
+    expect(NOC_CLASSIFIER_SYSTEM).toContain('essential duties');
+    expect(NOC_CLASSIFIER_SYSTEM).toContain('s.80(3)');
+    // The clause that stops "applicant has a degree, so a degree-level code fits".
+    expect(NOC_CLASSIFIER_SYSTEM).toContain(
+      'EMPLOYMENT REQUIREMENTS ARE IRRELEVANT',
+    );
+    // No percentage is codified anywhere — the model must not invent one.
+    expect(NOC_CLASSIFIER_SYSTEM).toContain('NO PERCENTAGE THRESHOLD EXISTS');
+    // Shortlist order comes from a keyword search that is frequently wrong at the top.
+    expect(NOC_CLASSIFIER_SYSTEM).toContain(
+      'CANDIDATE ORDER CARRIES NO INFORMATION',
+    );
+  });
+});
+
 describe('extractJsonObject', () => {
   it('pulls JSON out of fences and commentary', () => {
     expect(
@@ -262,7 +374,19 @@ describe('grounding block + citation urls', () => {
   it('embeds the real code, TEER and duties of each candidate', () => {
     const block = buildCandidateBlock(HITS);
     expect(block).toContain('NOC 41404 (TEER 1)');
-    expect(block).toContain('Main duties:');
+    expect(block).toContain('Main duties (Test B)');
+    // Duties are numbered so the model can count coverage and a reviewer can check
+    // the count against the official source.
+    expect(block).toContain('  1. ');
+    // Example titles must come AFTER the duties and be marked context-only — they are
+    // the field that most often drags a classification to the wrong code.
+    expect(block).toContain('CONTEXT ONLY');
+    expect(block.indexOf('Example job titles')).toBeGreaterThan(
+      block.indexOf('Main duties (Test B)'),
+    );
+    // Employment requirements are never shown: IRPR s.80(3) makes them irrelevant to
+    // whether experience counts in an occupation.
+    expect(block).not.toContain('Employment requirements');
   });
   it('builds code-specific official URLs', () => {
     expect(esdcProfileUrl('41404')).toContain('code=41404.00');
@@ -305,7 +429,9 @@ describe('verifyCodeLive', () => {
     const result = await verifyCodeLive('21211', 'Data scientists');
     vi.unstubAllGlobals();
     expect(result.source).toBe('statcan');
-    expect(result.notes.some((n) => n.includes('esdc') && n.includes('404'))).toBe(true);
+    expect(
+      result.notes.some((n) => n.includes('esdc') && n.includes('404')),
+    ).toBe(true);
   });
 
   it('returns null when neither source confirms the title', async () => {

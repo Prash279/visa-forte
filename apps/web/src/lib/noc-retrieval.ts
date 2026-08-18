@@ -134,6 +134,13 @@ function buildGroupTerms(group: NocGroup): Map<string, number> {
   for (const ex of group.examples) add(ex, EXAMPLE_WEIGHT);
   add(group.leadStatement, BODY_WEIGHT);
   for (const d of group.mainDuties) add(d, BODY_WEIGHT);
+  // employmentRequirements IS scored here, deliberately, even though IRPR s.80(3) makes
+  // credentials irrelevant to whether experience counts in an occupation. That rule
+  // governs the DECISION, and it is enforced where the decision is made — in the
+  // classifier prompt. This layer only gathers candidates, and credential vocabulary is
+  // useful recall signal for that. Dropping it was tried and measured on 2026-08-18:
+  // 22212 fell from rank 10 to 17 and 22310 left the shortlist entirely. Recall got
+  // worse for no legal gain. Do not "fix" this again by citing s.80(3).
   for (const r of group.employmentRequirements) add(r, BODY_WEIGHT);
   return terms;
 }
@@ -161,11 +168,18 @@ export function getGroupByCode(code: string): NocGroup | undefined {
   return CODE_INDEX.get(code);
 }
 
-// Domain anchors: occupations where real-world job-posting vocabulary differs so
-// much from the official NOC 2021 StatCan text that TF-IDF cannot surface the right
-// code. When a pattern fires the listed codes are appended to the shortlist (score 0)
-// so Claude still decides the final ranking — the anchor only guarantees visibility.
-// Each entry is Prash-verified against the ESDC NOC 2021 browser.
+// Domain anchors: occupations where real-world job-posting vocabulary differs so much
+// from the official NOC 2021 StatCan text that TF-IDF cannot surface the right code at
+// all. A firing anchor moves its codes to the FRONT of the shortlist so the classifier
+// sees them first; it never picks the winner. Deciding the winner requires reading the
+// duties against the lead statement, which only the model stage does — a regex knows
+// vocabulary (which field someone works in), never scope (what they actually do).
+//
+// Add an anchor ONLY after measuring that retrieval misses the code unaided, and record
+// the measured rank in the entry. An anchor for a code TF-IDF already finds is a no-op:
+// a fibre/OSP anchor added 2026-08-18 was removed the same day once measurement showed
+// all four of its codes were already on the shortlist (22214 #2, 21311 #6, 22212 #10,
+// 22310 #29 of 30) — it had never rescued anything.
 const DOMAIN_ANCHORS: ReadonlyArray<{
   pattern: RegExp;
   codes: ReadonlyArray<string>;
@@ -176,6 +190,9 @@ const DOMAIN_ANCHORS: ReadonlyArray<{
     // informed consent, CRC, CRA, CTMS, eTMF, site activation, AE/SAE.
     // ESDC-confirmed code: 41404 – Health policy researchers, consultants and
     // program officers (TEER 1).
+    // Measured 2026-08-18: without this anchor 41404 is ABSENT from the top 30 —
+    // TF-IDF leads with petroleum and mining process operators. This anchor is
+    // load-bearing; it is the clearest case in the file of a genuine vocabulary gap.
     pattern:
       /clinical[\s-]+trial|clinical[\s-]+research|\beTMF\b|\bTMF\b|\bIRB\b|\bICF\b|informed\s+consent|\bCRC\b|\bCRA\b|site[\s-]+activation|study[\s-]+start[\s-]?up|\bAE\/SAE\b|\bCTMS\b/i,
     codes: ['41404'],
@@ -190,6 +207,12 @@ const DOMAIN_ANCHORS: ReadonlyArray<{
     // the bundled StatCan dataset: 21211 Data scientists, 21232 Software
     // developers and programmers, 21231 Software engineers and designers,
     // 21223 Database analysts and data administrators.
+    // Measured 2026-08-18: only 21232 is genuinely rescued (absent from the top 30).
+    // The other three are found unaided but poorly placed — 21211 #5, 21223 #9,
+    // 21231 #10, all sitting BELOW Civil, Mechanical, Chemical and Electrical
+    // engineers. Listing all four is therefore deliberate: the anchor rescues one
+    // code and, by hoisting the family to the front, drops Civil engineers from #1
+    // to #5 so the classifier no longer reads a wrong answer first.
     pattern:
       /machine[\s-]?learning|\bML\b|\bAI\b|\bLLM\b|artificial intelligence|data[\s-]scien(ce|tist)|deep[\s-]learning|neural[\s-]network|\bNLP\b|natural language processing|conversational (ai|agent|workflow)|chatbot|\bpython\b|data pipeline|model training|\betl\b/i,
     codes: ['21211', '21232', '21231', '21223'],
@@ -223,28 +246,25 @@ export function retrieveCandidates(
     .sort((a, b) => b.score - a.score)
     .slice(0, topK);
 
-  // Append anchor codes that didn't make the TF-IDF cut when the input signals a
-  // domain whose terminology is absent from the NOC 2021 StatCan vocabulary.
-  for (const anchor of DOMAIN_ANCHORS) {
-    if (!anchor.pattern.test(input)) continue;
-    for (const code of anchor.codes) {
-      if (hits.some((h) => h.group.code === code)) continue;
-      const group = CODE_INDEX.get(code);
-      if (group) hits.push({ group, score: 0 });
-    }
+  // Anchored codes go to the FRONT, not the end. A rescued code appended last landed
+  // as candidate 31 of 31 — the worst slot in the prompt for the one code we have
+  // specific reason to believe in. The routes used to compensate with an "anchor wins"
+  // override that could demote a correctly-ranked answer; putting the code where it
+  // will actually be read removes the need for any override.
+  const anchored = DOMAIN_ANCHORS.filter((a) => a.pattern.test(input)).flatMap(
+    (a) => a.codes,
+  );
+  if (anchored.length === 0) return hits;
+
+  const front: NocRetrievalHit[] = [];
+  const promoted = new Set<string>();
+  for (const code of anchored) {
+    if (promoted.has(code)) continue;
+    const existing = hits.find((h) => h.group.code === code);
+    const group = existing?.group ?? CODE_INDEX.get(code);
+    if (!group) continue;
+    promoted.add(code);
+    front.push(existing ?? { group, score: 0 });
   }
-
-  return hits;
-}
-
-// Returns the NOC codes that a domain anchor would inject for this input. Used by the
-// route to implement anchor-wins: if Claude ranked an anchored code at all, it wins.
-export function getAnchoredCodes(
-  jobDuties: string,
-  occupationTitle?: string,
-): string[] {
-  const input = `${occupationTitle ?? ''} ${jobDuties}`;
-  return DOMAIN_ANCHORS.filter((a) => a.pattern.test(input)).flatMap((a) => [
-    ...a.codes,
-  ]);
+  return [...front, ...hits.filter((h) => !promoted.has(h.group.code))];
 }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import { getCurrentAuthSession } from '@/lib/auth-server';
-import { retrieveCandidates, getAnchoredCodes } from '@/lib/noc-retrieval';
+import { retrieveCandidates } from '@/lib/noc-retrieval';
 import {
   NOC_CLASSIFIER_SYSTEM,
   ADMIN_RETRIEVE_TOP_K,
@@ -117,22 +117,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Anchor-wins: when a domain anchor fired and Claude ranked the anchor code (even
-    // not first), promote it to winner. The anchor only fires for vocabulary-gap
-    // occupations where TF-IDF cannot surface the correct code; Claude acknowledging
-    // the anchor code in its ranked list is evidence of meaningful fit — it wins.
-    const anchoredCodes = getAnchoredCodes(jobDuties, occupationTitle);
-    if (anchoredCodes.length > 0) {
-      const anchorRank = raw.ranked.find((r) =>
-        anchoredCodes.includes(r.nocCode),
-      );
-      if (anchorRank) {
-        raw.ranked = [
-          anchorRank,
-          ...raw.ranked.filter((r) => r.nocCode !== anchorRank.nocCode),
-        ];
-      }
-    }
+    // No anchor override. Domain anchors now place their codes at the FRONT of the
+    // shortlist so a rescued code is read first rather than last; forcing it to win as
+    // well could demote a correctly-ranked answer. Ranking is the model's, judged
+    // against the IRPR s.80(3) test, and gated deterministically in groundClassification.
 
     // 3) Ground: keep only shortlisted codes, join authoritative TEER + title.
     const grounded = groundClassification(raw, hits);

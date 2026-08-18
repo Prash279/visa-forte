@@ -55,7 +55,12 @@ If the lesson contains words like "useEffect", "state mismatch", "hydration erro
 - **Why it happened:** The functions were written as if each combination had only one point value, missing the two-row structure on the official IRCC transferability table.
 - **The rule going forward:** Every skill transferability function must handle both the 1-year CWE tier and the 2+-year CWE tier as separate return values. Always cross-check the function's maximum output against the official IRCC cap for that combination.
 
-**Lesson 5 — NOC TEER levels require the official Statistics Canada TEER variant CSV; code digits are not a reliable indicator**
+**Lesson 5 — CORRECTED 2026-08-18. The original rule below was wrong.**
+> **The second digit of a NOC 2021 code IS the TEER.** It is not a coincidence — it is the published design. Statistics Canada states it twice in the NOC 2021 V1.0 introduction (statcan.gc.ca, modified 2023-09-14): the classification-structure table gives "Major Group | XX | Second Digit | TEER categorization", and the text reads "The TEER Category (second digit) of the classification represents the necessary training, education, experience and responsibilities of the occupation."
+> The original lesson's own examples prove the rule rather than refute it: NOC 21232 is TEER 1 (second digit 1) and NOC 65200/65201 are TEER 5 (second digit 5). Training data got those wrong; the second-digit rule would have got them right.
+> **What survives:** the real lesson is that training-data recall of TEER values is unreliable, so read the TEER from the authoritative source. The code already does this correctly — it joins TEER from the bundled StatCan dataset and never derives it from digits or from the model. Keep doing that; the digit is a valid cross-check, not the primary source.
+
+**Lesson 5 (original, superseded) — NOC TEER levels require the official Statistics Canada TEER variant CSV; code digits are not a reliable indicator**
 - **What went wrong:** The CVP-1 spot-check sample in the plan had two TEER errors: NOC 21232 (Software developers and programmers) was listed as TEER 2 (it is TEER 1), and NOC 65200/65201 (Food servers / Food counter attendants) was listed as TEER 4 (they are TEER 5). Both errors came from training data.
 - **Why it happened:** The second digit of a 5-digit NOC 2021 code looks as if it might signal the TEER level, but this is a coincidence, not a rule. The actual TEER classification is assigned by traversing the Statistics Canada TEER variant CSV: TEER class → broad category → major group → minor group → unit group. Training data cannot reliably reproduce this mapping.
 - **The rule going forward:** Never derive a NOC TEER level from the digits of the NOC code or from training-data recall. The only authoritative source is the Statistics Canada TEER variant CSV (or the ESDC noc.esdc.gc.ca detail page for each specific code). Any spot-check must cross-reference one of these two sources directly.
@@ -242,3 +247,37 @@ If the lesson contains words like "useEffect", "state mismatch", "hydration erro
 ---
 
 *lessons.md is a living document. Every correction is a lesson. Every lesson is a rule.*
+
+---
+
+## Category: NOC Classification
+
+**Lesson 1 — A bug report's "expected answer" is a guess until it is checked against the source**
+- **What went wrong:** A report said the matcher returned the wrong code for a fibre-optic designer and should have returned 21311 Computer engineers. I accepted that target and built a rule forcing 21311, before ever reading the applicant's actual duties. When the real resume arrived, 21311 was the wrong answer — the duties match 22212 Drafting technologists.
+- **Why it happened:** I treated the reported "should be X" as the fact to build toward instead of as a claim to verify. The fix inherited the error in the report.
+- **The rule going forward:** When told a NOC result is wrong, pull the official Statistics Canada text for BOTH the returned code and the proposed code, and compare the applicant's duties against each one's lead statement and main duties, before writing any code. The expected answer gets verified exactly like the actual answer.
+
+**Lesson 2 — A keyword rule can recognise a field of work, never a level of responsibility**
+- **What went wrong:** The rule I added spotted the word "fiber" and forced the answer to a university-degree-level engineering code, which would have pushed every future fibre applicant into that level regardless of what they actually do.
+- **Why it happened:** Spotting a word tells you which industry someone works in. It cannot tell you whether they design the network or draw the plans — and that difference is the entire question.
+- **The rule going forward:** Keyword rules may only widen the list of codes shown to the AI. They must never choose the winner. Choosing requires reading the duties against the official description, which only the AI stage does.
+
+**Lesson 3 — Official example job titles are the most misleading field in the NOC data**
+- **What went wrong:** 21311 lists "fibre-optic network designer" among its example job titles, which made it look obviously correct. Its actual listed duties are network architecture and capacity planning, none of which the applicant did.
+- **Why it happened:** Example titles are the easiest field to pattern-match on and the one IRCC gives the least weight.
+- **The rule going forward:** IRCC's test is whether the applicant performed the actions in the lead statement and most of the main duties. Example job titles are context only. Never let a title match decide a code, in the tool or in a client file.
+
+**Lesson 4 — Measure before adding a rescue rule; the rule may be doing nothing**
+- **What went wrong:** I added a rule to force four fibre-related codes onto the shortlist. Measuring afterwards showed the plain keyword search already found all four unaided. The rule was a no-op that existed purely to make the harmful part work.
+- **Why it happened:** I assumed the codes were missing from the shortlist instead of checking where they ranked.
+- **The rule going forward:** Before adding any rescue rule for a NOC code, run the search and record the code's actual rank. Add the rule only if the code is genuinely absent. Write the measured rank into the comment so the next session cannot re-litigate it.
+
+**Lesson 5 — A test that runs the whole pipeline cannot prove one part inside it works**
+- **What went wrong:** My test asserted that four codes appeared in the shortlist. It passed — but it would have passed identically with the rule deleted, because the keyword search was finding them anyway. The test looked like proof and proved nothing.
+- **Why it happened:** The test checked the end result of the pipeline, not the contribution of the component it was written for.
+- **The rule going forward:** A test for a rescue rule must show the difference the rule makes — the code is absent without it and present with it. If the test passes with the component removed, it is not testing that component.
+
+**Lesson 6 — The classifier reports what is true; it never optimises for what helps the client**
+- **What went wrong:** The original complaint was really that a higher-skill code would be worth more, presented as an accuracy complaint. Building toward the more valuable code would have made the tool quietly recommend codes that the applicant's reference letter cannot support.
+- **Why it happened:** Accuracy and advantage point in the same direction often enough that it is easy to stop noticing when they diverge.
+- **The rule going forward:** The classifier answers "which code do these duties describe" and nothing else. Anything about what a code is worth — category draws, TEER level, programme eligibility — belongs in a separate display layer shown after the answer. A code that the employment reference letter cannot support is a misrepresentation risk, not a strategy.

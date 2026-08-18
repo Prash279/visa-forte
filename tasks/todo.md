@@ -2860,7 +2860,7 @@ steps below — this is a code-complete, not a visually-verified, delivery.
 ### TASK RT-4: NOC Code Verifier — `/tools/noc-verifier`
 **Status:** 🔲 NOT STARTED — step plan written when RT-3 is complete
 **What this delivers:** The applicant enters their job title and a brief duty description. The tool returns the most likely NOC 2021 code, TEER level, official occupation title, and a direct link to the ESDC page. Uses the existing `noc-2021.json` index (already committed) + the `noc-retrieval.ts` deterministic lexical scorer. No Claude API call needed — deterministic output only. Free, ungated.
-**Reuse:** `noc-2021.json` + `noc-retrieval.ts` already in the codebase. Zero new ML costs.
+**Reuse:** `noc-2021.json` + `noc-retrieval.ts` already in the codebase. **Correction:** the "no Claude API call" line above was overridden by Prash on 2026-07-19 — the route calls Sonnet 5 to rank the shortlist, because retrieval alone scored Civil Engineers first for data-science duties.
 **Step plan:** Written after RT-3 is shipped.
 
 ---
@@ -2872,5 +2872,87 @@ steps below — this is a code-complete, not a visually-verified, delivery.
 **Step plan:** Written after RT-4 is shipped.
 
 ---
+
+---
+
+### TASK NOC-ACC: NOC classifier accuracy hardening
+**Status:** ✅ STEPS 1-4 DONE 2026-08-18 (Bible-driven rebuild). Steps 5-6 still open.
+Superseded in part by the Work Experience & NOC Code Assessment Bible, which supplied the binding
+statutory test. The prompt now applies IRPR s.80(3) directly instead of a home-grown "scope" heuristic.
+
+**The measured problem.** Retrieval is not the weak link; ranking is. For the fibre duties, the plain
+keyword search already placed all four candidate codes on the shortlist unaided (22214 rank 2, 21311
+rank 6, 22212 rank 10, 22310 rank 29 of 30). The correct code was in front of the AI the whole time and
+still lost. The same probe showed the keyword search leading with "Land survey technologists" for fibre
+duties and with "Civil engineers" for data-science duties — the top of that list is frequently wrong, and
+it is handed to the AI as the order the candidates are presented in.
+
+**Steps, highest leverage first.**
+
+1. **Tell the AI that candidate order carries no information, and stop burying rescued codes.**
+   The candidate block is numbered in keyword-score order, so the AI reads a wrong code first and the
+   right one tenth. Rescued codes are appended last — the worst slot for codes we specifically believe
+   are likely. Add one line to the prompt stating the order is not a ranking, and place rescued codes at
+   the front of the block instead of the end. Cost: a few lines. Expected effect: the largest of any step.
+
+2. **Put IRCC's actual test into the prompt.** The prompt currently asks whether a code's scope
+   "contains" the duties. IRCC asks something narrower and countable: did the applicant perform the
+   actions in the lead statement AND most of the main duties. Restate rule 2 in those terms and redefine
+   fitScore as roughly what share of that code's main duties the applicant demonstrably performed. This
+   also calibrates the three thresholds in noc-classify.ts that currently sit on a free-hand number.
+
+3. **Add a sibling tie-break instruction.** Real errors happen between codes in the same family and the
+   same TEER (22212 vs 22213 vs 22214). Require that when two candidates share a TEER and a family, the
+   rationale names one duty present in the winner's official list and absent from the runner-up's.
+
+4. **Delete the fibre anchor; keep the other two; stop all promotion.** Measured: the fibre anchor
+   rescues nothing (all four codes found unaided) — delete it. The clinical-trial anchor genuinely
+   rescues 41404, which the keyword search misses completely. The data-science anchor rescues only
+   21232. Once step 1 places rescued codes first, the anchor-wins override is no longer compensating for
+   anything, and it can demote a correct answer — remove it and the promote flag with it.
+
+5. **Build the regression corpus.** Every anchor so far was added reactively after one failure, with no
+   way to tell whether it degraded another domain. Create a golden set of real duty texts with a
+   Prash-verified correct code, and a cheap always-run test asserting the correct code appears in the
+   shortlist (no API cost). Add an opt-in scored run against the live model for ranking accuracy.
+
+6. **Surface the strategic layer separately.** The tool should keep returning the code the duties
+   support, and separately display what that code means — TEER, Express Entry eligibility, and whether
+   it appears on a current category-based selection list. Kept apart deliberately so accuracy is never
+   bent toward the more valuable code.
+
+**Housekeeping:** the RT-4 entry above still says "No Claude API call needed — deterministic output
+only." That was overridden on 2026-07-19; the route calls Sonnet 5. Correct that line.
+
+**Corrections to the Work Experience & NOC Code Assessment Bible (found while verifying it, 2026-08-18):**
+
+1. **Part IX #3 is no longer a gap.** The Bible lists remote-work CEC eligibility as having no located
+   official source. It is now stated on the IRCC CEC eligibility page (modified 2026-06-22), verbatim:
+   "If you worked remotely, you must have been physically in Canada and working for a Canadian employer."
+   Remove it from the confirmed-gaps list and cite the page.
+
+2. **Part IV/7.2 vs the single-NOC framing.** The same page states "Your experience can be in more than
+   1 NOC" for CEC, matching IRPR s.87.1(2)(a) "in one or more occupations". The single "primary
+   occupation" rule is FSW-only (s.75(2)(a)). The classifier prompt originally generalised this and has
+   been corrected.
+
+3. **The employment-requirements clause is narrower than Part 2.3 implies.** "Regardless of whether they
+   meet the employment requirements" appears in IRPR s.80(3), which is scoped "For the purposes of
+   subsection (1)" — FSW selection-grid points. s.75(2) and s.87.1(2) state the two limbs without it.
+   The conclusion still holds (credentials must not drive code choice, and StatCan says TEER "may differ
+   from personal educational levels"), but s.80(3) should not be cited as governing CEC directly.
+
+4. **Part 2.2 is right and tasks/lessons.md was wrong.** The second digit IS the TEER categorization, per
+   the StatCan NOC 2021 V1.0 introduction. lessons.md Lesson 5 claimed the opposite; it has been
+   corrected in place, with the original kept for the record.
+
+**Could not verify:** the CEC officer manual page (Bible source 15) 404s at the URL given and I could not
+locate its current path. The claim that NOC employment requirements do not apply to CEC assessment rests
+on that page; it is well-supported by inference but is the one claim in Part 4.1 I could not confirm at
+source. Re-locate the manual before relying on it in writing to a client.
+
+**Prashant Proof:** paste the fibre duties into /tools/noc-verifier and confirm the strongest match is a
+drafting/technologist code with a rationale naming specific duties, and that a runner-up appears only
+when genuinely close.
 
 *todo.md is the single source of task truth. If it's not here, it's not in scope.*

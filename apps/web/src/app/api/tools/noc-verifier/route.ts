@@ -28,11 +28,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { toolRateLimits } from '../../../../../drizzle/schema';
-import {
-  retrieveCandidates,
-  getAnchoredCodes,
-  getGroupByCode,
-} from '@/lib/noc-retrieval';
+import { retrieveCandidates, getGroupByCode } from '@/lib/noc-retrieval';
 import type { NocRetrievalHit } from '@/lib/noc-retrieval';
 import {
   NOC_CLASSIFIER_SYSTEM,
@@ -194,23 +190,10 @@ async function aiRank(
   const raw = parseRawClassification(rawText);
   if (raw === null) return null;
 
-  // Anchor-wins (same rule as the admin classifier): when a domain anchor
-  // fired for vocabulary-gap occupations and Claude ranked the anchor code at
-  // all, it wins — the anchor exists precisely because TF-IDF cannot surface
-  // these codes on wording.
-  const anchoredCodes = getAnchoredCodes(duties, jobTitle);
-  if (anchoredCodes.length > 0) {
-    const anchorRank = raw.ranked.find((r) =>
-      anchoredCodes.includes(r.nocCode),
-    );
-    if (anchorRank) {
-      raw.ranked = [
-        anchorRank,
-        ...raw.ranked.filter((r) => r.nocCode !== anchorRank.nocCode),
-      ];
-    }
-  }
-
+  // No anchor override here any more. Domain anchors now place their codes at the
+  // FRONT of the shortlist, so a rescued code is read first instead of last; forcing
+  // it to win as well could demote a correctly-ranked answer. The ranking is the
+  // model's, judged against the IRPR test.
   const grounded = groundClassification(raw, hits);
   if (grounded === null) return null;
 
