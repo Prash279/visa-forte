@@ -11,20 +11,32 @@
 
 ### Plan (approved by Prash — "Fix workflow + trigger now")
 
-- [ ] 1. Add `timeout-minutes: 10` to the job (fails fast instead of eating 6 hours on a hang).
-- [ ] 2. Add `DEBIAN_FRONTEND=noninteractive` env to the Playwright install step — the most common
+- [x] 1. Add `timeout-minutes: 10` to the job (fails fast instead of eating 6 hours on a hang).
+- [x] 2. Add `DEBIAN_FRONTEND=noninteractive` env to the Playwright install step — the most common
       cause of an `apt-get` hang on GitHub-hosted runners is an interactive debconf prompt
       (e.g. `needrestart` asking about service restarts) that never resolves on a non-interactive CI shell.
-- [ ] 3. Commit on a new branch off `main` (this is CI infra, unrelated to the current
-      `feat/noc-duties-search` branch's uncommitted NOC work — do not mix the two).
-- [ ] 4. Manually trigger `workflow_dispatch` now to backfill Aug 17 + Aug 18 (+ today's draw if
-      published) immediately rather than waiting for tonight's cron, which carries the same risk
-      of hanging again pre-fix.
-- [ ] 5. Confirm `crs-draw-history.json` updated with the missing draws and the run completed in
-      normal time (~40-60s, not hours).
+- [x] 3. Committed on new branch `fix/draw-history-workflow-timeout` off `origin/main` (CI infra,
+      kept separate from `feat/noc-duties-search`'s uncommitted NOC work — that WIP was stashed
+      before the branch switch and restored after). PR #20 opened.
+      **Detour:** `git push` was rejected — the stored `gh` OAuth token had no `workflow` scope
+      (required to touch files under `.github/workflows/`). Fixed with `gh auth refresh -s workflow`
+      (Prash completed the device-code browser approval); token now carries `workflow` alongside
+      the existing scopes.
+- [x] 4. Manually triggered `workflow_dispatch` on the fix branch (`gh workflow run
+      update-draw-history.yml --ref fix/draw-history-workflow-timeout`) — backfills immediately
+      AND live-tests the fix in one shot, rather than trusting an untested fix to tonight's cron.
+- [x] 5. Run completed clean in **37s** (back to normal timing, not 6 hours). Bot committed
+      `data: update EE draw history from canada.ca (2026-08-18)` directly onto the fix branch —
+      `crs-draw-history.json` now leads with Aug 18 (Canadian Experience Class, cutoff 523, 1,000
+      ITAs) and Aug 17 (Provincial Nominee Program, cutoff 760, 442 ITAs). Both missing draws recovered.
 
-**Prashant Proof:** Go to visaforte.com/visas → "Latest Express Entry round" card shows the most
-recent draw with a date on or after Aug 17, 2026, and "Updated" reflects today's date.
+**Still open:** PR #20 (https://github.com/Prash279/visa-forte/pull/20) has the fix + the backfilled
+data (2 commits) and is mergeable — **awaiting Prash's go-ahead to merge**, since merging to `main`
+triggers a production Vercel deploy per git-workflow.md (never push/merge-to-main without explicit
+instruction).
+
+**Prashant Proof:** After merge + deploy, go to visaforte.com/visas → "Latest Express Entry round"
+card shows the Aug 18, 2026 CEC draw (cutoff 523), and "Updated" reflects today's date.
 
 ---
 
