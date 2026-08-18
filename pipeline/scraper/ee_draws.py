@@ -20,6 +20,8 @@ def _clean_int(raw: str) -> int:
 
 class EeDrawsScraper(BaseCanadaScraper):
     url = URL
+    use_browser = True
+    browser_extract = "text"
 
     def parse(self, html: str) -> list[dict[str, Any]] | None:
         # This endpoint returns JSON, not HTML — the base class fetch() returns raw text.

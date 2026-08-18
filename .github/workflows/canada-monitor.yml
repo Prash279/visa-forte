@@ -9,7 +9,10 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # 3 scrapers now launch a real browser (up to 60s networkidle wait × 3
+    # retries each) on top of the Playwright browser install — 10 min was
+    # tight even for the old httpx-only pipeline.
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4
@@ -23,6 +26,11 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r pipeline/requirements.txt
+
+      - name: Install Playwright browser
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: playwright install chromium --with-deps
 
       - name: Test DB connection
         env:

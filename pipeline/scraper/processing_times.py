@@ -54,6 +54,7 @@ def _extract_from_table(html: str) -> list[dict[str, Any]] | None:
 
 class ProcessingTimesScraper(BaseCanadaScraper):
     url = URL
+    use_browser = True
 
     def parse(self, html: str) -> dict[str, Any] | None:
         # Attempt 1: embedded JSON in script tags

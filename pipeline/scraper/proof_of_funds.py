@@ -19,6 +19,7 @@ def _clean_int(raw: str) -> int:
 
 class ProofOfFundsScraper(BaseCanadaScraper):
     url = URL
+    use_browser = True
 
     def parse(self, html: str) -> dict[str, Any] | None:
         soup = BeautifulSoup(html, "lxml")
