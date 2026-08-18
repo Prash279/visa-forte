@@ -2051,7 +2051,7 @@ export default function AssessmentTool() {
               Get Reviewed →
             </Link>
             <p className="asx-cta-sub">
-              Pre-Application Eligibility Assessment · From $99 / ₹4,999
+              Pre-Application Eligibility Assessment · From ₹4,999
             </p>
           </div>
 
