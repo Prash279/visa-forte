@@ -24,7 +24,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python .claude/hooks/secrets_blocker.py",
+            "command": "python \"${CLAUDE_PROJECT_DIR}/.claude/hooks/secrets_blocker.py\"",
             "timeout": 10,
             "statusMessage": "Scanning for secrets..."
           }
@@ -37,7 +37,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python .claude/hooks/bash_audit.py 2>/dev/null || true",
+            "command": "python \"${CLAUDE_PROJECT_DIR}/.claude/hooks/bash_audit.py\" || true",
             "async": true
           }
         ]
@@ -48,7 +48,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python .claude/hooks/rtk_gain_hook.py 2>/dev/null || true",
+            "command": "python \"${CLAUDE_PROJECT_DIR}/.claude/hooks/rtk_gain_hook.py\" 2>/dev/null || true",
             "timeout": 15,
             "statusMessage": "Fetching RTK savings..."
           }
