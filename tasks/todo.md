@@ -1,3 +1,33 @@
+## Session 2026-08-18 (night) — EE draw history workflow: hung `apt-get`, silent 6h failure (branch `fix/draw-history-workflow-timeout`)
+
+> Prash flagged: two EE draws (Aug 17, Aug 18) never appeared on visaforte.com. Diagnosed via
+> `gh run list`/`gh run view` on `.github/workflows/update-draw-history.yml`. Root cause: the
+> 2026-08-18 01:00 UTC scheduled run hung inside `npx playwright install chromium --with-deps`
+> (the `apt-get install` step stalled with no visible progress) and sat there for the full GitHub
+> Actions 6-hour job cap before being force-cancelled — never reaching the actual scrape/commit
+> step. No `timeout-minutes` anywhere in the workflow, so a hang burns 6 hours instead of failing
+> fast, and a cancelled run leaves no visible signal — that's why nobody noticed until the site
+> was checked directly.
+
+### Plan (approved by Prash — "Fix workflow + trigger now")
+
+- [ ] 1. Add `timeout-minutes: 10` to the job (fails fast instead of eating 6 hours on a hang).
+- [ ] 2. Add `DEBIAN_FRONTEND=noninteractive` env to the Playwright install step — the most common
+      cause of an `apt-get` hang on GitHub-hosted runners is an interactive debconf prompt
+      (e.g. `needrestart` asking about service restarts) that never resolves on a non-interactive CI shell.
+- [ ] 3. Commit on a new branch off `main` (this is CI infra, unrelated to the current
+      `feat/noc-duties-search` branch's uncommitted NOC work — do not mix the two).
+- [ ] 4. Manually trigger `workflow_dispatch` now to backfill Aug 17 + Aug 18 (+ today's draw if
+      published) immediately rather than waiting for tonight's cron, which carries the same risk
+      of hanging again pre-fix.
+- [ ] 5. Confirm `crs-draw-history.json` updated with the missing draws and the run completed in
+      normal time (~40-60s, not hours).
+
+**Prashant Proof:** Go to visaforte.com/visas → "Latest Express Entry round" card shows the most
+recent draw with a date on or after Aug 17, 2026, and "Updated" reflects today's date.
+
+---
+
 ## Session 2026-08-17 — NOC Classifier: admin-only, spend bounded, accuracy raised (branch `feat/noc-duties-search`)
 
 > Prash's ask: the duties→NOC Classifier (paste responsibilities → Claude cross-checks official NOC
