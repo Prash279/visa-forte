@@ -1,5 +1,5 @@
 // pricing.ts — single source of truth for all consultation prices.
-// Prices approved by Prashant Thirthingoth, April 2026.
+// Prices approved by Prashant Thirthingoth, April 2026 (repriced 2026-08-19).
 //
 // INR only. USD was removed on 2026-07-17: Razorpay international payments are
 // not active on this account, so every USD checkout would fail at the gateway.
@@ -12,9 +12,9 @@ export const PRICING: Record<string, number> = {
   'Pre-Application Eligibility Assessment': 4999,
   'PNP Stream Matching': 7499,
   'Document Review & Compliance Audit': 9999,
-  'Refusal Analysis & Reapplication Strategy': 14999,
-  'ITA Response Preparation': 17499,
-  'Full Application File Management': 49999,
+  'Refusal Analysis & Reapplication Strategy': 19999,
+  'ITA Response Preparation': 39999,
+  'Full Application File Management': 79999,
   'Post-Submission Monitoring': 7499,
 };
 
