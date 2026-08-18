@@ -1,3 +1,45 @@
+## Session 2026-08-18 (night) — EE draw history workflow: hung `apt-get`, silent 6h failure (branch `fix/draw-history-workflow-timeout`)
+
+> Prash flagged: two EE draws (Aug 17, Aug 18) never appeared on visaforte.com. Diagnosed via
+> `gh run list`/`gh run view` on `.github/workflows/update-draw-history.yml`. Root cause: the
+> 2026-08-18 01:00 UTC scheduled run hung inside `npx playwright install chromium --with-deps`
+> (the `apt-get install` step stalled with no visible progress) and sat there for the full GitHub
+> Actions 6-hour job cap before being force-cancelled — never reaching the actual scrape/commit
+> step. No `timeout-minutes` anywhere in the workflow, so a hang burns 6 hours instead of failing
+> fast, and a cancelled run leaves no visible signal — that's why nobody noticed until the site
+> was checked directly.
+
+### Plan (approved by Prash — "Fix workflow + trigger now")
+
+- [x] 1. Add `timeout-minutes: 10` to the job (fails fast instead of eating 6 hours on a hang).
+- [x] 2. Add `DEBIAN_FRONTEND=noninteractive` env to the Playwright install step — the most common
+      cause of an `apt-get` hang on GitHub-hosted runners is an interactive debconf prompt
+      (e.g. `needrestart` asking about service restarts) that never resolves on a non-interactive CI shell.
+- [x] 3. Committed on new branch `fix/draw-history-workflow-timeout` off `origin/main` (CI infra,
+      kept separate from `feat/noc-duties-search`'s uncommitted NOC work — that WIP was stashed
+      before the branch switch and restored after). PR #20 opened.
+      **Detour:** `git push` was rejected — the stored `gh` OAuth token had no `workflow` scope
+      (required to touch files under `.github/workflows/`). Fixed with `gh auth refresh -s workflow`
+      (Prash completed the device-code browser approval); token now carries `workflow` alongside
+      the existing scopes.
+- [x] 4. Manually triggered `workflow_dispatch` on the fix branch (`gh workflow run
+      update-draw-history.yml --ref fix/draw-history-workflow-timeout`) — backfills immediately
+      AND live-tests the fix in one shot, rather than trusting an untested fix to tonight's cron.
+- [x] 5. Run completed clean in **37s** (back to normal timing, not 6 hours). Bot committed
+      `data: update EE draw history from canada.ca (2026-08-18)` directly onto the fix branch —
+      `crs-draw-history.json` now leads with Aug 18 (Canadian Experience Class, cutoff 523, 1,000
+      ITAs) and Aug 17 (Provincial Nominee Program, cutoff 760, 442 ITAs). Both missing draws recovered.
+
+**Still open:** PR #20 (https://github.com/Prash279/visa-forte/pull/20) has the fix + the backfilled
+data (2 commits) and is mergeable — **awaiting Prash's go-ahead to merge**, since merging to `main`
+triggers a production Vercel deploy per git-workflow.md (never push/merge-to-main without explicit
+instruction).
+
+**Prashant Proof:** After merge + deploy, go to visaforte.com/visas → "Latest Express Entry round"
+card shows the Aug 18, 2026 CEC draw (cutoff 523), and "Updated" reflects today's date.
+
+---
+
 ## Session 2026-08-17 — NOC Classifier: admin-only, spend bounded, accuracy raised (branch `feat/noc-duties-search`)
 
 > Prash's ask: the duties→NOC Classifier (paste responsibilities → Claude cross-checks official NOC
