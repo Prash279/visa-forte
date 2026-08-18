@@ -2876,7 +2876,7 @@ steps below — this is a code-complete, not a visually-verified, delivery.
 ---
 
 ### TASK NOC-ACC: NOC classifier accuracy hardening
-**Status:** ✅ STEPS 1-4 DONE 2026-08-18 (Bible-driven rebuild). Steps 5-6 still open.
+**Status:** ✅ ALL 6 STEPS DONE 2026-08-18. Steps 5-6 closed in the same session as 1-4 (see the closure block at the end of this task).
 Superseded in part by the Work Experience & NOC Code Assessment Bible, which supplied the binding
 statutory test. The prompt now applies IRPR s.80(3) directly instead of a home-grown "scope" heuristic.
 
@@ -2946,13 +2946,87 @@ only." That was overridden on 2026-07-19; the route calls Sonnet 5. Correct that
    the StatCan NOC 2021 V1.0 introduction. lessons.md Lesson 5 claimed the opposite; it has been
    corrected in place, with the original kept for the record.
 
-**Could not verify:** the CEC officer manual page (Bible source 15) 404s at the URL given and I could not
-locate its current path. The claim that NOC employment requirements do not apply to CEC assessment rests
-on that page; it is well-supported by inference but is the one claim in Part 4.1 I could not confirm at
-source. Re-locate the manual before relying on it in writing to a client.
+**RESOLVED 2026-08-18 — the CEC officer manual is relocated and the claim is confirmed at source.**
+The live path is .../economic-classes/**experience**/qualifying-work-experience.html (not
+"canadian-experience-class"), HTTP 200, page dcterms.modified 2023-05-25. It states verbatim: "The
+employment requirements listed in the National Occupational Classification (NOC) description are not
+applicable." It also confirms the two limbs at R87.1(2)(b)-(c) and that CEC experience may span "one or
+more" occupations. Recorded in code as CEC_QUALIFYING_EXPERIENCE in noc-classify.ts.
+
+All five corrections now live in **docs/noc-assessment-bible-corrections.md** — the durable record, so
+they survive this task file being archived. Apply them to the Bible from there.
 
 **Prashant Proof:** paste the fibre duties into /tools/noc-verifier and confirm the strongest match is a
 drafting/technologist code with a rationale naming specific duties, and that a runner-up appears only
 when genuinely close.
+
+
+---
+
+### TASK NOC-ACC closure — steps 5 and 6, plus the four carried items (2026-08-18)
+
+**Step 5 — regression corpus. DONE.** `apps/web/src/lib/noc-golden-cases.ts` holds ten duty texts
+with a known correct code, each written as a trap for a specific observed failure (degree
+inflation, title inflation, sibling confusion, vocabulary gap, both directions of TEER error).
+Two consumers, deliberately split:
+- `noc-golden-cases.test.ts` — free, always in CI. Asserts only that the correct code REACHES the
+  shortlist, at both the public (30) and admin (60) sizes. Claude cannot pick what retrieval never
+  surfaced, so this is the floor.
+- `npm run eval:noc` — opt-in, spends credits, one API call per case. Asserts what the classifier
+  actually PICKS and prints a scorecard with rationale, fit, both statutory limbs and retrieval rank.
+
+**What the corpus caught in its first two runs — this is why it exists:**
+1. **A live production bug.** 2 of 10 cases returned `stop_reason=max_tokens`; the JSON was cut
+   mid-string and the ENTIRE classification was discarded, including a correctly-ranked top code.
+   Public tool → silent keyword fallback. Admin → 503 on a paid file.
+   The first diagnosis ("rationales too long") was wrong and a later run failed the same way.
+   Probing one case three times on identical input showed a ~120-token visible reply against
+   output_tokens of 4151 / 4176 / 7938 — Sonnet 5's adaptive thinking bills against max_tokens, so
+   the ceiling must cover thinking variance, not the answer. Fixed: ceiling 4096→16384, a 40-word
+   rationale cap, salvage of complete entries from a truncated reply (marked low-confidence), and
+   stop_reason + output_tokens now recorded in the eval scorecard so this is diagnosable at a
+   glance instead of via throwaway probes. Eleven tests cover the salvage path.
+2. **The public shortlist was inflating every software developer.** For backend-developer duties the
+   public top 30 offered exactly one plausible code — 21231, the ARCHITECTURE code — at rank 1.
+   21230 and 21234 were absent (ranks 35 and 57 of 60), 21232 sat at 13, and ranks 2-8 were Civil,
+   Chemical, Mechanical, Computer, Electrical, Industrial and Metallurgical engineers. A new
+   software-development anchor puts all four genuine candidates at ranks 1-4. Measured both ways.
+3. **A label of mine was wrong, then genuinely ambiguous.** Recorded as Lessons 10 and 11.
+
+**Step 6 — strategic layer separated. DONE.** `apps/web/src/lib/noc-strategy.ts` computes what a code
+is WORTH (TEER → FSW/CEC skilled-work bar, verified live on canada.ca 2026-08-18) and is imported
+ONLY by the UI. A test asserts noc-classify.ts and noc-retrieval.ts never import it — the separation
+is a correctness guarantee, not a file-layout preference. Category-based selection is deliberately
+NOT computed: the NOC lists change at least annually, this repo holds no category data file, and a
+stale hardcoded list would tell an applicant they qualify for a draw they cannot enter. The UI links
+the live IRCC page instead.
+
+**Statutory audit fields now render. DONE.** `leadStatementMatch`, `essentialDutiesMet` and the
+matched/total duty count were computed and then thrown away at the route boundary. They now flow to
+the public verifier and render as "The legal test an officer applies" with per-limb pass/fail and the
+duty count. Mobile-first at 375px.
+
+**Complaint #2 — the NOC fields not populating. DONE, and the diagnosis changed.** The real defect was
+not the missing auto-fill: the hint under the duties box said "your code always wins", while
+`generatePnp()` does the opposite — the classifier always runs when duties are present and its result
+wins. Hint corrected. Auto-writing the classifier result into the fields was rejected as the fix: the
+manual code is compared against the classifier result to flag disagreement, so overwriting it would
+silently delete that check. Instead a readout shows the classified code, TEER, confidence and
+verification status with an explicit "Apply to the fields above".
+
+**CEC officer manual — RELOCATED, closes the last unverified Bible claim.** See
+`docs/noc-assessment-bible-corrections.md` §5.
+
+**Bible corrections — DONE.** All five now live in `docs/noc-assessment-bible-corrections.md`, a
+durable file rather than a note inside this task.
+
+**Hook path expansion — VERIFIED LIVE.** `${CLAUDE_PROJECT_DIR}` expands correctly: the audit hook
+wrote 80 entries to the single repo log today, and the PreToolUse secrets blocker demonstrably
+intercepted and blocked a test credential in real time (exit 2). The stray worktree log last received
+a write on 2026-05-31 and is inert.
+
+**Known open, deliberately not built:** an Express Entry category-based-selection data file with its
+own `lastVerified` stamp. Until it exists the UI links canada.ca rather than caching a list that goes
+stale annually.
 
 *todo.md is the single source of task truth. If it's not here, it's not in scope.*

@@ -13,7 +13,8 @@
     "pretypecheck": "node scripts/hash-crs-rules.mjs",
     "typecheck": "tsc --noEmit",
     "pretest": "node scripts/hash-crs-rules.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "eval:noc": "node scripts/eval-noc.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.98.0",

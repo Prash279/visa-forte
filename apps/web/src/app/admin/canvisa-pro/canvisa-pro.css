@@ -2245,3 +2245,77 @@ h3.cvp-h3 {
     font-size: 0.78rem;
   }
 }
+
+
+/* ── Classified-duties readout ───────────────────────────────────────────────
+   Shows the NOC the PNP assessment actually used, next to the fields the
+   consultant typed into. Deliberately an explicit "Apply" rather than an
+   auto-write: the manual code is compared against the classifier result to flag
+   disagreement, so overwriting it silently would delete that check.
+   Mobile-first — single column at 375px, the apply button full width and
+   thumb-sized; it only goes inline once there is room at 768px. */
+.cvp-noc-readout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--cvp-border);
+  border-left: 3px solid var(--cvp-teal2);
+  background: var(--cvp-card);
+  border-radius: 3px;
+}
+
+.cvp-noc-readout-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.cvp-noc-readout-code {
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+}
+
+.cvp-noc-readout-title {
+  font-size: 0.82rem;
+  opacity: 0.9;
+}
+
+.cvp-noc-readout-meta {
+  font-size: 0.72rem;
+  opacity: 0.65;
+}
+
+.cvp-noc-readout-ok {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-top: 0.2rem;
+}
+
+.cvp-noc-readout-apply {
+  margin-top: 0.5rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.6rem 1rem;
+  font: inherit;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  color: var(--cvp-text);
+  background: var(--cvp-teal-dim);
+  border: 1px solid var(--cvp-teal2);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.cvp-noc-readout-apply:hover {
+  background: var(--cvp-teal2);
+}
+
+@media (min-width: 768px) {
+  .cvp-noc-readout-apply {
+    width: auto;
+    align-self: flex-start;
+    min-height: 2.25rem;
+  }
+}

@@ -10,6 +10,34 @@ import { z } from 'zod';
 import { getGroupByCode, type NocRetrievalHit } from './noc-retrieval';
 import { type NocCandidate } from './pnp-eligibility';
 
+// The model configuration for every NOC classification call. Defined here, not in each
+// route, because the golden-corpus eval must score the SAME model production runs — an
+// eval pinned to a model the routes no longer use reports a number about nothing. Both
+// routes and noc-live-eval.test.ts import these.
+//
+// Sonnet 5 thinks adaptively and exposes no `thinking` parameter: extended thinking with
+// an explicit budget is not supported, so the ranking calls pass no thinking block.
+export const NOC_MODEL = 'claude-sonnet-5';
+// 4096 -> 8192 -> 16384 on 2026-08-18, and the second raise is the one that matters.
+//
+// The golden-corpus eval caught cases returning stop_reason=max_tokens, which discarded
+// the ENTIRE classification — silent keyword fallback on the public tool, 503 on a paid
+// admin file. The obvious reading was "the rationales are too long". Measurement said
+// otherwise: on a repeat probe of one case the VISIBLE reply was ~120 tokens while
+// output_tokens ran 4151, 4176, then 7938 on identical input.
+//
+// Sonnet 5 thinks adaptively, and those thinking tokens are billed against max_tokens.
+// So max_tokens here is not "how long is the answer" — it is "the answer plus however
+// much the model decides to think this time", which varies run to run and is not
+// something the caller controls. Sizing it like an answer budget is what caused the
+// truncation. 16384 gives the thinking room to vary; we are only charged for tokens
+// actually generated, so the headroom is close to free.
+//
+// Two backstops remain deliberately, because no ceiling is a guarantee: the prompt caps
+// rationale length, and parseRawClassification salvages the complete candidates from a
+// truncated reply instead of throwing the whole response away.
+export const NOC_MAX_TOKENS = 16384;
+
 export const RETRIEVE_TOP_K = 30;
 // Admin runs (CanVisa Pro, PNP classifier) accept a larger, slower candidate
 // block in exchange for a better chance the correct code is on the shortlist
@@ -52,11 +80,17 @@ function isResidualGroup(title: string): boolean {
 // they meet the employment requirements" appear in s.80(3), which opens "For the
 // purposes of subsection (1)" — the FSW selection-grid experience points. s.75(2) and
 // s.87.1(2) state the same two limbs WITHOUT that clause. So the clause is not
-// textually general, but nothing in s.75(2)/s.87.1(2) makes NOC employment requirements
-// a condition either, and Statistics Canada independently states that an occupation's
-// TEER requirements "may differ from personal educational levels". Treating credentials
-// as irrelevant to code choice is therefore sound; do not cite s.80(3) as if it governed
-// CEC eligibility directly.
+// textually general, and s.80(3) must not be cited as if it governed CEC directly.
+//
+// It does not need to be. IRCC's own officer instructions close the gap for CEC in one
+// sentence: "The employment requirements listed in the National Occupational
+// Classification (NOC) description are not applicable." (CEC: Qualifying work
+// experience, canada.ca, dcterms.modified 2023-05-25 — URL in CEC_QUALIFYING_EXPERIENCE
+// below, fetched HTTP 200 on 2026-08-18.) The same page restates the two limbs at
+// R87.1(2)(b)-(c) verbatim and confirms experience may span "one or more" occupations.
+// Statistics Canada independently states that an occupation's TEER requirements "may
+// differ from personal educational levels". So credentials are irrelevant to code choice
+// under both programmes — but cite the officer instruction for CEC, not s.80(3).
 export const STATUTORY_DUTY_TEST = {
   citation: 'IRPR s.75(2)(b)-(c), s.87.1(2)(b)-(c), s.80(3)',
   sourceUrl:
@@ -67,6 +101,26 @@ export const STATUTORY_DUTY_TEST = {
   // s.80(3), verbatim — the cleanest statement of the test, and the only one that
   // also disposes of employment requirements.
   text: 'a skilled worker is considered to have experience in an occupation, regardless of whether they meet the employment requirements of the occupation as set out in the occupational descriptions of the National Occupational Classification, if they performed (a) the actions described in the lead statement for the occupation as set out in the occupational descriptions of the National Occupational Classification; and (b) at least a substantial number of the main duties of the occupation as set out in the occupational descriptions of the National Occupational Classification, including all the essential duties.',
+} as const;
+
+// IRCC's officer instruction for CEC — the operational counterpart to the Regulations
+// above, and the authority for "employment requirements do not apply" under CEC.
+// Relocated 2026-08-18: the URL previously recorded for this document 404s, as do the
+// obvious variants. The live path runs .../economic-classes/experience/... (not
+// "canadian-experience-class"), reached from the economic-classes index.
+export const CEC_QUALIFYING_EXPERIENCE = {
+  citation: 'IRCC PDI — CEC: Qualifying work experience (R87.1)',
+  sourceUrl:
+    'https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/operational-bulletins-manuals/permanent-residence/economic-classes/experience/qualifying-work-experience.html',
+  // dcterms.modified from the page itself, not the date we read it.
+  pageModified: '2023-05-25',
+  verifiedOn: '2026-08-18',
+  employmentRequirements:
+    'The employment requirements listed in the National Occupational Classification (NOC) description are not applicable.',
+  // Confirms CEC experience may span several codes — so a CEC file is not forced into
+  // the single-occupation shape FSW requires at s.75(2)(a).
+  multipleOccupations:
+    'at least 12 months of full-time, Canadian skilled work experience ... in one or more TEER 0, TEER 1, TEER 2 or TEER 3 occupations within the 36 months before the date the application is received [R87.1(2)(a)]',
 } as const;
 
 export const NOC_CLASSIFIER_SYSTEM = `You are assessing a Canadian NOC 2021 (TEER) occupational classification exactly as an IRCC officer would. A wrong NOC code is the single highest-frequency PR refusal trigger, and an overstated one is a misrepresentation risk under IRPA s.40, which turns on withholding or misstating "material facts relating to a relevant matter that induces or could induce an error in the administration of this Act" — the provision contains no intent element on its face. Accuracy in both directions is paramount: never inflate, never hedge downward.
@@ -83,7 +137,7 @@ How to apply it:
 1. From the applicant's duties, state their PRIMARY occupational function — the core work that defines the role — separately from incidental or secondary tasks. You are identifying the single code that these duties describe, never blending several roles into an average. (Under FSW the applicant must name ONE primary occupation, IRPR s.75(2)(a); under CEC experience may span more than one NOC, IRPR s.87.1(2)(a). Either way each block of duties resolves to one code, which is what you are choosing here.)
 2. TEST A: does the candidate's lead statement describe what this person actually did, as their own work? Judge the described function, not the wording.
 3. TEST B: go through that candidate's numbered main duties and count how many the applicant demonstrably performed. Then identify which of those duties are ESSENTIAL — the duties without which the lead statement's core function could not be carried out. Statistics Canada does not label essential duties; duties phrased as optional ("may perform...", "may supervise...") are not essential, while duties that define the occupation are. If the applicant did not perform an essential duty, essentialDutiesMet is false.
-4. EMPLOYMENT REQUIREMENTS ARE IRRELEVANT. IRPR s.80(3) states the test applies "regardless of whether they meet the employment requirements of the occupation." The applicant's degree, diploma, certification or lack of one has NO bearing on which code fits. Never reason "this applicant has a bachelor's degree, so a degree-level code fits" — that is a legal error, and it is the single most common way a classification gets inflated by one TEER.
+4. EMPLOYMENT REQUIREMENTS ARE IRRELEVANT. IRPR s.80(3) states the test applies "regardless of whether they meet the employment requirements of the occupation", and IRCC's officer instructions for the Canadian Experience Class state directly that "the employment requirements listed in the National Occupational Classification (NOC) description are not applicable." The applicant's degree, diploma, certification or lack of one has NO bearing on which code fits. Never reason "this applicant has a bachelor's degree, so a degree-level code fits" — that is a legal error, and it is the single most common way a classification gets inflated by one TEER.
 5. NO PERCENTAGE THRESHOLD EXISTS. "Substantial number" is not defined numerically anywhere in the Regulations or in IRCC guidance. Do not apply a fixed cutoff such as 60% or 80%. Judge whether the duties performed represent a substantial part of that occupation's actual work.
 6. NEVER classify on job titles. Example job titles are supplied as context only and are the most misleading field in the NOC. A code whose example titles match the applicant's job title but whose main duties do not is the WRONG code — this is precisely how classifications go wrong.
 7. CANDIDATE ORDER CARRIES NO INFORMATION. The shortlist is numbered only for reference. It is produced by a keyword search that is frequently wrong at the top, and the correct code often sits far down the list. Assess every candidate on the legal test independently. Never treat a lower number as evidence of a better fit.
@@ -103,7 +157,7 @@ For each code you return, output:
 - essentialDutiesMet: true if the applicant performed all of that code's essential duties.
 - mainDutiesMatched: the integer COUNT of that code's numbered main duties the applicant demonstrably performed.
 - fitScore: integer 0–100, the share of that code's main duties the applicant demonstrably performed. This is a coverage measure, not a vibe — it should be consistent with mainDutiesMatched divided by the number of duties listed for that code.
-- rationale: ONE sentence citing the SPECIFIC applicant duties that satisfy the lead statement and the matched main duties.
+- rationale: ONE sentence of AT MOST 40 WORDS citing the SPECIFIC applicant duties that satisfy the lead statement and the matched main duties. Be concrete and brief — name the duties, do not restate them. A reply that runs past the output limit is discarded entirely, so length costs you the whole answer.
 
 Return between 1 and 3 codes, best first. Include a second or third ONLY if it is a genuine alternative — never pad the list. A single clearly-correct code with no rival is the ideal result. Output the 5-digit code and the fields above ONLY. Do NOT output TEER or title — the system supplies the authoritative values. Choose only from the numbered candidates provided.
 
@@ -194,17 +248,79 @@ export function extractJsonObject(text: string): string | null {
   return null;
 }
 
-export function parseRawClassification(
-  modelText: string,
-): RawClassification | null {
-  const json = extractJsonObject(modelText);
-  if (json === null) return null;
+// Recover the complete entries from a reply whose JSON was cut off mid-flight.
+//
+// Measured on 2026-08-18 by the golden-corpus eval: when the model hits max_tokens the
+// object never closes, extractJsonObject returns null, and a fully-formed FIRST candidate
+// — the correct code, in the case that exposed this — is thrown away with the fragment.
+// Raising the token ceiling makes that rarer, never impossible: the ceiling is fixed and
+// model verbosity is not. So parse what did arrive rather than discarding the answer.
+//
+// Deliberately conservative: only whole, balanced objects inside "ranked" are kept, the
+// truncated tail is dropped, and the result is marked low-confidence with ambiguityFlag
+// set — because a partial reply IS an uncertain one, and the caller must see that rather
+// than a salvaged answer wearing full confidence.
+function salvageTruncatedRanking(text: string): RawClassification | null {
+  const arrayStart = text.indexOf('"ranked"');
+  if (arrayStart === -1) return null;
+  const bracket = text.indexOf('[', arrayStart);
+  if (bracket === -1) return null;
+
+  const objects: string[] = [];
+  let depth = 0;
+  let start = -1;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = bracket + 1; i < text.length; i++) {
+    const ch = text[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === '{') {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (ch === '}') {
+      depth--;
+      if (depth === 0 && start !== -1) {
+        objects.push(text.slice(start, i + 1));
+        start = -1;
+      }
+    } else if (ch === ']' && depth === 0) break;
+  }
+  if (objects.length === 0) return null;
+
   try {
-    const parsed = rawSchema.safeParse(JSON.parse(json));
+    const ranked = objects.map((o) => JSON.parse(o) as unknown);
+    const parsed = rawSchema.safeParse({
+      ranked,
+      confidence: 'low',
+      ambiguityFlag: true,
+    });
     return parsed.success ? parsed.data : null;
   } catch {
     return null;
   }
+}
+
+export function parseRawClassification(
+  modelText: string,
+): RawClassification | null {
+  const json = extractJsonObject(modelText);
+  if (json !== null) {
+    try {
+      const parsed = rawSchema.safeParse(JSON.parse(json));
+      if (parsed.success) return parsed.data;
+    } catch {
+      // Fall through to salvage — a balanced object that fails to parse or fails the
+      // schema is still worth mining for complete ranked entries.
+    }
+  }
+  return salvageTruncatedRanking(modelText);
 }
 
 export interface GroundedClassification {

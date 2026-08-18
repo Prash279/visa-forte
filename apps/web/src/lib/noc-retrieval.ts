@@ -217,6 +217,31 @@ const DOMAIN_ANCHORS: ReadonlyArray<{
       /machine[\s-]?learning|\bML\b|\bAI\b|\bLLM\b|artificial intelligence|data[\s-]scien(ce|tist)|deep[\s-]learning|neural[\s-]network|\bNLP\b|natural language processing|conversational (ai|agent|workflow)|chatbot|\bpython\b|data pipeline|model training|\betl\b/i,
     codes: ['21211', '21232', '21231', '21223'],
   },
+  {
+    // General software development — the anchor above only fires on data-science and ML
+    // vocabulary, so a plain backend or web developer had no protection at all.
+    //
+    // Measured 2026-08-18 on the golden-corpus case 'software-developer-not-architect'
+    // (a backend developer who explicitly does NOT own architecture). In the PUBLIC top
+    // 30, retrieval returned exactly one of these four codes: 21231 at rank 1 — the
+    // ARCHITECTURE code, the one thing this applicant does not do. 21232 sat at 13,
+    // while 21230 and 21234 were absent entirely (ranks 35 and 57 of 60). Ranks 2-8 were
+    // Civil, Chemical, Mechanical, Computer, Electrical, Industrial and Metallurgical
+    // engineers: generic engineering vocabulary outscoring the actual occupation.
+    //
+    // Left alone, the public tool would push ordinary developers toward 21231 because it
+    // is the only plausible code on their shortlist — inflation into an architecture code
+    // that an employment reference letter saying "wrote and tested code" cannot support.
+    // This anchor puts all four genuine candidates in front of the model so the choice is
+    // made on the duty test rather than on what survived a keyword search.
+    //
+    // Deliberately NOT matching bare "api", "agile", "scrum" or "sprint": those appear in
+    // plenty of non-software roles, and an anchor that fires spuriously now costs more
+    // than it used to, since anchored codes take the front of the shortlist.
+    pattern:
+      /\b(typescript|javascript|node\.?js|react|angular|vue|golang|kotlin|swift|\.net|c\+\+|c#|php|rails|django|laravel|spring boot)\b|rest(ful)?[\s-]?apis?\b|micro-?services?|back-?end|front-?end|full[\s-]?stack|ci\/cd|unit test|integration test|pull requests?|source control|\bgit\b|devops|kubernetes|docker|software (developer|engineer|development)|web (developer|application)/i,
+    codes: ['21230', '21231', '21232', '21234'],
+  },
 ];
 
 // Rank all unit groups against the applicant's duties (and optional title) and

@@ -5,6 +5,8 @@ import { getCurrentAuthSession } from '@/lib/auth-server';
 import { retrieveCandidates } from '@/lib/noc-retrieval';
 import {
   NOC_CLASSIFIER_SYSTEM,
+  NOC_MODEL,
+  NOC_MAX_TOKENS,
   ADMIN_RETRIEVE_TOP_K,
   buildCandidateBlock,
   parseRawClassification,
@@ -20,10 +22,6 @@ import { type NocClassification } from '@/lib/pnp-eligibility';
 // are joined from the bundled dataset server-side — never trusted from the model.
 export const maxDuration = 60;
 
-// Sonnet 5 thinks adaptively; extended thinking with an explicit budget is not
-// supported on it, so no `thinking` block is sent with the ranking call.
-const MODEL = 'claude-sonnet-5';
-const MAX_TOKENS = 4096;
 const ADMIN_EMAIL = 'prashant@visaforte.com';
 
 async function requireAdmin(): Promise<NextResponse | null> {
@@ -97,8 +95,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // 2) Claude ranks the shortlist against the candidates' real StatCan duties.
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const message = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
+      model: NOC_MODEL,
+      max_tokens: NOC_MAX_TOKENS,
       system: NOC_CLASSIFIER_SYSTEM,
       messages: [
         {

@@ -43,6 +43,13 @@ Vectorized fiber optic network components (joints, cables, conduits) onto land b
 platform, producing accurate as-built network documentation.
 `;
 
+// Input no DOMAIN_ANCHOR pattern matches — the control case for "ordering untouched".
+// If a future anchor ever covers food service, this fixture must move, not the assertion.
+const UNANCHORED_DUTIES = `
+Prepared and cooked complete meals and individual dishes to order, prepared special meals for patients as
+instructed by the dietitian, supervised kitchen helpers, and maintained inventory of food and supplies.
+`;
+
 function topCodes(duties: string, title?: string, k = 20): string[] {
   return retrieveCandidates(duties, title, k).map((c) => c.group.code);
 }
@@ -73,8 +80,11 @@ describe('noc-retrieval', () => {
   });
 
   it('leaves ordering alone when no anchor fires', () => {
-    const hits = retrieveCandidates(SOFTWARE_DUTIES, 'Software Developer');
-    // Unanchored input must stay in pure descending lexical order.
+    // Deliberately an occupation no anchor covers. This test used SOFTWARE_DUTIES until
+    // 2026-08-18, when a software-development anchor was added and the input stopped
+    // being unanchored — the test then failed for the one reason a test must never fail:
+    // its premise expired, not the behaviour it guards. Pick input outside every anchor.
+    const hits = retrieveCandidates(UNANCHORED_DUTIES, 'Cook');
     const scores = hits.map((h) => h.score);
     expect([...scores].sort((a, b) => b - a)).toEqual(scores);
     expect(scores[0]).toBeGreaterThan(0);

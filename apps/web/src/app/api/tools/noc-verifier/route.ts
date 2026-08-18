@@ -32,6 +32,8 @@ import { retrieveCandidates, getGroupByCode } from '@/lib/noc-retrieval';
 import type { NocRetrievalHit } from '@/lib/noc-retrieval';
 import {
   NOC_CLASSIFIER_SYSTEM,
+  NOC_MODEL,
+  NOC_MAX_TOKENS,
   RETRIEVE_TOP_K,
   ADMIN_RETRIEVE_TOP_K,
   buildCandidateBlock,
@@ -45,12 +47,6 @@ import { getCurrentAuthSession } from '@/lib/auth-server';
 
 export const maxDuration = 60;
 
-// Same model configuration as the admin classifier — proven accurate there.
-// Sonnet 5 thinks adaptively and has no `thinking` parameter to set: extended
-// thinking with an explicit budget is not supported on this model, so the
-// ranking call below passes no thinking block at all.
-const MODEL = 'claude-sonnet-5';
-const MAX_TOKENS = 4096;
 
 // Durable per-IP limiter backed by Postgres (tool_rate_limits). The previous
 // in-memory Map reset on every serverless cold start and never spanned
@@ -117,6 +113,15 @@ interface VerifierMatch {
   band: 'strongest' | 'review';
   rationale?: string;
   fitScore?: number;
+  // The two limbs of the IRPR duty test, per candidate. These were computed by the
+  // classifier and thrown away at this boundary until 2026-08-18 — the officer's actual
+  // test was being applied and then hidden, so a user saw a verdict with no way to check
+  // the reasoning against their own reference letter. Optional because the lexical
+  // fallback path produces no statutory assessment at all.
+  leadStatementMatch?: boolean;
+  essentialDutiesMet?: boolean;
+  mainDutiesMatched?: number;
+  mainDutiesTotal?: number;
 }
 
 interface VerifierResponse {
@@ -133,7 +138,17 @@ interface VerifierResponse {
 function toMatch(
   code: string,
   band: 'strongest' | 'review',
-  extras: { rationale?: string; fitScore?: number } = {},
+  extras: Partial<
+    Pick<
+      VerifierMatch,
+      | 'rationale'
+      | 'fitScore'
+      | 'leadStatementMatch'
+      | 'essentialDutiesMet'
+      | 'mainDutiesMatched'
+      | 'mainDutiesTotal'
+    >
+  > = {},
 ): VerifierMatch | null {
   const group = getGroupByCode(code);
   if (!group) return null;
@@ -175,8 +190,8 @@ async function aiRank(
 
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const message = await anthropic.messages.create({
-    model: MODEL,
-    max_tokens: MAX_TOKENS,
+    model: NOC_MODEL,
+    max_tokens: NOC_MAX_TOKENS,
     system: NOC_CLASSIFIER_SYSTEM,
     messages: [
       {
@@ -204,6 +219,10 @@ async function aiRank(
       toMatch(c.nocCode, i === 0 ? 'strongest' : 'review', {
         rationale: c.rationale,
         fitScore: c.fitScore,
+        leadStatementMatch: c.leadStatementMatch,
+        essentialDutiesMet: c.essentialDutiesMet,
+        mainDutiesMatched: c.mainDutiesMatched,
+        mainDutiesTotal: c.mainDutiesTotal,
       }),
     )
     .filter((m): m is VerifierMatch => m !== null);

@@ -10,6 +10,10 @@ import './noc-verifier.css';
 
 import { useState } from 'react';
 import type { JSX } from 'react';
+import {
+  teerVerdict,
+  CATEGORY_SELECTION_SOURCE,
+} from '../../../lib/noc-strategy';
 
 interface Match {
   code: string;
@@ -21,6 +25,10 @@ interface Match {
   band: 'strongest' | 'review';
   rationale?: string;
   fitScore?: number;
+  leadStatementMatch?: boolean;
+  essentialDutiesMet?: boolean;
+  mainDutiesMatched?: number;
+  mainDutiesTotal?: number;
 }
 
 interface VerifierResponse {
@@ -51,6 +59,9 @@ export default function NocVerifierTool(): JSX.Element {
   const [errorMessage, setErrorMessage] = useState('');
   const [result, setResult] = useState<VerifierResponse | null>(null);
   const matches = result?.matches ?? [];
+  // The strategy panel keys off the winning code only. Runner-ups are alternatives to
+  // review, not things to plan around.
+  const strongest = matches.find((m) => m.band === 'strongest');
 
   async function handleSubmit(): Promise<void> {
     if (duties.trim().length < 30) {
@@ -222,6 +233,62 @@ export default function NocVerifierTool(): JSX.Element {
                   <strong>Why this code:</strong> {m.rationale}
                 </p>
               )}
+              {m.leadStatementMatch !== undefined &&
+                m.essentialDutiesMet !== undefined && (
+                  <div className="nv-audit">
+                    <p className="nv-audit-head">
+                      The legal test an officer applies
+                    </p>
+                    <ul className="nv-audit-list">
+                      <li
+                        className={
+                          m.leadStatementMatch ? 'nv-pass' : 'nv-fail'
+                        }
+                      >
+                        <span className="nv-audit-mark" aria-hidden="true">
+                          {m.leadStatementMatch ? '✓' : '✕'}
+                        </span>
+                        <span>
+                          <strong>Lead statement</strong> — you performed the
+                          actions described in this occupation&apos;s lead
+                          statement.{' '}
+                          {m.leadStatementMatch ? 'Met.' : 'Not met.'}
+                        </span>
+                      </li>
+                      <li
+                        className={m.essentialDutiesMet ? 'nv-pass' : 'nv-fail'}
+                      >
+                        <span className="nv-audit-mark" aria-hidden="true">
+                          {m.essentialDutiesMet ? '✓' : '✕'}
+                        </span>
+                        <span>
+                          <strong>Main duties</strong> — you performed a
+                          substantial number of the main duties, including all
+                          the essential ones.{' '}
+                          {m.essentialDutiesMet ? 'Met.' : 'Not met.'}
+                          {m.mainDutiesMatched !== undefined &&
+                            m.mainDutiesTotal !== undefined && (
+                              <>
+                                {' '}
+                                <span className="nv-audit-count">
+                                  {m.mainDutiesMatched} of {m.mainDutiesTotal}{' '}
+                                  listed duties matched
+                                </span>
+                              </>
+                            )}
+                        </span>
+                      </li>
+                    </ul>
+                    <p className="nv-audit-note">
+                      Both limbs must be met — Immigration and Refugee
+                      Protection Regulations s.75(2), s.80(3) and s.87.1(2).
+                      There is no fixed percentage in the Regulations; an
+                      officer judges whether the duties you performed are a
+                      substantial part of the occupation. Your employment
+                      reference letter has to show the same thing.
+                    </p>
+                  </div>
+                )}
               <p className="nv-lead">{m.leadStatement}</p>
               <p className="nv-duties-label">Official main duties include:</p>
               <ul className="nv-duties">
@@ -240,6 +307,42 @@ export default function NocVerifierTool(): JSX.Element {
             </div>
           ))}
 
+          {state === 'done' && strongest && (
+            <div className="nv-strategy">
+              <p className="nv-strategy-eyebrow">
+                Separate question — what this code is worth
+              </p>
+              <p className="nv-strategy-head">
+                {teerVerdict(strongest.teer).headline}
+              </p>
+              <p className="nv-strategy-body">
+                {teerVerdict(strongest.teer).detail}
+              </p>
+              <p className="nv-strategy-body">
+                <strong>Category-based draws.</strong> IRCC also runs rounds
+                that invite candidates in specific occupation categories, often
+                well below the general cut-off. Eligibility is read from the NOC
+                declared in your Express Entry profile. The categories and their
+                NOC lists are revised at least annually, so check the current
+                list directly:{' '}
+                <a
+                  href={CATEGORY_SELECTION_SOURCE.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  category-based selection on canada.ca →
+                </a>
+              </p>
+              <p className="nv-strategy-warn">
+                This panel describes what the code above is worth. It played no
+                part in choosing it. The tool matches your duties to the closest
+                occupation and stops there — deliberately. A code that pays
+                better but that your employment reference letter cannot support
+                is a misrepresentation risk under IRPA s.40, not a strategy.
+              </p>
+            </div>
+          )}
+
           {state === 'done' && matches.length > 0 && (
             <div className="nv-callout">
               <p className="nv-callout-head">Before you use this code</p>
@@ -247,9 +350,8 @@ export default function NocVerifierTool(): JSX.Element {
                 A wrong NOC code is among the most common Express Entry refusal
                 triggers. The code you claim must match the duties written in
                 your employment reference letters — not your job title. Read the
-                ESDC profile&apos;s full duty list and confirm the majority of
-                the lead statement and main duties describe your actual work.
-                TEER 0–3 occupations qualify for Express Entry; TEER 4–5 do not.
+                ESDC profile&apos;s full duty list and confirm the lead
+                statement and the main duties describe your actual work.
               </p>
             </div>
           )}

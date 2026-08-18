@@ -446,3 +446,112 @@ describe('verifyCodeLive', () => {
     expect(result.notes).toHaveLength(2);
   });
 });
+// Salvaging a reply the model cut off at max_tokens.
+//
+// Not hypothetical: the golden-corpus eval hit this on 2 of 10 cases on 2026-08-18
+// (stop_reason=max_tokens, out_tokens=4096). The fixture below is the real shape of that
+// failure — a complete first candidate, then a rationale that stops mid-word. Before the
+// fix, extractJsonObject returned null for this and the ENTIRE classification was
+// discarded, including a correctly-ranked top code: keyword fallback on the public tool,
+// 503 on a paid admin file.
+describe("truncated model replies (max_tokens) are salvaged, not discarded", () => {
+  const TRUNCATED =
+    '{"ranked":[{"nocCode":"22310","leadStatementMatch":true,"essentialDutiesMet":true,' +
+    '"mainDutiesMatched":8,"fitScore":57,"rationale":"Tested and commissioned PLC motor ' +
+    'control centres and built prototype control panels to the drawings."},' +
+    '{"nocCode":"22312","leadStatementMatch":true,"essentialDutiesMet":false,' +
+    '"mainDutiesMatched":4,"fitScore":57,"rationale":"While the applicant calibrated instrum';
+
+  it("keeps the complete candidates and drops the truncated tail", () => {
+    const raw = parseRawClassification(TRUNCATED);
+    expect(raw).not.toBeNull();
+    expect(raw!.ranked).toHaveLength(1);
+    expect(raw!.ranked[0]!.nocCode).toBe("22310");
+    expect(raw!.ranked[0]!.fitScore).toBe(57);
+  });
+
+  it("marks a salvaged reply low-confidence and ambiguous — a partial answer is uncertain", () => {
+    const raw = parseRawClassification(TRUNCATED)!;
+    expect(raw.confidence).toBe("low");
+    expect(raw.ambiguityFlag).toBe(true);
+  });
+
+  it("salvaged output still grounds into a usable classification", () => {
+    const raw = parseRawClassification(TRUNCATED)!;
+    const grounded = groundClassification(raw, [
+      hit("22310", 10),
+      hit("22212", 8),
+    ]);
+    expect(grounded).not.toBeNull();
+    expect(grounded!.nocCode).toBe("22310");
+    expect(grounded!.confidence).toBe("low");
+  });
+
+  it("does not hijack a well-formed reply — real confidence survives", () => {
+    const raw = parseRawClassification(
+      '{"ranked":[{"nocCode":"22310","fitScore":80,"rationale":"ok"}],"confidence":"high","ambiguityFlag":false}',
+    )!;
+    expect(raw.confidence).toBe("high");
+    expect(raw.ambiguityFlag).toBe(false);
+  });
+
+  it("is not fooled by braces inside a rationale string", () => {
+    const raw = parseRawClassification(
+      '{"ranked":[{"nocCode":"22310","fitScore":70,"rationale":"used {curly} tokens"},{"nocCode":"22212","fitScore":60,"rationale":"trunc',
+    )!;
+    expect(raw.ranked).toHaveLength(1);
+    expect(raw.ranked[0]!.rationale).toContain("{curly}");
+  });
+
+  it('is not fooled by the word "ranked" appearing inside a rationale', () => {
+    const raw = parseRawClassification(
+      '{"ranked":[{"nocCode":"22310","fitScore":9,"rationale":"the shortlist was ranked:[ oddly"},{"nocCode":"22212","fitScore":3,"rationale":"trun',
+    )!;
+    expect(raw.ranked).toHaveLength(1);
+    expect(raw.ranked[0]!.nocCode).toBe("22310");
+  });
+
+  it("handles a backslash immediately before a closing quote", () => {
+    // A naive scanner treats that backslash as escaping the quote, runs past the end of
+    // the string and never closes the object. BS is one literal backslash in the JSON.
+    const BS = String.fromCharCode(92);
+    const raw = parseRawClassification(
+      '{"ranked":[{"nocCode":"22310","fitScore":9,"rationale":"ends with a backslash ' +
+        BS +
+        BS +
+        '"},{"nocCode":"22212","fitScore":3,"rationale":"tr',
+    )!;
+    expect(raw).not.toBeNull();
+    expect(raw.ranked).toHaveLength(1);
+    expect(raw.ranked[0]!.nocCode).toBe("22310");
+  });
+
+  it("handles a fenced but complete reply normally", () => {
+    const fenced = [
+      "```json",
+      '{"ranked":[{"nocCode":"22310","fitScore":9,"rationale":"x"}],"confidence":"high","ambiguityFlag":false}',
+      "```",
+    ].join("\n");
+    expect(parseRawClassification(fenced)!.confidence).toBe("high");
+  });
+
+  it("drops a complete-looking candidate that fails the schema", () => {
+    expect(
+      parseRawClassification(
+        '{"ranked":[{"nocCode":"22310"}],"confidence":"high","ambiguityFlag":false}',
+      ),
+    ).toBeNull();
+  });
+
+  it("returns null when truncation lands before any complete candidate", () => {
+    expect(
+      parseRawClassification('{"ranked":[{"nocCode":"22310","fitScore":5'),
+    ).toBeNull();
+  });
+
+  it("still returns null for a reply containing no JSON at all", () => {
+    expect(
+      parseRawClassification("I could not classify these duties."),
+    ).toBeNull();
+  });
+});

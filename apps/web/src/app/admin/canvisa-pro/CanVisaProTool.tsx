@@ -1570,6 +1570,58 @@ export default function CanVisaProTool() {
                 ))}
               </select>
             </div>
+            {/* Classified-duties readout. Complaint: running the PNP assessment left the
+                NOC Code / TEER fields showing whatever was typed, so the code the
+                assessment actually used was invisible unless you opened the report.
+                Auto-writing the classifier result into the fields was the obvious fix and
+                is the wrong one — the manual code is the consultant's declared input and
+                the route compares the two to flag disagreement, so overwriting it would
+                silently delete the discrepancy check. Show the result and let the
+                consultant apply it deliberately instead. */}
+            {pnpResult && (
+              <div className="cvp-field full">
+                <div className="cvp-noc-readout">
+                  <span className="cvp-noc-readout-label">
+                    Duties classified as
+                  </span>
+                  <strong className="cvp-noc-readout-code">
+                    NOC {pnpResult.noc.nocCode} · TEER {pnpResult.noc.teer}
+                  </strong>
+                  <span className="cvp-noc-readout-title">
+                    {pnpResult.noc.title}
+                  </span>
+                  <span className="cvp-noc-readout-meta">
+                    {pnpResult.noc.confidence} confidence
+                    {pnpResult.noc.verified
+                      ? ' · live-verified'
+                      : ' · not live-verified'}
+                    {pnpResult.noc.ambiguity.flag ? ' · ambiguous' : ''}
+                  </span>
+                  {(profile.nocCode ?? '').trim() ===
+                  pnpResult.noc.nocCode ? (
+                    <span className="cvp-noc-readout-ok">
+                      Matches the NOC Code field above.
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="cvp-noc-readout-apply"
+                      onClick={() =>
+                        setProfile((prev) => ({
+                          ...prev,
+                          nocCode: pnpResult.noc.nocCode,
+                          nocTeer: pnpResult.noc
+                            .teer as ApplicantProfile['nocTeer'],
+                          occupationTitle: pnpResult.noc.title,
+                        }))
+                      }
+                    >
+                      Apply to the fields above
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
             <div className="cvp-field full">
               <label className="cvp-label">Occupation Title</label>
               <input
@@ -1591,11 +1643,14 @@ export default function CanVisaProTool() {
                 placeholder="Paste the applicant's actual day-to-day duties (from the employment reference letter). Duties — not the job title — determine the NOC code."
               />
               <p className="cvp-hint">
-                Powers the PNP Pathway Assessment. The classifier maps these
-                duties to a single best-fit NOC/TEER and flags ambiguity. If you
-                set the NOC Code field above, the assessment uses your code
-                instead of classifying — your code always wins. Leave both blank
-                if you only need the CRS report.
+                Powers the PNP Pathway Assessment. Whenever duties are present
+                the classifier runs and maps them to a single best-fit NOC/TEER
+                against the IRPR duty test. A NOC Code set above is passed as a
+                hint, not an override: if the duties classify differently the
+                classifier result is what the assessment uses, and the report
+                flags the disagreement. The code only wins outright when there
+                are no duties to classify. Leave both blank if you only need the
+                CRS report.
               </p>
             </div>
             <div className="cvp-field">

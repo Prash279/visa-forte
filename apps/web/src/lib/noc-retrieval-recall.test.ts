@@ -8,8 +8,10 @@ import nocData from './noc-2021.json';
 // retrieval and assert its own code lands in the public shortlist.
 //
 // This does not measure real-world accuracy — a real applicant's duties are
-// paraphrased, not copied from StatCan wording (that's what the hand-crafted
-// cases in noc-retrieval.test.ts and Prash's eval:noc fixtures are for). What
+// paraphrased, not copied from StatCan wording. That is what the golden corpus
+// in noc-golden-cases.ts measures: noc-golden-cases.test.ts checks those
+// paraphrased duties reach the shortlist for free, and `npm run eval:noc`
+// scores what the classifier actually picks. What
 // this catches is the failure that would silently starve the AI ranking stage
 // for every occupation in a group at once: a tokenization bug, a bad dataset
 // row, or a RETRIEVE_TOP_K set too low for the corpus size — because Claude
