@@ -47,7 +47,6 @@ import { getCurrentAuthSession } from '@/lib/auth-server';
 
 export const maxDuration = 60;
 
-
 // Durable per-IP limiter backed by Postgres (tool_rate_limits). The previous
 // in-memory Map reset on every serverless cold start and never spanned
 // instances, so a scripted caller effectively had no limit — on an endpoint
@@ -73,7 +72,11 @@ function rateLimitKey(ip: string): string {
 }
 
 async function rateLimited(ip: string): Promise<boolean> {
-  const windowFloor = new Date(Date.now() - RATE_WINDOW_MS);
+  // ISO string, not a Date: postgres.js's raw-parameter bind path (what a freeform
+  // sql`` fragment like `expired` goes through) doesn't serialize a bare JS Date the
+  // way its own tagged templates do — it throws ERR_INVALID_ARG_TYPE deep inside
+  // Buffer.byteLength. Postgres infers the timestamp comparison from context.
+  const windowFloor = new Date(Date.now() - RATE_WINDOW_MS).toISOString();
   const expired = sql`${toolRateLimits.windowStart} < ${windowFloor}`;
   const [row] = await db
     .insert(toolRateLimits)

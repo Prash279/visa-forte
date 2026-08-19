@@ -3,11 +3,14 @@ import { NextRequest } from 'next/server';
 
 // Claude is mocked: these tests pin the pipeline around the model (grounding,
 // anchor-wins, fallback), not the model itself.
-const { createMock, sessionMock, rateLimitCount } = vi.hoisted(() => ({
-  createMock: vi.fn(),
-  sessionMock: vi.fn(),
-  rateLimitCount: { value: 1 },
-}));
+const { createMock, sessionMock, rateLimitCount, capturedUpdate } = vi.hoisted(
+  () => ({
+    createMock: vi.fn(),
+    sessionMock: vi.fn(),
+    rateLimitCount: { value: 1 },
+    capturedUpdate: { value: undefined as unknown },
+  }),
+);
 vi.mock('@anthropic-ai/sdk', () => ({
   default: class {
     messages = { create: createMock };
@@ -24,11 +27,16 @@ vi.mock('@/lib/db', () => ({
   db: {
     insert: vi.fn(() => ({
       values: vi.fn(() => ({
-        onConflictDoUpdate: vi.fn(() => ({
-          returning: vi
-            .fn()
-            .mockImplementation(async () => [{ count: rateLimitCount.value }]),
-        })),
+        onConflictDoUpdate: vi.fn((arg: unknown) => {
+          capturedUpdate.value = arg;
+          return {
+            returning: vi
+              .fn()
+              .mockImplementation(async () => [
+                { count: rateLimitCount.value },
+              ]),
+          };
+        }),
       })),
     })),
   },
@@ -64,6 +72,7 @@ describe('POST /api/tools/noc-verifier', () => {
     createMock.mockReset();
     sessionMock.mockReset().mockResolvedValue(null); // non-admin by default
     rateLimitCount.value = 1; // well under RATE_LIMIT by default
+    capturedUpdate.value = undefined;
     // verifyCodeLive network call — stubbed out; "not verified" path.
     vi.stubGlobal(
       'fetch',
@@ -117,6 +126,44 @@ describe('POST /api/tools/noc-verifier', () => {
     expect(json.matches[0]?.teer).toBe(1);
     expect(json.matches[0]?.band).toBe('strongest');
     expect(String(json.matches[0]?.rationale)).toContain('software');
+  });
+
+  it('never binds a raw Date into the rate-limit expiry SQL fragment', async () => {
+    // postgres.js's raw-parameter bind path (what a free-form sql`` fragment
+    // goes through) throws ERR_INVALID_ARG_TYPE on a bare JS Date — the
+    // rate limiter must hand it an ISO string instead. The db mock records
+    // what rateLimited() actually built, so this catches a regression the
+    // mocked `returning()` result can't.
+    createMock.mockResolvedValue(
+      claudeReply({
+        ranked: [{ nocCode: '21232', fitScore: 92, rationale: 'x' }],
+        confidence: 'high',
+        ambiguityFlag: false,
+      }),
+    );
+    await POST(
+      postRequest({ jobTitle: 'Software Developer', duties: DEVELOPER_DUTIES }),
+    );
+
+    function hasRawDate(node: unknown): boolean {
+      if (node instanceof Date) return true;
+      if (
+        node &&
+        typeof node === 'object' &&
+        Array.isArray((node as { queryChunks?: unknown[] }).queryChunks)
+      ) {
+        return (node as { queryChunks: unknown[] }).queryChunks.some(
+          hasRawDate,
+        );
+      }
+      return false;
+    }
+
+    const update = capturedUpdate.value as
+      { set: Record<string, unknown> } | undefined;
+    expect(update).toBeDefined();
+    expect(hasRawDate(update?.set.count)).toBe(false);
+    expect(hasRawDate(update?.set.windowStart)).toBe(false);
   });
 
   it('ignores model codes that were not in the shortlist (grounding)', async () => {

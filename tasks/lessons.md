@@ -117,6 +117,11 @@ If the lesson contains words like "useEffect", "state mismatch", "hydration erro
 - **Why it happened:** Only the bottom button was updated with the email handler. The nav and hero buttons were left as scroll anchors.
 - **The rule going forward:** When adding or changing behaviour on one CTA button, immediately search the page for all other buttons with the same label or intent and apply the same change. Never leave two buttons that look the same but behave differently.
 
+**Lesson 5 — A raw database date-filter crashed the NOC verifier's rate limiter in production**
+- **What went wrong:** The public NOC verifier tool's spam limiter (`tool_rate_limits`) crashed every time it tried to check whether a visitor's hourly window had expired, because the code handed the database a raw JavaScript date object instead of a plain date string.
+- **Why it happened:** The database library has two ways of sending values to Postgres — its normal, safe way understands JavaScript date objects automatically, but the free-form "raw SQL fragment" style used for this expiry check does not, and fails with a low-level, unhelpful error instead of a clear one.
+- **The rule going forward:** Any time a date or timestamp is inserted into a free-form raw SQL fragment (not a normal column comparison), convert it to a plain ISO text string first. The existing test suite's mocked database did not catch this because it never actually inspects what gets sent — a check was added that inspects the real query object for a leftover raw date.
+
 ---
 
 ## Category: Responsive Design — Mobile First (Non-Negotiable)
