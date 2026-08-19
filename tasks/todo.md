@@ -1,3 +1,70 @@
+## Session 2026-08-19 — canada.ca monitor: two independent root causes fixed, plus a repricing pass and a live production bug (branch `feat/noc-duties-search`, merged to `main`)
+
+> Prash flagged: the scheduled "canada.ca monitor" workflow had failed. Investigation found **two
+> separate bugs stacked on top of each other** — fixing the first one uncovered the second, which
+> had been silently broken since the feature was built.
+
+### Bug 1 — the database password was out of date
+
+- [x] The app migrated its database from Neon to Supabase back on 2026-05-21, but nobody updated
+      the `DATABASE_URL` secret GitHub Actions uses to connect — it was still pointing at the old,
+      dead Neon database.
+- [x] Walked Prash through finding the correct connection string in the new Supabase dashboard
+      (the "Connect" button moved since we last looked) and updating the GitHub secret himself —
+      never had him paste the live credential into this chat.
+- [x] Confirmed fixed: the workflow's "Test DB connection" step passed for the first time.
+
+### Bug 2 — three of the four scrapers had never once worked
+
+- [x] Deeper look showed 3 of 4 scrapers (EE draws, processing times, proof of funds) had a
+      **0-out-of-395 success rate since the feature was built on 2026-05-13** — completely
+      unrelated to the database. `www.canada.ca` silently blocks plain automated requests
+      (Cloudflare bot protection); only the 4th scraper, which hits a different, unprotected
+      subdomain, was ever working.
+- [x] Asked Prash how to proceed; he chose the full fix over a band-aid. Ported the 3 affected
+      scrapers to fetch pages through a real headless browser (Playwright) instead of a plain
+      HTTP request — the same trick already proven in the EE draw-history workflow.
+- [x] Verified with a real GitHub Actions run, not just locally: DB connection OK, EE draws
+      scraper pulled and saved 437 real draw rounds, proof-of-funds scraper parsed and saved its
+      table. The processing-times page turned out to have no static data at all (it's a pure
+      JavaScript page) — the pipeline already treats that as a harmless skip, not a failure.
+
+**Prashant Proof:** Actions tab → "canada.ca monitor" → latest run is green, not red.
+
+### Along the way — fee audit, a dead price, and a repricing
+
+- [x] Pulled every fee shown anywhere on visaforte.com into one list at Prash's request (Services,
+      Resources, and the 3 paid tools) — all sourced from the live code, not guessed.
+- [x] Found and removed a leftover "$99" USD price on the assessment page — USD checkout was
+      turned off site-wide back in July since the payment gateway can't actually charge in USD
+      yet, but this one string was missed.
+- [x] Repriced 3 service tiers as approved: ITA Response Preparation 17,499 → 39,999; Full
+      Application File Management 49,999 → 79,999; Refusal Analysis & Reapplication Strategy
+      14,999 → 19,999. Committed separately from the bug fix per Prash's instruction, then pushed.
+
+### Merging back to main uncovered a stale-branch trap
+
+- [x] `main` had moved ahead on GitHub (two already-merged PRs plus a run of automated draw-history
+      data commits) while this session's branch was still working off an older copy. A first
+      attempt would have silently dropped all of that from `main` — caught before pushing,
+      reconciled properly (merged `origin/main` into the feature branch first, no conflicts), then
+      pushed the correct, combined history to both `main` and the feature branch.
+
+### A live production bug, found and fixed separately
+
+- [x] The public NOC verifier tool's spam limiter was silently crashing on every request — it
+      handed the database a raw date value in a way the database driver can't understand, deep in
+      the underlying SQL library. Fixed by converting the date to plain text first. Logged in
+      `tasks/lessons.md` and added a test that checks the actual query being built, since the
+      existing tests never looked closely enough to catch this. Merged to `main` and pushed.
+- [x] Confirmed live: GitHub's automated checks passed (including the new test), Vercel deployed
+      the fix to production, and a real submission through visaforte.com/tools/noc-verifier in the
+      browser returned a correct result (NOC 21230, Computer Systems Developers and Programmers).
+
+**Still open:** none — everything above shipped to `main` and is live on visaforte.com.
+
+---
+
 ## Session 2026-08-18 (night) — EE draw history workflow: hung `apt-get`, silent 6h failure (branch `fix/draw-history-workflow-timeout`)
 
 > Prash flagged: two EE draws (Aug 17, Aug 18) never appeared on visaforte.com. Diagnosed via
