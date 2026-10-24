@@ -9,14 +9,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createHmac } from 'crypto';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 import { findPremiumResource } from '@/lib/resources';
 import {
   createDownloadToken,
   DOWNLOAD_LINK_VALIDITY_DAYS,
 } from '@/lib/premium-download-token';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 const Schema = z.object({
   resourceId: z.string().min(1),
@@ -85,8 +83,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // Failure is non-fatal — the link is returned in the response either way,
   // and the browser starts the download immediately.
   try {
-    await resend.emails.send({
-      from: 'Visa Forte <noreply@visaforte.com>',
+    await sendEmail({
+      fromName: 'Visa Forte',
       to: email,
       subject: `Your purchase: ${resource.title}`,
       html: `
@@ -109,8 +107,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   // ── Notify Prash of the sale ─────────────────────────────────────────────
   try {
-    await resend.emails.send({
-      from: 'Visa Forte <noreply@visaforte.com>',
+    await sendEmail({
+      fromName: 'Visa Forte',
       to: 'prashant@visaforte.com',
       subject: `Resource purchase — ${resource.title}`,
       html: `

@@ -120,9 +120,10 @@ export default function PrivacyPolicyPage() {
               privacy policy governs how they handle payment credentials.
             </li>
             <li>
-              <strong>Resend</strong> — transactional email delivery (booking
-              confirmations, notifications). Only your name and email address
-              are shared with Resend for the purpose of sending emails.
+              <strong>Google Workspace</strong> — email delivery (booking
+              confirmations, notifications). Emails we send you, including your
+              name and email address, pass through and are stored in our Google
+              Workspace account.
             </li>
             <li>
               <strong>Vercel</strong> — website hosting and deployment.

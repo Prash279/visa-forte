@@ -77,8 +77,8 @@ Branch is 3 commits ahead of `origin/main`. **Not pushed.**
 
 ## RT-3 key decisions (from prior sessions — locked)
 
-- No PDF library: HTML email (Resend) + `@media print` + `window.print()`
+- No PDF library: HTML email (`sendEmail()`, Google Workspace) + `@media print` + `window.print()`
 - Token system: UUID in `itaCountdownOrders` DB table; result at `/tools/ita-countdown/result?token=<uuid>`
 - Razorpay gated: ₹2,997 standard / ₹3,997 premium (399,700 / 399,700 paise)
-- Premium tier sends Resend notification to prashant@visaforte.com for manual doc-review booking
+- Premium tier emails a notification to prashant@visaforte.com for manual doc-review booking
 - Police certs: Day 0 (India/Pakistan flagged 6–8 weeks); Medical: Day 3; Language verify: Day 7; Employment refs: Day 30; Translations: Day 42; Biometrics: Day 45; Submit: Days 50–58

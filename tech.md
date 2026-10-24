@@ -19,7 +19,7 @@
 | Auth | Better Auth | Open-source, zero SaaS fees, handles sessions, OAuth, 2FA. |
 | Testing | Vitest (TypeScript) · PyTest (Python) | Co-located tests. See §8. |
 | AI Layer | Claude API · `claude-sonnet-4-20250514` | Do not substitute model without explicit approval. |
-| Email | TBD — evaluate Resend or self-hosted postal at deploy time | Vendor-agnostic. Define the interface contract first. |
+| Email | Google Workspace SMTP (`smtp.gmail.com:465`, app password) behind `sendEmail()` in `apps/web/src/lib/email.ts` — the only email path | Mailbox already on Workspace (MX, SPF, DKIM). Resend retired 2026-10-24: its key had been revoked and every send failed silently because its SDK returns errors instead of throwing. `sendEmail()` throws and reports to Sentry; the daily reminders cron verifies the credential. ESLint blocks direct provider imports. |
 
 ---
 

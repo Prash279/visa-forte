@@ -2,12 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createHmac, randomUUID } from 'crypto';
 import { eq } from 'drizzle-orm';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 import { db } from '@/lib/db';
 import { bookings, availability } from '../../../../../drizzle/schema';
 import { PRICING, getAmountInSmallestUnit, formatPrice } from '@/lib/pricing';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 const Schema = z.object({
   // Booking fields
@@ -143,8 +141,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // ── Notify Prash via email ──────────────────────────────────────────────────
   // Email failure is non-fatal — booking is already in the DB.
   try {
-    await resend.emails.send({
-      from: 'Visa Forte <noreply@visaforte.com>',
+    await sendEmail({
+      fromName: 'Visa Forte',
       to: 'prashant@visaforte.com',
       subject: `New Paid Booking: ${name} — ${serviceTier}`,
       html: `
@@ -166,7 +164,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       `,
     });
   } catch (err) {
-    console.error('Resend notification to Prash failed:', err);
+    console.error('Notification email to Prash failed:', err);
   }
 
   // ── Send portal activation email to client ──────────────────────────────────
@@ -174,8 +172,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // The client sets their own password on the activation page.
   const activationUrl = `${siteUrl}/activate?token=${portalToken}`;
   try {
-    await resend.emails.send({
-      from: 'Visa Forte <noreply@visaforte.com>',
+    await sendEmail({
+      fromName: 'Visa Forte',
       to: email,
       subject:
         'Your Visa Forte consultation is confirmed — activate your client portal',

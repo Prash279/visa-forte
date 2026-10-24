@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { and, eq, gte, lt, inArray } from 'drizzle-orm';
-import { Resend } from 'resend';
+import { sendEmail, verifyEmailTransport } from '@/lib/email';
 import { db } from '@/lib/db';
 import {
   bookings,
@@ -12,8 +12,6 @@ import { log } from '@/lib/logger';
 import { tomorrowIST, slaThresholdMs } from './helpers';
 
 export { tomorrowIST, slaThresholdMs };
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Vercel passes Authorization: Bearer {CRON_SECRET} on all scheduled cron invocations.
 // If CRON_SECRET is not set or does not match, reject the request.
@@ -28,10 +26,14 @@ function isAuthorised(req: NextRequest): boolean {
 // Runs daily at 00:30 UTC (06:00 IST) via Vercel Cron.
 // 1. Sends 24-hour reminder emails for tomorrow's paid bookings.
 // 2. Sends an SLA breach digest to Prash for unanswered client messages past their threshold.
+// Also verifies the email credential daily, so a revoked app password reaches Sentry
+// even on days when no email is sent.
 export async function GET(req: NextRequest): Promise<NextResponse> {
   if (!isAuthorised(req)) {
     return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
   }
+
+  const emailTransportOk = await verifyEmailTransport();
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://visaforte.com';
   const tomorrow = tomorrowIST();
@@ -56,8 +58,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       // Client reminder — tracks success so we only mark sent if delivery succeeded
       let clientEmailSent = false;
       try {
-        await resend.emails.send({
-          from: 'Visa Forte <noreply@visaforte.com>',
+        await sendEmail({
+          fromName: 'Visa Forte',
           to: booking.email,
           subject: `Reminder: Your Visa Forte consultation is tomorrow — ${booking.bookingDate}`,
           html: `
@@ -103,8 +105,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
       // Prash copy — best-effort, does not affect reminderSent flag
       try {
-        await resend.emails.send({
-          from: 'Visa Forte <noreply@visaforte.com>',
+        await sendEmail({
+          fromName: 'Visa Forte',
           to: 'prashant@visaforte.com',
           subject: `[Reminder Sent] Tomorrow: ${booking.name} — ${booking.serviceTier}`,
           html: `
@@ -235,8 +237,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         })
         .join('');
 
-      await resend.emails.send({
-        from: 'Visa Forte <noreply@visaforte.com>',
+      await sendEmail({
+        fromName: 'Visa Forte',
         to: 'prashant@visaforte.com',
         subject: `[Action Required] ${slaBreachCount} client message${slaBreachCount > 1 ? 's' : ''} past SLA`,
         html: `
@@ -350,8 +352,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         })
         .join('');
 
-      await resend.emails.send({
-        from: 'Visa Forte <noreply@visaforte.com>',
+      await sendEmail({
+        fromName: 'Visa Forte',
         to: 'prashant@visaforte.com',
         subject: `[Action Required] ${dueQueries.length} IRCC ${dueQueries.length === 1 ? 'query' : 'queries'} due within 3 days`,
         html: `
@@ -398,13 +400,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     metadata: { alertsSent: irccAlertCount },
   });
 
-  const hadFailures = reminderFailures > 0;
+  const hadFailures = reminderFailures > 0 || !emailTransportOk;
   return NextResponse.json(
     {
       sent: remindersSent,
       slaBreaches: slaBreachCount,
       irccAlerts: irccAlertCount,
       failures: reminderFailures,
+      emailTransportOk,
     },
     { status: hadFailures ? 207 : 200 },
   );

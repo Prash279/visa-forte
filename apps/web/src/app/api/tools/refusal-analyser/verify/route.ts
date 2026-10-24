@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createHmac } from 'crypto';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 import {
   createDownloadToken,
   DOWNLOAD_LINK_VALIDITY_DAYS,
@@ -18,8 +18,6 @@ import {
 
 // The token "resource id" for this tool — must match the analyse route.
 const ANALYSER_TOKEN_ID = 'refusal-analyser';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 const Schema = z.object({
   name: z.string().min(1).max(100),
@@ -73,8 +71,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   // ── Receipt email: re-access link only, no case detail ───────────────────
   try {
-    await resend.emails.send({
-      from: 'Visa Forte <noreply@visaforte.com>',
+    await sendEmail({
+      fromName: 'Visa Forte',
       to: email,
       subject: 'Your Refusal Pattern Analyser access',
       html: `
@@ -97,8 +95,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   // ── Notify Prash of the sale (no case detail exists at this point) ───────
   try {
-    await resend.emails.send({
-      from: 'Visa Forte <noreply@visaforte.com>',
+    await sendEmail({
+      fromName: 'Visa Forte',
       to: 'prashant@visaforte.com',
       subject: 'RT-5 purchase — Refusal Pattern Analyser',
       html: `

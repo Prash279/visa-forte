@@ -2,12 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createHmac, randomUUID } from 'crypto';
 import { eq } from 'drizzle-orm';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 import { db } from '@/lib/db';
 import { itaCountdownOrders } from '../../../../../../drizzle/schema';
 import { generateChecklist } from '@/lib/ita-countdown-logic';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 const Schema = z.object({
   name: z.string().min(1).max(100),
@@ -117,8 +115,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // Failure is non-fatal — the checklist is already saved and reachable via resultUrl.
   let emailSent = false;
   try {
-    await resend.emails.send({
-      from: 'Visa Forte <noreply@visaforte.com>',
+    await sendEmail({
+      fromName: 'Visa Forte',
       to: email,
       subject: 'Your 60-Day ITA Countdown Checklist',
       html: `
@@ -168,8 +166,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // ── Premium tier: notify Prash to schedule the document review consultation ─
   if (tier === 'premium') {
     try {
-      await resend.emails.send({
-        from: 'Visa Forte <noreply@visaforte.com>',
+      await sendEmail({
+        fromName: 'Visa Forte',
         to: 'prashant@visaforte.com',
         subject: `RT-3 premium purchase — ${name}`,
         html: `

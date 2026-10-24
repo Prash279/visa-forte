@@ -1,5 +1,5 @@
 // Pure utility functions for the reminders cron — extracted so they can be
-// unit-tested without importing the Resend module.
+// unit-tested without importing the email module.
 
 // Returns tomorrow's date as a YYYY-MM-DD string in IST (UTC+5:30).
 // The cron fires at 00:30 UTC = 06:00 IST, so "tomorrow IST" is the

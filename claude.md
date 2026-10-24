@@ -93,6 +93,7 @@ At natural session end or context pressure:
 - **Python:** Type hints on all signatures, `with` for resource handles, no bare `except:`.
 - **I/O:** All external I/O requires `try/catch` with named error paths. No silent swallowing.
 - **Constants:** No magic numbers. Named constants in `constants.ts` or `config.py`.
+- **Email:** Google Workspace SMTP, only through `sendEmail()` in `apps/web/src/lib/email.ts`. It throws on failure and reports to Sentry; never swallow that error. Resend was retired on 2026-10-24 and ESLint blocks importing it or nodemailer anywhere else. Do not add another email provider without Prash's approval.
 - **Commits:** No commented-out dead code.
 - **CSS / UI — Mobile First (Non-Negotiable):** Write base styles at 375px first, layer breakpoints upward. Every layout or grid change must include updated `@media` rules in the same commit. Before marking any UI task done, verify at 375px → 768px → 1280px. No exceptions.
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { and, eq, lt } from 'drizzle-orm';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 import { db } from '@/lib/db';
 import {
   clients,
@@ -9,8 +9,6 @@ import {
 } from '../../../../../drizzle/schema';
 import { deleteFile } from '@/lib/storage';
 import { log } from '@/lib/logger';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 function isAuthorised(req: NextRequest): boolean {
   const cronSecret = process.env.CRON_SECRET;
@@ -117,8 +115,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       )
       .join('\n');
 
-    await resend.emails.send({
-      from: 'Visa Forte <notifications@visaforte.com>',
+    await sendEmail({
+      fromName: 'Visa Forte',
       to: 'prashant@visaforte.com',
       subject: `Data Retention: ${deleted} client record(s) purged`,
       text: [
