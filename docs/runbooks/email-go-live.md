@@ -114,7 +114,8 @@ on the PR.
 > /admin.
 
 **15. Lead-capture email (customer email plus admin alert).**
-- Open `<preview-url>/tools/canvisa`, complete it with your **personal** email, and submit.
+- Open `<preview-url>/assessment`, complete the assessment, and on the result screen use the
+  "send my results" form with your **personal** email.
 - **Expect within 1 minute:**
   - at your personal email, "Your CanVisa Pro Results", from *Visa Forte \<notifications@visaforte.com\>*;
   - at prashant@ **Inbox, not Spam, not only Sent**, "New Tool Lead: TEST …".
@@ -123,8 +124,10 @@ on the PR.
 read **PASS**: SPF, DKIM, DMARC. If DMARC fails, stop and tell me; your DMARC policy is "quarantine",
 so failing mail goes to spam.
 
-**17. Admin stage-change email.**
-- Log in at `<preview-url>/admin`, open the TEST client created earlier (or create one), and change its
+**17. Admin stage-change email. Do this on visaforte.com in Phase 6, not on Preview.** The login system
+(`lib/auth.ts`) only trusts localhost and visaforte.com, so signing in on a Preview address will most
+likely be refused. Skip this step during Phase 5.
+- Log in at `https://visaforte.com/admin`, open the TEST client created earlier (or create one), and change its
   stage.
 - **Expect:** "[Stage Change] TEST …" in the prashant@ Inbox.
 
@@ -136,10 +139,12 @@ so failing mail goes to spam.
 1. In Vercel, edit `SMTP_APP_PASSWORD` for **Preview only** and set it to `wrongpassword`. Redeploy the
    Preview.
 2. Repeat step 15.
-3. **Expect:** the page still works, the lead email does **not** arrive, Vercel logs show
+3. **Expect:** the page still works **and still says the email was sent** (the form never checks the
+   server's answer, an existing behaviour this change does not alter), the lead email does **not** arrive, Vercel logs show
    `"result":"failure"` with code `EAUTH`, and **Sentry emails you** an issue titled
    "Email send failed (EAUTH)" within a few minutes.
-4. If no Sentry email arrives, set up the alert: sentry.io → **Monitors → Alerts** → **Create Alert** → When:
+4. Sentry's default alert "visa-forte: new issues" (Monitors → Alerts, checked 2026-11-04) already emails you for this. If no
+   email arrives, set up an alert yourself: sentry.io → **Monitors → Alerts** → **Create Alert** → When:
    "A new issue is created" → Then: **Notify on preferred channel** → Member: you. Make sure email is
    enabled in your Sentry notification settings, and use **Send Test Notification**. Then retry.
 5. **Put the correct app password back** for Preview and redeploy.
