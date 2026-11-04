@@ -11,10 +11,8 @@ vi.mock('@/lib/db', () => ({
   },
 }));
 
-vi.mock('resend', () => ({
-  Resend: class {
-    emails = { send: vi.fn().mockResolvedValue({ data: { id: 'mock' } }) };
-  },
+vi.mock('@/lib/email', () => ({
+  sendEmail: vi.fn().mockResolvedValue(undefined),
 }));
 
 const KEY_SECRET = 'test_secret';
@@ -52,7 +50,6 @@ function postRequest(body: unknown): NextRequest {
 describe('POST /api/tools/ita-countdown/verify', () => {
   beforeEach(() => {
     process.env.RAZORPAY_KEY_SECRET = KEY_SECRET;
-    process.env.RESEND_API_KEY = 'test_resend_key';
   });
 
   it('rejects an invalid signature with 400', async () => {

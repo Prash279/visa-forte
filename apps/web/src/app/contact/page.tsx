@@ -2,7 +2,7 @@
 
 // Contact page — visaforte.com/contact
 // Client component: form submission uses a mailto handler (consistent with
-// existing CTAs). Will be upgraded to a server action when Resend is set up in Task 3B.
+// existing CTAs). Will be upgraded to a server action when email sending is wired up.
 
 import { useState } from 'react';
 import type { FormEvent } from 'react';

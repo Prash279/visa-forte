@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT } from 'jose';
-import { Resend } from 'resend';
+import { sendEmail, missingEmailConfig } from '@/lib/email';
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { candocReviews, clients } from '../../../../../../drizzle/schema';
@@ -27,12 +27,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const portalSecret = process.env.CLIENT_PORTAL_SECRET;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!portalSecret || !appUrl || !resendKey) {
+  const missingEmail = missingEmailConfig();
+  if (!portalSecret || !appUrl || missingEmail.length > 0) {
     const missing = [
       !portalSecret && 'CLIENT_PORTAL_SECRET',
       !appUrl && 'NEXT_PUBLIC_APP_URL',
-      !resendKey && 'RESEND_API_KEY',
+      ...missingEmail,
     ]
       .filter(Boolean)
       .join(', ');
@@ -92,9 +92,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const portalUrl = `${appUrl}/api/client/candoc/report?token=${portalToken}`;
 
-    const resend = new Resend(resendKey);
-    await resend.emails.send({
-      from: 'Visa Forte Consulting <prashant@visaforte.com>',
+    await sendEmail({
+      fromName: 'Visa Forte Consulting',
+      replyTo: 'prashant@visaforte.com',
       to: clientRow.email,
       subject: `Your Immigration Document Review — ${clientRow.name}`,
       html: `

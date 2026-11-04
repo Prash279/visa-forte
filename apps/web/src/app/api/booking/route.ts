@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 import { db } from '@/lib/db';
 import { bookings, availability } from '../../../../drizzle/schema';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 const BookingSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
@@ -71,10 +69,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // Notify Prash. If Resend fails the booking is already persisted — no rollback.
+  // Notify Prash. If the email fails the booking is already persisted — no rollback.
   try {
-    await resend.emails.send({
-      from: 'Visa Forte <noreply@visaforte.com>',
+    await sendEmail({
+      fromName: 'Visa Forte',
       to: 'prashant@visaforte.com',
       subject: `New Booking: ${name} — ${serviceTier}`,
       html: `
@@ -94,7 +92,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       `,
     });
   } catch (err) {
-    console.error('Resend notification failed:', err);
+    console.error('Booking notification email failed:', err);
   }
 
   return NextResponse.json({ success: true }, { status: 201 });

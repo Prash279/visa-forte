@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 import { db } from '@/lib/db';
 import {
   drawAlertSubscribers,
   toolEvents,
 } from '../../../../../drizzle/schema';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 const Schema = z.object({
   name: z.string().min(1).max(100),
@@ -98,8 +96,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     : '';
 
   try {
-    await resend.emails.send({
-      from: 'Visa Forte <noreply@visaforte.com>',
+    await sendEmail({
+      fromName: 'Visa Forte',
       to: email,
       subject: `Your CanVisa Pro Results — CRS ${crsScore}`,
       html: `
@@ -123,13 +121,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       `,
     });
   } catch (err) {
-    console.error('Resend subscriber email failed:', err);
+    console.error('Subscriber email failed:', err);
   }
 
   // Notify Prash.
   try {
-    await resend.emails.send({
-      from: 'Visa Forte <noreply@visaforte.com>',
+    await sendEmail({
+      fromName: 'Visa Forte',
       to: 'prashant@visaforte.com',
       subject: `New Tool Lead: ${name} — CRS ${crsScore} (${eeCategory})`,
       html: `
@@ -147,7 +145,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       `,
     });
   } catch (err) {
-    console.error('Resend admin notification failed:', err);
+    console.error('Admin notification email failed:', err);
   }
 
   return NextResponse.json({ success: true }, { status: 201 });

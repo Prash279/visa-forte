@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { clients, users, accounts } from '../../../../../../../drizzle/schema';
 import { getCurrentAuthSession } from '@/lib/auth-server';
 import { hashPassword, generateRandomString } from 'better-auth/crypto';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function requireAdmin(): Promise<NextResponse | null> {
   const session = await getCurrentAuthSession();
@@ -116,30 +114,28 @@ export async function POST(
   // Send invite email if a new account was created
   if (accountCreated) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://visaforte.com';
-    resend.emails
-      .send({
-        from: 'Visa Forte <noreply@visaforte.com>',
-        to: email,
-        subject: 'Your Visa Forte client portal is ready',
-        text: [
-          `Dear ${client.name},`,
-          '',
-          'Your Visa Forte client portal has been set up. You can now log in to track your',
-          'case status and upload the required documents for your application.',
-          '',
-          `Portal login: ${siteUrl}/login`,
-          `Email:        ${email}`,
-          `Password:     ${tempPassword}`,
-          '',
-          'Please log in and change your password at your earliest convenience.',
-          '',
-          'If you have any questions, reply to this email or contact us at prashant@visaforte.com.',
-          '',
-          'Visa Forte · Engineered for Passage.',
-          'Secunderabad, India',
-        ].join('\n'),
-      })
-      .catch((err) => console.error('Portal invite email failed:', err));
+    await sendEmail({
+      fromName: 'Visa Forte',
+      to: email,
+      subject: 'Your Visa Forte client portal is ready',
+      text: [
+        `Dear ${client.name},`,
+        '',
+        'Your Visa Forte client portal has been set up. You can now log in to track your',
+        'case status and upload the required documents for your application.',
+        '',
+        `Portal login: ${siteUrl}/login`,
+        `Email:        ${email}`,
+        `Password:     ${tempPassword}`,
+        '',
+        'Please log in and change your password at your earliest convenience.',
+        '',
+        'If you have any questions, reply to this email or contact us at prashant@visaforte.com.',
+        '',
+        'Visa Forte · Engineered for Passage.',
+        'Secunderabad, India',
+      ].join('\n'),
+    }).catch((err) => console.error('Portal invite email failed:', err));
   }
 
   return NextResponse.json({ linked: true, created: accountCreated });

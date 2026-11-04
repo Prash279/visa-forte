@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { eq, sql } from 'drizzle-orm';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 import { db } from '@/lib/db';
 import {
   clients,
@@ -12,8 +12,6 @@ import { UpdateClientSchema } from '@/lib/crm-stages';
 import { deleteFile } from '@/lib/storage';
 import { log } from '@/lib/logger';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 async function requireAdmin(): Promise<NextResponse | null> {
   const session = await getCurrentAuthSession();
   if (!session?.session || session.user?.email !== 'prashant@visaforte.com') {
@@ -23,7 +21,7 @@ async function requireAdmin(): Promise<NextResponse | null> {
 }
 
 // PATCH /api/admin/clients/[id] — update stage and/or notes.
-// If stage changes, sends an internal audit email to Prash via Resend.
+// If stage changes, sends an internal audit email to Prash.
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -88,8 +86,8 @@ export async function PATCH(
         timeStyle: 'short',
       });
       try {
-        await resend.emails.send({
-          from: 'Visa Forte CRM <noreply@visaforte.com>',
+        await sendEmail({
+          fromName: 'Visa Forte CRM',
           to: 'prashant@visaforte.com',
           subject: `[Stage Change] ${current.name}: ${current.stage} → ${newStage}`,
           text: [
