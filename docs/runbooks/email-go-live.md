@@ -62,8 +62,9 @@ phone, and save the backup codes in your password manager.
 5. If "App passwords" doesn't appear, check that step 7 is complete and the account isn't enrolled in
    Advanced Protection.
 
-**9. Rules for keeping this credential alive.** Google says changing the account password currently
-does not revoke app passwords. These things **do** break it:
+**9. Rules for keeping this credential alive.** Google's help page (checked 2026-11-02) says changing the
+account password **revokes all app passwords**. These things break it:
+- changing the notifications@ password (then create a new app password and update Vercel);
 - turning off 2-Step Verification on this mailbox;
 - deleting the app password;
 - suspending the user;
@@ -79,7 +80,8 @@ myaccount.google.com → Personal info. Gmail shows it next to your emails.
 ## Phase 3 — Add the credential to Vercel
 
 **11. Add two variables.** Go to vercel.com → project **visa-forte** → Settings → **Environment Variables**,
-and add each one with **Production** and **Preview** ticked and **Sensitive** switched on:
+and add each one with **Production** and **Preview** ticked and **Type** set to **Secret** (Vercel replaced
+the old "Sensitive" switch with Config/Secret types in 2026):
 
 | Name | Value |
 |---|---|
@@ -137,8 +139,9 @@ so failing mail goes to spam.
 3. **Expect:** the page still works, the lead email does **not** arrive, Vercel logs show
    `"result":"failure"` with code `EAUTH`, and **Sentry emails you** an issue titled
    "Email send failed (EAUTH)" within a few minutes.
-4. If no Sentry email arrives, set up the alert: sentry.io → your project → **Alerts** → Create Alert →
-   Issues → "A new issue is created" → email prashant@. Then retry.
+4. If no Sentry email arrives, set up the alert: sentry.io → **Monitors → Alerts** → **Create Alert** → When:
+   "A new issue is created" → Then: **Notify on preferred channel** → Member: you. Make sure email is
+   enabled in your Sentry notification settings, and use **Send Test Notification**. Then retry.
 5. **Put the correct app password back** for Preview and redeploy.
 
 **20. Clean up.** Delete the TEST lead and TEST client in /admin.
@@ -152,7 +155,9 @@ so failing mail goes to spam.
 **22. Repeat step 15 on visaforte.com** with your personal email, and delete the test lead afterwards.
 
 **23. Run the daily cron once by hand.**
-- Go to Vercel → project → Settings → **Cron Jobs** → `/api/cron/reminders` → **Run**.
+- Vercel's docs (checked 2026-11-04) describe a **View Logs** button on Settings → **Cron Jobs**, and an
+  on-demand trigger only through the CLI (`vercel crons`). **(Claude)** triggers it from the CLI; if that
+  is not possible, wait for the 06:00 IST run and read the result under **View Logs**.
 - **Expect:** Logs show the run returning `"emailTransportOk": true`.
 - From now on it checks the credential every day at 06:00 IST.
 
