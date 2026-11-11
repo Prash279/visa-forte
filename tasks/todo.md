@@ -1,3 +1,81 @@
+## Session 2026-11-11 — PLAN: Visa Forte becomes a free educational site (APPROVED 2026-11-11, not started)
+
+> Prash decided to remove every commercial element and make the site a completely free educational
+> resource. Plan agreed through a grilling session. **No code until Prash approves the copy deck (Step 2).**
+> Consulting continues OFF the site (by email); `/admin` stays as Prash's private workspace.
+
+### Facts found during planning (verified 2026-11-10, read-only)
+
+- Production DB is missing tables from migrations `0019` (`draw_alert_subscribers`, `settings`,
+  `tool_events`) and `0020` (`ita_countdown_orders`). Migrations here are applied by hand — the drizzle
+  journal in prod is empty; `0021` and `0022` were applied, `0019`/`0020` skipped.
+- Consequence 1: every draw-alert opt-in was silently discarded (lead-capture catches + logs the error).
+- Consequence 2: every PAID ITA Countdown order charged the card, then failed to save and showed
+  "Payment received but your checklist could not be saved." Buyers may be owed refunds.
+- Nothing ever sent draw alerts — no sender existed. `/api/tools/draw-alert` has no callers.
+- Refusal Analyser is deterministic (no Claude API call) — free costs nothing per use.
+- `/login` is also the only way into `/admin` → must stay. Better Auth's sign-up API stays open unless
+  `disableSignUp` is set.
+- Live row counts: 5 users, 5 clients, 8 client documents, 2 messages, 2 leads, 1 pending booking,
+  4 availability rows, 6 CanDoc reviews.
+
+### PR 1 — Free site + working email list (new branch from latest `origin/main`)
+
+- [ ] **Step 0** — Commit this plan (Lesson: plans are committed before implementation).
+- [ ] **Step 1** — Write copy deck `docs/copy/free-site-copy.md`: page-by-page before/after for home,
+      about, contact, nav, footer, tool CTAs, email consent text, unsubscribe page, privacy-policy
+      rewrite. Any IRCC figure → canada.ca citation or cut. Disclaimer = Section 17 verbatim, minus the
+      footer's extra marketing sentence.
+- [ ] **Step 2** — ⛔ **Prash approves the copy deck.** No code before this.
+- [ ] **Remove:** `/services`, `/booking`, `/intake`, `/refund-policy`, `/signup`, `/portal`,
+      `/activate` + their API routes; `lib/pricing.ts`; all Razorpay create-order/verify routes
+      (booking, refusal analyser, ITA countdown, premium resources); `premium-download-token`;
+      `PremiumBuyButton`; `razorpay` package; Razorpay CSP allowlist entries; reminders cron (vercel.json);
+      dead code + schema entries for retired `0019`/`0020` (`draw-alert` route, `toolEvents`, `settings`,
+      `drawAlertSubscribers`, `itaCountdownOrders`) — retired, never applied.
+- [ ] **Remove sales CTAs:** nav "Request Triage" mailto, home "Get Reviewed", testimonials, Premium
+      Starter Kit offer, About/Visas triage mailto + `/intake` links, Assessment "Book · From ₹4,999".
+- [ ] **Unlock:** Refusal Analyser (no gate); ITA Countdown → one free tier, on-screen + print, no
+      DB/email of the checklist, drop "doc review call"; 3 premium PDFs `private/downloads` →
+      `public/downloads`, join the free grid.
+- [ ] **Auth (halt-zone, approved):** keep `/login` admin-only, noindex, unlinked; `disableSignUp: true`.
+- [ ] **Admin trim:** remove availability editor, BookingCalendar, PromoteButton, DeletionRequestsPanel.
+      Keep CRM (read-only), leads, CanDoc + emailed report links, CanVisa Pro, monitoring.
+      **No table drops.** Data-retention cron stays.
+- [ ] **Email list (schema, approved):** one additive migration → `subscribers` (email unique, name,
+      source tool, list_consent + consented_at, unsubscribe_token, unsubscribed_at, optional CRS
+      score/category only with consent). Optional "email me this" + separate unticked list checkbox on
+      CRS Modeller, Assessment, ITA Countdown. Rate-limit the send endpoint via `tool_rate_limits`.
+      `/unsubscribe` one-click page. Admin "Subscribers" panel: total, by-tool, CSV export (excludes
+      unsubscribed). Prash applies migration in Supabase; verify table exists in prod before merge.
+- [ ] **Identity/SEO:** public name "Visa Forte" (tagline unchanged; CanDoc templates keep "Visa Forte
+      Consulting"); JSON-LD → EducationalOrganization + WebSite, all tool Offers price 0; 301s in
+      `next.config.ts`: /services→/resources, /booking,/intake→/assessment, /refund-policy→/privacy-policy,
+      /signup,/portal,/activate→/; remove from sitemap.
+- [ ] **Homepage:** same design; sales sections → teaching sections + free tools grid + resources
+      strip; uncited stats (e.g. "90%") cut.
+- [ ] **Docs:** ADR for the non-commercial decision; update spec.md, PRODUCT.md, CONTEXT.md; grep for
+      "Neon" per Lesson 2.
+- [ ] **Verify:** delete tests of removed routes; tests for subscribe/unsubscribe/rate limit; `npm test`
+      (not bare vitest); 375/768/1280 screenshots; browser steps for Prash; PR.
+
+### PR 2 — Draw-alert sender (after PR 1 merges)
+
+- [ ] On each new EE draw from the existing draw-history pipeline: one email to all list-consented,
+      not-unsubscribed subscribers — date, type, invitations, cutoff, cited to canada.ca; one personal
+      line vs saved CRS score if present. From `noreply@visaforte.com`, one-click unsubscribe link +
+      `List-Unsubscribe` header. Test send to Prash first.
+- [ ] ⛔ Blocking gate: Prash confirms Resend plan supports the bulk volume `[VERIFY]` (Lesson 4).
+
+### Prash actions
+
+- [ ] Check Razorpay dashboard for ITA Countdown (RT-3) payments → refund affected buyers.
+- [ ] Email real portal clients that the portal is closing.
+- [ ] After PR 1 merge: delete Razorpay keys from Vercel env.
+- [ ] Before PR 2: confirm Resend plan/volume.
+
+---
+
 ## Session 2026-08-19 — canada.ca monitor: two independent root causes fixed, plus a repricing pass and a live production bug (branch `feat/noc-duties-search`, merged to `main`)
 
 > Prash flagged: the scheduled "canada.ca monitor" workflow had failed. Investigation found **two
