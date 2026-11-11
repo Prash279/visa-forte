@@ -289,6 +289,27 @@
   border-bottom: 1px solid var(--cvp-border);
 }
 
+/* "+ Add a Canadian job". Mobile first: full width with a 44px touch target;
+   content width from 901px up (matches this file's 900px breakpoint). */
+.cvp-add-btn {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin: 0.25rem 0 0.75rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: var(--cvp-teal);
+  background: transparent;
+  border: 1px solid var(--cvp-border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.cvp-add-btn:hover { border-color: var(--cvp-teal); }
+@media (min-width: 901px) {
+  .cvp-add-btn { display: inline-block; width: auto; }
+}
+
 .cvp-back-btn {
   background: transparent;
   border: 1px solid var(--cvp-border);

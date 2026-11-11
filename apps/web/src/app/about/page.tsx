@@ -139,10 +139,10 @@ export default function AboutPage() {
               </h3>
               <p className="approach-card-body">
                 IRCC requirements change without announcement. The TEER
-                transition in 2022. The removal of arranged employment points in
-                March 2025. Category-based draw prioritisation replacing simple
-                CRS ranking. Every review is conducted against what is in effect
-                today.
+                transition in 2022. The rewrite of job-offer and Canadian work
+                points on 3 November 2026. Category-based draw prioritisation
+                replacing simple CRS ranking. Every review is conducted against
+                what is in effect today.
               </p>
             </div>
             <div className="approach-card r d3">

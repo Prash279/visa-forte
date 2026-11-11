@@ -1,3 +1,52 @@
+## Session 2026-11-12 — CRS engine updated for the 3 November 2026 Express Entry changes (branch `fix/crs-lmi-2026-11-03`)
+
+> Resolves the ⛔ HALT below (Decision 1): Prash chose **fix scoring first** and approved the plan in chat on
+> 2026-11-11/12 ("implement the plan", "Fix all of them in the same pass"). Every figure was read on
+> canada.ca on 2026-11-12 from eleven pages (CRS criteria, FSW, LMIA public policy, Help Centre 1200,
+> employer "Make a job offer", CEC, "Express Entry: Job offer", high-wage backgrounder, 2026 changes,
+> proof of funds, news release). Prash's rulings: **D1** overlapping high-wage jobs hold the tier for his
+> review; **D3** physician profiles flagged (skills only); **D4** FST offer from a new employer is flagged,
+> not refused; **D6** a valid job offer alone removes proof of funds (Job offer page wording).
+
+- [x] `crs-rules.json`: `meta` (source crs-criteria.html, lastVerified 2026-11-12, `crsMaxTotal` 1270);
+      `labourMarketIntegration` (high-wage 70/40/20, offer 100/70/50, max 150/140, 12 months); core max
+      570/530; second-language caps 24/22; first-language CLB 4 = 6; Section C pair caps 50 + certificate of
+      qualification 25/50; FSW work experience fixed (3 yrs = 11, 4-5 = 13), FSW age 43-46 added, FSW
+      arranged employment 10, FSW second language all-four rule; `highWageOccupations` (186 NOCs, 31/89/66,
+      checked code by code against the live page and Prash's copy).
+- [x] `crs-calculator.ts`: LMI factor (higher of work or offer, never both); `canadianJobs`,
+      `canadianJobsOverlap` (D1), `jobOfferNocCode`, `hasCertificateOfQualification`,
+      `spouseHasCanadianStudy`; `hasJobOffer` is now `'valid' | 'none'` (LMIA no longer matters); FSW
+      arranged employment + full adaptability (spouse language/study/work); FSW work counts Canadian years;
+      FST eligibility (was hard-coded false); CEC language by TEER; Section C pair caps; proof-of-funds
+      exemption (CEC or valid offer, D6); `maxTotal`; new high-wage job-offer scenario.
+- [x] UI: `/assessment` and `/admin/canvisa-pro` — Canadian jobs by NOC, job-offer NOC, certificate of
+      qualification, spouse study; "out of 1,270"; LMI explanation line; funds "not required" status;
+      FSW arranged employment row (max 10, was wrongly 5). Public copy on `/`, `/about`, `/visas`, FAQ
+      accordion no longer says job offers earn no CRS points.
+- [x] API validators (`assessment-lead`, `lead-capture`, `draw-alert`, lead schema) read `CRS_MAX_TOTAL`.
+- [x] `scripts/generate_ee_questionnaire.py` section 8.1 + regenerated questionnaire PDF.
+- [x] Tests: new `crs-2026-11-03.test.ts` (35 cases from canada.ca), 3 snapshots updated (diff = new fields,
+      rules hash, the Canadian-work scenario now +118 for Kishore, new +70 job-offer scenario, Harish FSW
+      adaptability +5 for spouse CLB 7/7/6/6). `npm test` 504 passed after the review fixes; typecheck and lint clean.
+- [x] Visual check at 375 / 768 / 1280 px on `/assessment` (no horizontal scroll).
+- [x] Independent review (fresh agent, canada.ca only): every rules number and all 186 high-wage codes match.
+      It found 2 bugs, both fixed with tests: (1) FSW adaptability gave your own 1+ year of Canadian work 5
+      points; the six-selection-factors page says 10 (`fsw.adaptabilityOwnCanadianWork`); (2) scenario deltas
+      ignored the Section C pair caps — every scenario now re-scores the changed profile with
+      `scoreProfile()`, so Kishore's Canadian-work scenario is +93 (was +118) and Harish's CLB 10 scenario is
+      +69 (was +19, it now includes the transferability gain). 504 tests pass.
+- [ ] Known limits (flagged, not built): a valid job offer with no NOC entered earns 0 CRS job-offer points
+      while FSW arranged employment uses the primary NOC's TEER; FST checks total years, not "in the trade
+      within the last 5 years" (the eligibility reason tells the consultant to confirm it).
+- [ ] **Prashant Proof (browser) — pending Prash:** (1) Go to /assessment, enter Canadian work 2 years, add a
+      job with NOC 21231 and 24 months, choose "Yes — valid job offer", enter NOC 20012, submit: the score
+      card says "out of 1,270", the breakdown says "Includes 100 points for a job offer in a high-wage
+      occupation (level 1)" and Settlement Funds says "Not required with a valid job offer". (2) In
+      /admin/canvisa-pro, the FSW grid shows "Arranged Employment" out of 10.
+- [ ] Not yet built: `/tools/crs-modeller` has no high-wage or job-offer inputs (it scores work-length only,
+      which is still correct for profiles without high-wage work or an offer).
+
 ## Session 2026-11-11 — PLAN: Visa Forte becomes a free educational site (APPROVED 2026-11-11, not started)
 
 > Prash decided to remove every commercial element and make the site a completely free educational
@@ -19,7 +68,7 @@
 - Live row counts: 5 users, 5 clients, 8 client documents, 2 messages, 2 leads, 1 pending booking,
   4 availability rows, 6 CanDoc reviews.
 
-### ⛔ HALT (CLAUDE.md halt-condition 2) — found 2026-11-11 while verifying copy
+### ✅ RESOLVED 2026-11-12 (was ⛔ HALT, CLAUDE.md halt-condition 2) — see Session 2026-11-12 above
 
 - canada.ca CRS page (`.../express-entry/check-score/crs-criteria.html`, modified **2026-11-03**) says that as
   of Nov 3, 2026 IRCC changed how points are awarded for Canadian work experience and job offers: LMIA

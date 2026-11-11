@@ -713,7 +713,7 @@ function buildMarpMarkdown(
   // ── CRS gauge SVG (half-donut) ─────────────────────────────────────────────
   // Half-circle arc: radius 85, center 100,100, sweep from 180° to 0° (left to right)
   const r85 = 85;
-  const pct = Math.min(total / 1200, 1);
+  const pct = Math.min(total / r.maxTotal, 1);
   const angleRad = Math.PI * (1 - pct);
   const arcX = (100 + r85 * Math.cos(Math.PI - angleRad)).toFixed(1);
   const arcY = (100 - r85 * Math.sin(Math.PI - angleRad)).toFixed(1);
@@ -763,7 +763,7 @@ style: |
       <div style="background:${CARD};border-top:3px solid ${TEAL};padding:18px 22px;flex:1;">
         <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:8px;">CRS Score</div>
         <div style="color:${TEAL};font-size:40px;font-weight:700;line-height:1;">${total}</div>
-        <div style="color:${DIM};font-size:11px;margin-top:4px;">${r.ecaPending ? 'out of 1200 · provisional, ECA pending' : 'out of 1200'}</div>
+        <div style="color:${DIM};font-size:11px;margin-top:4px;">${r.ecaPending ? `out of ${r.maxTotal} · provisional, ECA pending` : `out of ${r.maxTotal}`}</div>
       </div>
       <div style="background:${CARD};border-top:3px solid ${poolEligible ? GREEN : RED};padding:18px 22px;flex:1;">
         <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:8px;">Pool Status</div>
@@ -797,10 +797,10 @@ style: |
   ${sectionBar('Executive Summary')}
 
   <div style="display:flex;gap:12px;margin-bottom:20px;">
-    ${mc('CRS Score', total, r.ecaPending ? 'out of 1200 · provisional, ECA pending' : 'out of 1200', TEAL)}
+    ${mc('CRS Score', total, r.ecaPending ? `out of ${r.maxTotal} · provisional, ECA pending` : `out of ${r.maxTotal}`, TEAL)}
     ${mc('FSW Grid', `${fswGrid.total}/67`, fswGrid.eligible ? 'Threshold Met' : 'Below Threshold', fswGrid.eligible ? GREEN : RED)}
     ${mc('Canadian WE', `${p.canadianWorkExperienceYears}y`, p.canadianWorkExperienceYears >= 1 ? 'CEC Eligible' : 'Below Min', p.canadianWorkExperienceYears >= 1 ? GREEN : MUTED)}
-    ${mc('Settlement', `$${Math.round(p.settlementFunds / 1000)}K`, r.proofOfFundsSufficient ? 'Funds Sufficient' : 'Below Threshold', r.proofOfFundsSufficient ? GREEN : RED)}
+    ${mc('Settlement', `$${Math.round(p.settlementFunds / 1000)}K`, r.proofOfFundsExempt ? 'Not Required' : r.proofOfFundsSufficient ? 'Funds Sufficient' : 'Below Threshold', r.proofOfFundsSufficient ? GREEN : RED)}
   </div>
 
   <div style="display:flex;gap:16px;">
@@ -869,7 +869,7 @@ style: |
       ${row('Family Size', `${p.familySize}`)}
       ${row('Settlement Funds', `CAD $${p.settlementFunds.toLocaleString()}`)}
       ${row('Funds Required', `CAD $${r.proofOfFundsRequired.toLocaleString()}`)}
-      ${row('Funds Status', r.proofOfFundsSufficient ? '✓ Sufficient' : '✗ Insufficient', r.proofOfFundsSufficient)}
+      ${row('Funds Status', r.proofOfFundsExempt ? '✓ Not required' : r.proofOfFundsSufficient ? '✓ Sufficient' : '✗ Insufficient', r.proofOfFundsSufficient)}
       ${row('Provincial Nomination', p.hasProvincialNomination ? 'Yes (+600 pts)' : 'No')}
       ${row('Canadian Education', p.hasCanadianEducation ? 'Yes' : 'No')}
     </div>
@@ -890,7 +890,7 @@ style: |
         <path d="M15,100 A85,85 0 0 1 185,100" fill="none" stroke="${CARD}" stroke-width="16" stroke-linecap="round"/>
         ${gaugeArc}
         <text x="100" y="80" text-anchor="middle" fill="${TEXT}" font-size="30" font-weight="700" font-family="system-ui">${total}</text>
-        <text x="100" y="96" text-anchor="middle" fill="${MUTED}" font-size="10" font-family="system-ui">CRS / 1200</text>
+        <text x="100" y="96" text-anchor="middle" fill="${MUTED}" font-size="10" font-family="system-ui">CRS / ${r.maxTotal}</text>
       </svg>
       <div style="color:${AMBER};font-size:11px;margin-top:4px;">General cutoff ≈ 500</div>
       <div style="color:${DIM};font-size:10px;margin-top:2px;">Verify at canada.ca</div>
@@ -906,7 +906,7 @@ style: |
       ${row('Education', `${breakdown.educationPoints} pts`)}
       ${row('First Language', `${breakdown.firstLanguagePoints} pts`, true)}
       ${breakdown.secondLanguagePoints > 0 ? row('Second Language', `${breakdown.secondLanguagePoints} pts`) : ''}
-      ${row('Canadian Work Experience', `${breakdown.canadianExpPoints} pts`)}
+      ${row(breakdown.lmi.option === 'offer' ? `Labour Market Integration (job offer, level ${breakdown.lmi.jobOfferLevel})` : `Labour Market Integration (Canadian work${breakdown.lmi.highWagePoints > 0 ? ` + high-wage level ${breakdown.lmi.highWageLevel}` : ''})`, `${breakdown.canadianExpPoints} pts`)}
       ${breakdown.spousePoints > 0 ? row('Spouse Factors', `${breakdown.spousePoints} pts`) : ''}
       <div style="height:1px;background:${BORDER};margin:10px 0;"></div>
       <div style="color:${MUTED};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin:12px 0 10px;">Section C &amp; D</div>
@@ -928,7 +928,7 @@ style: |
       </div>
       <div style="background:${CARD};padding:14px 16px;border-left:3px solid ${AMBER};">
         <div style="color:${AMBER};font-size:10px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">⚠ Policy Note</div>
-        <div style="color:${MUTED};font-size:11px;line-height:1.5;">Job offer points removed from CRS post-March 2025 per IRCC policy change.</div>
+        <div style="color:${MUTED};font-size:11px;line-height:1.5;">Since 3 Nov 2026: Canadian work and job offers share the Labour Market Integration factor (higher of the two, max 150 / 140). No LMIA needed. CRS max 1,270.</div>
       </div>
     </div>
 
@@ -1009,6 +1009,7 @@ style: |
         ['Education', fswGrid.education, 25],
         ['Work Experience', fswGrid.workExperience, 15],
         ['Age', fswGrid.age, 12],
+        ['Arranged Employment', fswGrid.arrangedEmployment, 10],
         ['Adaptability', fswGrid.adaptability, 10],
       ]
         .map(
@@ -1040,7 +1041,7 @@ style: |
       </div>
       <div style="background:${CARD};padding:14px 16px;border-left:3px solid ${AMBER};">
         <div style="color:${AMBER};font-size:10px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">⚠ Policy</div>
-        <div style="color:${MUTED};font-size:11px;line-height:1.5;">Arranged Employment removed post-March 2025 (IRCC). Max grid = 90.</div>
+        <div style="color:${MUTED};font-size:11px;line-height:1.5;">Arranged employment: valid job offer, no LMIA needed since 3 Nov 2026. Max grid = 100.</div>
       </div>
     </div>
 
@@ -1112,7 +1113,7 @@ style: |
       <div style="color:${TEXT};font-size:14px;font-weight:600;margin-bottom:12px;">Settlement Funds</div>
       ${row('Declared', `CAD $${p.settlementFunds.toLocaleString()}`)}
       ${row('Required', `CAD $${r.proofOfFundsRequired.toLocaleString()}`)}
-      ${row('Status', r.proofOfFundsSufficient ? '✓ Sufficient' : '✗ Below Threshold', r.proofOfFundsSufficient)}
+      ${row('Status', r.proofOfFundsExempt ? '✓ Not required' : r.proofOfFundsSufficient ? '✓ Sufficient' : '✗ Below Threshold', r.proofOfFundsSufficient)}
     </div>
     <div style="flex:1;background:${CARD};border-top:3px solid ${p.hasCriminalRecord ? RED : GREEN};padding:18px 20px;">
       <div style="color:${p.hasCriminalRecord ? RED : GREEN};font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:system-ui;margin-bottom:10px;">Admissibility</div>
@@ -1897,6 +1898,93 @@ export default function CanVisaProTool() {
             </div>
           </div>
 
+          {/* Canadian jobs by NOC — Labour Market Integration high-wage
+              points (since 2026-11-03). Months are full-time equivalent
+              (30 h/week) within the last 10 years. Overlapping high-wage
+              jobs hold the tier for Prash's review (ruling D1). */}
+          {profile.canadianWorkExperienceYears >= 1 && (
+            <div className="cvp-field" style={{ marginTop: '1rem' }}>
+              <label className="cvp-label">
+                Canadian jobs (NOC code + full-time months)
+              </label>
+              {(profile.canadianJobs ?? []).map((job, i) => (
+                <div
+                  className="cvp-grid-2"
+                  key={i}
+                  style={{ marginBottom: '0.75rem' }}
+                >
+                  <input
+                    className="cvp-input"
+                    inputMode="numeric"
+                    maxLength={5}
+                    placeholder="NOC, e.g. 21231"
+                    aria-label={`Canadian job ${i + 1} NOC code`}
+                    value={job.nocCode}
+                    onChange={(e) =>
+                      set(
+                        'canadianJobs',
+                        (profile.canadianJobs ?? []).map((j, k) =>
+                          k === i
+                            ? { ...j, nocCode: e.target.value.replace(/\D/g, '') }
+                            : j,
+                        ),
+                      )
+                    }
+                  />
+                  <input
+                    className="cvp-input"
+                    type="number"
+                    min={0}
+                    placeholder="Months (30 h/week)"
+                    aria-label={`Canadian job ${i + 1} full-time months`}
+                    value={job.months || ''}
+                    onChange={(e) =>
+                      set(
+                        'canadianJobs',
+                        (profile.canadianJobs ?? []).map((j, k) =>
+                          k === i
+                            ? { ...j, months: parseInt(e.target.value) || 0 }
+                            : j,
+                        ),
+                      )
+                    }
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                className="cvp-add-btn"
+                onClick={() =>
+                  set('canadianJobs', [
+                    ...(profile.canadianJobs ?? []),
+                    { nocCode: '', months: 0 },
+                  ])
+                }
+              >
+                + Add a Canadian job
+              </button>
+              {(profile.canadianJobs ?? []).length > 1 && (
+                <label className="cvp-checkbox-row">
+                  <input
+                    type="checkbox"
+                    checked={profile.canadianJobsOverlap ?? false}
+                    onChange={(e) =>
+                      set('canadianJobsOverlap', e.target.checked)
+                    }
+                  />
+                  <span className="cvp-checkbox-label">
+                    Two high-wage jobs held at the same time (hold tier for
+                    review, ruling D1)
+                  </span>
+                </label>
+              )}
+              <p className="cvp-hint">
+                12+ months in a high-wage NOC adds 70 / 40 / 20 (levels 1 / 1-2
+                / 1-3). The NOC decides the level, not the salary.
+              </p>
+            </div>
+          )}
+
           {/* Section 6: Additional */}
           <p className="cvp-section-label">6 — Additional Factors</p>
 
@@ -1985,6 +2073,22 @@ export default function CanVisaProTool() {
                   />
                 </div>
               </div>
+
+              <label
+                className="cvp-checkbox-row"
+                style={{ margin: '0.75rem 0 0' }}
+              >
+                <input
+                  type="checkbox"
+                  checked={profile.spouseHasCanadianStudy ?? false}
+                  onChange={(e) =>
+                    set('spouseHasCanadianStudy', e.target.checked)
+                  }
+                />
+                <span className="cvp-checkbox-label">
+                  Spouse studied full-time in Canada 2+ years (FSW adaptability)
+                </span>
+              </label>
 
               <label
                 className="cvp-checkbox-row"
@@ -2159,6 +2263,19 @@ export default function CanVisaProTool() {
                 Has sibling in Canada (citizen or PR) (+15 CRS)
               </span>
             </label>
+            <label className="cvp-checkbox-row" style={{ margin: 0 }}>
+              <input
+                type="checkbox"
+                checked={profile.hasCertificateOfQualification ?? false}
+                onChange={(e) =>
+                  set('hasCertificateOfQualification', e.target.checked)
+                }
+              />
+              <span className="cvp-checkbox-label">
+                Canadian certificate of qualification (trade) — FST, up to 50
+                CRS
+              </span>
+            </label>
           </div>
 
           {/* 6b: Canadian post-secondary credential — CRS Section D bonus */}
@@ -2197,8 +2314,7 @@ export default function CanVisaProTool() {
               {(
                 [
                   ['none', 'No job offer'],
-                  ['lmia', 'Yes — LMIA-supported'],
-                  ['exempt', 'Yes — LMIA-exempt'],
+                  ['valid', 'Yes — valid job offer (no LMIA needed)'],
                 ] as const
               ).map(([val, label]) => (
                 <label className="cvp-radio-row" key={val}>
@@ -2212,9 +2328,26 @@ export default function CanVisaProTool() {
                 </label>
               ))}
             </div>
+            {profile.hasJobOffer === 'valid' && (
+              <input
+                className="cvp-input"
+                inputMode="numeric"
+                maxLength={5}
+                placeholder="NOC code of the offered job"
+                aria-label="NOC code of the offered job"
+                style={{ marginTop: '0.5rem' }}
+                value={profile.jobOfferNocCode ?? ''}
+                onChange={(e) =>
+                  set('jobOfferNocCode', e.target.value.replace(/\D/g, ''))
+                }
+              />
+            )}
             <p className="cvp-hint">
-              Counts toward FSW 67-point Arranged Employment factor (+5 pts).
-              Does not add CRS bonus points (removed March 2025).
+              Since 3 Nov 2026: no LMIA needed. FSW arranged employment +10
+              and adaptability +5 (TEER 0-3). CRS 100 / 70 / 50 only if the
+              offer NOC is high-wage, and only when higher than Canadian work
+              points. Valid offer = no proof of funds (ruling D6). Confirm it is
+              recent, in writing and states pay, duties and conditions.
             </p>
           </div>
 
@@ -2400,10 +2533,10 @@ export default function CanVisaProTool() {
     },
   ];
 
-  // FSW grid: split arranged employment (from job offer) out of the adaptability bucket for display
-  const arrangedPts =
-    profile.hasJobOffer === 'lmia' || profile.hasJobOffer === 'exempt' ? 5 : 0;
-  const adaptabilityExclAE = Math.max(0, fsw.adaptability - arrangedPts);
+  // FSW grid: arranged employment is its own factor (max 10); the 5-point
+  // arranged-employment element is already inside adaptability (max 10).
+  const arrangedPts = fsw.arrangedEmployment;
+  const adaptabilityExclAE = fsw.adaptability;
 
   const maritalStatusStr =
     maritalStatus === 'married'
@@ -2520,7 +2653,7 @@ export default function CanVisaProTool() {
           <div className="cvp2-hero-score">
             <p className="cvp2-hero-label">CRS Score</p>
             <p className="cvp2-hero-value">{total}</p>
-            <p className="cvp2-hero-max">out of 1200</p>
+            <p className="cvp2-hero-max">out of {result.maxTotal}</p>
           </div>
           <div className="cvp2-hero-meta">
             <p className="cvp2-hero-name">{profile.name || 'Applicant'}</p>
@@ -2802,8 +2935,8 @@ export default function CanVisaProTool() {
         <div className="cvp2-card">
           <h2 className="cvp2-card-title">Score Breakdown</h2>
           <p className="cvp2-card-sub">
-            CRS points across all sections (post-March 2025 rules — job offer
-            points removed from CRS).
+            CRS points across all sections (rules in force since 3 November
+            2026).
           </p>
           <div className="cvp2-breakdown-grid">
             <div className="cvp2-bd-tile">
@@ -2874,11 +3007,11 @@ export default function CanVisaProTool() {
               {
                 factor: 'Arranged Employment',
                 value: arrangedPts,
-                max: 5,
+                max: 10,
                 pass: arrangedPts > 0,
                 detail:
                   arrangedPts > 0
-                    ? `${profile.hasJobOffer === 'lmia' ? 'LMIA-supported' : 'LMIA-exempt'} job offer`
+                    ? `Valid job offer${profile.jobOfferNocCode ? ` (NOC ${profile.jobOfferNocCode})` : ''}, no LMIA needed`
                     : 'No qualifying job offer',
               },
               {
@@ -2892,6 +3025,13 @@ export default function CanVisaProTool() {
                         profile.hasCanadianEducation && 'Canadian edu',
                         profile.hasFamilyInCanada && 'Family in CA',
                         profile.canadianWorkExperienceYears >= 1 && 'Prior CWE',
+                        arrangedPts > 0 && 'Arranged employment',
+                        profile.hasSpouse &&
+                          (profile.spouseCanadianExperience ?? 0) >= 1 &&
+                          'Spouse CWE',
+                        profile.hasSpouse &&
+                          profile.spouseHasCanadianStudy &&
+                          'Spouse study',
                       ]
                         .filter(Boolean)
                         .join(', ')
@@ -2952,9 +3092,11 @@ export default function CanVisaProTool() {
           <div
             className={`cvp2-funds-status${result.proofOfFundsSufficient ? ' cvp2-funds-ok' : ' cvp2-funds-fail'}`}
           >
-            {result.proofOfFundsSufficient
-              ? '✓ Funds sufficient for application'
-              : '✗ Below required threshold — must be resolved before applying'}
+            {result.proofOfFundsExempt
+              ? `✓ ${result.proofOfFundsExemptReason}`
+              : result.proofOfFundsSufficient
+                ? '✓ Funds sufficient for application'
+                : '✗ Below required threshold — must be resolved before applying'}
           </div>
           <p className="cvp2-funds-source">
             Source: {fundsData.source} · {fundsData.lastUpdated}. [VERIFY at

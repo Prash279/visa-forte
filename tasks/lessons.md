@@ -322,3 +322,9 @@ If the lesson contains words like "useEffect", "state mismatch", "hydration erro
 - **What went wrong:** the CanVisa Pro duties field told the consultant "If you set the NOC Code field above, the assessment uses your code instead of classifying - your code always wins." `generatePnp()` does the opposite: the classifier always runs when duties are present, the manual code is passed only as a hint, and the classifier result wins.
 - **Why it happened:** the behaviour was changed to classifier-wins and the hint beneath the field was not part of the diff.
 - **The rule going forward:** hint text that describes precedence, defaults or "what wins" is behavioural documentation sitting inside the UI. When the rule changes, grep the JSX for the sentence that stated the old one. On an admin tool that prepares client files, a wrong hint is worse than no hint.
+
+**Lesson 13 — A rules file can be wrong in ways no test notices if the tests were written from the same file**
+- **What went wrong:** the 2026-11-12 IRCC update audit found older defects that had shipped for months: first-language CLB 4 scored 0 (IRCC: 6), FSW work experience gave 3 years 13 points (IRCC: 11), FSW age stopped at 42, FSW had no arranged-employment factor, FST eligibility was hard-coded false, and Section C had no 50-point pair caps.
+- **Why it happened:** the expected values in the tests were taken from the tool's own output or from the rules file, so a wrong table produced a matching wrong expectation.
+- **The rule going forward:** every expected number in a CRS or FSW test must be copied from the canada.ca table, with the page and its "date modified" in a comment, never from a previous run of the tool. When IRCC changes the grid, re-read every table, not just the changed one.
+

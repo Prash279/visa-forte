@@ -1278,9 +1278,11 @@ class EEQuestionnaire:
 
         self._sec_header("8.1  Valid Canadian Job Offer")
         self._instruction_box(
-            "A valid job offer in Express Entry must be full-time, non-seasonal, continuous, and at a wage "
-            "at or above the median wage for that NOC in the province of employment. "
-            "Note: As of March 2025, job offer points have been removed from the CRS scoring formula."
+            "A valid job offer must be recent, in writing, for at least 1 year once you become a permanent "
+            "resident, and set out pay and deductions, duties and conditions such as hours. FSW: one employer, "
+            "continuous, paid, full-time (30+ hours a week), non-seasonal, TEER 0-3. FST: up to two employers. "
+            "Since 3 November 2026 no LMIA is needed, and an offer in a high-wage occupation can add "
+            "50 to 100 CRS points (source: canada.ca, Express Entry: Job offer, modified 2026-11-03)."
         )
         self._row_yn_radio("pa_job_offer_yn", "Do you have a valid Canadian job offer? *", required=True)
         self._row_2col_text(
@@ -1292,9 +1294,13 @@ class EEQuestionnaire:
             "pa_job_offer_province", "Province of Employment", PROVINCES,
         )
         self._row_text("pa_job_offer_noc", "NOC Code (5-digit)")
+        self._row_2col_text(
+            "pa_job_offer_address", "Employer Address",
+            "pa_job_offer_start",   "Job Start Date (YYYY-MM-DD)",
+        )
         self._row_2col_dd(
-            "pa_job_offer_lmia",  "Is the job offer LMIA-supported?", YES_NO_NA,
-            "pa_job_offer_exempt","Is it LMIA-exempt (e.g. IEC, ICT)?", YES_NO_NA,
+            "pa_job_offer_writing", "Is the offer in writing and recent?", YES_NO_NA,
+            "pa_job_offer_terms",   "Does it state pay, duties and conditions?", YES_NO_NA,
         )
 
         self._sec_header("8.2  Provincial Nominee Program (PNP)")
