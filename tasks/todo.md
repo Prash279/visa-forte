@@ -19,10 +19,28 @@
 - Live row counts: 5 users, 5 clients, 8 client documents, 2 messages, 2 leads, 1 pending booking,
   4 availability rows, 6 CanDoc reviews.
 
+### ⛔ HALT (CLAUDE.md halt-condition 2) — found 2026-11-11 while verifying copy
+
+- canada.ca CRS page (`.../express-entry/check-score/crs-criteria.html`, modified **2026-11-03**) says that as
+  of Nov 3, 2026 IRCC changed how points are awarded for Canadian work experience and job offers: LMIA
+  requirements removed for all Express Entry job offers, and a new **Labour Market Integration factor**
+  (work-length points + 70 high-wage-occupation points, OR a high-wage job offer, not both; max 140 with
+  spouse / 150 without). `crs-rules.json` says `lastVerified 2026-05-09` and models only work-length points.
+- IRCC also said invitation rounds would pause while points are recalculated (up to ~2 weeks) — relevant to
+  draw data and to PR 2.
+- Full grid NOT yet diffed against `crs-rules.json`. Prash decides (copy deck Decision 1): fix scoring first
+  (recommended) / ship with a banner / pull CRS tools from the front page. No scoring change without his say-so.
+
+### Other findings 2026-11-11
+
+- Privacy policy omits Anthropic (NOC Verifier sends typed duties to Claude), Sentry and Cloudflare
+  analytics; says 3-year retention but the data-retention cron deletes at 2 years (730 days). Both fixed in the
+  copy deck's policy rewrite pending Prash's retention decision (Decision 4).
+
 ### PR 1 — Free site + working email list (new branch from latest `origin/main`)
 
 - [ ] **Step 0** — Commit this plan (Lesson: plans are committed before implementation).
-- [ ] **Step 1** — Write copy deck `docs/copy/free-site-copy.md`: page-by-page before/after for home,
+- [x] **Step 1** — DRAFTED 2026-11-11: copy deck `docs/copy/free-site-copy.md`: page-by-page before/after for home,
       about, contact, nav, footer, tool CTAs, email consent text, unsubscribe page, privacy-policy
       rewrite. Any IRCC figure → canada.ca citation or cut. Disclaimer = Section 17 verbatim, minus the
       footer's extra marketing sentence.
@@ -61,18 +79,25 @@
 
 ### PR 2 — Draw-alert sender (after PR 1 merges)
 
+> **Corrected 2026-11-11:** PR #21 (merged 2026-10-24) retired Resend. ALL site email now goes through ONE
+> Google Workspace mailbox (`SMTP_USER`) via `sendEmail()` in `apps/web/src/lib/email.ts`. From address is
+> always that mailbox; `sendEmail()` has no custom-header support (needed for `List-Unsubscribe`).
+
 - [ ] On each new EE draw from the existing draw-history pipeline: one email to all list-consented,
       not-unsubscribed subscribers — date, type, invitations, cutoff, cited to canada.ca; one personal
-      line vs saved CRS score if present. From `noreply@visaforte.com`, one-click unsubscribe link +
-      `List-Unsubscribe` header. Test send to Prash first.
-- [ ] ⛔ Blocking gate: Prash confirms Resend plan supports the bulk volume `[VERIFY]` (Lesson 4).
+      line vs saved CRS score if present. One-click unsubscribe link + `List-Unsubscribe` headers
+      (extend `sendEmail()`). Test send to Prash first.
+- [ ] ⛔ Blocking gate: Prash chooses the bulk-sending route (copy deck Decision 6): dedicated second
+      Workspace mailbox / email-list service / stay on current mailbox. Google Workspace daily-send limits
+      and bulk-sender rules are `[VERIFY]` — not yet checked. A list must not share a mailbox with admin
+      and client email unless Prash accepts that throttling would also block those (Lesson 4).
 
 ### Prash actions
 
 - [ ] Check Razorpay dashboard for ITA Countdown (RT-3) payments → refund affected buyers.
 - [ ] Email real portal clients that the portal is closing.
 - [ ] After PR 1 merge: delete Razorpay keys from Vercel env.
-- [ ] Before PR 2: confirm Resend plan/volume.
+- [ ] Before PR 2: decide the bulk-sending route (copy deck Decision 6).
 
 ---
 
