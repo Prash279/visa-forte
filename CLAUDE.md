@@ -21,9 +21,9 @@
 
 > **Skills are invoked by name via the Skill tool — not read from a path.** Earlier revisions of this
 > table pointed at `/mnt/skills/user/...`, a Linux container path that does not exist on this machine;
-> any agent following it literally got "file not found" and silently proceeded without the skill. There
-> is no `canvisa-pro` skill and there never has been — that row was removed rather than left as a
-> mandate that cannot be satisfied. CanVisa Pro's rules live in the code and in `tasks/todo.md`.
+> any agent following it literally got "file not found" and silently proceeded without the skill. This
+> table has no `canvisa-pro` row: for this repository, CanVisa Pro's rules live in the code and in
+> `tasks/todo.md`.
 
 ---
 
@@ -41,15 +41,15 @@ Prashant is the sole owner and is not a software engineer. The AI operates as hi
 
 ## Workflow & Autonomy
 
-1. **Plan First** — For any task with more than 1 step, write a plain-English plan in `tasks/todo.md`. Prash approves before any code is written.
+1. **Plan First** — For a new feature, or anything under "Halt and Ask Prash", write a plain-English plan in `tasks/todo.md` and wait for Prash's approval before writing code. For bug fixes and small changes, note the plan in `tasks/todo.md` and proceed.
 2. **One Thing At A Time** — Build one piece, prove it works, move on. No parallel feature construction in the main agent.
 3. **Self-Improvement Loop** — After any correction: update `tasks/lessons.md` with the pattern and a rule preventing recurrence. Review at the start of every session — this is non-negotiable.
 4. **Verification Before Done** — Two gates, both required before marking any task complete:
-   - **Code gate:** Write the test, run it (Vitest/PyTest), check logs. Ask: *"Would a staff engineer at Anthropic approve this PR?"* Tests are Claude Code's responsibility — not Prash's.
+   - **Code gate:** Write the test, run it (Vitest/PyTest) and check the logs. Tests are Claude Code's responsibility — not Prash's.
    - **Prashant Proof:** Give Prash exact browser steps to verify the feature works visually. Example format: *"Go to /dashboard, click the 'Book' button, and confirm the form appears."* If Prash cannot verify it in his browser in under 60 seconds, the task is not done.
-5. **Elegance Circuit Breaker** — For non-trivial changes: *"Knowing everything I know now, is this the elegant solution?"* If a working solution requires more than two refactoring attempts, commit the working code, document the debt in `tasks/todo.md`, and stop.
+5. **Elegance Circuit Breaker** — If a working solution needs more than two refactoring attempts, commit the working code, record the debt in `tasks/todo.md`, and stop.
 6. **Autonomous Bug Fixing** — Explain the error in plain English first, then fix it. Zero context switching required from Prash.
-7. **Subagent Delegation** — For parallelisable work (research, exploration, isolated feature builds), spawn subagents per `AGENTS.md`. Do not pollute the main context window with tasks that can be delegated.
+7. **Subagent Delegation** — Use subagents for research or audits that span many files, following `AGENTS.md`. Do small lookups directly. Implementation is sequential, as `AGENTS.md` requires.
 
 ---
 
@@ -71,19 +71,7 @@ Training data confidence is not verification for immigration policy facts. The v
 
 ## Session Context Hygiene
 
-For sessions exceeding 90 minutes or 20+ tool calls, declare session state explicitly:
-
-```
-[Session State: Gate X complete. Task Y in progress.
-Completed this session: <bullet list>
-Remaining: <bullet list>
-Awaiting: <specific Prash action or approval>]
-```
-
-At natural session end or context pressure:
-1. Write all completed work into `tasks/todo.md` with checked items
-2. Write any new lessons into `tasks/lessons.md`
-3. Leave `tasks/todo.md` in a state where a fresh session can resume without asking Prash to re-explain context
+When a task ends, update `tasks/todo.md` and `tasks/lessons.md` so that a fresh session can resume without asking Prash to explain the context again.
 
 ---
 
@@ -93,7 +81,7 @@ At natural session end or context pressure:
 - **Python:** Type hints on all signatures, `with` for resource handles, no bare `except:`.
 - **I/O:** All external I/O requires `try/catch` with named error paths. No silent swallowing.
 - **Constants:** No magic numbers. Named constants in `constants.ts` or `config.py`.
-- **Email:** Google Workspace SMTP, only through `sendEmail()` in `apps/web/src/lib/email.ts`. It throws on failure and reports to Sentry; never swallow that error. Resend was retired on 2026-10-24 and ESLint blocks importing it or nodemailer anywhere else. Do not add another email provider without Prash's approval.
+- **Email:** Only through `sendEmail()` in `apps/web/src/lib/email.ts`; the rules are in `apps/web/AGENTS.md`. Ask Prash before adding another email provider.
 - **Commits:** No commented-out dead code.
 - **CSS / UI — Mobile First (Non-Negotiable):** Write base styles at 375px first, layer breakpoints upward. Every layout or grid change must include updated `@media` rules in the same commit. Before marking any UI task done, verify at 375px → 768px → 1280px. No exceptions.
 
@@ -102,7 +90,7 @@ At natural session end or context pressure:
 ## Core Principles
 
 - **Simplicity First** — If it's getting complicated, the design is wrong.
-- **No Laziness** — Find root causes. No temporary fixes. Senior engineer standards.
+- **Root causes** — Fix the cause, not the symptom. If only a temporary fix is possible, say so and record it in `tasks/todo.md`.
 - **Vendor-Agnostic** — Define what a layer must do; never hardcode a vendor as the answer.
 - **Agentic-First** — Operate autonomously up to the halting conditions below. Do not ask what you can infer.
 
@@ -117,9 +105,8 @@ Stop, state the conflict in plain English, and await direction when:
 3. The AI is stuck fixing the same error more than 3 consecutive times.
 4. Any change touches: user authentication · session invalidation · Razorpay payment processing · core database schema.
 5. A single architectural decision affects more than two active products simultaneously.
-6. A required test framework or package dependency is missing from the environment.
+6. The work needs a new dependency that is not already in `package.json` or `requirements.txt`. (If a listed dependency is only not installed, install it and continue.)
 7. A client data privacy question is not resolved by the existing DPDP architecture.
-8. Context pressure is causing instruction amnesia — stop, declare session state, and ask Prash to start a fresh session.
 
 Do not infer Prash's preference in these areas. Stop and ask.
 

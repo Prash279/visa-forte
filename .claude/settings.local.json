@@ -1,16 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cmd.exe /c \"where AcroRd32.exe 2>nul || where Acrobat.exe 2>nul || where FoxitReader.exe 2>nul || echo No standard viewer found\")",
-      "Bash(cmd.exe /c \"assoc .pdf 2>nul\")",
-      "Bash(powershell -Command \"Get-Process Acrobat,AcroRd32 -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue\")",
       "Bash(python scripts/generate_ee_questionnaire.py)",
-      "Bash(powershell -Command \"Start-Process 'C:\\\\Users\\\\hp\\\\visaforte\\\\output\\\\Visa_Forte_Express_Entry_Assessment_Questionnaire.pdf'\")",
-      "Bash(python -c \"from reportlab.pdfgen.canvas import Canvas; import inspect; print\\([m for m in dir\\(Canvas\\) if 'java' in m.lower\\(\\) or 'script' in m.lower\\(\\) or 'action' in m.lower\\(\\)]\\)\")",
       "Bash(python -c ':*)",
-      "Bash(python -c \"import pikepdf; print\\('pikepdf', pikepdf.__version__\\)\")",
-      "Bash(python -c \"import pypdf; print\\('pypdf', pypdf.__version__\\)\")",
-      "Bash(python -c \"import pdfrw; print\\('pdfrw', pdfrw.__version__\\)\")",
       "Bash(npx drizzle-kit *)",
       "Bash(npx vitest *)",
       "Bash(npx tsc *)",
@@ -51,17 +43,6 @@
             "command": "python \"${CLAUDE_PROJECT_DIR}/.claude/hooks/rtk_gain_hook.py\" 2>/dev/null || true",
             "timeout": 15,
             "statusMessage": "Fetching RTK savings..."
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python -c \"import json; print(json.dumps({'systemMessage': 'REMINDER: Did you run tests before stopping? Required gate: cd apps/web && npx vitest run'}))\"",
-            "timeout": 5
           }
         ]
       }

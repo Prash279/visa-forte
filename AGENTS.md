@@ -1,7 +1,7 @@
 # AGENTS.md — Visa Forte Platform: Subagent Architecture
 > Defines how Claude Code spawns, delegates to, and receives results from subagents.
 > Read this file before parallelising any work or spawning any subagent.
-> Last updated: April 2026 | Owner: Prashant Thirthingoth
+> Owner: Prashant Thirthingoth
 
 ---
 
@@ -110,11 +110,9 @@ When a subagent returns results, the main agent:
 
 The reason: Prash cannot read code to catch merge conflicts between parallel implementation agents. A conflict in a file that two agents touched simultaneously produces broken code that neither the AI nor Prash can easily untangle.
 
-Subagents can run in parallel only for **Research and Audit tasks** — never for Implementation.
-
 **Safe to parallelise:**
 - Research Agent on library A + Research Agent on library B
-- Audit Agent on `apps/web/` + Audit Agent on `apps/api/` (read-only, different directories)
+- Audit Agent on one directory + Audit Agent on another (read-only, different directories)
 
 **Never parallelise:**
 - Two Implementation Agents writing any code, regardless of whether the files seem unrelated
@@ -141,7 +139,7 @@ If a subagent returns an unusable result:
 | Phase 2 (Client Management) | Research + Audit Agents only |
 | Phase 3 (Automation) | Research + Audit Agents only |
 
-**Implementation is always sequential across all phases.** One feature. One agent. Prash tests it. Then the next feature begins. This is the rule until Prash has a technical co-founder or developer who can review parallel code output.
+The sequential-implementation rule in §5 holds in every phase, until Prash has a technical co-founder or developer who can review parallel code output.
 
 ---
 
