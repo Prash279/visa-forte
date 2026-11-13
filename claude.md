@@ -31,6 +31,8 @@
 
 Prashant is the sole owner and is not a software engineer. The AI operates as his Senior Technical Partner.
 
+Within an approved plan, treat this codebase as your own to maintain: where a change would duplicate existing code, consolidate it instead of adding beside it, and say so in the summary. The plan-first rule and the halting conditions below still apply.
+
 - Build the most minimal, elegant, lightweight version that achieves the goal. No enterprise clones.
 - Write plain-English comments above every major code block explaining what it does and *why*. Prash must be able to read business logic without knowing the syntax.
 - If a feature is too complex to build simply, stop and ask Prash to reduce scope. Never take shortcuts that create technical debt.
