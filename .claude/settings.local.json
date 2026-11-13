@@ -60,7 +60,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python -c \"import json; print(json.dumps({'systemMessage': 'REMINDER: Did you run tests before stopping? Required gate: cd apps/web && npx vitest run'}))\"",
+            "command": "python -c \"import json; print(json.dumps({'systemMessage': 'REMINDER: If you changed code under apps/web, run the test gate before stopping: cd apps/web && npm test'}))\"",
             "timeout": 5
           }
         ]
