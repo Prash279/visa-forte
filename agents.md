@@ -1,7 +1,7 @@
 # AGENTS.md — Visa Forte Platform: Subagent Architecture
 > Defines how Claude Code spawns, delegates to, and receives results from subagents.
 > Read this file before parallelising any work or spawning any subagent.
-> Last updated: April 2026 | Owner: Prashant Thirthingoth
+> Last updated: November 2026 | Owner: Prashant Thirthingoth
 
 ---
 
@@ -147,27 +147,27 @@ If a subagent returns an unusable result:
 
 ## 8. Model & Effort Routing
 
-Sources (verified live against official docs, not training data): [Model configuration](https://code.claude.com/docs/en/model-config.md) · [Subagents in the SDK](https://code.claude.com/docs/en/agent-sdk/subagents.md)
+Sources (verified live on 2026-11-13, not training data): [Model configuration](https://code.claude.com/docs/en/model-config) · [Claude Code subagents](https://code.claude.com/docs/en/sub-agents)
 
-**Resolved 2026-07-16:** `~/.claude/settings.json` previously set `CLAUDE_CODE_SUBAGENT_MODEL: "haiku"`, which — per the official docs — "overrides the per-invocation `model` parameter and the subagent definition's `model` frontmatter" for every subagent. That silently forced `security-reviewer` and `code-reviewer` onto Haiku despite both being pinned to `claude-opus-4-6` for higher-stakes review. Now set to `"inherit"`, so each subagent's own frontmatter `model` field is respected again.
+**How a subagent's model is chosen (Claude Code 2.1.251 and later), first match wins:** the model passed on that one Agent call, then the agent's frontmatter `model`, then `CLAUDE_CODE_SUBAGENT_MODEL`, then the main session's model. `~/.claude/settings.json` sets `CLAUDE_CODE_SUBAGENT_MODEL: "sonnet"`. That is a default for agents with no `model` of their own; it does not override an agent's frontmatter. Do not set `CLAUDE_CODE_SUBAGENT_MODEL_FORCE`: it makes every subagent ignore its frontmatter, which would put the Opus reviewers on Sonnet.
 
 ### By subagent type (Section 2 taxonomy)
 
 | Type | Recommended model | Recommended effort | Why |
 |---|---|---|---|
-| Research Agent | `haiku` (`sonnet` if the lookup needs judgment, e.g. CVE triage) | `low`–`medium` | Bounded, single-question tasks — official guidance reserves `low` for "short, scoped, latency-sensitive tasks that are not intelligence-sensitive" |
-| Implementation Agent | `sonnet` | `high` | Matches the official description of `high`: "comprehensive implementation... extensive testing and documentation" — also `high` is Sonnet 5's own default |
-| Audit Agent (OWASP / security / immigration compliance) | `opus` | `high`–`xhigh` | Correctness-critical review benefits from deeper reasoning; worth the extra token spend `xhigh` costs |
+| Research Agent | `haiku` (`sonnet` if the lookup needs judgment, e.g. CVE triage) | `low`–`medium` | Bounded, single-question tasks whose result the main agent reviews |
+| Implementation Agent | `sonnet` | `high` | Official guidance for `high`: "work where verification matters or edge cases are likely". Sonnet 5.5's own default is `medium`, so `high` is a deliberate choice here |
+| Audit Agent (OWASP / security / immigration compliance) | `opus` | `high` | Correctness-critical review. Move to `xhigh` only if a measured review shows it finds more |
 
 ### Named agents currently used on this project
 
 | Agent | Frontmatter `model` | Frontmatter `effort` |
 |---|---|---|
-| `security-reviewer`, `code-reviewer` | `claude-opus-4-6` | `high` (set 2026-07-16 — Opus 4.6's ceiling, no `xhigh`/`max` available) |
-| `immigration-doc-checker`, `db-schema-reviewer` | `claude-sonnet-4-6` | `high` (set 2026-07-16 — Sonnet 4.6's ceiling, no `xhigh`/`max` available) |
-| `fastapi-reviewer`, `python-reviewer`, `typescript-reviewer`, `e2e-runner` | `sonnet` | `high` (set 2026-07-16 — matches Sonnet 5's own default; `xhigh`/`max` still available if a review warrants it) |
+| `security-reviewer`, `code-reviewer` | `opus` | `high` (kept 2026-11-13 as a deliberate choice for correctness-critical review) |
+| `immigration-doc-checker`, `db-schema-reviewer` | `sonnet` | `high` (same reason) |
+| `fastapi-reviewer`, `python-reviewer`, `typescript-reviewer`, `e2e-runner` | `sonnet` | `high` (same reason) |
 
-Anthropic's docs don't state what a subagent falls back to when `effort` is omitted from its frontmatter — don't assume a `/effort high` main session carries over to an agent that hasn't set it explicitly. For a security or compliance review that needs deeper reasoning, set `effort` directly in that agent's frontmatter rather than relying on inheritance, as done for `security-reviewer` above.
+The aliases track the newest model (today Opus 5.5 and Sonnet 5.5), so these agents need no edit at the next release. A subagent with no `effort` of its own runs at the session's level only when it is on the same model as the main session. On a different model the session level does not apply. The main session runs on Fable and these agents on Opus or Sonnet, so each one that needs `high` sets it in its own frontmatter.
 
 ---
 
