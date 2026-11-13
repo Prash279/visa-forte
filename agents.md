@@ -167,7 +167,7 @@ Sources (verified live on 2026-11-13, not training data): [Model configuration](
 | `immigration-doc-checker`, `db-schema-reviewer` | `sonnet` | `high` (same reason) |
 | `fastapi-reviewer`, `python-reviewer`, `typescript-reviewer`, `e2e-runner` | `sonnet` | `high` (same reason) |
 
-The aliases track the newest model (today Opus 5.5 and Sonnet 5.5), so these agents need no edit at the next release. A subagent with no `effort` of its own runs at the session's level only when it is on the same model as the main session. On a different model the session level does not apply. The main session runs on Fable and these agents on Opus or Sonnet, so each one that needs `high` sets it in its own frontmatter.
+The aliases track the newest model (today Opus 5.5 and Sonnet 5.5), so these agents need no edit at the next release. A subagent with no `effort` of its own runs at the session's level only when it is on the same model as the main session. On a different model the session level does not apply. Which model the main session runs on changes whenever it is switched with `/model`, so each agent that needs `high` sets it in its own frontmatter.
 
 ---
 
