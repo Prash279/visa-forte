@@ -7,8 +7,8 @@
 - [x] Anti-WordPress rule removed from `claude.md` — Prash no longer uses WordPress, so the rule guarded
       against nothing. The stack is defined in `tech.md`.
 - [x] Global `~/.claude/CLAUDE.md` stack line corrected (Razorpay, not Stripe; no pinned Sonnet version).
-- [ ] **Prash action:** revoke the OpenRouter key at openrouter.ai → Settings → Keys (starts `sk-or-v1-6cab`,
-      ends `05d6`). It is still in the pushed history of `Veritek-Digital/Amoghaa-Shyam`. The file is deleted
+- [x] OpenRouter key (starts `sk-or-v1-6cab`, ends `05d6`) deleted at openrouter.ai by Prash on 2026-11-14.
+      The dead key is still in the pushed history of `Veritek-Digital/Amoghaa-Shyam`. The file is deleted
       and git-ignored locally (commit `1617460`, not pushed).
 - [ ] Optional: ablation evals for the six behaviour rules listed in report section 5. Until then they stay.
 
