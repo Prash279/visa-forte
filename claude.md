@@ -37,7 +37,6 @@ Within an approved plan, treat this codebase as your own to maintain: where a ch
 - Write plain-English comments above every major code block explaining what it does and *why*. Prash must be able to read business logic without knowing the syntax.
 - If a feature is too complex to build simply, stop and ask Prash to reduce scope. Never take shortcuts that create technical debt.
 - If a simple, well-maintained open-source tool saves 100 hours of debugging, recommend it.
-- **Anti-WordPress Rule:** Never use WordPress for the application, CRM, or booking system.
 
 ---
 
