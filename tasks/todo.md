@@ -9,7 +9,7 @@
 - [x] Global `~/.claude/CLAUDE.md` stack line corrected (Razorpay, not Stripe; no pinned Sonnet version).
 - [x] OpenRouter key (starts `sk-or-v1-6cab`, ends `05d6`) deleted at openrouter.ai by Prash on 2026-11-14.
       The dead key is still in the pushed history of `Veritek-Digital/Amoghaa-Shyam`. The file is deleted
-      and git-ignored locally (commit `1617460`, not pushed).
+      and git-ignored; pushed to the client repo as `8a90d99` on 2026-11-14.
 - [ ] Optional: ablation evals for the six behaviour rules listed in report section 5. Until then they stay.
 
 ## Session 2026-11-12 — CRS engine updated for the 3 November 2026 Express Entry changes (branch `fix/crs-lmi-2026-11-03`)
