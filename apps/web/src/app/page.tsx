@@ -137,11 +137,12 @@ export default function Home() {
               <div className="stake-n">06</div>
               <div className="stake-title">Outdated Regulatory Framework</div>
               <p className="stake-body">
-                With arranged employment points removed in March 2025 and
-                category-based draws replacing simple CRS ranking, the strategic
-                sequencing of how a file is presented has changed materially.
-                Documentation prepared against last year&apos;s criteria may be
-                structurally misaligned with what IRCC is currently evaluating.
+                With job-offer and Canadian work points rewritten on 3 November
+                2026 and category-based draws replacing simple CRS ranking, the
+                strategic sequencing of how a file is presented has changed
+                materially. Documentation prepared against last year&apos;s
+                criteria may be structurally misaligned with what IRCC is
+                currently evaluating.
               </p>
             </div>
           </div>
@@ -197,11 +198,11 @@ export default function Home() {
               <h3 className="f-card-title">Current Criteria. Every Time.</h3>
               <p className="f-card-body">
                 IRCC requirements shift without announcement. The NOC-to-TEER
-                transition. The removal of arranged employment points in March
-                2025. Category-based draw priorities replacing simple CRS
-                ranking. Every review is conducted against what IRCC is
-                evaluating today — not last year&apos;s template, not a cached
-                checklist from the previous draw cycle.
+                transition. The 3 November 2026 rewrite of job-offer and
+                Canadian work points. Category-based draw priorities replacing
+                simple CRS ranking. Every review is conducted against what IRCC
+                is evaluating today — not last year&apos;s template, not a
+                cached checklist from the previous draw cycle.
               </p>
             </div>
             <div className="f-card r d3">

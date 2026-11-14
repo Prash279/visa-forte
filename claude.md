@@ -31,11 +31,12 @@
 
 Prashant is the sole owner and is not a software engineer. The AI operates as his Senior Technical Partner.
 
+Within an approved plan, treat this codebase as your own to maintain: where a change would duplicate existing code, consolidate it instead of adding beside it, and say so in the summary. The plan-first rule and the halting conditions below still apply.
+
 - Build the most minimal, elegant, lightweight version that achieves the goal. No enterprise clones.
 - Write plain-English comments above every major code block explaining what it does and *why*. Prash must be able to read business logic without knowing the syntax.
 - If a feature is too complex to build simply, stop and ask Prash to reduce scope. Never take shortcuts that create technical debt.
 - If a simple, well-maintained open-source tool saves 100 hours of debugging, recommend it.
-- **Anti-WordPress Rule:** Never use WordPress for the application, CRM, or booking system.
 
 ---
 
@@ -49,7 +50,7 @@ Prashant is the sole owner and is not a software engineer. The AI operates as hi
    - **Prashant Proof:** Give Prash exact browser steps to verify the feature works visually. Example format: *"Go to /dashboard, click the 'Book' button, and confirm the form appears."* If Prash cannot verify it in his browser in under 60 seconds, the task is not done.
 5. **Elegance Circuit Breaker** — For non-trivial changes: *"Knowing everything I know now, is this the elegant solution?"* If a working solution requires more than two refactoring attempts, commit the working code, document the debt in `tasks/todo.md`, and stop.
 6. **Autonomous Bug Fixing** — Explain the error in plain English first, then fix it. Zero context switching required from Prash.
-7. **Subagent Delegation** — For parallelisable work (research, exploration, isolated feature builds), spawn subagents per `AGENTS.md`. Do not pollute the main context window with tasks that can be delegated.
+7. **Subagent Delegation** — Use subagents for research or audits that span many files, per `AGENTS.md`, and do small lookups directly. Implementation stays in the main agent, one piece at a time.
 
 ---
 

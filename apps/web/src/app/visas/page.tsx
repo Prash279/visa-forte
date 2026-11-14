@@ -331,9 +331,10 @@ export default function VisasPage() {
                 </ul>
               </div>
               <p className="visas-stream-note">
-                Points factors: age, education, language, work experience,
-                Canadian relatives, and adaptability. Arranged employment no
-                longer adds CRS points (March 2025 change).
+                Six selection factors: language, education, work experience,
+                age, arranged employment, and adaptability (which includes
+                Canadian relatives). Since 3 November 2026 a job offer needs no
+                LMIA.
               </p>
             </div>
 
@@ -387,8 +388,9 @@ export default function VisasPage() {
                     writing)
                   </li>
                   <li>
-                    Job offer of at least 1 year, OR certificate of
-                    qualification from a Canadian province
+                    Job offer of at least 1 year (up to 2 employers, no LMIA
+                    needed), OR certificate of qualification from a Canadian
+                    province
                   </li>
                   <li>No minimum education requirement</li>
                 </ul>
@@ -409,7 +411,8 @@ export default function VisasPage() {
                   Core Human Capital
                 </span>
                 <span className="visas-crs-factor-desc">
-                  Age, education, language proficiency, Canadian work experience
+                  Age, education, language proficiency, and Canadian work
+                  experience or a high-wage job offer
                 </span>
               </div>
               <div className="visas-crs-factor">
@@ -439,9 +442,11 @@ export default function VisasPage() {
               </div>
             </div>
             <p className="visas-crs-note">
-              Arranged employment points were removed from CRS scoring in March
-              2025. A valid Canadian job offer no longer adds CRS points under
-              any Express Entry stream.
+              Since 3 November 2026, Canadian work experience and job offers
+              share one factor worth up to 150 points: Canadian work (with extra
+              points for 12 months in a high-wage occupation) or a valid job
+              offer in a high-wage occupation (50 to 100 points), whichever is
+              higher. No LMIA is needed. The CRS maximum is now 1,270.
             </p>
           </div>
         </div>

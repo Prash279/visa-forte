@@ -35,8 +35,15 @@ describe('AssessmentLeadSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('rejects a CRS score above 1200', () => {
-    const result = AssessmentLeadSchema.safeParse({ ...valid, crsScore: 1201 });
+  // The CRS maximum became 1,270 on 2026-11-03 (Ministerial Instructions
+  // s.8(2)); the schema reads it from crs-rules.json via CRS_MAX_TOTAL.
+  it('accepts the CRS maximum of 1270', () => {
+    const result = AssessmentLeadSchema.safeParse({ ...valid, crsScore: 1270 });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects a CRS score above 1270', () => {
+    const result = AssessmentLeadSchema.safeParse({ ...valid, crsScore: 1271 });
     expect(result.success).toBe(false);
   });
 

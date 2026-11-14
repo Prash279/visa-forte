@@ -64,9 +64,9 @@ export default function AccordionSection() {
                 and the IRCC website is authoritative. The limitation is not
                 information availability — it is{' '}
                 <strong>information currency and profile specificity</strong>.
-                Forum advice may be six months out of date, written before the
-                arranged employment points were removed, written before the most
-                recent category-based draw changed which profiles IRCC is
+                Forum advice may be six months out of date, written before the 3
+                November 2026 changes to job-offer points, written before the
+                most recent category-based draw changed which profiles IRCC is
                 prioritising. It is written for generic profiles, not yours. And
                 there is no one reviewing your actual documents to catch the
                 discrepancy between your employment letter's duty description

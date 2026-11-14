@@ -281,6 +281,28 @@
 
 .asx-print-btn:hover { background: rgba(201,123,30,0.1); }
 
+/* Secondary form action ("+ Add a Canadian job"). Mobile first: full width
+   with a 44px touch target at 375px; shrinks to its content from 541px up. */
+.asx-btn-secondary {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin: 0.25rem 0 0.75rem;
+  padding: 0.5rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--prussian);
+  background: transparent;
+  border: 1px solid rgba(12,35,64,0.35);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.asx-btn-secondary:hover { background: rgba(12,35,64,0.06); }
+@media (min-width: 541px) {
+  .asx-btn-secondary { display: inline-block; width: auto; }
+}
+
 /* ── Result: score hero ──────────────────────────────────────── */
 .asx-result { background: var(--pearl); display: flow-root; }
 

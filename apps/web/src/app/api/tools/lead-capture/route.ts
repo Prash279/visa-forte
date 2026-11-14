@@ -1,3 +1,4 @@
+import { CRS_MAX_TOTAL } from '@/lib/crs-calculator';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { sendEmail } from '@/lib/email';
@@ -10,7 +11,7 @@ import {
 const Schema = z.object({
   name: z.string().min(1).max(100),
   email: z.string().email(),
-  crsScore: z.number().int().min(0).max(1200),
+  crsScore: z.number().int().min(0).max(CRS_MAX_TOTAL),
   eeCategory: z.string().min(1),
   toolName: z.string().min(1),
   wantsDrawAlert: z.boolean().optional().default(false),

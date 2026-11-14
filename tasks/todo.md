@@ -1,3 +1,169 @@
+## Session 2026-11-14 — Model refresh of 2026-11-13 closed out (quick pass, no evals)
+
+> Full record: `~/.claude/model-refresh/report-2026-11-13.md` and the last line of `ledger.jsonl` there.
+
+- [x] Instruction clean-up applied on 2026-11-13 (report items G1–G6, V1, V2, S1, V4, playbook tables,
+      scoped ownership line in `claude.md`).
+- [x] Anti-WordPress rule removed from `claude.md` — Prash no longer uses WordPress, so the rule guarded
+      against nothing. The stack is defined in `tech.md`.
+- [x] Global `~/.claude/CLAUDE.md` stack line corrected (Razorpay, not Stripe; no pinned Sonnet version).
+- [x] OpenRouter key (starts `sk-or-v1-6cab`, ends `05d6`) deleted at openrouter.ai by Prash on 2026-11-14.
+      The dead key is still in the pushed history of `Veritek-Digital/Amoghaa-Shyam`. The file is deleted
+      and git-ignored; pushed to the client repo as `8a90d99` on 2026-11-14.
+- [ ] Optional: ablation evals for the six behaviour rules listed in report section 5. Until then they stay.
+
+## Session 2026-11-12 — CRS engine updated for the 3 November 2026 Express Entry changes (branch `fix/crs-lmi-2026-11-03`)
+
+> Resolves the ⛔ HALT below (Decision 1): Prash chose **fix scoring first** and approved the plan in chat on
+> 2026-11-11/12 ("implement the plan", "Fix all of them in the same pass"). Every figure was read on
+> canada.ca on 2026-11-12 from eleven pages (CRS criteria, FSW, LMIA public policy, Help Centre 1200,
+> employer "Make a job offer", CEC, "Express Entry: Job offer", high-wage backgrounder, 2026 changes,
+> proof of funds, news release). Prash's rulings: **D1** overlapping high-wage jobs hold the tier for his
+> review; **D3** physician profiles flagged (skills only); **D4** FST offer from a new employer is flagged,
+> not refused; **D6** a valid job offer alone removes proof of funds (Job offer page wording).
+
+- [x] `crs-rules.json`: `meta` (source crs-criteria.html, lastVerified 2026-11-12, `crsMaxTotal` 1270);
+      `labourMarketIntegration` (high-wage 70/40/20, offer 100/70/50, max 150/140, 12 months); core max
+      570/530; second-language caps 24/22; first-language CLB 4 = 6; Section C pair caps 50 + certificate of
+      qualification 25/50; FSW work experience fixed (3 yrs = 11, 4-5 = 13), FSW age 43-46 added, FSW
+      arranged employment 10, FSW second language all-four rule; `highWageOccupations` (186 NOCs, 31/89/66,
+      checked code by code against the live page and Prash's copy).
+- [x] `crs-calculator.ts`: LMI factor (higher of work or offer, never both); `canadianJobs`,
+      `canadianJobsOverlap` (D1), `jobOfferNocCode`, `hasCertificateOfQualification`,
+      `spouseHasCanadianStudy`; `hasJobOffer` is now `'valid' | 'none'` (LMIA no longer matters); FSW
+      arranged employment + full adaptability (spouse language/study/work); FSW work counts Canadian years;
+      FST eligibility (was hard-coded false); CEC language by TEER; Section C pair caps; proof-of-funds
+      exemption (CEC or valid offer, D6); `maxTotal`; new high-wage job-offer scenario.
+- [x] UI: `/assessment` and `/admin/canvisa-pro` — Canadian jobs by NOC, job-offer NOC, certificate of
+      qualification, spouse study; "out of 1,270"; LMI explanation line; funds "not required" status;
+      FSW arranged employment row (max 10, was wrongly 5). Public copy on `/`, `/about`, `/visas`, FAQ
+      accordion no longer says job offers earn no CRS points.
+- [x] API validators (`assessment-lead`, `lead-capture`, `draw-alert`, lead schema) read `CRS_MAX_TOTAL`.
+- [x] `scripts/generate_ee_questionnaire.py` section 8.1 + regenerated questionnaire PDF.
+- [x] Tests: new `crs-2026-11-03.test.ts` (35 cases from canada.ca), 3 snapshots updated (diff = new fields,
+      rules hash, the Canadian-work scenario now +118 for Kishore, new +70 job-offer scenario, Harish FSW
+      adaptability +5 for spouse CLB 7/7/6/6). `npm test` 504 passed after the review fixes; typecheck and lint clean.
+- [x] Visual check at 375 / 768 / 1280 px on `/assessment` (no horizontal scroll).
+- [x] Independent review (fresh agent, canada.ca only): every rules number and all 186 high-wage codes match.
+      It found 2 bugs, both fixed with tests: (1) FSW adaptability gave your own 1+ year of Canadian work 5
+      points; the six-selection-factors page says 10 (`fsw.adaptabilityOwnCanadianWork`); (2) scenario deltas
+      ignored the Section C pair caps — every scenario now re-scores the changed profile with
+      `scoreProfile()`, so Kishore's Canadian-work scenario is +93 (was +118) and Harish's CLB 10 scenario is
+      +69 (was +19, it now includes the transferability gain). 504 tests pass.
+- [ ] Known limits (flagged, not built): a valid job offer with no NOC entered earns 0 CRS job-offer points
+      while FSW arranged employment uses the primary NOC's TEER; FST checks total years, not "in the trade
+      within the last 5 years" (the eligibility reason tells the consultant to confirm it).
+- [ ] **Prashant Proof (browser) — pending Prash:** (1) Go to /assessment, enter Canadian work 2 years, add a
+      job with NOC 21231 and 24 months, choose "Yes — valid job offer", enter NOC 20012, submit: the score
+      card says "out of 1,270", the breakdown says "Includes 100 points for a job offer in a high-wage
+      occupation (level 1)" and Settlement Funds says "Not required with a valid job offer". (2) In
+      /admin/canvisa-pro, the FSW grid shows "Arranged Employment" out of 10.
+- [ ] Not yet built: `/tools/crs-modeller` has no high-wage or job-offer inputs (it scores work-length only,
+      which is still correct for profiles without high-wage work or an offer).
+
+## Session 2026-11-11 — PLAN: Visa Forte becomes a free educational site (APPROVED 2026-11-11, not started)
+
+> Prash decided to remove every commercial element and make the site a completely free educational
+> resource. Plan agreed through a grilling session. **No code until Prash approves the copy deck (Step 2).**
+> Consulting continues OFF the site (by email); `/admin` stays as Prash's private workspace.
+
+### Facts found during planning (verified 2026-11-10, read-only)
+
+- Production DB is missing tables from migrations `0019` (`draw_alert_subscribers`, `settings`,
+  `tool_events`) and `0020` (`ita_countdown_orders`). Migrations here are applied by hand — the drizzle
+  journal in prod is empty; `0021` and `0022` were applied, `0019`/`0020` skipped.
+- Consequence 1: every draw-alert opt-in was silently discarded (lead-capture catches + logs the error).
+- Consequence 2: every PAID ITA Countdown order charged the card, then failed to save and showed
+  "Payment received but your checklist could not be saved." Buyers may be owed refunds.
+- Nothing ever sent draw alerts — no sender existed. `/api/tools/draw-alert` has no callers.
+- Refusal Analyser is deterministic (no Claude API call) — free costs nothing per use.
+- `/login` is also the only way into `/admin` → must stay. Better Auth's sign-up API stays open unless
+  `disableSignUp` is set.
+- Live row counts: 5 users, 5 clients, 8 client documents, 2 messages, 2 leads, 1 pending booking,
+  4 availability rows, 6 CanDoc reviews.
+
+### ✅ RESOLVED 2026-11-12 (was ⛔ HALT, CLAUDE.md halt-condition 2) — see Session 2026-11-12 above
+
+- canada.ca CRS page (`.../express-entry/check-score/crs-criteria.html`, modified **2026-11-03**) says that as
+  of Nov 3, 2026 IRCC changed how points are awarded for Canadian work experience and job offers: LMIA
+  requirements removed for all Express Entry job offers, and a new **Labour Market Integration factor**
+  (work-length points + 70 high-wage-occupation points, OR a high-wage job offer, not both; max 140 with
+  spouse / 150 without). `crs-rules.json` says `lastVerified 2026-05-09` and models only work-length points.
+- IRCC also said invitation rounds would pause while points are recalculated (up to ~2 weeks) — relevant to
+  draw data and to PR 2.
+- Full grid NOT yet diffed against `crs-rules.json`. Prash decides (copy deck Decision 1): fix scoring first
+  (recommended) / ship with a banner / pull CRS tools from the front page. No scoring change without his say-so.
+
+### Other findings 2026-11-11
+
+- Privacy policy omits Anthropic (NOC Verifier sends typed duties to Claude), Sentry and Cloudflare
+  analytics; says 3-year retention but the data-retention cron deletes at 2 years (730 days). Both fixed in the
+  copy deck's policy rewrite pending Prash's retention decision (Decision 4).
+
+### PR 1 — Free site + working email list (new branch from latest `origin/main`)
+
+- [ ] **Step 0** — Commit this plan (Lesson: plans are committed before implementation).
+- [x] **Step 1** — DRAFTED 2026-11-11: copy deck `docs/copy/free-site-copy.md`: page-by-page before/after for home,
+      about, contact, nav, footer, tool CTAs, email consent text, unsubscribe page, privacy-policy
+      rewrite. Any IRCC figure → canada.ca citation or cut. Disclaimer = Section 17 verbatim, minus the
+      footer's extra marketing sentence.
+- [ ] **Step 2** — ⛔ **Prash approves the copy deck.** No code before this.
+- [ ] **Remove:** `/services`, `/booking`, `/intake`, `/refund-policy`, `/signup`, `/portal`,
+      `/activate` + their API routes; `lib/pricing.ts`; all Razorpay create-order/verify routes
+      (booking, refusal analyser, ITA countdown, premium resources); `premium-download-token`;
+      `PremiumBuyButton`; `razorpay` package; Razorpay CSP allowlist entries; reminders cron (vercel.json);
+      dead code + schema entries for retired `0019`/`0020` (`draw-alert` route, `toolEvents`, `settings`,
+      `drawAlertSubscribers`, `itaCountdownOrders`) — retired, never applied.
+- [ ] **Remove sales CTAs:** nav "Request Triage" mailto, home "Get Reviewed", testimonials, Premium
+      Starter Kit offer, About/Visas triage mailto + `/intake` links, Assessment "Book · From ₹4,999".
+- [ ] **Unlock:** Refusal Analyser (no gate); ITA Countdown → one free tier, on-screen + print, no
+      DB/email of the checklist, drop "doc review call"; 3 premium PDFs `private/downloads` →
+      `public/downloads`, join the free grid.
+- [ ] **Auth (halt-zone, approved):** keep `/login` admin-only, noindex, unlinked; `disableSignUp: true`.
+- [ ] **Admin trim:** remove availability editor, BookingCalendar, PromoteButton, DeletionRequestsPanel.
+      Keep CRM (read-only), leads, CanDoc + emailed report links, CanVisa Pro, monitoring.
+      **No table drops.** Data-retention cron stays.
+- [ ] **Email list (schema, approved):** one additive migration → `subscribers` (email unique, name,
+      source tool, list_consent + consented_at, unsubscribe_token, unsubscribed_at, optional CRS
+      score/category only with consent). Optional "email me this" + separate unticked list checkbox on
+      CRS Modeller, Assessment, ITA Countdown. Rate-limit the send endpoint via `tool_rate_limits`.
+      `/unsubscribe` one-click page. Admin "Subscribers" panel: total, by-tool, CSV export (excludes
+      unsubscribed). Prash applies migration in Supabase; verify table exists in prod before merge.
+- [ ] **Identity/SEO:** public name "Visa Forte" (tagline unchanged; CanDoc templates keep "Visa Forte
+      Consulting"); JSON-LD → EducationalOrganization + WebSite, all tool Offers price 0; 301s in
+      `next.config.ts`: /services→/resources, /booking,/intake→/assessment, /refund-policy→/privacy-policy,
+      /signup,/portal,/activate→/; remove from sitemap.
+- [ ] **Homepage:** same design; sales sections → teaching sections + free tools grid + resources
+      strip; uncited stats (e.g. "90%") cut.
+- [ ] **Docs:** ADR for the non-commercial decision; update spec.md, PRODUCT.md, CONTEXT.md; grep for
+      "Neon" per Lesson 2.
+- [ ] **Verify:** delete tests of removed routes; tests for subscribe/unsubscribe/rate limit; `npm test`
+      (not bare vitest); 375/768/1280 screenshots; browser steps for Prash; PR.
+
+### PR 2 — Draw-alert sender (after PR 1 merges)
+
+> **Corrected 2026-11-11:** PR #21 (merged 2026-10-24) retired Resend. ALL site email now goes through ONE
+> Google Workspace mailbox (`SMTP_USER`) via `sendEmail()` in `apps/web/src/lib/email.ts`. From address is
+> always that mailbox; `sendEmail()` has no custom-header support (needed for `List-Unsubscribe`).
+
+- [ ] On each new EE draw from the existing draw-history pipeline: one email to all list-consented,
+      not-unsubscribed subscribers — date, type, invitations, cutoff, cited to canada.ca; one personal
+      line vs saved CRS score if present. One-click unsubscribe link + `List-Unsubscribe` headers
+      (extend `sendEmail()`). Test send to Prash first.
+- [ ] ⛔ Blocking gate: Prash chooses the bulk-sending route (copy deck Decision 6): dedicated second
+      Workspace mailbox / email-list service / stay on current mailbox. Google Workspace daily-send limits
+      and bulk-sender rules are `[VERIFY]` — not yet checked. A list must not share a mailbox with admin
+      and client email unless Prash accepts that throttling would also block those (Lesson 4).
+
+### Prash actions
+
+- [ ] Check Razorpay dashboard for ITA Countdown (RT-3) payments → refund affected buyers.
+- [ ] Email real portal clients that the portal is closing.
+- [ ] After PR 1 merge: delete Razorpay keys from Vercel env.
+- [ ] Before PR 2: decide the bulk-sending route (copy deck Decision 6).
+
+---
+
 ## Session 2026-08-19 — canada.ca monitor: two independent root causes fixed, plus a repricing pass and a live production bug (branch `feat/noc-duties-search`, merged to `main`)
 
 > Prash flagged: the scheduled "canada.ca monitor" workflow had failed. Investigation found **two

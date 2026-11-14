@@ -866,6 +866,96 @@ export default function AssessmentTool() {
               </div>
             </div>
 
+            {/* Canadian jobs by NOC — since 3 November 2026, 12+ months of
+                Canadian work in a high-wage occupation adds 20, 40 or 70 CRS
+                points. The NOC decides the level, never the person's salary. */}
+            {profile.canadianWorkExperienceYears >= 1 && (
+              <div className="asx-field" style={{ marginTop: '1rem' }}>
+                <label className="asx-label">
+                  Your Canadian jobs (NOC code and full-time months)
+                </label>
+                {(profile.canadianJobs ?? []).map((job, i) => (
+                  <div
+                    className="asx-grid-2"
+                    key={i}
+                    style={{ marginBottom: '0.75rem' }}
+                  >
+                    <input
+                      className="asx-input"
+                      inputMode="numeric"
+                      maxLength={5}
+                      placeholder="NOC code, e.g. 21231"
+                      aria-label={`Canadian job ${i + 1} NOC code`}
+                      value={job.nocCode}
+                      onChange={(e) =>
+                        set(
+                          'canadianJobs',
+                          (profile.canadianJobs ?? []).map((j, k) =>
+                            k === i
+                              ? {
+                                  ...j,
+                                  nocCode: e.target.value.replace(/\D/g, ''),
+                                }
+                              : j,
+                          ),
+                        )
+                      }
+                    />
+                    <input
+                      className="asx-input"
+                      type="number"
+                      min={0}
+                      placeholder="Months (30 h/week)"
+                      aria-label={`Canadian job ${i + 1} full-time months`}
+                      value={job.months || ''}
+                      onChange={(e) =>
+                        set(
+                          'canadianJobs',
+                          (profile.canadianJobs ?? []).map((j, k) =>
+                            k === i
+                              ? { ...j, months: parseInt(e.target.value) || 0 }
+                              : j,
+                          ),
+                        )
+                      }
+                    />
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className="asx-btn-secondary"
+                  onClick={() =>
+                    set('canadianJobs', [
+                      ...(profile.canadianJobs ?? []),
+                      { nocCode: '', months: 0 },
+                    ])
+                  }
+                >
+                  + Add a Canadian job
+                </button>
+                {(profile.canadianJobs ?? []).length > 1 && (
+                  <label className="asx-checkbox-row">
+                    <input
+                      type="checkbox"
+                      checked={profile.canadianJobsOverlap ?? false}
+                      onChange={(e) =>
+                        set('canadianJobsOverlap', e.target.checked)
+                      }
+                    />
+                    <span className="asx-checkbox-label">
+                      I held two of these jobs at the same time
+                    </span>
+                  </label>
+                )}
+                <span className="asx-hint">
+                  Since 3 November 2026, 12 months or more of Canadian work in a
+                  high-wage occupation adds 20, 40 or 70 CRS points. Count
+                  part-time work at 30 hours a week. Jobs held at the same time
+                  are reviewed by our consultant before the bonus is counted.
+                </span>
+              </div>
+            )}
+
             {/* Section 6: Partner / Spouse */}
             <p className="asx-section-label">6 — Partner / Spouse</p>
             <div className="asx-field" style={{ marginBottom: '1rem' }}>
@@ -1032,6 +1122,19 @@ export default function AssessmentTool() {
                     />
                   </div>
                 </div>
+                <label className="asx-checkbox-row">
+                  <input
+                    type="checkbox"
+                    checked={profile.spouseHasCanadianStudy ?? false}
+                    onChange={(e) =>
+                      set('spouseHasCanadianStudy', e.target.checked)
+                    }
+                  />
+                  <span className="asx-checkbox-label">
+                    Partner studied full-time in Canada for 2+ years — for FSW
+                    adaptability
+                  </span>
+                </label>
 
                 <p
                   className="asx-section-label"
@@ -1206,6 +1309,19 @@ export default function AssessmentTool() {
               <label className="asx-checkbox-row">
                 <input
                   type="checkbox"
+                  checked={profile.hasCertificateOfQualification ?? false}
+                  onChange={(e) =>
+                    set('hasCertificateOfQualification', e.target.checked)
+                  }
+                />
+                <span className="asx-checkbox-label">
+                  Has a Canadian certificate of qualification in a skilled trade
+                  (for FST and up to 50 CRS points)
+                </span>
+              </label>
+              <label className="asx-checkbox-row">
+                <input
+                  type="checkbox"
                   checked={profile.hasSiblingInCanada ?? false}
                   onChange={(e) => set('hasSiblingInCanada', e.target.checked)}
                 />
@@ -1235,7 +1351,8 @@ export default function AssessmentTool() {
                   1–2 year credential (+15 CRS)
                 </option>
                 <option value="three_year_plus">
-                  3 years or longer (+30 CRS)
+                  3+ years, or a master&apos;s, professional or doctoral degree
+                  (+30 CRS)
                 </option>
               </select>
               <span className="asx-hint">
@@ -1260,25 +1377,31 @@ export default function AssessmentTool() {
                   <input
                     type="radio"
                     name="jobOffer"
-                    checked={profile.hasJobOffer === 'lmia'}
-                    onChange={() => set('hasJobOffer', 'lmia')}
+                    checked={profile.hasJobOffer === 'valid'}
+                    onChange={() => set('hasJobOffer', 'valid')}
                   />
-                  <span>Yes — supported by an LMIA</span>
-                </label>
-                <label className="asx-radio-row">
-                  <input
-                    type="radio"
-                    name="jobOffer"
-                    checked={profile.hasJobOffer === 'exempt'}
-                    onChange={() => set('hasJobOffer', 'exempt')}
-                  />
-                  <span>
-                    Yes — LMIA-exempt (e.g. intra-company transfer, CUSMA/USMCA)
-                  </span>
+                  <span>Yes — valid job offer (no LMIA needed)</span>
                 </label>
               </div>
+              {profile.hasJobOffer === 'valid' && (
+                <input
+                  className="asx-input"
+                  inputMode="numeric"
+                  maxLength={5}
+                  placeholder="NOC code of the offered job, e.g. 20012"
+                  aria-label="NOC code of the offered job"
+                  style={{ marginTop: '0.5rem' }}
+                  value={profile.jobOfferNocCode ?? ''}
+                  onChange={(e) =>
+                    set('jobOfferNocCode', e.target.value.replace(/\D/g, ''))
+                  }
+                />
+              )}
               <span className="asx-hint">
-                Counts toward FSW 67-point adaptability grid (+5 pts)
+                Since 3 November 2026 no LMIA is needed. An offer in a high-wage
+                occupation earns 50, 70 or 100 CRS points (instead of, not on
+                top of, Canadian work points). Any valid offer adds FSW points
+                and removes the need to show settlement funds.
               </span>
             </div>
 
@@ -1494,7 +1617,9 @@ export default function AssessmentTool() {
             <div className="asx-score-block" data-level={scoreColor}>
               <p className="asx-score-label">Your CRS Score</p>
               <p className="asx-score-value">{total}</p>
-              <p className="asx-score-max">out of 1200</p>
+              <p className="asx-score-max">
+                out of {result.maxTotal.toLocaleString()}
+              </p>
             </div>
 
             <div className="asx-score-meta">
@@ -1747,8 +1872,8 @@ export default function AssessmentTool() {
           <div className="asx-card">
             <h2 className="asx-card-title">Score Breakdown</h2>
             <p className="asx-card-sub">
-              CRS points across all four factors (post-March 2025 rules — job
-              offer points removed).
+              CRS points across all four factors (rules in force since 3
+              November 2026).
             </p>
             <div className="asx-breakdown-grid">
               <div className="asx-breakdown-item">
@@ -1768,6 +1893,20 @@ export default function AssessmentTool() {
                 <span className="asx-bd-total-value">{total}</span>
               </div>
             </div>
+
+            {bd.canadianExpPoints > 0 && (
+              <p className="asx-card-sub">
+                {bd.lmi.option === 'offer'
+                  ? `Includes ${bd.lmi.jobOfferPoints} points for a job offer in a high-wage occupation (level ${bd.lmi.jobOfferLevel}).`
+                  : `Includes ${bd.lmi.workLengthPoints} points for Canadian work${bd.lmi.highWagePoints > 0 ? ` and ${bd.lmi.highWagePoints} for high-wage work (level ${bd.lmi.highWageLevel})` : ''}.`}
+              </p>
+            )}
+            {bd.lmi.highWageHeldForReview && (
+              <p className="asx-card-sub">
+                You held high-wage jobs at the same time. Our consultant reviews
+                these before the high-wage bonus is counted.
+              </p>
+            )}
 
             {result.ecaPending && (
               <p className="asx-card-sub asx-eca-caveat-light">
@@ -1826,6 +1965,11 @@ export default function AssessmentTool() {
                 },
                 { factor: 'Age', value: `${fsw.age}/12`, pass: fsw.age >= 10 },
                 {
+                  factor: 'Arranged Employment',
+                  value: `${fsw.arrangedEmployment}/10`,
+                  pass: fsw.arrangedEmployment > 0,
+                },
+                {
                   factor: 'Adaptability',
                   value: `${fsw.adaptability}/10`,
                   pass: fsw.adaptability > 0,
@@ -1882,9 +2026,11 @@ export default function AssessmentTool() {
             <div
               className={`asx-funds-status ${result.proofOfFundsSufficient ? 'ok' : 'fail'}`}
             >
-              {result.proofOfFundsSufficient
-                ? '✓ Funds sufficient'
-                : '✗ Below required threshold — must address before applying'}
+              {result.proofOfFundsExempt
+                ? `✓ ${result.proofOfFundsExemptReason}`
+                : result.proofOfFundsSufficient
+                  ? '✓ Funds sufficient'
+                  : '✗ Below required threshold — must address before applying'}
             </div>
           </div>
 
